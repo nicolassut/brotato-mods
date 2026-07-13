@@ -1,0 +1,17 @@
+{
+	"name": "HelloBrotato",
+	"namespace": "nicolassut",
+	"version_number": "1.0.0",
+	"description": "Starter mod scaffold. Adds a marker to the main menu to confirm the mod pipeline works, as a base for real tweaks.",
+	"website_url": "https://github.com/nicolassut/brotato-mods",
+	"dependencies": [],
+	"extra": {
+		"godot": {
+			"incompatibilities": [],
+			"authors": ["nicolassut"],
+			"compatible_mod_loader_version": "6.x",
+			"compatible_game_version": ["1.1.15.4"],
+			"config_defaults": {}
+		}
+	}
+}
