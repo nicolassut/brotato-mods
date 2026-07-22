@@ -1,0 +1,19 @@
+{
+	"name": "NewItems",
+	"namespace": "nicolassut",
+	"version_number": "1.0.0",
+	"description": "Adds 10 custom items and a test character that spawns with all of them, to preview the new item designs and icons in-game.",
+	"website_url": "https://github.com/nicolassut/brotato-mods",
+	"dependencies": [
+		"Darkly77-ContentLoader"
+	],
+	"extra": {
+		"godot": {
+			"incompatibilities": [],
+			"authors": ["nicolassut"],
+			"compatible_mod_loader_version": "6.x",
+			"compatible_game_version": ["1.1.15.4"],
+			"config_defaults": {}
+		}
+	}
+}

@@ -1,0 +1,146 @@
+<title>Gourmet — Character Status Sheet</title>
+<style>
+:root{
+  --bg:#282420; --panel:#332e28; --panel2:#3c362e; --line:#4a423a; --ink:#f2ede4;
+  --dim:#b5aa9c; --green:#8dc63f; --blue:#5fb4d9; --amber:#e0a93f; --red:#e05a52;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+  font:15px/1.5 -apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:880px;margin:0 auto;padding:28px 20px 80px}
+h1{font-size:24px;font-weight:900;margin:0 0 4px}
+h1 em{color:var(--green);font-style:normal}
+.sub{color:var(--dim);margin:0 0 18px;font-size:13px}
+.legend{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 26px}
+.chip{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;
+  border-radius:999px;padding:3px 10px;border:2px solid}
+.c-live{color:var(--green);border-color:var(--green)}
+.c-built{color:var(--blue);border-color:var(--blue)}
+.c-part{color:var(--amber);border-color:var(--amber)}
+.c-miss{color:var(--red);border-color:var(--red)}
+.tally{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 30px}
+.tal{background:var(--panel);border:3px solid #1d1a16;border-radius:12px;padding:12px 14px;text-align:center}
+.tal .n{font-size:26px;font-weight:900;font-variant-numeric:tabular-nums}
+.tal .k{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--dim)}
+.char{background:var(--panel);border:3px solid #1d1a16;border-radius:14px;
+  padding:16px 18px;margin:0 0 16px}
+.char h2{margin:0 0 2px;font-size:18px;font-weight:900}
+.char .meta{color:var(--dim);font-size:12.5px;margin:0 0 10px}
+ul.spec{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+ul.spec li{background:var(--panel2);border-radius:9px;padding:7px 11px;display:flex;
+  gap:10px;align-items:baseline}
+ul.spec .chip{flex:none;font-size:10px;padding:2px 8px}
+ul.spec .note{color:var(--dim);font-size:12.5px}
+.next{background:#8dc63f14;border:2px solid var(--green);border-radius:12px;padding:12px 16px;margin:26px 0 0}
+.next h3{margin:0 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:1.2px;color:var(--green)}
+</style>
+<div class="wrap">
+<h1>BROTATO: GOURMET — <em>CHARACTER STATUS</em></h1>
+<p class="sub">Spec source: asset-dev/characters/CHARACTER_SPECS.md (law). Updated 2026-07-20 after the character-mechanics completion pass.</p>
+<div class="legend">
+  <span class="chip c-live">Live · verified in game</span>
+  <span class="chip c-built">Built · needs playtest</span>
+  <span class="chip c-part">Partial</span>
+  <span class="chip c-miss">Missing</span>
+</div>
+<div class="tally">
+  <div class="tal"><div class="n" style="color:var(--green)">23</div><div class="k">live</div></div>
+  <div class="tal"><div class="n" style="color:var(--blue)">22</div><div class="k">built</div></div>
+  <div class="tal"><div class="n" style="color:var(--amber)">2</div><div class="k">partial</div></div>
+  <div class="tal"><div class="n" style="color:var(--red)">2</div><div class="k">missing</div></div>
+</div>
+
+<div class="char"><h2>#1 The Gourmet</h2><p class="meta">weapon pool: knife · chopper · torch · stick</p><ul class="spec">
+<li><span class="chip c-built">Built</span>All fruit becomes food for him <span class="note">every fruit drop converts to a random real food (Garden included)</span></li>
+<li><span class="chip c-live">Live</span>+1 permanent Appetite per 10 foods eaten <span class="note">card shows "Appetite gained: N"</span></li>
+<li><span class="chip c-live">Live</span>Cannot heal from consumables · HP Regen mods −50% · −5% Speed</li>
+<li><span class="chip c-miss">Missing</span>Starts with Ladle <span class="note">Culinary weapons milestone</span></li>
+</ul></div>
+
+<div class="char"><h2>#2 The Picky Eater</h2><p class="meta">weapon pool: pistol · slingshot · taser · crossbow</p><ul class="spec">
+<li><span class="chip c-built">Built</span>One spawner active at a time; press an owned spawner in the shop to choose <span class="note">new selection UI; first spawner bought auto-selects</span></li>
+<li><span class="chip c-built">Built</span>Active spawner's food +100% stronger</li>
+<li><span class="chip c-built">Built</span>−15% Damage while no food buff is active</li>
+<li><span class="chip c-built">Built</span>Food spawner items −25% in the shop <span class="note">retargeted from the food tag to actual spawners</span></li>
+<li><span class="chip c-live">Live</span>Luck modifications −50%</li>
+</ul></div>
+
+<div class="char"><h2>#3 The Dishwasher</h2><p class="meta">weapon pool: wrench · plank · stick · hand</p><ul class="spec">
+<li><span class="chip c-built">Built</span>Food on the ground expires 50% faster <span class="note">base expiry 15s → 7.5s</span></li>
+<li><span class="chip c-built">Built</span>Leftovers generation doubled <span class="note">2 per expiry with Doggy Bag</span></li>
+<li><span class="chip c-built">Built</span>Expired food refunds 1 material</li>
+<li><span class="chip c-built">Built</span>Starts with Doggy Bag <span class="note">wired this round</span></li>
+<li><span class="chip c-live">Live</span>−1 weapon slot · −10% Damage · items +5% · Cooler Box banned</li>
+</ul></div>
+
+<div class="char"><h2>#4 The Competitive Eater</h2><p class="meta">weapon pool: fist · hand · claw · plank</p><ul class="spec">
+<li><span class="chip c-built">Built</span>Food buffs stack twice as much, durations halved <span class="note">extensions halve too; in the engine, untested</span></li>
+<li><span class="chip c-live">Live</span>Max HP modifications −30% · −10% Dodge</li>
+</ul></div>
+
+<div class="char"><h2>#5 The Butcher</h2><p class="meta">weapon pool: chopper · knife · hatchet · dagger</p><ul class="spec">
+<li><span class="chip c-part">Partial</span>Everything fruit becomes steak <span class="note">raw-steak placeholder sprite now replaces the tint; real art + tree/Garden reskins pending</span></li>
+<li><span class="chip c-live">Live</span>+1% Damage per consumable eaten this wave <span class="note">counts foods too</span></li>
+<li><span class="chip c-live">Live</span>−15% Speed · Speed mods −50% · −20% AtkSpd · AtkSpd mods −25% · Ranged mods −100%</li>
+<li><span class="chip c-miss">Missing</span>Starts with Cleaver <span class="note">Culinary weapons milestone</span></li>
+</ul></div>
+
+<div class="char"><h2>#6 The Zombie</h2><p class="meta">weapon pool: fist · hand · claw · rock</p><ul class="spec">
+<li><span class="chip c-live">Live</span>Cannot heal by any means · Damage mods +50% · −20% Attack Speed</li>
+<li><span class="chip c-live">Live</span>Dodge capped at 10% and cap-raisers 50% less effective</li>
+<li><span class="chip c-built">Built</span>Starts with Mosquito Jar <span class="note">wired this round</span></li>
+</ul></div>
+
+<div class="char"><h2>#7 The Minimalist</h2><p class="meta">weapon pool: fist only</p><ul class="spec">
+<li><span class="chip c-live">Live</span>Starts with nothing · 6 item slots · recycles items like weapons</li>
+<li><span class="chip c-live">Live</span>+8% all stats per item held</li>
+<li><span class="chip c-live">Live</span>+12% per item when every item is max tier <span class="note">as the approved tier-scaled variant (+2/+4/+6/+8, ×1.5 at all-max)</span></li>
+</ul></div>
+
+<div class="char"><h2>#8 The Mime ⚓</h2><p class="meta">weapon pool: knife · hand · scissors · fighting stick</p><ul class="spec">
+<li><span class="chip c-live">Live</span>Every shop contains one Magic Mirror · mirrors −50% <span class="note">verified in your playtest log (33g purchase)</span></li>
+<li><span class="chip c-live">Live</span>Mirrors work on weapons · rerolls +50% · enemies +15% HP</li>
+<li><span class="chip c-live">Live</span>Mirrors refuse unique items <span class="note">guaranteed by the max_nb duplication guard</span></li>
+<li><span class="chip c-part">Partial</span>Auto-merge-to-fit edge cases <span class="note">needs a dedicated verify pass</span></li>
+<li><span class="chip c-built">Built</span>Enemies +15% attack speed <span class="note">new enemy_attack_speed key shrinks attack cooldowns</span></li>
+</ul></div>
+
+<div class="char"><h2>#9 The Tourist</h2><p class="meta">weapon pool: pistol · slingshot · smg · revolver</p><ul class="spec">
+<li><span class="chip c-live">Live</span>+10% all stat modifications per Danger level (once per run)</li>
+<li><span class="chip c-live">Live</span>−20% XP Gain · XP mods −50% · enemies +5% HP per Danger</li>
+<li><span class="chip c-built">Built</span>+5% enemy attack speed per Danger <span class="note">rides the new enemy_attack_speed key</span></li>
+<li><span class="chip c-built">Built</span>Starts with Magnifying Glass <span class="note">wired this round</span></li>
+</ul></div>
+
+<div class="char"><h2>#10 The Ruminant</h2><p class="meta">weapon pool: stick · plank · rock · cactus mace</p><ul class="spec">
+<li><span class="chip c-built">Built</span>Every food buff triggers again at 50% strength 5s later <span class="note">Mint exempt per balance law</span></li>
+<li><span class="chip c-live">Live</span>−20% Speed · Speed mods −25% · −2 Armor</li>
+<li><span class="chip c-built">Built</span>Starts with Chicken Soup <span class="note">wired this round</span></li>
+</ul></div>
+
+<div class="char"><h2>#11 The Snail ("Slug")</h2><p class="meta">weapon pool: spiky shield · rock · plank · stick</p><ul class="spec">
+<li><span class="chip c-built">Built</span>Slime trail slowing enemies 30% <span class="note">fading green trail (2.5s) slows enemies that touch it</span></li>
+<li><span class="chip c-live">Live</span>+6 Armor · +20 Max HP · Speed hard-capped at −20% · Dodge mods −100%</li>
+<li><span class="chip c-built">Built</span>Starts with Fondue Set <span class="note">wired this round</span></li>
+<li><span class="chip c-built">Built</span>Escargot grants +1 extra Armor when he eats it</li>
+</ul></div>
+
+<div class="char"><h2>#12 The Blacksmith</h2><p class="meta">weapon pool: wrench · hatchet · screwdriver · rock</p><ul class="spec">
+<li><span class="chip c-built">Built</span>Class-based weapon forging <span class="note">combine two same-tier shared-class weapons → random unlocked next-tier weapon of that class; identical pairs still combine normally</span></li>
+<li><span class="chip c-live">Live</span>Weapon prices +25% · Elemental mods −50% · −5% Speed · starts with Anvil</li>
+</ul></div>
+
+<div class="char"><h2>#13 The Juggler</h2><p class="meta">weapon pool: knife · dagger · shuriken · scissors</p><ul class="spec">
+<li><span class="chip c-live">Live</span>One weapon attacks at a time cycling left→right, active weapon +250% faster</li>
+<li><span class="chip c-live">Live</span>−15% Damage · Armor mods −50% · starts with nothing</li>
+</ul></div>
+
+<div class="char"><h2>#14 The Mole</h2><p class="meta">weapon pool: screwdriver · claw · dagger · hand</p><ul class="spec">
+<li><span class="chip c-built">Built</span>Fog of war every wave <span class="note">forces the engine fog wave whenever a Mole is in the run</span></li>
+<li><span class="chip c-live">Live</span>+30% Damage · +10 Luck · +15% XP · Melee mods +50% · −50% Range · Ranged mods −25%</li>
+<li><span class="chip c-built">Built</span>Starts with Pocket Sand <span class="note">wired this round</span></li>
+</ul></div>
+
+<div class="next"><h3>What remains</h3>
+Everything mechanical is now in the game. Outstanding: the Culinary weapons milestone (unlocks Ladle and Cleaver starting weapons) · Butcher's real steak/tree/Garden art (art pass) · Mime auto-merge edge cases (verify pass) · and playtesting all 22 built-but-untested lines — the tracker logs every one of them.</div>
+</div>
