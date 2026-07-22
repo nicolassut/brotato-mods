@@ -1,3 +1,5 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Brotato: Gourmet Codex</title>
 <style>
 :root{
@@ -97,19 +99,32 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
 .st .v{font-weight:800;font-size:16px;font-variant-numeric:tabular-nums}
 .dsec{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dim);margin:16px 0 7px}
 @media (max-width:760px){
+  html,body{font-size:15px}
   .app{display:block}
-  .rail{position:sticky;top:0;z-index:20;width:auto;height:auto;border-right:none;border-bottom:3px solid #1d1a16;
-    display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:10px 12px}
-  .navgrp{margin:0;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-  #navSources,#navClasses{flex-direction:row!important;flex-wrap:wrap}
-  .navh{display:none}.logo{font-size:15px}.sub{display:none}
-  .navbtn{padding:6px 10px}.navbtn .n{display:none}
-  .main{padding:12px 12px 60px}
+  .rail{position:sticky;top:0;z-index:20;width:auto;height:auto;border-right:none;
+    border-bottom:3px solid #1d1a16;display:block;padding:9px 10px 8px}
+  .logo{font-size:16px;margin:0 0 8px}.sub{display:none}.navh{display:none}
+  .navgrp{margin:0 0 7px}
+  /* sections become a swipeable tab strip */
+  #navSections{display:flex;gap:7px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none}
+  #navSections::-webkit-scrollbar{display:none}
+  #navSections .navbtn{flex:0 0 auto}
+  #navSources,#navClasses{flex-direction:row!important;flex-wrap:wrap;gap:6px}
+  .navbtn{padding:9px 15px;font-size:14px;min-height:42px}.navbtn .n{display:none}
+  .chip{padding:8px 14px;font-size:13.5px}
+  .main{padding:12px 12px 72px}
   .top{flex-direction:column;align-items:stretch;gap:9px}
-  .search{min-width:0;width:100%}
+  .search{min-width:0;width:100%;padding:12px 14px;font-size:16px}
   .srcgrp{flex-wrap:wrap}
   .grid{grid-template-columns:1fr;gap:9px}
-  .det{width:100vw;max-width:100vw;left:0;right:0;border-radius:0}
+  .card{min-height:66px;padding:11px 12px}
+  .card img,.card .noicon{width:46px;height:46px}
+  .card .cn{font-size:16px}.card .cm{font-size:13px}
+  .det{width:100vw;max-width:100vw;left:0;right:0;border-radius:0;padding:20px 15px 44px}
+  .dhead img{width:56px;height:56px}.dhead h3{font-size:20px}
+  .fx li{font-size:15px}
+  .stats{grid-template-columns:1fr 1fr}
 }
 </style>
 
