@@ -4,7 +4,9 @@ import json, os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = json.load(open(f"{HERE}/codex.json"))
-OUT  = "/private/tmp/claude-501/-Users-nicolassutcliffe/5eeaab96-3e6e-43a4-a19c-c6809e254d53/scratchpad/gourmet_codex.html"
+REPO = "/Users/nicolassutcliffe/brotato-mods"
+OUT  = f"{REPO}/gourmet_codex.html"          # artifact source (published to claude.ai)
+INDEX = f"{REPO}/index.html"                 # Vercel serves this at the site root
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 
 MOD_CHAR_ORDER = ["Gourmet","Picky Eater","Dishwasher","Competitive Eater","Butcher","Zombie",
@@ -308,4 +310,5 @@ render();
 
 html = HTML.replace("__CODEX__", json.dumps(DATA)).replace("__MOD_ORDER__", json.dumps(MOD_CHAR_ORDER))
 open(OUT, "w").write(html)
-print("wrote", OUT, round(os.path.getsize(OUT)/1024), "KB")
+open(INDEX, "w").write(html)   # keep the Vercel deploy copy in sync with every rebuild
+print("wrote", OUT, "+ index.html", round(os.path.getsize(OUT)/1024), "KB")
