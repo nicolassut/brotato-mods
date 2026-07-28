@@ -1,0 +1,511 @@
+[gd_scene load_steps=27 format=2]
+
+[ext_resource path="res://pause.gd" type="Script" id=1]
+[ext_resource path="res://ui/splash/splash_anim_godot.png" type="Texture" id=2]
+[ext_resource path="res://ui/splash/splash_anim_blobfisheyes_0.png" type="Texture" id=3]
+[ext_resource path="res://ui/splash/splash_anim_blobfishtitle_0.png" type="Texture" id=7]
+[ext_resource path="res://ui/splash/splash_anim_blobfish_0.png" type="Texture" id=8]
+[ext_resource path="res://ui/splash/splash_anim_blobfish_3.png" type="Texture" id=9]
+[ext_resource path="res://ui/splash/splash_anim_evilboy_0008.png" type="Texture" id=10]
+[ext_resource path="res://ui/splash/splash_anim_eetitle_0006.png" type="Texture" id=11]
+[ext_resource path="res://ui/splash/splash_anim_evilboy_0003.png" type="Texture" id=12]
+[ext_resource path="res://ui/splash/splash_anim_evilboy_0007.png" type="Texture" id=13]
+[ext_resource path="res://ui/splash/splash_anim_evilboy_0001.png" type="Texture" id=14]
+[ext_resource path="res://ui/splash/splash_anim_eetitle_0001.png" type="Texture" id=15]
+[ext_resource path="res://ui/splash/splash_anim_evilboy_0002.png" type="Texture" id=16]
+[ext_resource path="res://ui/splash/splash_anim_evilboy_0005.png" type="Texture" id=17]
+[ext_resource path="res://ui/splash/splash_anim_eetitle_0002.png" type="Texture" id=18]
+[ext_resource path="res://ui/splash/splash_anim_evilboy_0006.png" type="Texture" id=19]
+[ext_resource path="res://ui/splash/splash_anim_eetitle_0005.png" type="Texture" id=20]
+[ext_resource path="res://ui/splash/splash_anim_evilboy_0004.png" type="Texture" id=21]
+[ext_resource path="res://ui/splash/splash_anim_eetitle_0004.png" type="Texture" id=22]
+[ext_resource path="res://ui/splash/splash_anim_eetitle_0003.png" type="Texture" id=23]
+[ext_resource path="res://ui/splash/splash_anim_evilboy_0000.png" type="Texture" id=24]
+[ext_resource path="res://ui/splash/blobfish_blink.wav" type="AudioStream" id=25]
+[ext_resource path="res://ui/splash/blobfish_move.wav" type="AudioStream" id=26]
+[ext_resource path="res://ui/splash/splash_anim_eetitle_0000.png" type="Texture" id=27]
+
+[sub_resource type="Animation" id=1]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath("blobfish/pivot_blobfish_drawing/blobfish_sprite:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ ExtResource( 8 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("blobfish/pivot_blobfish_drawing/pivot_blobfish_eyes/blobfish_eyes:texture")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ ExtResource( 3 ) ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("blobfish/pivot_blobfish_drawing/pivot_blobfish_eyes:rect_position")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( -30, -185 ) ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("blobfish/pivot_blobfish_drawing:rect_position")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( -13, 81 ) ]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("blobfish/pivot_blobfish_drawing/pivot_blobfish_eyes/blobfish_eyes:rect_position")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( -442, -167 ) ]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("blobfish:rect_position")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 940, 520 ) ]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("blobfish/pivot_blobfish_text:rect_size")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 40, 40 ) ]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("blobfish/pivot_blobfish_text:rect_scale")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 1, 1 ) ]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("blobfish/pivot_blobfish_text:rect_position")
+tracks/8/interp = 1
+tracks/8/loop_wrap = true
+tracks/8/imported = false
+tracks/8/enabled = true
+tracks/8/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 0,
+"values": [ Vector2( 0, 177 ) ]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("evilempire/evilBoy:texture")
+tracks/9/interp = 1
+tracks/9/loop_wrap = true
+tracks/9/imported = false
+tracks/9/enabled = true
+tracks/9/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ null ]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("evilempire/text:texture")
+tracks/10/interp = 1
+tracks/10/loop_wrap = true
+tracks/10/imported = false
+tracks/10/enabled = true
+tracks/10/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ null ]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("blobfish/pivot_blobfish_drawing/pivot_blobfish_eyes/blobfish_eyes:visible")
+tracks/11/interp = 1
+tracks/11/loop_wrap = true
+tracks/11/imported = false
+tracks/11/enabled = true
+tracks/11/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ true ]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("AudioStreamPlayer:playing")
+tracks/12/interp = 1
+tracks/12/loop_wrap = true
+tracks/12/imported = false
+tracks/12/enabled = true
+tracks/12/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ false ]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("AudioStreamPlayer:stream")
+tracks/13/interp = 1
+tracks/13/loop_wrap = true
+tracks/13/imported = false
+tracks/13/enabled = true
+tracks/13/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ ExtResource( 25 ) ]
+}
+tracks/14/type = "value"
+tracks/14/path = NodePath("evilempire/text:visible")
+tracks/14/interp = 1
+tracks/14/loop_wrap = true
+tracks/14/imported = false
+tracks/14/enabled = true
+tracks/14/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ false ]
+}
+tracks/15/type = "value"
+tracks/15/path = NodePath("evilempire/evilBoy:visible")
+tracks/15/interp = 1
+tracks/15/loop_wrap = true
+tracks/15/imported = false
+tracks/15/enabled = true
+tracks/15/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ false ]
+}
+
+[sub_resource type="Animation" id=2]
+resource_name = "start"
+length = 3.0
+step = 0.01
+tracks/0/type = "value"
+tracks/0/path = NodePath("blobfish/pivot_blobfish_drawing/blobfish_sprite:texture")
+tracks/0/interp = 0
+tracks/0/loop_wrap = false
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.6, 2.3, 2.4 ),
+"transitions": PoolRealArray( 1, 1, 1, 1 ),
+"update": 1,
+"values": [ ExtResource( 8 ), ExtResource( 8 ), ExtResource( 9 ), ExtResource( 8 ) ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("blobfish/pivot_blobfish_drawing/pivot_blobfish_eyes/blobfish_eyes:texture")
+tracks/1/interp = 0
+tracks/1/loop_wrap = false
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.6, 2.3, 2.4 ),
+"transitions": PoolRealArray( 1, 1, 1, 1 ),
+"update": 1,
+"values": [ ExtResource( 3 ), ExtResource( 3 ), null, ExtResource( 3 ) ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("blobfish/pivot_blobfish_drawing/pivot_blobfish_eyes/blobfish_eyes:rect_position")
+tracks/2/interp = 0
+tracks/2/loop_wrap = false
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0, 0.6 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 1,
+"values": [ Vector2( -442, -167 ), Vector2( -442, -167 ) ]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("blobfish/pivot_blobfish_drawing/pivot_blobfish_eyes:rect_position")
+tracks/3/interp = 0
+tracks/3/loop_wrap = false
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/keys = {
+"times": PoolRealArray( 0, 0.6, 2.4 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ Vector2( -30, -185 ), Vector2( -43.822, -170.899 ), Vector2( -30, -185 ) ]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("blobfish:rect_position")
+tracks/4/interp = 0
+tracks/4/loop_wrap = false
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ Vector2( 940, 520 ) ]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("blobfish/pivot_blobfish_text:rect_scale")
+tracks/5/interp = 0
+tracks/5/loop_wrap = false
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/keys = {
+"times": PoolRealArray( 0, 0.6 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 1,
+"values": [ Vector2( 1, 1 ), Vector2( 1, 1 ) ]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("blobfish/pivot_blobfish_text:rect_position")
+tracks/6/interp = 0
+tracks/6/loop_wrap = false
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/keys = {
+"times": PoolRealArray( 0, 0.6 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 1,
+"values": [ Vector2( 0, 177 ), Vector2( 0, 177 ) ]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("evilempire/evilBoy:texture")
+tracks/7/interp = 0
+tracks/7/loop_wrap = false
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/keys = {
+"times": PoolRealArray( 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.75, 0.9 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ ExtResource( 24 ), ExtResource( 14 ), ExtResource( 16 ), ExtResource( 12 ), ExtResource( 21 ), ExtResource( 17 ), ExtResource( 19 ), ExtResource( 13 ), ExtResource( 10 ) ]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("evilempire/text:texture")
+tracks/8/interp = 0
+tracks/8/loop_wrap = false
+tracks/8/imported = false
+tracks/8/enabled = true
+tracks/8/keys = {
+"times": PoolRealArray( 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4 ),
+"transitions": PoolRealArray( 1, 1, 1, 1, 1, 1, 1 ),
+"update": 1,
+"values": [ ExtResource( 27 ), ExtResource( 15 ), ExtResource( 18 ), ExtResource( 23 ), ExtResource( 22 ), ExtResource( 20 ), ExtResource( 11 ) ]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("blobfish/pivot_blobfish_drawing/pivot_blobfish_eyes/blobfish_eyes:visible")
+tracks/9/interp = 0
+tracks/9/loop_wrap = false
+tracks/9/imported = false
+tracks/9/enabled = true
+tracks/9/keys = {
+"times": PoolRealArray( 0, 2.3, 2.4 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ true, false, true ]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("AudioStreamPlayer:playing")
+tracks/10/interp = 0
+tracks/10/loop_wrap = false
+tracks/10/imported = false
+tracks/10/enabled = true
+tracks/10/keys = {
+"times": PoolRealArray( 0.23, 2.3, 2.4 ),
+"transitions": PoolRealArray( 1, 1, 1 ),
+"update": 1,
+"values": [ true, true, false ]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("AudioStreamPlayer:stream")
+tracks/11/interp = 1
+tracks/11/loop_wrap = true
+tracks/11/imported = false
+tracks/11/enabled = true
+tracks/11/keys = {
+"times": PoolRealArray( 0, 2.2 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 1,
+"values": [ ExtResource( 26 ), ExtResource( 25 ) ]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("evilempire/text:visible")
+tracks/12/interp = 0
+tracks/12/loop_wrap = false
+tracks/12/imported = false
+tracks/12/enabled = true
+tracks/12/keys = {
+"times": PoolRealArray( 0, 0.8 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 1,
+"values": [ false, true ]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("evilempire/evilBoy:visible")
+tracks/13/interp = 1
+tracks/13/loop_wrap = true
+tracks/13/imported = false
+tracks/13/enabled = true
+tracks/13/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ true ]
+}
+
+[node name="Pause" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 1 )
+
+[node name="ColorRect" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color( 0.109804, 0.109804, 0.109804, 1 )
+
+[node name="Godot" type="TextureRect" parent="."]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -428.0
+margin_top = -193.0
+margin_right = -42.0
+margin_bottom = -42.0
+texture = ExtResource( 2 )
+
+[node name="blobfish" type="Control" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -20.0
+margin_top = -20.0
+margin_right = 20.0
+margin_bottom = 20.0
+
+[node name="pivot_blobfish_drawing" type="Control" parent="blobfish"]
+margin_left = -13.0
+margin_top = 81.0
+margin_right = 27.0
+margin_bottom = 121.0
+
+[node name="blobfish_sprite" type="TextureRect" parent="blobfish/pivot_blobfish_drawing"]
+margin_left = -472.0
+margin_top = -351.844
+margin_right = 532.036
+margin_bottom = 232.581
+texture = ExtResource( 8 )
+expand = true
+stretch_mode = 6
+
+[node name="pivot_blobfish_eyes" type="Control" parent="blobfish/pivot_blobfish_drawing"]
+margin_left = -30.0
+margin_top = -185.0
+margin_right = 10.0
+margin_bottom = -145.0
+
+[node name="blobfish_eyes" type="TextureRect" parent="blobfish/pivot_blobfish_drawing/pivot_blobfish_eyes"]
+margin_left = -442.0
+margin_top = -167.0
+margin_right = 562.036
+margin_bottom = 417.425
+texture = ExtResource( 3 )
+expand = true
+stretch_mode = 6
+
+[node name="pivot_blobfish_text" type="Control" parent="blobfish"]
+margin_top = 177.0
+margin_right = 40.0
+margin_bottom = 217.0
+
+[node name="blobfish_text" type="TextureRect" parent="blobfish/pivot_blobfish_text"]
+margin_left = -339.465
+margin_top = -453.0
+margin_right = 371.928
+margin_bottom = 141.0
+texture = ExtResource( 7 )
+expand = true
+stretch_mode = 6
+
+[node name="evilempire" type="Control" parent="."]
+anchor_top = 1.0
+anchor_bottom = 1.0
+margin_left = 64.0
+margin_top = -218.0
+margin_right = 104.0
+margin_bottom = -178.0
+
+[node name="evilBoy" type="TextureRect" parent="evilempire"]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -81.0
+margin_top = -100.0
+margin_right = 82.0
+margin_bottom = 100.0
+texture = ExtResource( 10 )
+stretch_mode = 6
+
+[node name="text" type="TextureRect" parent="evilempire"]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -81.0
+margin_top = -100.0
+margin_right = 82.0
+margin_bottom = 100.0
+texture = ExtResource( 11 )
+stretch_mode = 6
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+anims/RESET = SubResource( 1 )
+anims/start = SubResource( 2 )
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 25 )
+bus = "Sound"
