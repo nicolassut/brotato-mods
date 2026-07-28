@@ -7,16 +7,21 @@ import sys, os
 import numpy as np
 from PIL import Image, ImageFilter
 
-SCRATCH = '/private/tmp/claude-501/-Users-nicolassutcliffe/5eeaab96-3e6e-43a4-a19c-c6809e254d53/scratchpad'
+SCRATCH = os.environ.get('BROTATO_SCRATCH',
+    '/private/tmp/claude-501/-Users-nicolassutcliffe/5eeaab96-3e6e-43a4-a19c-c6809e254d53/scratchpad')
 ADEV = '/Users/nicolassutcliffe/brotato-mods/asset-dev'
 DEC = '/Users/nicolassutcliffe/brotato-decompiled'
 sys.path.insert(0, f'{ADEV}/pipeline')
 from process_gen import outline_med, thicken, final_cleanup
+sys.path.insert(0, ADEV)
+from build_food_system import write_png_import
 
 # relative world scale (user 2026-07-20): trucks/buildings bigger than stoves/hives
 SIZES = {'beehive_ingame': 100, 'wok_station_ingame': 95, 'street_vendor_ingame': 105,
          'farmers_market_ingame': 120, 'chili_greenhouse_ingame': 125,
-         'fancy_restaurant_ingame': 130, 'ice_cream_truck_ingame': 135}
+         'fancy_restaurant_ingame': 130, 'ice_cream_truck_ingame': 135,
+         'bbq_grill_ingame': 105, 'hot_dog_cart_ingame': 112,
+         'cocktail_bar_ingame': 100, 'gumball_machine_ingame': 115}
 
 def fit_structure(im, size=100):
     c = im.crop(im.getbbox())
@@ -42,6 +47,7 @@ def main():
         installed = 'adev only'
         if os.path.isdir(os.path.dirname(dst)):
             final.save(dst)
+            write_png_import(dst, f'res://entities/structures/turret/{base}/{slug}.png')
             installed = 'live+adev'
         print(f'{slug}: W={W} outline={m:.0f}px bbox={final.getbbox()} [{installed}]')
 

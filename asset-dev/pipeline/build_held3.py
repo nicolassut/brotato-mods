@@ -33,7 +33,7 @@ SPEC = {
  'ice_cream_scoop': ((175, 88),  90, None),
  'dinner_bell':     ((110, 70),  81, None),
  'corn_cannon':     ((150, 75),  92, None),
- 'galley_cannon':   ((150, 75), 108, None),
+ 'galley_cannon':   ((172, 86), 124, None),
  'sauce_blaster':   ((117, 75),  84, None),   # +40%
  'champagne_popper':((110, 90),  92, None),   # +40%, ENLARGED canvas (was 80x80)
  'fish_slapper':    ((100, 64),  90, None),   # bigger

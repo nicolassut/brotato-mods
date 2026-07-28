@@ -109,12 +109,29 @@ def food_formula_args(d):
     for _k, b, r in re.findall(r'\[ "(\w+)", ([\d.]+), ([\d.]+) \]', d.get("buff_stats", "")):
         add(b, r)
     if float(d.get("duration_app_ratio", "0.0")) != 0:
-        add(d.get("buff_duration", "0"), d.get("duration_app_ratio", "0"))
+        # effect.gd renders an Appetite-scaled duration as the REAL seconds
+        # ({base} ({current}), base = buff_duration x 1.5), not the raw value.
+        dur_base = str(int(float(d.get("buff_duration", "0")) * 1.5))
+        args.append(dur_base)
+        args.append(dur_base)
     for _k, b, r in re.findall(r'\[ "(\w+)", ([\d.]+), ([\d.]+) \]', d.get("wave_stats", "")):
         add(b, r)
     if float(d.get("heal_base", "0.0")) > 0:
         add(d.get("heal_base"), d.get("heal_app_ratio", "0"))
+    # permanent grants (Fried Egg +Luck): {base} ({current}); no appetite in codex
+    for _k, b in re.findall(r'\[ "(\w+)", ([\d.]+) \]', d.get("permanent_stats", "")):
+        args.append(str(int(float(b)))); args.append(str(int(float(b))))
     return args
+
+# Mirror of the _scaling_formula_text call sites in items/global/effect.gd:
+# text_key -> (base, per-point ratio, stat display name). The codex has no run
+# context, so {0} shows the base and {1} the scaling chunk.
+SCALING_FORMULAS = {
+    "EFFECT_FOOD_SPEED_BURST": (5, 0.1, "Appetite"),
+    "EFFECT_CALTROPS":         (3, 0.3, "Melee Damage"),
+    "EFFECT_STATIC_CLING":     (6, 1.0, "Elemental Damage"),
+    "EFFECT_GREASE_FIRE":      (2, 0.2, "Appetite"),
+}
 
 # ---------- effect rendering (mirror of Text.text) ----------
 def fmt_arg(key, idx, val):
@@ -139,6 +156,31 @@ def render_effect(epath):
             out = out.replace("{%d}" % i, a)
         out = re.sub(r"\{\d\}", "", out)
         out = re.sub(r"\s+", " ", out).strip()
+        return {"t": out, "good": True}
+    # Live stat-scaling cards (effect.gd _scaling_formula_text): {0} = base value,
+    # {1} = the "+ratio% Stat" chunk. Keep in sync with the effect.gd call sites.
+    if text_key in SCALING_FORMULAS:
+        base, ratio, stat_name = SCALING_FORMULAS[text_key]
+        out = tr(text_key).replace("{0}", str(base))
+        out = out.replace("{1}", "+%d%% %s" % (round(ratio * 100), stat_name))
+        return {"t": out, "good": True}
+    # Soul Food risk: FLAT rate now (was max(0, 5 - 0.1 x Luck)%, which floored at 0),
+    # so there is nothing live to compute - render the effect's own value like the game
+    if text_key == "EFFECT_SOUL_FOOD_RISK":
+        out = tr(text_key).replace("{0}", str(int(val)))
+        return {"t": out, "good": False}
+    # Juggler metronome: in-game effect.gd computes {1} live (18/(1+AS/100) frames);
+    # the codex has no run context, so both args show the 0.3s base
+    if text_key == "EFFECT_JUGGLER_TEMPO":
+        out = tr(text_key).replace("{0}", "0.3").replace("{1}", "0.3")
+        return {"t": out, "good": True}
+    # weapon on-hit food proc (Corn/Fish/Pizza/Sauce/Scoop/Spatula): value = tier % chance
+    if custom_key.startswith("food_drop:"):
+        out = tr(text_key).replace("{0}", str(int(val)))
+        return {"t": out, "good": True}
+    # Dinner Bell: extend_buffs value is tenths of a second (value/10)
+    if text_key == "EFFECT_W_BELL":
+        out = tr(text_key).replace("{0}", str(round(val / 10.0, 2)))
         return {"t": out, "good": True}
     # projectile effects (Food Fight): {1} = base damage, {3} = scaling text
     if "projectile_effect" in script:

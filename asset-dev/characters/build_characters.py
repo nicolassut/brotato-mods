@@ -7,7 +7,7 @@ spec). Exact [DATA] lines are implemented; positives marked #PROV are temporary
 stand-ins for food-system/deep mechanics and get replaced when those land.
 Every character gets a THEMED STARTING WEAPON POOL (validated against disk).
 Re-runnable; the .tscn patch self-skips once ext ids are present."""
-import os, shutil, re
+import os, shutil, re, sys
 
 DEC   = "/Users/nicolassutcliffe/brotato-decompiled"
 FINAL = "/Users/nicolassutcliffe/brotato-mods/asset-dev/characters/final"
@@ -22,6 +22,8 @@ CHICKEN_SOUP = "res://items/custom/chicken_soup/chicken_soup_data.tres"
 POCKET_SAND = "res://items/custom/pocket_sand/pocket_sand_data.tres"
 MAGNIFYING_GLASS = "res://items/custom/magnifying_glass/magnifying_glass_data.tres"
 MOSQUITO_JAR = "res://items/custom/mosquito_jar/mosquito_jar_data.tres"
+GROWLING_STOMACH = "res://items/custom/growling_stomach/growling_stomach_data.tres"
+NINE_LIVES = "res://items/custom/nine_lives/nine_lives_data.tres"
 
 def weapon_path(name):
     """resolve a tier-1 weapon name to its res:// path, checking disk (handles
@@ -70,6 +72,8 @@ POOLS = {
                  "pizza_cutter","shredder","champagne_popper"],
  "mole":        ["screwdriver","claw","dagger","hand","knife","scissors","rock","skewer",
                  "cheese_grater","pruner","torch"],
+ "girly":       ["pistol","smg","wand","slingshot","taser","scissors","knife","medical_gun",
+                 "pizza_cutter","champagne_popper"],
 }
 
 # guaranteed starting weapons per spec ("Gourmet starts with Ladle", "Butcher
@@ -93,7 +97,10 @@ ALL_STATS = ["stat_max_hp","stat_hp_regeneration","stat_lifesteal","stat_percent
 # the key must also be seeded in run_data.gd init_tracked_items and fed via
 # RunData.add_tracked_value)
 TRACKING = {"gourmet": "GOURMET_APPETITE_GAINED",
-            "snail": "GOURMET_SNAIL_ARMOR_GAINED"}  # escargot easter-egg armor
+            "snail": "GOURMET_SNAIL_ARMOR_GAINED",  # escargot easter-egg armor
+            "butcher": "BUTCHER_CONSUMABLES_EATEN",  # +1% dmg per consumable eaten
+            "dishwasher": "DISHWASHER_REFUNDED",     # expired-food material refunds
+            "girly": "GIRLY_PANICS"}                 # panic-teleport count
 
 # banned shop items per character (balance law: Dishwasher bans Cooler Box)
 BANNED = {"dishwasher": ["item_cooler_box"]}
@@ -113,14 +120,20 @@ CHARS = [
     ("weapon_slot",-1),("stat_percent_damage",-10),("NEG","items_price",5)],[DOGGY_BAG]),
  ("comp_eater","Competitive Eater","character_comp_eater",["food"],
    [("LINE","EFFECT_COMP_EATER_STACK",2),            # double-stack/half-duration is live engine code
+    ("LINE","EFFECT_COMP_EATER_MOMENTUM",0),         # +5% Speed/Pickup per buff gained, wave-scoped (player.gd)
     ("gain_stat_max_hp",-30),("stat_dodge",-10)],[]),
  ("butcher","Butcher","character_butcher",[],
-   [("LINE","EFFECT_BUTCHER_STEAK",0),
+   [("LINE","EFFECT_BUTCHER_FRUIT",0),("LINE","EFFECT_BUTCHER_STEAK",0),
+    ("TXT","second_helping",25,"EFFECT_BUTCHER_DOUBLE",0),  # +25% food-spawn doubling (fruit-steak path hooked in main.gd)
+    ("FOODDISP","steak"),                                   # rule 2: he produces Steaks
     ("stat_speed",-15),("gain_stat_speed",-50),("stat_attack_speed",-20),
     ("gain_stat_attack_speed",-25),("gain_stat_ranged_damage",-100)],[]),
  ("zombie","Zombie","character_zombie",[],
    [("NEG","no_heal",1),("gain_stat_percent_damage",50),("stat_attack_speed",-20),
-    ("TXT","dodge_cap",-50,"EFFECT_ZOMBIE_DODGE_CAP")],[MOSQUITO_JAR]),
+    ("stat_speed",-20),
+    ("TXT","dodge_cap",-50,"EFFECT_ZOMBIE_DODGE_CAP")],[GROWLING_STOMACH, NINE_LIVES]),  # Growling Stomach: +4 App, no-consumable-heal downside is FREE for Zombie.
+    # Nine Lives survives lethal damage by writing health = 1 directly (player.gd), not via
+    # heal(), so the Zombie's no_heal gate does not block it.
  ("minimalist","Minimalist","character_minimalist",[],
    [("MINISUM",),("LINE","EFFECT_MINIMALIST_ALL12",0),
     ("LINE","EFFECT_MINIMALIST_SELL",2),("LINE","EFFECT_MINIMALIST_CAP",1),
@@ -143,13 +156,27 @@ CHARS = [
    [("LINE","EFFECT_BLACKSMITH_FORGE",0),
     ("NEG","weapons_price",25),("gain_stat_elemental_damage",-50),("stat_speed",-5)],[ANVIL]),
  ("juggler","Juggler","character_juggler",[],
-   [("LINE","EFFECT_JUGGLER_CYCLE",2),("LINE","EFFECT_JUGGLER_FAST",0),
-    ("stat_percent_damage",-15),("gain_stat_armor",-50)],[]),     # cycling is live engine code
+   [("LINE","EFFECT_JUGGLER_CYCLE",2),
+    ("LINE","EFFECT_JUGGLER_TEMPO",0),  # 0.3s metronome (user redesign 2026-07-24), live formula case in effect.gd
+    ("stat_percent_damage",-15),("gain_stat_armor",-50),
+    ("gain_stat_attack_speed",-25)],[]),     # cycling is live engine code
  ("mole","Mole","character_mole",[],
    [("LINE","EFFECT_MOLE_FOG",2),
     ("stat_percent_damage",30),("stat_luck",10),("xp_gain",15),("gain_stat_melee_damage",50),
     ("stat_range",-50),("gain_stat_ranged_damage",-25)],[POCKET_SAND]),
+ # #15 Girly (2026-07-24): panic-teleport to safest spot on ANY hit incl. nullified
+ # (10s cd), then spawns 2 Fries + 2 Fried Rice around her -> she is a FOOD SOURCE,
+ # so both foods get a FOODDISP line (rule 2: buff + max stacks + eaten). Runtime in
+ # main.gd girly_panic_teleport behind character_girly check.
+ ("girly","Girly","character_girly",["stat_dodge"],
+   [("LINE","EFFECT_GIRLY_PANIC",2),("LINE","EFFECT_GIRLY_FOOD",2),
+    ("FOODDISP","fries"),("FOODDISP","fried_rice"),
+    ("stat_max_hp",10),("map_size",10),("NEG","items_price",50),("gain_stat_luck",-30)],[]),
 ]
+
+# explicit ext ids for characters added after the original 14 (base+i past 824
+# collides with stat resources - stat_appetite is id=825)
+EXT_IDS = {"girly": 998}
 
 SKINNED = {"zombie","snail","mole"}
 LEGS_MOD = {
@@ -225,7 +252,7 @@ def grant_tres(element_id, custom_key):
 [resource]
 script = ExtResource( 1 )
 key = "{element_id}"
-text_key = "effect_starting_item"
+text_key = "EFFECT_HIDDEN"
 value = 1
 custom_key = "{custom_key}"
 storage_method = 1
@@ -286,15 +313,35 @@ stat_scaled = "{scaled}"
 perm_stats_only = false
 """
 
+def fooddisp_tres(food_slug):
+    """rule-2 food-source display effect (corn_cannon_food.tres pattern): one
+    display-only effect whose custom_key names the food; item_description.gd
+    derives the buff line + max stacks + eaten count from it."""
+    return f"""[gd_resource type="Resource" load_steps=2 format=2]
+
+[ext_resource path="res://items/global/effect.gd" type="Script" id=1]
+
+[resource]
+script = ExtResource( 1 )
+key = ""
+text_key = "EFFECT_FOOD_{food_slug.upper()}"
+value = 0
+custom_key = "consumable_food_{food_slug}"
+storage_method = 0
+effect_sign = 2
+custom_args = [  ]
+"""
+
 def effect_txt(entry):
     if entry[0]=="FOOD": return scaler_tres(entry[1],entry[2],"food_item","EFFECT_GAIN_STAT_FOR_EVERY_STAT")
     if entry[0]=="SLOT": return scaler_tres(entry[1],entry[2],"free_weapon_slots","EFFECT_GAIN_STAT_FOR_FREE_WEAPON_SLOTS")
     if entry[0]=="DIFF": return scaler_tres(entry[1],entry[2],"minimalist_item","EFFECT_HIDDEN")
     if entry[0]=="POS":  return plain(entry[1],entry[2],0)
     if entry[0]=="NEG":  return plain(entry[1],entry[2],1)
-    if entry[0]=="TXT":  return txt_effect_tres(entry[1],entry[2],entry[3])
+    if entry[0]=="TXT":  return txt_effect_tres(entry[1],entry[2],entry[3],entry[4] if len(entry)>4 else 1)
     if entry[0]=="LINE": return line_tres(entry[1],entry[2])
     if entry[0]=="MINISUM": return minisum_tres()
+    if entry[0]=="FOODDISP": return fooddisp_tres(entry[1])
     if entry[0]=="SPECIFIC_PRICE": return specific_price_tres(entry[1],entry[2])
     return plain(entry[0],entry[1],3)
 
@@ -368,7 +415,13 @@ def char_tres(slug, disp, myid, wanted, n_effects, weapon_paths):
     return "\n".join(lines)
 
 def main():
+    # optional slug arg: only (re)write that character's tres/art, so adding a new
+    # character never clobbers the other 14's generated files. Registration below
+    # is idempotent and always runs.
+    only = sys.argv[1] if len(sys.argv) > 1 else None
     for slug, disp, myid, wanted, kit, starting_items in CHARS:
+        if only and slug != only:
+            continue
         d = f"{CUSTOM}/{slug}"
         os.makedirs(d, exist_ok=True)
         # ART IS ONLY WRITTEN WHEN MISSING: the live pngs and appearance tres
@@ -411,25 +464,32 @@ def main():
             f.write(char_tres(slug,disp,myid,wanted,idx,pool))
         print(f"wrote {slug} ({len(pool)} weapons, {idx} effects)")
 
+    # per-character idempotent registration: only add a char whose data.tres isn't
+    # registered yet (so a new 15th char slots in without re-touching the other 14,
+    # and reruns are no-ops). ext id = EXT_IDS override else base+index.
     with open(TSCN) as f: t = f.read()
     base = 811
-    ids = {slug: base+i for i,(slug,*_) in enumerate(CHARS)}
-    new_ext = "".join(
-      f'[ext_resource path="res://items/custom_characters/{slug}/{slug}_data.tres" type="Resource" id={ids[slug]}]\n'
-      for slug,*_ in CHARS)
-    if f"id={base}]" not in t:
+    ids = {slug: EXT_IDS.get(slug, base+i) for i,(slug,*_) in enumerate(CHARS)}
+    added = 0
+    for slug,*_ in CHARS:
+        path = f"res://items/custom_characters/{slug}/{slug}_data.tres"
+        if path in t:
+            continue
+        eid = ids[slug]
+        assert f"id={eid}]" not in t, f"ext id {eid} already used - give {slug} a free EXT_IDS"
         last_ext = t.rfind("[ext_resource ")
         assert last_ext != -1, "no ext_resource declarations found"
         insert_at = t.index("\n", last_ext) + 1
-        t = t[:insert_at] + new_ext + t[insert_at:]
-        add = "".join(f", ExtResource( {ids[slug]} )" for slug,*_ in CHARS)
+        t = t[:insert_at] + f'[ext_resource path="{path}" type="Resource" id={eid}]\n' + t[insert_at:]
         m = re.search(r"characters = \[ (.*?) \]", t)
         assert m, "characters array not found"
-        t = t.replace(m.group(0), "characters = [ " + m.group(1) + add + " ]", 1)
+        t = t.replace(m.group(0), "characters = [ " + m.group(1) + f", ExtResource( {eid} )" + " ]", 1)
         m = re.search(r"load_steps=(\d+)", t)
-        t = t.replace(f"load_steps={m.group(1)}", f"load_steps={int(m.group(1))+len(CHARS)}", 1)
+        t = t.replace(f"load_steps={m.group(1)}", f"load_steps={int(m.group(1))+1}", 1)
+        added += 1
+    if added:
         with open(TSCN,"w") as f: f.write(t)
-        print(f"patched item_service.tscn: +{len(CHARS)} characters")
+        print(f"patched item_service.tscn: +{added} character(s)")
     else:
         print("item_service.tscn already patched - skipped")
 

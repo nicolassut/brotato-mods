@@ -10,7 +10,7 @@ Kit entry types:
   ("stat", key, val)                    plain stat effect, sign from value
   ("key", key, val, text_key, sign)     custom-key SUM effect with card text
   ("proj", text_key)                    ProjectileEffect (Food Fight)"""
-import os, re
+import os, re, hashlib
 from PIL import Image, ImageDraw
 
 DEC  = "/Users/nicolassutcliffe/brotato-decompiled"
@@ -18,9 +18,11 @@ TSCN = f"{DEC}/singletons/item_service.tscn"
 CSV  = f"{DEC}/items/custom/custom_translations.csv"
 BASE_ID = 880
 
-def item(slug, name, tier, value, kit, tags=(), max_nb=-1, tracking=""):
+def item(slug, name, tier, value, kit, tags=(), max_nb=-1, tracking="", ext_id=None):
+    # ext_id: explicit item_service ext id for items added after the 880+i block
+    # filled up (881-918 are this builder's originals, 919-990 belong to others)
     return dict(slug=slug, name=name, tier=tier, value=value, kit=kit,
-                tags=list(tags), max_nb=max_nb, tracking=tracking)
+                tags=list(tags), max_nb=max_nb, tracking=tracking, ext_id=ext_id)
 
 ITEMS = [
  # --- 2a: the six deferred Appetite items ---
@@ -32,7 +34,7 @@ ITEMS = [
    ("key", "consumables_no_heal", 1, "EFFECT_CONSUMABLES_NO_HEAL", 1)], ["stat_appetite"]),
  item("sous_vide_machine", "Sous-Vide Machine", 2, 80, [
    ("stat", "stat_appetite", 4),
-   ("key", "food_buff_duration", 1, "EFFECT_FOOD_BUFF_DURATION", 0)], ["stat_appetite"]),
+   ("key", "food_buff_duration", 1, "EFFECT_FOOD_BUFF_DURATION", 0)], ["stat_appetite"], max_nb=2),
  item("cast_iron_stomach", "Cast-Iron Stomach", 2, 75, [
    ("stat", "stat_appetite", 5),
    ("key", "mystery_meat_safe", 1, "EFFECT_MYSTERY_MEAT_SAFE", 0)], ["stat_appetite"]),
@@ -46,10 +48,10 @@ ITEMS = [
    ("stat", "stat_speed", -5)], ["stat_appetite"]),
  # --- 2b: system texture ---
  item("slow_cooker", "Slow Cooker", 1, 50, [
-   ("key", "food_buff_duration", 2, "EFFECT_FOOD_BUFF_DURATION", 0)]),
+   ("key", "food_buff_duration", 2, "EFFECT_FOOD_BUFF_DURATION", 0)], max_nb=3),
  item("preservatives", "Preservatives", 2, 70, [
    ("key", "food_buff_duration", 4, "EFFECT_FOOD_BUFF_DURATION", 0),
-   ("key", "food_heal_disabled", 1, "EFFECT_FOOD_HEAL_DISABLED", 1)]),
+   ("key", "food_heal_disabled", 1, "EFFECT_FOOD_HEAL_DISABLED", 1)], max_nb=2),
  item("msg", "MSG", 2, 85, [
    ("key", "food_buff_strength", 50, "EFFECT_FOOD_BUFF_STRENGTH", 0),
    ("key", "food_heal_disabled", 1, "EFFECT_FOOD_HEAL_DISABLED", 1)], (), 1),
@@ -57,28 +59,29 @@ ITEMS = [
    ("key", "food_buff_strength", 100, "EFFECT_FOOD_BUFF_STRENGTH", 0),
    ("key", "food_spawns_halved", 1, "EFFECT_FOOD_SPAWNS_HALVED", 1)], (), 1),
  item("second_helping", "Second Helping", 2, 75, [
-   ("key", "second_helping", 25, "EFFECT_SECOND_HELPING", 0)]),
+   ("key", "second_helping", 25, "EFFECT_SECOND_HELPING", 0)], max_nb=2),
  item("cooler_box", "Cooler Box", 1, 55, [
    ("key", "cooler_box", 1, "EFFECT_COOLER_BOX", 0)], (), 1),
  item("compost_bin", "Compost Bin", 1, 45, [
    ("key", "compost_bin", 1, "EFFECT_COMPOST_BIN", 0)], ["stat_harvesting"],
    tracking="GOURMET_HARVESTING_GAINED"),
  item("chicken_soup", "Chicken Soup", 0, 20, [
-   ("key", "food_bonus_heal", 1, "EFFECT_FOOD_BONUS_HEAL", 0)]),
+   ("key", "food_bonus_heal", 1, "EFFECT_FOOD_BONUS_HEAL", 0)], max_nb=3),
  item("sugar_rush", "Sugar Rush", 0, 25, [
-   ("key", "food_speed_burst", 1, "EFFECT_FOOD_SPEED_BURST", 0)], ["stat_speed"]),
+   ("key", "food_speed_burst", 1, "EFFECT_FOOD_SPEED_BURST", 0)], ["stat_speed"], max_nb=4),
  item("food_fight", "Food Fight", 2, 80, [
-   ("proj", "EFFECT_FOOD_FIGHT")], ["stat_ranged_damage"]),
+   ("proj", "EFFECT_FOOD_FIGHT")], ["stat_ranged_damage"], max_nb=3),
  item("grease_fire", "Grease Fire", 2, 75, [
    ("key", "grease_fire", 1, "EFFECT_GREASE_FIRE", 0)], ["stat_elemental_damage"]),
  item("full_belly", "Full Belly", 1, 55, [
    ("key", "full_belly", 2, "EFFECT_FULL_BELLY", 0)], ["stat_armor"]),
  item("food_coma", "Food Coma", 3, 100, [
-   ("key", "food_coma", 1, "EFFECT_FOOD_COMA", 0)]),
+   ("key", "food_coma", 1, "EFFECT_FOOD_COMA", 0)], max_nb=2),
  item("snack_break", "Snack Break", 0, 22, [
-   ("key", "snack_break", 1, "EFFECT_SNACK_BREAK", 0)], ["stat_harvesting"]),
+   ("key", "snack_break", 1, "EFFECT_SNACK_BREAK", 0)], ["stat_harvesting"], 3,
+   tracking="SNACK_BREAK_GAINED"),
  item("buffet_insurance", "Buffet Insurance", 1, 60, [
-   ("key", "buffet_insurance", 5, "EFFECT_BUFFET_INSURANCE", 0)]),
+   ("key", "buffet_insurance", 5, "EFFECT_BUFFET_INSURANCE", 0)], max_nb=2),
  # --- 3a: stat-clone replacements ---
  item("alarm_clock", "Alarm Clock", 0, 20, [
    ("stat", "stat_attack_speed", 10), ("stat", "stat_percent_damage", -2)], ["stat_attack_speed"]),
@@ -123,6 +126,16 @@ ITEMS = [
    ("key", "pocket_sand_slow", 1, "EFFECT_POCKET_SAND", 0)], ["stat_dodge"]),
  item("set_menu", "Set Menu", 2, 70, [
    ("key", "set_menu", 1, "EFFECT_SET_MENU", 0)], ["food"], 1),
+ # --- content batch 2 ---
+ item("elastic_waistband", "Elastic Waistband", 2, 80, [
+   ("key", "food_stack_cap_bonus", 4, "EFFECT_FOOD_STACK_CAP", 0)], ["food"], 2,
+   ext_id=995),
+ item("wine_cellar", "Wine Cellar", 2, 70, [
+   ("key", "wine_cellar", 30, "EFFECT_WINE_CELLAR", 0)], ["food"], 2,
+   tracking="WINE_CELLAR_AGED", ext_id=996),
+ item("delivery_drone", "Delivery Drone", 2, 80, [
+   ("key", "delivery_drone", 1, "EFFECT_DELIVERY_DRONE", 0)], ["food"], 2,
+   tracking="DELIVERY_DRONE_DELIVERED", ext_id=997),
 ]
 
 CSV_ROWS = [
@@ -138,22 +151,22 @@ CSV_ROWS = [
  ("EFFECT_COOLER_BOX", "Foods on the ground never expire"),
  ("EFFECT_COMPOST_BIN", "Expired food grants +1 permanent Harvesting"),
  ("EFFECT_FOOD_BONUS_HEAL", "Foods heal +{0} additional HP"),
- ("EFFECT_FOOD_SPEED_BURST", "Eating a food grants a burst of Speed for 2 seconds. Scales with Appetite"),
+ ("EFFECT_FOOD_SPEED_BURST", "Eating a food grants +{0} ({1}) Speed for 2 seconds. Stacks"),
  ("EFFECT_FOOD_FIGHT", "Eating a food throws a projectile dealing {1} ({3}) damage"),
- ("EFFECT_GREASE_FIRE", "Eating a food ignites enemies in melee range. Scales with Appetite and Elemental Damage"),
+ ("EFFECT_GREASE_FIRE", "Eating a food ignites enemies in melee range for {0} ({1}) burn damage per tick, plus 50% Elemental Damage"),
  ("EFFECT_FULL_BELLY", "+{0} Armor while any food buff is active"),
- ("EFFECT_FOOD_COMA", "+15% Damage and -10% Speed while you have 5 or more food buffs"),
+ ("EFFECT_FOOD_COMA", "+20% Damage while you have 5 or more food buffs"),
  ("EFFECT_SNACK_BREAK", "Eating a food has a 10% chance to grant materials equal to the wave number"),
- ("EFFECT_BUFFET_INSURANCE", "Heal {0} HP at the end of a wave in which you ate no food"),
+ ("EFFECT_BUFFET_INSURANCE", "Eating while below 20% HP heals {0} HP"),
  ("EFFECT_EXPLOSION_SIZE", "+{0}% Explosion Size"),
  ("EFFECT_EXPLOSION_DAMAGE", "+{0}% Explosion Damage"),
  ("EFFECT_REGEN_PER_BURNING_ENEMY", "+{0} HP Regeneration for every burning enemy"),
- ("EFFECT_CALTROPS", "Enemies that hit you in melee take damage back. Scales with Melee Damage"),
+ ("EFFECT_CALTROPS", "Enemies that hit you in melee take {0} ({1}) damage back"),
  ("EFFECT_CRIT_VS_ELITES", "+{0}% Crit Chance against elites and bosses"),
  ("EFFECT_PICKUP_RANGE_BONUS", "+{0}% Pickup Range"),
  ("EFFECT_BURNING_DAMAGE_TAKEN", "{0}% burning damage taken"),
  ("EFFECT_LOYALTY_CARD", "Every 5th shop purchase is 30% off"),
- ("EFFECT_STATIC_CLING", "Every 8th hit zaps 3 nearby enemies. Scales with Elemental Damage"),
+ ("EFFECT_STATIC_CLING", "Every 8th hit zaps the 3 nearest enemies for {0} ({1}) damage"),
  ("EFFECT_ECHO_CHAMBER", "{0}% chance for on-kill effects to trigger twice"),
  ("EFFECT_NINE_LIVES", "Survive lethal damage at 1 HP. Once per wave and 9 times per run"),
  ("NINE_LIVES_USED", "Lives used: {0}"),
@@ -174,8 +187,13 @@ CSV_ROWS = [
  ("EFFECT_DISHWASHER_REFUND", "Expired food refunds 1 material"),
  ("EFFECT_BLACKSMITH_FORGE", "Combine two same-tier weapons sharing a class into a random next-tier weapon of that class"),
  ("EFFECT_MOLE_FOG", "Fog of war covers every wave"),
- ("EFFECT_SLUG_TRAIL", "Leaves a slime trail that slows enemies 30%"),
+ ("EFFECT_SLUG_TRAIL", "Leaves a slime trail (lasts 7.5s) that slows enemies 30% (+2% per Level, max 90%). Trail width (base 26) and slow radius (base 45) each grow +6% per Level"),
  ("ENEMY_ATTACK_SPEED", "% Enemy Attack Speed"),
+ ("EFFECT_FOOD_STACK_CAP", "+{0} max stacks to every food buff"),
+ ("EFFECT_WINE_CELLAR", "Food eaten at least 5 seconds after it appeared grants a +{0}% stronger buff"),
+ ("EFFECT_DELIVERY_DRONE", "Every food spawner you own serves {0} extra food at the start of each wave (Doggy Bag excluded)"),
+ ("WINE_CELLAR_AGED", "Aged servings: {0}"),
+ ("DELIVERY_DRONE_DELIVERED", "Foods delivered: {0}"),
 ]
 
 
@@ -496,6 +514,35 @@ def _(d):
     d.ellipse([52, 48, 60, 56], fill=(240, 196, 80, 255))
     d.arc([40, 58, 56, 70], start=0, end=180, fill=(240, 196, 80, 255), width=3)
 
+@art("elastic_waistband")
+def _(d):
+    _box(d, [16, 30, 80, 80], (92, 106, 140, 255))
+    d.rectangle([16, 30, 80, 46], fill=(238, 200, 120, 255), outline=OUTLINE, width=4)
+    for x in (26, 40, 54, 68):
+        d.line([x, 34, x, 42], fill=OUTLINE, width=3)
+    d.line([48, 46, 48, 80], fill=OUTLINE, width=3)
+
+@art("wine_cellar")
+def _(d):
+    _box(d, [24, 8, 72, 72], (150, 104, 66, 255), r=14)
+    for y in (20, 54):
+        d.rectangle([24, y, 72, y + 6], fill=(120, 124, 138, 255), outline=OUTLINE, width=2)
+    d.ellipse([42, 32, 54, 44], fill=(96, 40, 60, 255), outline=OUTLINE, width=3)
+    d.line([14, 86, 82, 86], fill=OUTLINE, width=5)
+    d.line([30, 72, 20, 86], fill=OUTLINE, width=4)
+    d.line([66, 72, 76, 86], fill=OUTLINE, width=4)
+
+@art("delivery_drone")
+def _(d):
+    for x in (14, 62):
+        d.ellipse([x, 10, x + 20, 18], fill=(120, 124, 138, 255), outline=OUTLINE, width=3)
+        d.line([x + 10, 18, x + 10, 26], fill=OUTLINE, width=4)
+    _box(d, [30, 24, 66, 42], (84, 88, 100, 255))
+    d.ellipse([42, 28, 54, 38], fill=(196, 60, 48, 255), outline=OUTLINE, width=2)
+    d.line([48, 42, 48, 52], fill=OUTLINE, width=3)
+    _box(d, [32, 52, 64, 84], (238, 200, 120, 255))
+    d.line([32, 62, 64, 62], fill=OUTLINE, width=3)
+
 
 # ---------- tres writers ----------
 
@@ -618,8 +665,10 @@ def add_csv_rows():
     lines = open(CSV).read().rstrip("\n").split("\n")
     added, updated = 0, 0
     for key, text in CSV_ROWS:
-        assert "," not in text, f"comma in CSV text for {key}"
-        row = f"{key},{text}"
+        # quote values containing commas/quotes (RFC-4180) - an unquoted comma makes a
+        # 3-column row that breaks Godot's translation import (keys after it stop resolving).
+        field = '"' + text.replace('"', '""') + '"' if (',' in text or '"' in text) else text
+        row = f"{key},{field}"
         hit = [i for i, l in enumerate(lines) if l.startswith(key + ",")]
         if hit:
             if lines[hit[0]] != row:
@@ -632,22 +681,71 @@ def add_csv_rows():
     print(f"added {added} / updated {updated} translation rows")
 
 
+# Godot 3 .import sidecar for a NEW png (skipped when present; Godot rebuilds the
+# .stex itself at the next project import). Hash = md5 of the res:// path.
+def write_png_import(dest_png, res_path):
+    sidecar = dest_png + ".import"
+    if os.path.exists(sidecar):
+        return
+    stex = f"res://.import/{os.path.basename(dest_png)}-{hashlib.md5(res_path.encode()).hexdigest()}.stex"
+    open(sidecar, "w").write(f"""[remap]
+
+importer="texture"
+type="StreamTexture"
+path="{stex}"
+metadata={{
+"vram_texture": false
+}}
+
+[deps]
+
+source_file="{res_path}"
+dest_files=[ "{stex}" ]
+
+[params]
+
+compress/mode=0
+compress/lossy_quality=0.7
+compress/hdr_mode=0
+compress/bptc_ldr=0
+compress/normal_map=0
+flags/repeat=0
+flags/filter=true
+flags/mipmaps=false
+flags/anisotropic=false
+flags/srgb=2
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/HDR_as_SRGB=false
+process/invert_color=false
+process/normal_map_invert_y=false
+stream=false
+size_limit=0
+detect_3d=true
+svg/scale=1.0
+""")
+
+
 def main():
     ids = []
     for i, it in enumerate(ITEMS):
         slug = it["slug"]
-        ids.append((slug, BASE_ID + i))
+        ids.append((slug, it["ext_id"] if it.get("ext_id") else BASE_ID + i))
         d = f"{DEC}/items/custom/{slug}"
         os.makedirs(d, exist_ok=True)
         # prefer a finished icon from the art pipeline over the PIL placeholder
         real_icon = f"{os.path.dirname(os.path.abspath(__file__))}/items_food_system/final/{slug}.png"
+        item_png = f"{d}/{slug}.png"
         if os.path.exists(real_icon):
             import shutil
-            shutil.copy(real_icon, f"{d}/{slug}.png")
-        else:
+            shutil.copy(real_icon, item_png)
+        elif not os.path.exists(item_png):
+            # placeholder only for brand-new items: a live png with no final/
+            # source is vectorized art installed in place - never clobber it
             img, draw = canvas()
             A[slug](draw)
-            img.save(f"{d}/{slug}.png")
+            img.save(item_png)
+        write_png_import(item_png, f"res://items/custom/{slug}/{slug}.png")
         for j, entry in enumerate(it["kit"]):
             path = f"{d}/{slug}_effect_{j}.tres"
             if entry[0] == "stat":
@@ -658,7 +756,7 @@ def main():
                 open(f"{d}/{slug}_proj_stats.tres", "w").write(proj_stats_tres())
                 open(path, "w").write(proj_effect_tres(slug, entry[1]))
         open(f"{d}/{slug}_data.tres", "w").write(item_tres(it))
-        print(f"{BASE_ID + i}: {slug} (T{it['tier']}/{it['value']})")
+        print(f"{ids[-1][1]}: {slug} (T{it['tier']}/{it['value']})")
 
     register(ids)
     add_csv_rows()

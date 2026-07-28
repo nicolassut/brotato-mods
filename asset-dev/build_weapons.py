@@ -32,7 +32,14 @@ def w(slug, name, template, kind, start_tier, dmg, cd, critc, critm, rng, kb,
       scaling, sets, lifesteal=0.0, attack_type=None, effect_scale=None,
       nb_projectiles=None, spread=None, piercing=None, bounce=None,
       burn_chance=None, specials=(), end_tier=3,
-      explode_scale=None, explode_marker=None):
+      explode_scale=None, explode_marker=None, food_key=None, food_drop=None,
+      piercing_dmg_reduction=None, projectile_speed=None, knockback_piercing=None,
+      can_bounce=None, proj_script=None, proj_scale=None, tracking=""):
+    # food_key: a consumable_food_* this weapon can spawn. Attaches a display-only
+    # EFFECT_FOOD_* effect so the card shows the food's buff + max stacks + eaten count
+    # (same machinery as the tagged spawner items). Rule: any food source shows all three.
+    # proj_script/proj_scale: attach a custom PlayerProjectile subclass + shrink the
+    # sprite on the cloned projectile scene (Galley Cannon's pierce+wall-bounce ball).
     return dict(slug=slug, name=name, template=template, kind=kind,
                 start_tier=start_tier, end_tier=end_tier, dmg=dmg, cd=cd,
                 critc=critc, critm=critm, rng=rng, kb=kb, scaling=scaling,
@@ -40,25 +47,34 @@ def w(slug, name, template, kind, start_tier, dmg, cd, critc, critm, rng, kb,
                 effect_scale=effect_scale, nb_projectiles=nb_projectiles,
                 spread=spread, piercing=piercing, bounce=bounce,
                 burn_chance=burn_chance, specials=list(specials),
-                explode_scale=explode_scale, explode_marker=explode_marker)
+                explode_scale=explode_scale, explode_marker=explode_marker,
+                food_key=food_key, food_drop=food_drop,
+                piercing_dmg_reduction=piercing_dmg_reduction,
+                projectile_speed=projectile_speed, knockback_piercing=knockback_piercing,
+                can_bounce=can_bounce, proj_script=proj_script, proj_scale=proj_scale,
+                tracking=tracking)
 
 # specials: (key, value, text_key) -- text_key EFFECT_HIDDEN hides the line
 WEAPONS = [
  w("frying_pan", "Frying Pan", "hatchet", "melee", 0, 12, 42, .05, 1.5, 120, 18,
    [("stat_melee_damage", 1.0)], ["culinary"], attack_type=1,
    specials=[("gourmet_slow_on_hit", 50, "EFFECT_W_PAN_SLOW"),
-             ("gourmet_slow_chance", 15, "EFFECT_HIDDEN")]),
+             ("gourmet_slow_chance", 15, "EFFECT_HIDDEN")],
+   food_key="consumable_food_fried_egg", food_drop="consumable_food_fried_egg",
+   tracking="FRYING_PAN_LUCK"),
  w("cleaver", "Cleaver", "hatchet", "melee", 0, 14, 38, .10, 2.0, 130, 4,
    [("stat_melee_damage", 0.9)], ["culinary", "blade"], attack_type=1,
    specials=[("execute_damage", 50, "EFFECT_W_EXECUTE")]),
  w("rolling_pin", "Rolling Pin", "plank", "melee", 0, 22, 78, .03, 1.5, 160, 28,
-   [("stat_melee_damage", 1.2)], ["culinary", "blunt"], attack_type=1),
+   [("stat_melee_damage", 1.2)], ["culinary", "blunt"], attack_type=1,
+   food_key="consumable_food_warm_cookie", food_drop="consumable_food_warm_cookie"),
  w("skewer", "Skewer", "spear", "melee", 0, 16, 45, .15, 2.0, 180, 6,
    [("stat_melee_damage", 0.8)], ["culinary", "precise"], attack_type=0),
  w("cheese_grater", "Cheese Grater", "screwdriver", "melee", 0, 3, 9, .03, 1.5, 110, 0,
    [("stat_melee_damage", 0.35)], ["culinary", "tool"], lifesteal=0.03, attack_type=0),
  w("whisk", "Whisk", "hatchet", "melee", 0, 6, 30, .05, 1.5, 100, 10,
-   [("stat_melee_damage", 0.5)], ["culinary"], attack_type=1, effect_scale=1.3),
+   [("stat_melee_damage", 0.5)], ["culinary"], attack_type=1, effect_scale=1.3,
+   food_key="consumable_food_cake_slice", food_drop="consumable_food_cake_slice"),
  w("ladle", "Ladle", "hatchet", "melee", 0, 9, 40, .05, 1.5, 140, 8,
    [("stat_melee_damage", 0.6), ("stat_appetite", 0.3)], ["culinary", "support"],
    lifesteal=0.08, attack_type=1),
@@ -76,40 +92,59 @@ WEAPONS = [
    specials=[("tenderize_on_hit", 10, "EFFECT_W_TENDERIZE")]),
  w("golden_spatula", "Golden Spatula", "hatchet", "melee", 3, 40, 30, .20, 2.5, 150, 20,
    [("stat_appetite", 1.2)], ["culinary", "legendary"], lifesteal=0.10, attack_type=1,
-   specials=[("gourmet_slow_on_hit", 30, "EFFECT_W_SPATULA_SLOW")]),
+   specials=[("gourmet_slow_on_hit", 30, "EFFECT_W_SPATULA_SLOW")],
+   food_key="consumable_food_golden_apple", food_drop="consumable_food_golden_apple"),
  w("trident_fork", "Trident Fork", "spear", "melee", 0, 22, 55, .10, 2.0, 200, 14,
    [("stat_melee_damage", 0.9)], ["culinary", "naval"], attack_type=0),
  w("fish_slapper", "Fish Slapper", "plank", "melee", 0, 13, 48, .05, 1.5, 150, 24,
    [("stat_melee_damage", 1.0)], ["naval", "blunt"], attack_type=1,
-   specials=[("gourmet_slow_on_hit", 15, "EFFECT_W_SLAP_SLOW")]),
- w("corn_cannon", "Corn Cannon", "rocket_launcher", "ranged", 0, 16, 95, .05, 1.5, 380, 8,
+   specials=[("gourmet_slow_on_hit", 15, "EFFECT_W_SLAP_SLOW")],
+   food_key="consumable_food_sushi_roll", food_drop="consumable_food_sushi_roll"),
+ w("corn_cannon", "Corn Cannon", "rocket_launcher", "ranged", 0, 14, 95, .05, 1.5, 380, 8,
    [("stat_ranged_damage", 0.8)], ["culinary", "explosive"],
-   explode_scale=1.36, explode_marker="gourmet_corn_popcorn",
-   specials=[("", 0, "EFFECT_W_CORN_POPCORN")]),
+   explode_scale=1.36,
+   food_key="consumable_food_popcorn", food_drop="consumable_food_popcorn"),
  w("sauce_blaster", "Sauce Blaster", "fireball", "ranged", 0, 4, 55, .03, 1.5, 240, 3,
    [("stat_ranged_damage", 0.4), ("stat_elemental_damage", 0.4)],
-   ["culinary", "elemental"], nb_projectiles=3, spread=0.44, burn_chance=0.25),
+   ["culinary", "elemental"], nb_projectiles=3, spread=0.44, burn_chance=0.25,
+   food_key="consumable_food_chili_pepper", food_drop="consumable_food_chili_pepper"),
  w("champagne_popper", "Champagne Popper", "pistol", "ranged", 0, 16, 75, .10, 2.0, 350, 32,
    [("stat_ranged_damage", 1.0)], ["culinary", "gun"], bounce=1),
  w("pizza_cutter", "Pizza Cutter", "shuriken", "ranged", 0, 9, 60, .15, 2.2, 320, 0,
-   [("stat_ranged_damage", 0.7)], ["culinary", "precise"], piercing=1),
+   [("stat_ranged_damage", 0.7)], ["culinary", "precise"], piercing=1,
+   food_key="consumable_food_pizza_slice", food_drop="consumable_food_pizza_slice"),
  w("ice_cream_scoop", "Ice Cream Scoop", "potato_thrower", "ranged", 1, 20, 70, .08, 1.8, 300, 6,
    [("stat_ranged_damage", 0.9)], ["culinary", "medical"],
-   specials=[("heal_on_hit", 1, "EFFECT_W_SCOOP")]),
- w("galley_cannon", "Galley Cannon", "rocket_launcher", "ranged", 0, 24, 110, .05, 1.5, 420, 22,
-   [("stat_ranged_damage", 1.0)], ["naval", "explosive"], explode_scale=1.68),
+   specials=[("heal_on_hit", 1, "EFFECT_W_SCOOP")],
+   food_key="consumable_food_ice_cream", food_drop="consumable_food_ice_cream"),
+ w("galley_cannon", "Galley Cannon", "rocket_launcher", "ranged", 0, 14, 358, .05, 1.5, 420, 48,
+   [("stat_ranged_damage", 1.0)], ["naval", "explosive"],
+   piercing=999, bounce=0, piercing_dmg_reduction=0.0, projectile_speed=1500,
+   knockback_piercing=1.0, can_bounce=False,
+   proj_script="res://weapons/ranged/galley_cannon/galley_bounce_projectile.gd", proj_scale=0.74,
+   specials=[("", 0, "EFFECT_W_GALLEY_PIERCE")]),
 ]
 
 CSV_ROWS = [
  ("WEAPON_CLASS_CULINARY", "Culinary"),
- ("EFFECT_W_PAN_SLOW", "15% chance to slow enemies 50% for 1 second"),
+ ("EFFECT_W_PAN_SLOW", "15% chance to slow enemies {0}% for 1 second"),
  ("EFFECT_W_EXECUTE", "+{0}% damage against enemies below 25% HP"),
  ("EFFECT_W_TENDERIZE", "Hit enemies take +{0}% damage for 3 seconds"),
- ("EFFECT_W_BELL", "Each enemy hit extends your food buffs by 0.2 seconds"),
- ("EFFECT_W_SPATULA_SLOW", "Hits slow enemies 30% for 1 second"),
- ("EFFECT_W_SLAP_SLOW", "Hits slow enemies 15% for 1 second"),
+ ("EFFECT_W_BELL", "Each enemy hit extends your food buffs by {0} seconds"),
+ ("EFFECT_W_SPATULA_SLOW", "Hits slow enemies {0}% for 1 second"),
+ ("EFFECT_W_SLAP_SLOW", "Hits slow enemies {0}% for 1 second"),
  ("EFFECT_W_SCOOP", "Heal {0} HP for every enemy hit"),
- ("EFFECT_W_CORN_POPCORN", "Each explosion has a 3% chance to pop a Popcorn. Appetite increases the chance"),
+ ("EFFECT_W_CORN_CANNON_DROP", "Each hit has a {0}% chance to pop a Popcorn"),
+ ("EFFECT_W_FRYING_PAN_DROP", "Each hit has a {0}% chance to cook up a Fried Egg"),
+ ("EFFECT_W_FISH_SLAPPER_DROP", "Each hit has a {0}% chance to slap out a Sushi Roll"),
+ ("EFFECT_W_PIZZA_CUTTER_DROP", "Each hit has a {0}% chance to serve a Pizza Slice"),
+ ("EFFECT_W_SAUCE_BLASTER_DROP", "Each hit has a {0}% chance to squirt out a Chili Pepper"),
+ ("EFFECT_W_ICE_CREAM_SCOOP_DROP", "Each hit has a {0}% chance to scoop out an Ice Cream"),
+ ("EFFECT_W_GOLDEN_SPATULA_DROP", "Each hit has a {0}% chance to flip out a Golden Apple"),
+ ("EFFECT_W_WHISK_DROP", "Each hit has a {0}% chance to whip up a Cake Slice"),
+ ("EFFECT_W_ROLLING_PIN_DROP", "Each hit has a {0}% chance to roll out a Warm Cookie"),
+ ("EFFECT_W_EXPLODE", "Explodes on impact, damaging nearby enemies"),
+ ("EFFECT_W_GALLEY_PIERCE", "Projectiles pierce enemies and ricochet off walls up to 4 times before despawning"),
 ] + [("WEAPON_" + x["slug"].upper(), x["name"]) for x in WEAPONS]
 
 
@@ -214,6 +249,18 @@ def draw_weapon(slug, size):
 
 # ---------- tres generation ----------
 
+def scaled_special(key, base, tier_idx, start_tier):
+    # gentle per-tier scaling: x1 / 1.5 / 2 / 2.5 from the weapon's start tier. The
+    # slow chance stays flat (its text hardcodes the %) and display-only lines (key="",
+    # value 0) stay 0. gourmet_slow_on_hit % caps at 90 (a slow can't fully freeze).
+    if key in ("", "gourmet_slow_chance"):
+        return base
+    v = int(round(base * (1 + 0.5 * (tier_idx - start_tier))))
+    if key == "gourmet_slow_on_hit":
+        v = min(v, 90)
+    return v
+
+
 def special_effect_tres(key, value, text_key):
     return f"""[gd_resource type="Resource" load_steps=2 format=2]
 
@@ -227,6 +274,48 @@ value = {value}
 custom_key = ""
 storage_method = 0
 effect_sign = 0
+custom_args = [  ]
+"""
+
+
+def food_drop_tres(food_key, tier_n, text_key):
+    # per-tier on-hit food proc: value = tier number = % chance to drop the food when the
+    # weapon hits an enemy. custom_key "food_drop:<food>" marks it for weapon.gd
+    # on_weapon_hit_something; effect.gd's food_drop case renders {0}=value live. key="" so
+    # it applies no stat (inert in apply_item_effects).
+    return f"""[gd_resource type="Resource" load_steps=2 format=2]
+
+[ext_resource path="res://items/global/effect.gd" type="Script" id=1]
+
+[resource]
+script = ExtResource( 1 )
+key = ""
+text_key = "{text_key}"
+value = {tier_n}
+custom_key = "food_drop:{food_key}"
+storage_method = 0
+effect_sign = 0
+custom_args = [  ]
+"""
+
+
+def food_effect_tres(food_key):
+    # display-only food-info line (key="" so it applies no stat). text_key is the food's
+    # EFFECT_FOOD_* card key; custom_key is the food id, which drives the food buff render
+    # + the card's max-stacks/eaten lines (item_description.gd _get_spawner_food).
+    text_key = "EFFECT_FOOD_" + food_key.replace("consumable_food_", "").upper()
+    return f"""[gd_resource type="Resource" load_steps=2 format=2]
+
+[ext_resource path="res://items/global/effect.gd" type="Script" id=1]
+
+[resource]
+script = ExtResource( 1 )
+key = ""
+text_key = "{text_key}"
+value = 0
+custom_key = "{food_key}"
+storage_method = 0
+effect_sign = 2
 custom_args = [  ]
 """
 
@@ -245,6 +334,29 @@ PROJ_BY_TEMPLATE = {
 PROJ_SKIP = {"sauce_blaster"}  # user prefers the vanilla fireball ball (2026-07-22)
 
 
+def _attach_projectile_script(scene, wpn):
+    """Attach a custom PlayerProjectile subclass to the cloned projectile scene root
+    and/or shrink its Sprite (Galley Cannon: pierce + wall-bounce ball, 0.8 scale)."""
+    if not wpn.get("proj_script") and not wpn.get("proj_scale"):
+        return scene
+    if wpn.get("proj_script"):
+        nid = max((int(i) for i in re.findall(r"id=(\d+)", scene)), default=1) + 1
+        last = 0
+        for m in re.finditer(r"^\[ext_resource .*\]$", scene, re.M):
+            last = m.end()
+        scene = scene[:last] + f'\n[ext_resource path="{wpn["proj_script"]}" type="Script" id={nid}]' + scene[last:]
+        m = re.search(r"load_steps=(\d+)", scene)
+        if m:
+            scene = scene.replace(f"load_steps={m.group(1)}", f"load_steps={int(m.group(1)) + 1}", 1)
+        scene = re.sub(r'(\[node name="[^"]*" instance=ExtResource\( \d+ \)\]\n)',
+                       r'\1' + f'script = ExtResource( {nid} )\n', scene, count=1)
+    if wpn.get("proj_scale"):
+        s = wpn["proj_scale"]
+        scene = re.sub(r'(\[node name="Sprite" parent="\." index="0"\]\n)',
+                       r'\1' + f'scale = Vector2( {s}, {s} )\n', scene, count=1)
+    return scene
+
+
 def wire_projectile(wpn, tmpl_stats, ndir):
     """Give a ranged weapon its own projectile: clone the template's projectile scene with the
     weapon's projectile sprite swapped in, and point the stats' projectile_scene at it. Returns
@@ -257,6 +369,7 @@ def wire_projectile(wpn, tmpl_stats, ndir):
     new_tex = f"res://weapons/{kind}/{slug}/{slug}_projectile.png"
     for t in tex_rels:
         scene = scene.replace(f"res://{t}", new_tex)
+    scene = _attach_projectile_script(scene, wpn)
     open(f"{ndir}/{slug}_projectile.tscn", "w").write(scene)
 
     cloned = f"res://weapons/{kind}/{slug}/{slug}_projectile.tscn"
@@ -288,7 +401,7 @@ def exploding_effect_tres(scale, marker):
 [resource]
 script = ExtResource( 6 )
 key = "effect_explode"
-text_key = ""
+text_key = "EFFECT_W_EXPLODE"
 value = 0
 custom_key = "{marker}"
 storage_method = 0
@@ -366,6 +479,14 @@ def patch_stats(template_text, wpn, tier_idx):
         setf("piercing", wpn["piercing"])
     if wpn["bounce"] is not None:
         setf("bounce", wpn["bounce"])
+    if wpn["piercing_dmg_reduction"] is not None:
+        setf("piercing_dmg_reduction", wpn["piercing_dmg_reduction"])
+    if wpn["projectile_speed"] is not None:
+        setf("projectile_speed", wpn["projectile_speed"])
+    if wpn["knockback_piercing"] is not None:
+        setf("knockback_piercing", wpn["knockback_piercing"])
+    if wpn["can_bounce"] is not None:
+        setf("can_bounce", "true" if wpn["can_bounce"] else "false")
     # Sauce Blaster inherits the fireball template's custom_on_cooldown_sprite (the
     # empty-hand "just threw it" pose). That swap made the bottle vanish every shot and
     # read as a fireball throw. Strip it so the bottle stays in hand and only recoils.
@@ -429,9 +550,12 @@ def build_weapon(wpn, next_id):
     # give ranged weapons their own themed projectile (clone scene + swap sprite)
     tmpl_stats = wire_projectile(wpn, tmpl_stats, ndir)
 
-    # specials as effect resources (shared by every tier)
-    for i, (key, value, text_key) in enumerate(wpn["specials"]):
-        open(f"{ndir}/{slug}_effect_{i}.tres", "w").write(special_effect_tres(key, value, text_key))
+    # specials are generated PER TIER (scaled) inside the tier loop below, so the trait
+    # grows with the weapon's tier (Bell 0.2->0.5s, Cleaver execute 50->125%, etc.).
+
+    # food-source weapons (Corn Cannon -> Popcorn): attach the food-info effect
+    if wpn["food_key"]:
+        open(f"{ndir}/{slug}_food.tres", "w").write(food_effect_tres(wpn["food_key"]))
 
     # explosive weapons get their own ExplodingEffect (rocket_launcher clones do
     # NOT inherit the template's explosion - it lives in the template's data, not
@@ -481,8 +605,23 @@ def build_weapon(wpn, next_id):
             upgrade_ref = f"ExtResource( {next_ext} )"
             next_ext += 1
         effect_refs = []
-        for i in range(len(wpn["specials"])):
-            exts.append(f'[ext_resource path="res://weapons/{kind}/{slug}/{slug}_effect_{i}.tres" type="Resource" id={next_ext}]')
+        # per-tier on-hit food proc (Corn/Fish/Pizza/Sauce/Scoop/Spatula): value = tier
+        # number n = % chance. Written per tier (unlike shared specials) and shown FIRST.
+        if wpn["food_drop"]:
+            drop_text = f"EFFECT_W_{slug.upper()}_DROP"
+            open(f"{d}/{slug}_{n}_fooddrop.tres", "w").write(food_drop_tres(wpn["food_drop"], n, drop_text))
+            exts.append(f'[ext_resource path="res://weapons/{kind}/{slug}/{n}/{slug}_{n}_fooddrop.tres" type="Resource" id={next_ext}]')
+            effect_refs.append(f"ExtResource( {next_ext} )")
+            next_ext += 1
+        for i, (sp_key, sp_base, sp_text) in enumerate(wpn["specials"]):
+            open(f"{d}/{slug}_{n}_effect_{i}.tres", "w").write(
+                special_effect_tres(sp_key, scaled_special(sp_key, sp_base, tier_idx, wpn["start_tier"]), sp_text))
+            exts.append(f'[ext_resource path="res://weapons/{kind}/{slug}/{n}/{slug}_{n}_effect_{i}.tres" type="Resource" id={next_ext}]')
+            effect_refs.append(f"ExtResource( {next_ext} )")
+            next_ext += 1
+        # food-info effect goes between the specials and the explode effect (matches live order)
+        if wpn["food_key"]:
+            exts.append(f'[ext_resource path="res://weapons/{kind}/{slug}/{slug}_food.tres" type="Resource" id={next_ext}]')
             effect_refs.append(f"ExtResource( {next_ext} )")
             next_ext += 1
         if wpn["explode_scale"] is not None:
@@ -504,7 +643,7 @@ name = "WEAPON_{slug.upper()}"
 tier = {tier_idx}
 value = {VALUES[tier_idx]}
 effects = [ {", ".join(effect_refs)} ]
-tracking_text = ""
+tracking_text = "{wpn['tracking']}"
 is_lockable = true
 unlock_codex_descr_after_get_it = 1
 is_cursed = false
@@ -575,9 +714,10 @@ def add_csv_rows():
     lines = open(CSV).read().rstrip("\n").split("\n")
     added = 0
     for key, text in CSV_ROWS:
-        assert "," not in text, key
+        # quote values with commas/quotes (RFC-4180); an unquoted comma breaks the import.
+        field = '"' + text.replace('"', '""') + '"' if (',' in text or '"' in text) else text
         if not any(l.startswith(key + ",") for l in lines):
-            lines.append(f"{key},{text}")
+            lines.append(f"{key},{field}")
             added += 1
     open(CSV, "w").write("\n".join(lines) + "\n")
     print(f"added {added} translation rows")

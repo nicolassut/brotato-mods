@@ -29,7 +29,7 @@ SHEET = f"{HOME}/brotato-mods/asset-dev/characters/final/appearances_vector/_ver
 BODY_W, BODY_BOTTOM_OFF, BODY_CX_OFF = 59, 32, -0.5  # vs canvas center
 ALPHA_T = 10
 
-SLUGS = ["blacksmith", "butcher", "comp_eater", "dishwasher", "gourmet",
+SLUGS = ["blacksmith", "butcher", "comp_eater", "dishwasher", "girly", "gourmet",
          "juggler", "mime", "mole", "picky_eater", "ruminant", "snail",
          "tourist", "zombie"]
 
@@ -41,7 +41,9 @@ BAND = {"default": (0.05, 0.40)}
 # measurement (272 vs the roster-consistent ~248) and shrinking him ~9%.
 # 248 matches the shared framing of the other vectorizer exports; cx from
 # the frame center of his 640 export.
-OVERRIDE = {"blacksmith": (250, 320)}
+# girly: the ponytail dips to ~30% height on the left, contaminating the band
+# (349 vs the clean bottom-band egg 241); cx from the same clean band.
+OVERRIDE = {"blacksmith": (250, 320), "girly": (241, 315)}
 
 
 def measure_body(im):

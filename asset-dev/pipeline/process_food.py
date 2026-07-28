@@ -4,7 +4,8 @@ items/foods/<slug>/<slug>.png + asset-dev/foods. Usage: process_food.py food_<sl
 import sys, os
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
-SCRATCH = '/private/tmp/claude-501/-Users-nicolassutcliffe/5eeaab96-3e6e-43a4-a19c-c6809e254d53/scratchpad'
+SCRATCH = os.environ.get('BROTATO_SCRATCH',
+    '/private/tmp/claude-501/-Users-nicolassutcliffe/5eeaab96-3e6e-43a4-a19c-c6809e254d53/scratchpad')
 ADEV = '/Users/nicolassutcliffe/brotato-mods/asset-dev'
 DEC = '/Users/nicolassutcliffe/brotato-decompiled'
 sys.path.insert(0, f'{ADEV}/pipeline')

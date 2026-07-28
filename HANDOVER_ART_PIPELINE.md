@@ -325,3 +325,63 @@ The per-sprite choice table lives in pipeline/process_butcher.py GAP_FIX.
 Vecprep sizes: DETAILED item icons now go at 200px (user rule 2026-07-22; VEC_200 set),
 simple icons stay 128, structures/world 256. After ANY gap fix, re-verify the vectorizer
 INPUT files match the fixed live art - a stale whisk vecprep shipped once.
+
+## 3h. Hollow rings + modulate-tinted textures (2026-07-28, three-new-foods art pass)
+
+Two new failure modes, both from the gumball:
+
+**PixelLab returns a HOLLOW RING for simple uniform shapes.** Asked for a plain white
+gumball, it produced the black outline only - the entire interior was an alpha-0 hole
+(13302 hole px vs 3970 solid). This is the section-2 transparent-hole gotcha at full
+scale, and `fill_holes()` is the WRONG tool for it: fill_holes paints each hole pixel
+with the median of its solid neighbours, and when the only neighbours are the black
+stroke the ball comes out solid black. For a large single hole, PAINT the interior
+deliberately (body colour + shading + a shine dot) using the generation's own wonky
+silhouette. That keeps the hand-drawn edge, which is the part worth having. Always run
+`interior_holes()` on every raw before judging - the preview looks white either way.
+
+**Textures the game tints at runtime must be white and FLAT.** Godot `modulate`
+multiplies, so any baked hue multiplies into the wrong colour and dark shading turns to
+mud. Recipe that shipped for the gumball: 3 flat bands only (shadow 198,198,210 / body
+246,246,250 / shine pure white) plus the black outline, which survives multiply because
+black x colour = black. A smooth gradient also technically tints, but it reads off-style
+next to flat Brotato art - posterize it. Verify by rendering the sprite under EVERY
+runtime tint (main.gd picks red/blue/green for gumballs), not just the white base.
+
+**Stands and poles that run off the canvas bottom read as CUT, not as long.** The gumball
+machine generated with its pedestal running to y=192 (the canvas edge). Cropping the pole
+off entirely at the base of the machine beat both keeping it and leaving a stub: the icon
+got bigger, the outline measured 8px instead of 6, and a counter-top machine is no less
+readable than a pedestal one. Compare crops as a rendered option strip before choosing;
+also check the crop does not clip a secondary element (cutting at y=146 sliced the flying
+gumball in half, y=150 kept it whole).
+
+**Style ref drives line weight more than the prompt does.** The cocktail bar icon asked
+for a thick chunky outline both times; with `bag_icon` it came back thin, sketchy and
+muddy brown, with `glass_cannon` it came back bold and flat. When an icon ships weak
+linework, change the REF before rewriting the prompt.
+
+## 3i. Installing vectorized masters at game scale (2026-07-28, batch 3)
+
+`asset-dev/pipeline/install_vectors_batch3.py` is the reusable recipe. Two rules that
+matter more than the code:
+
+**Fit each category with the SAME rule its pixel counterpart uses**, or the new art lands
+at a different scale from everything already in the game: foods 68px max dim on an 80
+canvas with the soft shadow and baseline (process_food.fit_food), item icons 88px max dim
+centred on 96 (process_gen.downscale), structures (size-6) max dim BOTTOM-anchored
+(process_structure.fit_structure). vectorizer.ai thins outlines, so thicken at MASTER
+resolution (W scaled by master_dim/target) and bump until the downscaled result clears the
+category floor - foods >= 4px, icons >= 6px, structures >= 5px.
+
+**Max-dim fitting is not equal visual mass.** A filled circle fills its whole bbox; a
+steak or a cup does not. The gumball shipped at 1.40x the median painted area of the 25
+foods - the single largest food on the board, for a candy. Measure PAINTED AREA
+(alpha>120 pixel count) across the category and match the nearest analogue (Mint, the
+other round candy, sits at 1.28x); 68 -> 65px max dim fixed it. Do this for any new round
+or solid-silhouette asset.
+
+**Re-assert invariants AFTER the vectorizer.** It returned the gumball with a faint warm
+cast (max saturation 14) - invisible by eye, but that texture is multiplied by a
+red/blue/green `modulate` at spawn, so the body is forced back to exact greyscale
+(saturation 0) after every resample. Any post-vector resize must redo it.

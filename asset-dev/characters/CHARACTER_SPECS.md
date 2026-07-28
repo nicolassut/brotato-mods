@@ -56,6 +56,9 @@ live (butcher_skin.gd autoload); test character removed from the roster (2026-07
 
 ## #4 The Competitive Eater
 - **Food buffs stack twice as much, durations halved** [FOOD-SYS]
+- **Momentum (user redesign 2026-07-24): every food buff he actually gains grants
+  +5% Speed and +5% Pickup Range until the end of the wave** (capped/no-gain eats
+  do not count; wave-fresh, nothing persists) [FOOD-SYS: player.gd _gain_comp_momentum]
 - Max HP modifications −30%; −10% Dodge [DATA: gain_stat_max_hp −30, stat_dodge −10]
 
 ## #5 The Butcher
@@ -63,6 +66,10 @@ live (butcher_skin.gd autoload); test character removed from the roster (2026-07
   trees→steak piles, Garden→Meat Locker, Pruner→butcher variant. Raw steak (healing
   pickup) vs grilled steak (buff food) stay visually distinct; his counter counts both. [FOOD-SYS + textures]
 - **+1% Damage per steak eaten this wave** (resets per wave) [FOOD-SYS]
+- **+25% base chance food spawns are doubled, his fruit-Steaks included (user
+  addition 2026-07-24)** [DATA: second_helping key on his tres, stacks with the
+  Second Helping item; enemy-drop food path rolls it too via main.gd hook. His
+  card also carries the consumable_food_steak display effect (rule 2)]
 - −15% Speed; Speed modifications −50%; −20% Attack Speed; Attack Speed modifications −25%;
   Ranged damage modifications −100% [DATA: all exist as gain_stat_*/stat_* keys]
 - Starts with a **Cleaver** in inventory (Culinary weapon — weapons milestone)
@@ -71,8 +78,14 @@ live (butcher_skin.gd autoload); test character removed from the roster (2026-07
 - **Cannot heal by any means** [DEEP: heal-gate hook in player.gd]
 - **Damage modifications +50%** [DATA: gain_stat_percent_damage +50] ✓ already live
 - −20% Attack Speed [DATA]
+- −20% Speed (user change 2026-07-24) [DATA: stat_speed −20]
 - **Dodge capped at 10%**, and anything that raises the dodge cap is 50% less effective on him [DEEP: dodge cap key exists? verify]
-- Starts with **Mosquito Jar** (T0 item: +2 Life Steal, −1 HP Regen — items milestone, simple)
+- Starts with **Growling Stomach** (not Mosquito Jar — swapped in the build; +4 Appetite,
+  and its no-consumable-heal downside is free on a character that already cannot heal)
+- Starts with **Nine Lives** (user change 2026-07-24; T3, survive lethal damage at 1 HP,
+  once per wave / 9 per run, and the item's own −15% Damage rides along). Works despite
+  `no_heal`: player.gd writes `current_stats.health = 1` directly rather than calling
+  `heal()`, so the Zombie's heal gate never sees it.
 
 ## #7 The Minimalist
 - Starts with NOTHING; only **Fist** selectable as starting weapon
@@ -117,16 +130,40 @@ live (butcher_skin.gd autoload); test character removed from the roster (2026-07
 - Starts with an **Anvil** (base-game item)
 
 ## #13 The Juggler
-- **Only one weapon attacks at a time, cycling left→right; the active weapon attacks +250% faster** [DEEP: weapon-loop control]
-- −15% Damage; Armor modifications −50% [DATA]
+- **Only one weapon attacks at a time, cycling left→right, on a fixed metronome
+  (user redesign 2026-07-24): each weapon fires 0.3s after the previous one,
+  IGNORING its own cooldown. Attack Speed divides the interval: 0.3s / (1 +
+  Attack Speed/100), clamped to [0.05s, 3s] as a safety net.** [DEEP:
+  weapon.gd edge-triggered gate; live card formula = effect.gd
+  EFFECT_JUGGLER_TEMPO. The old "+250% on the active weapon" is GONE.]
+- −15% Damage; Armor modifications −50%; Attack Speed modifications −25% [DATA]
 - Starts with nothing
-- (Cooldown floor: engine minimum_weapon_cooldowns is the safety net)
 
 ## #14 The Mole
 - **Fog of war every wave** — only a radius around the player is visible (engine has fog/visibility hooks) [DEEP]
 - +30% Damage; +10 Luck; +15% XP Gain; **+50% Melee damage modifications** [DATA]
 - **−50% Range; −25% Ranged damage modifications** [DATA]
 - Starts with **Pocket Sand** (T0 item — items milestone)
+
+## #15 Girly (added 2026-07-24, user spec) [DEEP + FOOD-SYS]
+- **Panics when hit** — on ANY hit, INCLUDING dodged / armor-nullified damage, a
+  pink "PANIC" floating text pops and she **teleports to the point furthest from
+  every enemy** (9x9 grid over the zone rect, maximising nearest-enemy distance).
+  **10-second cooldown.** [DEEP: main.gd girly_panic_teleport, hooked in
+  _on_player_took_damage_food BEFORE its dodge/protected return; cooldown via the
+  _food_trigger_cooldowns dict keyed by generate_hash("girly_panic")]
+- **After teleporting, spawns 2 Fries + 2 Fried Rice around her** [FOOD-SYS: she is
+  a food source, so her card carries FOODDISP lines for BOTH foods = each food's
+  buff + max stacks + eaten count, per rule 2]. (Original design was a +Speed/+Regen
+  self-buff; changed to the food burst 2026-07-24 to fit the mod.)
+- +10 Max HP; +10% Map Size; +50% Items Price; Luck modifications −30% [DATA:
+  stat_max_hp +10, map_size +10, items_price +50 (NEG), gain_stat_luck −30]
+- wanted_tags = [stat_dodge] (dodged hits still trigger her panic, so dodge synergises)
+- Starting weapon pool: pistol, smg, wand, slingshot, taser, scissors, knife,
+  medical_gun, pizza_cutter, champagne_popper (kite-and-shoot). No starting item.
+- Counter: GIRLY_PANICS "Panics: {0}" (per panic, seeded in init_tracked_items).
+- ext id 998 (base+i would collide with stat_appetite id=825; EXT_IDS override in
+  build_characters.py). Placeholder art (icon + face piece) - needs an art pass.
 
 ---
 

@@ -9,7 +9,7 @@ Placeholder art only. The later art pass just replaces the PNGs in place.
 
 DEFERRED pairs (add here when their systems land): Ice Cream Truck (structure),
 Doggy Bag (ground expiry + Leftovers), Chili Greenhouse (burn application)."""
-import os, re, shutil
+import os, re, shutil, hashlib
 from PIL import Image, ImageDraw
 
 DEC  = "/Users/nicolassutcliffe/brotato-decompiled"
@@ -36,11 +36,12 @@ SPAWNERS = [
       structure=dict(scene="res://entities/structures/turret/beehive/beehive.tscn", stats="res://entities/structures/turret/beehive/beehive_stats.tres"),
       text_key="EFFECT_BEEHIVE"),
  dict(slug="wok_station", max_nb=3, name="Wok Station", tier=2, value=70,
-      tags=["food", "stat_attack_speed"], trigger="burning_kill_foods", count=1,
+      tags=["food", "structure", "stat_attack_speed"], trigger="burning_kill_foods", count=1,
       anchor_structure=dict(scene="res://entities/structures/turret/wok_station/wok_station.tscn", stats="res://entities/structures/turret/food_stand_stats.tres"),
       text_key="EFFECT_WOK_STATION"),
- dict(slug="popcorn_machine", max_nb=3, name="Popcorn Machine", tier=1, value=50,
-      tags=["food", "stat_dodge"], trigger="explosion_foods", count=1,
+ dict(slug="popcorn_machine", max_nb=2, name="Popcorn Machine", tier=1, value=50,
+      tags=["food", "stat_explosion_damage", "explosive"], trigger="explosion_foods", count=1,
+      # chance-gated in main.gd add_explosion: 5% * (1 + 0.10 * Appetite) per explosion
       text_key="EFFECT_POPCORN_MACHINE"),
  dict(slug="deep_fryer", max_nb=4, name="Deep Fryer", tier=1, value=55,
       tags=["food", "stat_speed"], trigger="material_foods", count=1,
@@ -49,30 +50,30 @@ SPAWNERS = [
       tags=["food", "stat_crit_chance"], trigger="crit_foods", count=1,
       text_key="EFFECT_SUSHI_BAR"),
  dict(slug="grandmas_cookbook", max_nb=3, name="Grandma's Cookbook", tier=0, value=25,
-      tags=["food", "stat_armor"], trigger="damage_taken_foods", count=1,
+      tags=["food", "stat_hp_regeneration"], trigger="damage_taken_foods", count=1,
       text_key="EFFECT_GRANDMAS_COOKBOOK"),
- dict(slug="pizza_delivery", max_nb=4, name="Pizza Delivery", tier=0, value=20,
+ dict(slug="pizza_delivery", max_nb=3, name="Pizza Delivery", tier=0, value=20,
       tags=["food", "stat_percent_damage"], trigger="mid_wave_foods", count=1,
       text_key="EFFECT_PIZZA_DELIVERY"),
  dict(slug="victory_feast", max_nb=3, name="Victory Feast", tier=2, value=80,
       tags=["food"], trigger="elite_kill_foods", count=1,
       text_key="EFFECT_VICTORY_FEAST"),
  dict(slug="street_vendor", max_nb=3, name="Street Vendor", tier=0, value=22,
-      tags=["food", "stat_percent_damage"], trigger="random_times_foods", count=1,
+      tags=["food", "structure", "stat_percent_damage"], trigger="random_times_foods", count=1,
       anchor_structure=dict(scene="res://entities/structures/turret/street_vendor/street_vendor.tscn", stats="res://entities/structures/turret/food_stand_stats.tres"),
       text_key="EFFECT_STREET_VENDOR"),
  dict(slug="fondue_set", max_nb=3, name="Fondue Set", tier=1, value=50,
-      tags=["food", "stat_armor"], trigger="standstill_timer_foods", count=1,
+      tags=["food", "stat_dodge", "stand_still"], trigger="standstill_timer_foods", count=1,
       text_key="EFFECT_FONDUE_SET"),
  dict(slug="gym_membership", max_nb=3, name="Gym Membership", tier=1, value=45,
       tags=["food", "stat_speed"], trigger="step_foods", count=1,
       text_key="EFFECT_GYM_MEMBERSHIP"),
  dict(slug="fancy_restaurant", max_nb=2, name="Fancy Restaurant", tier=3, value=95,
-      tags=["food", "structure", "stat_dodge"], count=1,
+      tags=["food", "structure", "stat_armor"], count=1,
       structure=dict(scene="res://entities/structures/turret/fancy_restaurant/fancy_restaurant.tscn", stats="res://entities/structures/turret/fancy_restaurant/fancy_restaurant_stats.tres"),
       text_key="EFFECT_FANCY_RESTAURANT"),
  dict(slug="farmers_market", max_nb=2, name="Farmers' Market", tier=1, value=60,
-      tags=["food", "stat_harvesting"], trigger="reroll_banked_foods", count=1,
+      tags=["food", "structure", "stat_harvesting", "economy"], trigger="reroll_banked_foods", count=1,
       anchor_structure=dict(scene="res://entities/structures/turret/farmers_market/farmers_market.tscn", stats="res://entities/structures/turret/food_stand_stats.tres"),
       text_key="EFFECT_FARMERS_MARKET",
       tracking_text="GOURMET_HARVESTING_GAINED"),  # fruit salad perma-harvesting counter
@@ -80,7 +81,7 @@ SPAWNERS = [
       tags=["food"], trigger="consumable_count_foods", count=1, max_nb=2,
       text_key="EFFECT_AFTER_DINNER_MINTS"),
  dict(slug="chili_greenhouse", max_nb=3, name="Chili Greenhouse", tier=2, value=75,
-      tags=["food", "stat_elemental_damage"], trigger="burning_tick_foods", count=1,
+      tags=["food", "structure", "stat_elemental_damage"], trigger="burning_tick_foods", count=1,
       anchor_structure=dict(scene="res://entities/structures/turret/chili_greenhouse/chili_greenhouse.tscn", stats="res://entities/structures/turret/food_stand_stats.tres"),
       text_key="EFFECT_CHILI_GREENHOUSE"),
  dict(slug="doggy_bag", name="Doggy Bag", tier=2, value=70,
@@ -91,49 +92,72 @@ SPAWNERS = [
       structure=dict(scene="res://entities/structures/turret/ice_cream_truck/ice_cream_truck.tscn",
                      stats="res://entities/structures/turret/ice_cream_truck/ice_cream_truck_stats.tres"),
       text_key="EFFECT_ICE_CREAM_TRUCK"),
+ # pairs 20+ carry an explicit ext_id: the 840+2i scheme ends at 879 and the ids
+ # right after belong to build_pantry_items (880+). Food ext id = spawner id + 1.
+ dict(slug="bbq_grill", max_nb=3, name="BBQ Grill", tier=2, value=75,
+      tags=["food", "stat_melee_damage"], trigger="close_kill_foods", count=1,
+      anchor_structure=dict(scene="res://entities/structures/turret/bbq_grill/bbq_grill.tscn", stats="res://entities/structures/turret/food_stand_stats.tres"),
+      text_key="EFFECT_BBQ_GRILL", ext_id=991),
+ dict(slug="hot_dog_cart", max_nb=3, name="Hot Dog Cart", tier=2, value=75,
+      tags=["food", "stat_ranged_damage"], trigger="far_kill_foods", count=1,
+      anchor_structure=dict(scene="res://entities/structures/turret/hot_dog_cart/hot_dog_cart.tscn", stats="res://entities/structures/turret/food_stand_stats.tres"),
+      text_key="EFFECT_HOT_DOG_CART", ext_id=993),
+ dict(slug="gumball_machine", max_nb=3, name="Gumball Machine", tier=2, value=70,
+      tags=["food", "structure", "stat_engineering"], trigger="turret_kill_foods", count=1,
+      anchor_structure=dict(scene="res://entities/structures/turret/gumball_machine/gumball_machine.tscn", stats="res://entities/structures/turret/food_stand_stats.tres"),
+      text_key="EFFECT_GUMBALL_MACHINE", ext_id=999),
+ dict(slug="cocktail_bar", max_nb=3, name="Cocktail Bar", tier=2, value=75,
+      tags=["food", "structure", "stat_lifesteal"], count=1,
+      structure=dict(scene="res://entities/structures/turret/cocktail_bar/cocktail_bar.tscn",
+                     stats="res://entities/structures/turret/cocktail_bar/cocktail_bar_stats.tres"),
+      text_key="EFFECT_COCKTAIL_BAR", ext_id=1001),
 ]
 
 def food(slug, name, text_key, buff=(), dur=0, dur_app=0.0, stacks=True, cap=0,
-         stack_cap=20, wave=(), perm=(), heal=0.0, heal_app=0.0, special="", tracking_item=""):
+         stack_cap=20, wave=(), perm=(), perm_app=0.0, heal=0.0, heal_app=0.0, special="", tracking_item=""):
     # tracking_item: my_id of the item credited on its card for perm gains
     # (vanilla perma-stat tracking rule; key must be in init_tracked_items)
     # stack_cap: max times the buff can stack (count, ceiling 20; strong foods lower)
     return dict(slug=slug, my_id=f"consumable_food_{slug}", name=name,
                 text_key=text_key, buff=buff, dur=dur, dur_app=dur_app,
-                stacks=stacks, cap=cap, stack_cap=stack_cap, wave=wave, perm=perm, heal=heal,
+                stacks=stacks, cap=cap, stack_cap=stack_cap, wave=wave, perm=perm,
+                perm_app=perm_app, heal=heal,
                 heal_app=heal_app, special=special, tracking_item=tracking_item)
 
 FOODS = [
+ # stack caps reduced to 8/10/12 tiers (2026-07-24) - Comp Eater 2x + Elastic
+ # Waistband cap-bonus made 15/20 stacks blow up. Effect swaps same date: popcorn
+ # dodge->explosion, escargot dodge->armor, warm_cookie armor->regen, cheese armor->dodge.
  food("espresso", "Espresso", "EFFECT_FOOD_ESPRESSO",
-      buff=[("stat_attack_speed", 10, 0.2)], dur=6, stack_cap=15),
+      buff=[("stat_attack_speed", 10, 0.2)], dur=6, stack_cap=8),
  food("steak", "Steak", "EFFECT_FOOD_STEAK",
-      buff=[("stat_percent_damage", 8, 0.25)], dur=5, stack_cap=15),
+      buff=[("stat_percent_damage", 8, 0.25)], dur=5, stack_cap=8),
  food("cake_slice", "Cake Slice", "EFFECT_FOOD_CAKE_SLICE",
-      heal=2, heal_app=0.1, wave=[("stat_max_hp", 2, 0)]),
+      heal=2, heal_app=0.1, wave=[("stat_max_hp", 2, 0)], stack_cap=12),
  food("honey_drop", "Honey Drop", "EFFECT_FOOD_HONEY_DROP",
-      wave=[("stat_hp_regeneration", 2, 0.1)]),
+      wave=[("stat_hp_regeneration", 2, 0.1)], stack_cap=12),
  food("fried_rice", "Fried Rice", "EFFECT_FOOD_FRIED_RICE",
-      buff=[("stat_attack_speed", 4, 0.15)], dur=6),
+      buff=[("stat_attack_speed", 4, 0.15)], dur=6, stack_cap=10),
  food("popcorn", "Popcorn", "EFFECT_FOOD_POPCORN",
-      buff=[("stat_dodge", 2, 0.1)], dur=5, cap=20),
+      buff=[("explosion_damage", 2, 0.1), ("explosion_size", 2, 0.1)], dur=5, cap=20, stack_cap=8),
  food("fries", "Fries", "EFFECT_FOOD_FRIES",
-      buff=[("stat_speed", 4, 0.1)], dur=5),
+      buff=[("stat_speed", 4, 0.1)], dur=5, stack_cap=10),
  food("sushi_roll", "Sushi Roll", "EFFECT_FOOD_SUSHI_ROLL",
-      buff=[("stat_crit_chance", 4, 0.15)], dur=6),
+      buff=[("stat_crit_chance", 4, 0.15)], dur=6, stack_cap=10),
  food("warm_cookie", "Warm Cookie", "EFFECT_FOOD_WARM_COOKIE",
-      heal=1, buff=[("stat_armor", 1, 0.1)], dur=6),
+      heal=1, buff=[("stat_hp_regeneration", 1, 0.1)], dur=6, stack_cap=12),
  food("pizza_slice", "Pizza Slice", "EFFECT_FOOD_PIZZA_SLICE",
-      buff=[("stat_percent_damage", 3, 0), ("stat_speed", 3, 0)], dur=10, dur_app=0.1),
+      buff=[("stat_percent_damage", 3, 0), ("stat_speed", 3, 0)], dur=10, dur_app=0.1, stack_cap=10),
  food("golden_apple", "Golden Apple", "EFFECT_FOOD_GOLDEN_APPLE",
       heal=5, heal_app=0.2, dur=10, special="golden_apple"),
  food("mystery_meat", "Mystery Meat", "EFFECT_FOOD_MYSTERY_MEAT",
-      buff=[("stat_percent_damage", 10, 0.3)], dur=8, stack_cap=15, special="mystery_meat"),
+      buff=[("stat_percent_damage", 10, 0.3)], dur=8, stack_cap=8, special="mystery_meat"),
  food("cheese_cube", "Cheese Cube", "EFFECT_FOOD_CHEESE_CUBE",
-      buff=[("stat_armor", 2, 0.15)], dur=4),
+      buff=[("stat_dodge", 2, 0.15)], dur=4, stack_cap=10),
  food("protein_shake", "Protein Shake", "EFFECT_FOOD_PROTEIN_SHAKE",
-      buff=[("stat_speed", 4, 0.1), ("stat_melee_damage", 2, 0.1)], dur=6),
+      buff=[("stat_speed", 4, 0.1), ("stat_melee_damage", 2, 0.1)], dur=6, stack_cap=10),
  food("escargot", "Escargot", "EFFECT_FOOD_ESCARGOT",
-      buff=[("stat_dodge", 3, 0.15)], dur=8, stack_cap=12, special="escargot"),
+      buff=[("stat_armor", 3, 0.15)], dur=8, stack_cap=8, special="escargot"),
  food("fruit_salad", "Fruit Salad", "EFFECT_FOOD_FRUIT_SALAD",
       heal=4, heal_app=0.2, perm=[("stat_harvesting", 1)],
       tracking_item="item_farmers_market"),
@@ -142,7 +166,23 @@ FOODS = [
       buff=[("chili_burn", 3, 0.1)], dur=4, stacks=False, special="chili"),
  food("leftovers", "Leftovers", "EFFECT_FOOD_LEFTOVERS", special="leftovers"),
  food("ice_cream", "Ice Cream", "EFFECT_FOOD_ICE_CREAM",
-      buff=[("stat_attack_speed", 2, 0.2)], dur=4),
+      buff=[("stat_attack_speed", 2, 0.2)], dur=4, stack_cap=12),
+ food("ribs", "Ribs", "EFFECT_FOOD_RIBS",
+      buff=[("stat_melee_damage", 3, 0.15)], dur=6, stack_cap=10),
+ food("chili_dog", "Chili Dog", "EFFECT_FOOD_CHILI_DOG",
+      buff=[("stat_ranged_damage", 3, 0.15)], dur=6, stack_cap=10),
+ food("gumball", "Gumball", "EFFECT_FOOD_GUMBALL",
+      buff=[("stat_engineering", 2, 0.1)], dur=8, stack_cap=20),
+ food("bloody_mary", "Bloody Mary", "EFFECT_FOOD_BLOODY_MARY",
+      buff=[("stat_lifesteal", 2, 0.1)], dur=6, stack_cap=12),
+]
+
+# STANDALONE foods have no paired spawner (dropped only by a weapon). Generated by a
+# second loop in main(); their ext id is explicit. Fried Egg = Frying Pan food-drop.
+STANDALONE_FOODS = [
+ dict(food=food("fried_egg", "Fried Egg", "EFFECT_FOOD_FRIED_EGG",
+                perm=[("stat_luck", 1)], perm_app=0.05, tracking_item="weapon_frying_pan"),
+      ext_id=1003),
 ]
 
 CSV_ROWS = [
@@ -155,27 +195,27 @@ CSV_ROWS = [
  ("EFFECT_BEEHIVE", "Places a Beehive that drips a Honey Drop every {0} seconds"),
  ("EFFECT_FOOD_HONEY_DROP", "Eating grants +{0} ({1}) HP Regeneration until the end of the wave. Stacks"),
  ("EFFECT_WOK_STATION", "Serves a Fried Rice at the wok every 8 enemies that die burning"),
- ("EFFECT_FOOD_FRIED_RICE", "Eating grants +{0}% ({1}) Attack Speed for 6 seconds. Stacks"),
- ("EFFECT_POPCORN_MACHINE", "Spawns a Popcorn for every explosion you cause"),
- ("EFFECT_FOOD_POPCORN", "Eating grants +{0}% ({1}) Dodge for 5 seconds. Stacks up to +20%"),
+ ("EFFECT_FOOD_FRIED_RICE", "Eating Fried Rice grants +{0}% ({1}) Attack Speed for 6 seconds. Stacks"),
+ ("EFFECT_POPCORN_MACHINE", "Each explosion has a {0}% ({1}%) chance to pop a Popcorn"),
+ ("EFFECT_FOOD_POPCORN", "Eating grants +{0}% ({1}) Explosion Damage and +{2}% ({3}) Explosion Size for 5 seconds. Stacks"),
  ("EFFECT_DEEP_FRYER", "Spawns a Fries every 30 materials you collect"),
- ("EFFECT_FOOD_FRIES", "Eating grants +{0}% ({1}) Speed for 5 seconds. Stacks"),
+ ("EFFECT_FOOD_FRIES", "Eating Fries grants +{0}% ({1}) Speed for 5 seconds. Stacks"),
  ("EFFECT_SUSHI_BAR", "Spawns a Sushi Roll every 12 critical hits"),
  ("EFFECT_FOOD_SUSHI_ROLL", "Eating grants +{0}% ({1}) Crit Chance for 6 seconds. Stacks"),
  ("EFFECT_GRANDMAS_COOKBOOK", "Spawns a Warm Cookie when you take damage (2 second cooldown)"),
- ("EFFECT_FOOD_WARM_COOKIE", "Eating heals {2} HP and grants +{0} ({1}) Armor for 6 seconds. Stacks"),
+ ("EFFECT_FOOD_WARM_COOKIE", "Eating heals {2} HP and grants +{0} ({1}) HP Regeneration for 6 seconds. Stacks"),
  ("EFFECT_PIZZA_DELIVERY", "Delivers a Pizza Slice somewhere mid-wave"),
  ("EFFECT_FOOD_PIZZA_SLICE", "Eating grants +{0}% Damage and +{1}% Speed for {2} ({3}) seconds"),
  ("EFFECT_VICTORY_FEAST", "Spawns a Golden Apple when an elite or a boss dies"),
- ("EFFECT_FOOD_GOLDEN_APPLE", "Eating heals {0} HP ({1}) and grants +8% to a random stat for 10 seconds"),
- ("EFFECT_STREET_VENDOR", "A Mystery Meat shows up at the cart 1 to 3 times per wave"),
+ ("EFFECT_FOOD_GOLDEN_APPLE", "Eating heals {0} HP ({1}) and grants +20% to a random stat for 10 seconds"),
+ ("EFFECT_STREET_VENDOR", "A Mystery Meat shows up 1 to 3 times per wave, +0.3 per Appetite to both bounds (rounded)"),
  ("EFFECT_FOOD_MYSTERY_MEAT", "Eating grants +{0}% ({1}) Damage for 8 seconds half the time. Otherwise you lose 2 HP"),
  ("EFFECT_FONDUE_SET", "Spawns a Cheese Cube every 3 seconds you stand still"),
- ("EFFECT_FOOD_CHEESE_CUBE", "Eating grants +{0} ({1}) Armor for 4 seconds. Stacks"),
+ ("EFFECT_FOOD_CHEESE_CUBE", "Eating grants +{0}% ({1}) Dodge for 4 seconds. Stacks"),
  ("EFFECT_GYM_MEMBERSHIP", "Spawns a Protein Shake every 200 steps"),
  ("EFFECT_FOOD_PROTEIN_SHAKE", "Eating grants +{0}% ({1}) Speed and +{2} ({3}) Melee Damage for 6 seconds. Stacks"),
  ("EFFECT_FANCY_RESTAURANT", "Places a restaurant that serves an Escargot every {0} seconds to nearby players at full HP"),
- ("EFFECT_FOOD_ESCARGOT", "Eating grants +{0}% ({1}) Dodge for 8 seconds. Stacks"),
+ ("EFFECT_FOOD_ESCARGOT", "Eating grants +{0} ({1}) Armor for 8 seconds. Stacks"),
  ("EFFECT_FARMERS_MARKET", "Banks every shop reroll as a Fruit Salad served at the stall next wave"),
  ("EFFECT_FOOD_FRUIT_SALAD", "Eating heals {0} HP ({1}) and grants +1 Harvesting permanently"),
  ("EFFECT_AFTER_DINNER_MINTS", "Spawns a Mint every 5 consumables you pick up"),
@@ -188,6 +228,16 @@ CSV_ROWS = [
  ("EFFECT_ICE_CREAM_TRUCK", "Places a truck that serves an Ice Cream every {0} seconds to nearby players"),
  ("EFFECT_FOOD_ICE_CREAM", "Eating grants +{0}% ({1}) Attack Speed for 4 seconds. Stacks"),
  ("DOGGY_BAG_LEFTOVERS", "Leftovers banked: {0}"),
+ ("EFFECT_BBQ_GRILL", "Spawns Ribs every 15 enemies that die within 300 range of you"),
+ ("EFFECT_FOOD_RIBS", "Eating grants +{0} ({1}) Melee Damage for 6 seconds. Stacks"),
+ ("EFFECT_HOT_DOG_CART", "Spawns a Chili Dog every 15 enemies that die more than 300 range from you"),
+ ("EFFECT_FOOD_CHILI_DOG", "Eating grants +{0} ({1}) Ranged Damage for 6 seconds. Stacks"),
+ ("EFFECT_GUMBALL_MACHINE", "Dispenses a Gumball at the machine every 5 kills your turrets get"),
+ ("EFFECT_FOOD_GUMBALL", "Eating grants +{0} ({1}) Engineering for 8 seconds. Stacks"),
+ ("EFFECT_COCKTAIL_BAR", "Places a bar that serves a Bloody Mary every {0} seconds to nearby players"),
+ ("EFFECT_FOOD_BLOODY_MARY", "Eating grants +{0}% ({1}) Life Steal for 6 seconds. Stacks"),
+ ("EFFECT_FOOD_FRIED_EGG", "Eating grants +{0} ({1}) Luck permanently"),
+ ("FRYING_PAN_LUCK", "Luck gained: {0}"),
 ]
 
 
@@ -503,7 +553,40 @@ def art_ice_cream_truck_ingame(d):
     d.polygon([(34, 34), (40, 14), (46, 34)], fill=(238, 200, 120, 255), outline=OUTLINE)
     d.ellipse([34, 8, 46, 20], fill=(238, 150, 170, 255), outline=OUTLINE, width=3)
 
+def art_bbq_grill(d):
+    d.pieslice([16, 12, 80, 48], start=180, end=360, fill=(84, 88, 100, 255), outline=OUTLINE, width=4)
+    d.ellipse([16, 28, 80, 62], fill=(58, 60, 70, 255), outline=OUTLINE, width=4)
+    d.line([24, 40, 72, 40], fill=OUTLINE, width=3)
+    d.rectangle([42, 4, 54, 12], fill=(150, 104, 66, 255), outline=OUTLINE, width=3)
+    d.line([32, 62, 24, 86], fill=OUTLINE, width=5)
+    d.line([64, 62, 72, 86], fill=OUTLINE, width=5)
+    d.ellipse([36, 46, 46, 56], fill=(240, 140, 48, 255), outline=OUTLINE, width=2)
+    d.ellipse([52, 46, 62, 56], fill=(240, 140, 48, 255), outline=OUTLINE, width=2)
+
+def art_hot_dog_cart(d):
+    for i, x in enumerate(range(12, 84, 18)):
+        color = (240, 196, 80, 255) if i % 2 == 0 else (200, 56, 48, 255)
+        d.rectangle([x, 10, x + 18, 26], fill=color, outline=OUTLINE, width=3)
+    d.rectangle([18, 34, 78, 64], fill=(196, 60, 48, 255), outline=OUTLINE, width=4)
+    d.ellipse([28, 42, 68, 56], fill=(238, 200, 120, 255), outline=OUTLINE, width=3)
+    d.ellipse([34, 40, 62, 50], fill=(158, 74, 58, 255), outline=OUTLINE, width=3)
+    d.ellipse([24, 64, 42, 82], fill=(58, 60, 70, 255), outline=OUTLINE, width=4)
+    d.ellipse([54, 64, 72, 82], fill=(58, 60, 70, 255), outline=OUTLINE, width=4)
+
+def art_gumball_machine(d):
+    d.rectangle([30, 60, 66, 88], fill=(200, 56, 48, 255), outline=OUTLINE, width=4)
+    d.ellipse([18, 10, 78, 66], fill=(206, 226, 238, 160), outline=OUTLINE, width=4)
+    for x, y, c in ((34, 26, (200, 56, 48)), (52, 22, (56, 120, 200)), (40, 42, (80, 180, 90)), (58, 44, (240, 196, 80))):
+        d.ellipse([x, y, x + 12, y + 12], fill=c + (255,), outline=OUTLINE, width=2)
+
+def art_cocktail_bar(d):
+    d.rectangle([10, 58, 84, 86], fill=(120, 82, 54, 255), outline=OUTLINE, width=4)
+    d.polygon([(30, 18), (62, 18), (50, 46), (42, 46)], fill=(200, 40, 40, 255), outline=OUTLINE)
+    d.rectangle([44, 46, 48, 60], fill=OUTLINE)
+    d.line([58, 12, 58, 30], fill=(104, 160, 88, 255), width=4)
+
 SPAWNER_ART = {
+ "gumball_machine": art_gumball_machine, "cocktail_bar": art_cocktail_bar,
  "espresso_machine": art_espresso_machine, "butchers_hook": art_butchers_hook,
  "bakers_oven": art_bakers_oven, "beehive": art_beehive, "wok_station": art_wok_station,
  "popcorn_machine": art_popcorn_machine, "deep_fryer": art_deep_fryer,
@@ -514,8 +597,36 @@ SPAWNER_ART = {
  "farmers_market": art_farmers_market, "after_dinner_mints": art_after_dinner_mints,
  "chili_greenhouse": art_chili_greenhouse, "doggy_bag": art_doggy_bag,
  "ice_cream_truck": art_ice_cream_truck_icon,
+ "bbq_grill": art_bbq_grill, "hot_dog_cart": art_hot_dog_cart,
 }
+
+def art_ribs(d):
+    d.rounded_rectangle([10, 24, 70, 60], radius=10, fill=(158, 74, 58, 255), outline=OUTLINE, width=4)
+    for x in (22, 34, 46, 58):
+        d.rectangle([x - 3, 30, x + 3, 54], fill=(238, 230, 210, 255), outline=OUTLINE, width=2)
+
+def art_chili_dog(d):
+    d.ellipse([8, 32, 72, 58], fill=(238, 200, 120, 255), outline=OUTLINE, width=4)
+    d.ellipse([12, 24, 68, 46], fill=(158, 74, 58, 255), outline=OUTLINE, width=4)
+    for x in (18, 32, 46):
+        d.line([x, 32, x + 10, 40], fill=(200, 56, 48, 255), width=4)
+
+def art_gumball(d):
+    # WHITE base ball (black outline) - recoloured red/blue/green via modulate at spawn
+    d.ellipse([16, 16, 64, 64], fill=(238, 238, 244, 255), outline=OUTLINE, width=5)
+    d.ellipse([26, 24, 38, 36], fill=(255, 255, 255, 255))
+
+def art_bloody_mary(d):
+    d.polygon([(20, 16), (60, 16), (48, 54), (32, 54)], fill=(200, 40, 40, 255), outline=OUTLINE)
+    d.rectangle([36, 54, 44, 70], fill=(150, 104, 66, 255), outline=OUTLINE, width=2)
+    d.line([54, 8, 54, 30], fill=(104, 160, 88, 255), width=5)
+
+def art_fried_egg(d):
+    d.ellipse([10, 16, 70, 64], fill=(248, 248, 240, 255), outline=OUTLINE, width=4)
+    d.ellipse([30, 30, 50, 50], fill=(248, 196, 60, 255), outline=OUTLINE, width=3)
+
 FOOD_ART = {
+ "gumball": art_gumball, "bloody_mary": art_bloody_mary, "fried_egg": art_fried_egg,
  "espresso": art_espresso, "steak": art_steak, "cake_slice": art_cake_slice,
  "honey_drop": art_honey_drop, "fried_rice": art_fried_rice, "popcorn": art_popcorn,
  "fries": art_fries, "sushi_roll": art_sushi_roll, "warm_cookie": art_warm_cookie,
@@ -524,7 +635,52 @@ FOOD_ART = {
  "protein_shake": art_protein_shake, "escargot": art_escargot,
  "fruit_salad": art_fruit_salad, "mint": art_mint,
  "chili_pepper": art_chili_pepper, "leftovers": art_leftovers, "ice_cream": art_ice_cream,
+ "ribs": art_ribs, "chili_dog": art_chili_dog,
 }
+
+# Godot 3 .import sidecar for a NEW png (skipped when present; Godot rebuilds the
+# .stex itself at the next project import). Hash = md5 of the res:// path.
+def write_png_import(dest_png, res_path):
+    sidecar = dest_png + ".import"
+    if os.path.exists(sidecar):
+        return
+    stex = f"res://.import/{os.path.basename(dest_png)}-{hashlib.md5(res_path.encode()).hexdigest()}.stex"
+    open(sidecar, "w").write(f"""[remap]
+
+importer="texture"
+type="StreamTexture"
+path="{stex}"
+metadata={{
+"vram_texture": false
+}}
+
+[deps]
+
+source_file="{res_path}"
+dest_files=[ "{stex}" ]
+
+[params]
+
+compress/mode=0
+compress/lossy_quality=0.7
+compress/hdr_mode=0
+compress/bptc_ldr=0
+compress/normal_map=0
+flags/repeat=0
+flags/filter=true
+flags/mipmaps=false
+flags/anisotropic=false
+flags/srgb=2
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/HDR_as_SRGB=false
+process/invert_color=false
+process/normal_map_invert_y=false
+stream=false
+size_limit=0
+detect_3d=true
+svg/scale=1.0
+""")
 
 
 # ---------- tres writers ----------
@@ -690,6 +846,7 @@ buff_total_cap = {f['cap']}
 buff_stack_cap = {f.get('stack_cap', 20)}
 wave_stats = {gd_arr3(f['wave'])}
 permanent_stats = {gd_arr2(f['perm'])}
+permanent_app_ratio = {float(f.get('perm_app', 0.0))}
 heal_base = {float(f['heal'])}
 heal_app_ratio = {float(f['heal_app'])}
 special_id = "{f['special']}"
@@ -749,8 +906,9 @@ def add_csv_rows():
     lines = open(CSV).read().rstrip("\n").split("\n")
     added, updated = 0, 0
     for key, text in CSV_ROWS:
-        assert "," not in text, f"comma in CSV text for {key} (breaks the 2-column CSV)"
-        row = f"{key},{text}"
+        # quote values with commas/quotes (RFC-4180); an unquoted comma breaks the import.
+        field = '"' + text.replace('"', '""') + '"' if (',' in text or '"' in text) else text
+        row = f"{key},{field}"
         hit = [i for i, l in enumerate(lines) if l.startswith(key + ",")]
         if hit:
             if lines[hit[0]] != row:
@@ -769,18 +927,23 @@ def main():
 
     for i, (s, f) in enumerate(zip(SPAWNERS, FOODS)):
         slug, food_slug = s["slug"], f["slug"]
-        spawner_ids.append((slug, BASE_ID + 2 * i))
-        food_ids.append((food_slug, BASE_ID + 2 * i + 1))
+        spawner_ext_id = s.get("ext_id", BASE_ID + 2 * i)
+        spawner_ids.append((slug, spawner_ext_id))
+        food_ids.append((food_slug, spawner_ext_id + 1))
 
         d = f"{DEC}/items/custom/{slug}"
         os.makedirs(d, exist_ok=True)
         real_icon = f"{os.path.dirname(os.path.abspath(__file__))}/items_food_system/final/{slug}.png"
+        spawner_png = f"{d}/{slug}.png"
         if os.path.exists(real_icon):
-            shutil.copy(real_icon, f"{d}/{slug}.png")
-        else:
+            shutil.copy(real_icon, spawner_png)
+        elif not os.path.exists(spawner_png):
+            # placeholder only for brand-new spawners: a live png with no final/
+            # source is vectorized art installed in place - never clobber it
             img, draw = canvas(96)
             SPAWNER_ART[slug](draw)
-            img.save(f"{d}/{slug}.png")
+            img.save(spawner_png)
+        write_png_import(spawner_png, f"res://items/custom/{slug}/{slug}.png")
         with open(f"{d}/{slug}_effect_0.tres", "w") as fh:
             if s.get("sum_key"):
                 fh.write(sum_effect_tres(s["sum_key"], s["count"], s["text_key"]))
@@ -798,15 +961,20 @@ def main():
 
         d = f"{DEC}/items/foods/{food_slug}"
         os.makedirs(d, exist_ok=True)
-        img, draw = canvas(80)
-        FOOD_ART[food_slug](draw)
-        img.save(f"{d}/{food_slug}.png")
+        food_png = f"{d}/{food_slug}.png"
+        if not os.path.exists(food_png):
+            # placeholder only when missing: the live food icons are vectorized
+            # finals installed in place and must survive rebuilds
+            img, draw = canvas(80)
+            FOOD_ART[food_slug](draw)
+            img.save(food_png)
+        write_png_import(food_png, f"res://items/foods/{food_slug}/{food_slug}.png")
         with open(f"{d}/{food_slug}_text_effect.tres", "w") as fh:
             fh.write(effect_text_tres(f["text_key"], f["my_id"]))
         with open(f"{d}/{food_slug}_data.tres", "w") as fh:
             fh.write(food_tres(f))
 
-        print(f"pair {i}: {slug} (id {BASE_ID + 2 * i}) + {food_slug} (id {BASE_ID + 2 * i + 1})")
+        print(f"pair {i}: {slug} (id {spawner_ext_id}) + {food_slug} (id {spawner_ext_id + 1})")
 
     # on-map structure sprites live with their scenes, 100x100 like the garden's
     structure_sprites = {
@@ -817,16 +985,39 @@ def main():
         "wok_station": art_wok_station,
         "street_vendor": art_street_vendor,
         "farmers_market": art_farmers_market,
+        "bbq_grill": art_bbq_grill,          # front-facing world sprite (real one from PixelLab)
+        "hot_dog_cart": art_hot_dog_cart,    # PIL icon art is only a fallback if final/ is missing
+        "cocktail_bar": art_cocktail_bar,
+        "gumball_machine": art_gumball_machine,
     }
     for structure_slug, art_fn in structure_sprites.items():
         real = f"{os.path.dirname(os.path.abspath(__file__))}/structures_food/final/{structure_slug}_ingame.png"
         dst = f"{DEC}/entities/structures/turret/{structure_slug}/{structure_slug}_ingame.png"
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
         if os.path.exists(real):
             shutil.copy(real, dst)
-        else:
+        elif not os.path.exists(dst):
+            # never clobber an installed real sprite; only draw a placeholder when missing
             img, draw = canvas(100)
             art_fn(draw)
             img.save(dst)
+        write_png_import(dst, f"res://entities/structures/turret/{structure_slug}/{structure_slug}_ingame.png")
+
+    # standalone foods: no paired spawner (weapon-dropped only). Fried Egg = Frying Pan.
+    for sf in STANDALONE_FOODS:
+        f = sf["food"]; food_slug = f["slug"]; ext_id = sf["ext_id"]
+        food_ids.append((food_slug, ext_id))
+        d = f"{DEC}/items/foods/{food_slug}"
+        os.makedirs(d, exist_ok=True)
+        food_png = f"{d}/{food_slug}.png"
+        if not os.path.exists(food_png):
+            img, draw = canvas(80); FOOD_ART[food_slug](draw); img.save(food_png)
+        write_png_import(food_png, f"res://items/foods/{food_slug}/{food_slug}.png")
+        with open(f"{d}/{food_slug}_text_effect.tres", "w") as fh:
+            fh.write(effect_text_tres(f["text_key"], f["my_id"]))
+        with open(f"{d}/{food_slug}_data.tres", "w") as fh:
+            fh.write(food_tres(f))
+        print(f"standalone food: {food_slug} (id {ext_id})")
 
     register(spawner_ids, food_ids)
     add_csv_rows()
