@@ -1,0 +1,747 @@
+class_name PlayerRunData
+extends Reference
+
+const DEFAULT_MAX_HP: = 10
+
+var current_character: CharacterData = null
+var current_health: = 10
+var current_level: int = 0
+
+var current_xp: float = 0.0
+var gold: int = 0
+var overtime_pay_gold_this_wave: int = 0
+var selected_weapon: WeaponData
+var selected_item: ItemData
+var weapons: = []
+var items: = []
+var appearances: = []
+var effects: Dictionary
+
+
+var active_sets = {}
+
+var active_set_effects: = []
+
+
+
+var unique_effects: = []
+
+var additional_weapon_effects: = []
+
+var tier_iv_weapon_effects: = []
+
+var tier_i_weapon_effects: = []
+
+
+var uses_ban: = false
+var remaining_ban_token: = 0
+var banned_items: = []
+
+var chal_recycling_current: = 0
+var consumables_picked_up_this_run: = 0
+var curse_locked_shop_items_pity: = 0
+var chal_will_o_the_wisp: = 0
+
+
+func _init() -> void :
+	effects = init_effects()
+
+
+func duplicate() -> PlayerRunData:
+	var copy: PlayerRunData = get_script().new()
+	copy.current_character = current_character
+	copy.current_health = current_health
+	copy.current_level = current_level
+	copy.current_xp = current_xp
+	copy.gold = gold
+	copy.selected_weapon = selected_weapon
+	copy.selected_item = selected_item
+	copy.weapons = weapons.duplicate()
+	copy.items = items.duplicate()
+	copy.appearances = appearances.duplicate()
+	copy.effects = effects.duplicate(true)
+	copy.active_sets = active_sets.duplicate()
+	copy.active_set_effects = active_set_effects.duplicate()
+	copy.unique_effects = unique_effects.duplicate()
+	copy.additional_weapon_effects = additional_weapon_effects.duplicate()
+	copy.tier_iv_weapon_effects = tier_iv_weapon_effects.duplicate()
+	copy.tier_i_weapon_effects = tier_i_weapon_effects.duplicate()
+	copy.chal_recycling_current = chal_recycling_current
+	copy.consumables_picked_up_this_run = consumables_picked_up_this_run
+	copy.curse_locked_shop_items_pity = curse_locked_shop_items_pity
+	copy.banned_items = banned_items.duplicate()
+	copy.uses_ban = uses_ban
+	copy.remaining_ban_token = remaining_ban_token
+
+	return copy
+
+
+func serialize() -> Dictionary:
+	var serialized_weapons: = []
+	for weapon in weapons:
+		serialized_weapons.push_back(weapon.serialize())
+
+	var serialized_items: = []
+	var serialize_cache = {}
+	for item in items:
+		if item.is_cursed:
+			serialized_items.push_back(item.serialize())
+		else:
+			var serialized_item = serialize_cache.get(item.my_id)
+			if not serialized_item:
+				serialized_item = item.serialize()
+				serialize_cache[item.my_id] = serialized_item
+			serialized_items.push_back(serialized_item)
+
+	var serialized_appearances: = []
+	for appearance in appearances:
+		serialized_appearances.push_back(appearance.serialize())
+
+	var serialized_active_set_effects: = []
+	for active_set_effect in active_set_effects:
+		var serialized_effect = active_set_effect[1].serialize()
+		serialized_active_set_effects.push_back([active_set_effect[0], serialized_effect])
+
+	return {
+		"current_character": current_character.my_id if current_character else null, 
+		"current_health": current_health, 
+		"current_level": current_level, 
+		"current_xp": current_xp, 
+		"gold": gold, 
+		"selected_weapon": selected_weapon.my_id if selected_weapon else null, 
+		"selected_item": selected_item.my_id if selected_item else null, 
+		"weapons": serialized_weapons, 
+		"items": serialized_items, 
+		"appearances": serialized_appearances, 
+		"effects": _serialize_effects(effects), 
+		"active_sets": active_sets.duplicate(), 
+		"active_set_effects": serialized_active_set_effects, 
+		"unique_effects": unique_effects.duplicate(), 
+		"additional_weapon_effects": additional_weapon_effects.duplicate(), 
+		"tier_iv_weapon_effects": tier_iv_weapon_effects.duplicate(), 
+		"tier_i_weapon_effects": tier_i_weapon_effects.duplicate(), 
+		"chal_recycling_current": chal_recycling_current, 
+		"consumables_picked_up_this_run": consumables_picked_up_this_run, 
+		"curse_locked_shop_items_pity": curse_locked_shop_items_pity, 
+		"banned_items": banned_items.duplicate(), 
+		"remaining_ban_token": remaining_ban_token, 
+		"uses_ban": uses_ban
+	}
+
+
+func deserialize(data: Dictionary) -> PlayerRunData:
+	current_character = (
+		ItemService.get_element_safe(ItemService.characters, data.current_character)
+		if data.current_character
+		else null
+	)
+
+	
+	if data.has("current_health"):
+		current_health = int(data.current_health)
+	else:
+		current_health = DEFAULT_MAX_HP
+
+	current_level = int(data.current_level)
+	current_xp = data.current_xp
+	gold = int(data.gold)
+
+	if data.selected_weapon != null:
+		var weapon_data = ItemService.get_element_safe(ItemService.weapons, data.selected_weapon)
+
+		if weapon_data:
+			selected_weapon = weapon_data.duplicate()
+
+	if data.has("selected_item") and data.selected_item != null:
+		var item_data = ItemService.get_element_safe(ItemService.items, data.selected_item)
+
+		if item_data:
+			selected_item = item_data.duplicate()
+
+	for weapon in data.weapons:
+
+		if weapon is String:
+			continue
+
+		var weapon_data = ItemService.get_element_safe(ItemService.weapons, weapon.my_id)
+
+		if weapon_data:
+			weapon_data = weapon_data.duplicate()
+			weapon_data.deserialize_and_merge(weapon)
+			weapons.push_back(weapon_data)
+
+	for item in data.items:
+
+		if item is String:
+			continue
+
+		var item_data = ItemService.get_element_safe(ItemService.items, item.my_id)
+		var character_data = ItemService.get_element_safe(ItemService.characters, item.my_id)
+		if item_data != null:
+			item_data = item_data.duplicate()
+			item_data.deserialize_and_merge(item)
+			items.push_back(item_data)
+		elif character_data != null:
+			character_data = character_data.duplicate()
+			character_data.deserialize_and_merge(item)
+			items.push_back(character_data)
+
+	for appearance in data.appearances:
+		var deserialized = ItemAppearanceData.new()
+		deserialized.deserialize_and_merge(appearance)
+		appearances.push_back(deserialized)
+
+	for effect in data.unique_effects:
+		effect[0] = int(effect[0]);
+
+	
+	
+	
+	var weapon_effect_hashes = {}
+	_cache_effect_hashes(weapons, weapon_effect_hashes)
+	var tmp_effects = _deserialize_effects(data.effects, weapon_effect_hashes)
+	
+
+	
+	tmp_effects.merge(effects)
+
+	
+	effects = Utils.convert_dictionary_to_hash(tmp_effects, true)
+
+	active_sets = data.active_sets.duplicate()
+	for k in active_sets.keys():
+		
+		active_sets[int(k)] = int(active_sets[k])
+
+	for active_set_effect in data.active_set_effects:
+		assert (active_set_effect[1].effect_id is String and not active_set_effect[1].effect_id.is_valid_integer())
+		for effect in ItemService.effects:
+			if effect.get_id() == active_set_effect[1].effect_id:
+				var deserialized_effect = effect.new()
+				deserialized_effect.deserialize_and_merge(active_set_effect[1])
+				active_set_effects.push_back(
+					[active_set_effect[0], deserialized_effect]
+				)
+				break
+
+	unique_effects = data.unique_effects.duplicate()
+	additional_weapon_effects = Utils.duplicate_and_cast_id(data.additional_weapon_effects)
+
+	tier_iv_weapon_effects = data.tier_iv_weapon_effects.duplicate()
+	for effect in tier_iv_weapon_effects:
+		
+		effect[0] = int(effect[0])
+		effect[1] = int(effect[1])
+
+	tier_i_weapon_effects = data.tier_i_weapon_effects.duplicate()
+	for effect in tier_i_weapon_effects:
+		
+		effect[0] = int(effect[0])
+		effect[1] = int(effect[1])
+
+	chal_recycling_current = data.chal_recycling_current
+	consumables_picked_up_this_run = data.consumables_picked_up_this_run
+	curse_locked_shop_items_pity = data.curse_locked_shop_items_pity if "curse_locked_shop_items_pity" in data else 0
+
+	if data.has("banned_items"):
+		banned_items = data.banned_items.duplicate()
+
+	if data.has("uses_ban"):
+		uses_ban = data.uses_ban
+		remaining_ban_token = data.remaining_ban_token
+
+	return self
+
+
+func _serialize_effects(p_effects: Dictionary):
+	var result = {}
+	for key in p_effects:
+		if RunData.effect_keys_full_serialization.has(key):
+			if p_effects[key] is Array:
+				result[key] = []
+				for element in p_effects[key]:
+					result[key].push_back(element.serialize())
+			elif p_effects[key] != null:
+				result[key] = p_effects[key].serialize()
+
+		elif RunData.effect_keys_with_weapon_stats.has(key):
+			if not p_effects[key] is Array:
+				return
+
+			result[key] = []
+			for element in p_effects[key]:
+				
+				if element is Array:
+					var array = []
+					for effect in element:
+						if effect is WeaponStats:
+							array.push_back(effect.serialize())
+						else:
+							array.push_back(effect)
+					result[key].push_back(array)
+				else:
+					if element is WeaponStats:
+						result[key].push_back(element.serialize())
+					else:
+						result[key].push_back(element)
+
+		else:
+			result[key] = p_effects[key]
+	return result
+
+
+func _deserialize_effects(p_effects: Dictionary, weapon_effect_hashes: Dictionary) -> Dictionary:
+	var result = {}
+	var key_hash: int = Keys.empty_hash
+	for key in p_effects:
+		if key is String:
+			if key.is_valid_integer():
+				key_hash = int(key)
+			else:
+				key_hash = Keys.generate_hash(key)
+
+		
+		if [Keys.projectiles_on_death_hash, Keys.alien_eyes_hash].has(key_hash) and not p_effects[key].empty() and p_effects[key][0] is Array:
+			var total_proj_count: = 0
+			for effect in p_effects[key]:
+				total_proj_count += effect[0]
+			p_effects[key][0][0] = total_proj_count
+			p_effects[key] = p_effects[key][0]
+
+		if RunData.effect_keys_full_serialization.has(key_hash):
+			if p_effects[key] is Array:
+				result[key_hash] = []
+				for serialized_effect in p_effects[key]:
+					var instance = _get_or_deserialize_effect(serialized_effect, weapon_effect_hashes)
+					if instance: result[key_hash].push_back(instance)
+			elif p_effects[key] != null:
+				if key_hash == Keys.burn_chance_hash:
+					var instance = BurningData.new()
+					instance.deserialize_and_merge(p_effects[key])
+					result[key_hash] = instance
+				else:
+					var instance = _get_or_deserialize_effect(p_effects[key], weapon_effect_hashes)
+					if instance: result[key_hash] = instance
+		elif RunData.effect_keys_with_weapon_stats.has(key_hash):
+			if p_effects[key] is Array:
+				result[key_hash] = []
+				for serialized_element in p_effects[key]:
+					if serialized_element is Array:
+						var array = []
+						for serialized_effect in serialized_element:
+							if serialized_effect is Dictionary:
+								var instance = RangedWeaponStats.new()
+								instance.deserialize_and_merge(serialized_effect)
+								array.push_back(instance)
+							else:
+								array.push_back(serialized_effect)
+						result[key_hash].push_back(array)
+					else:
+						if serialized_element is Dictionary:
+							var instance = RangedWeaponStats.new()
+							instance.deserialize_and_merge(serialized_element)
+							result[key_hash].push_back(instance)
+						else:
+							result[key_hash].push_back(serialized_element)
+		elif "extra_enemies_next_wave" == key:
+			result[key_hash] = p_effects[key]
+			if result.has(key_hash) and result[key_hash] is Array and result[key_hash].size() == 3:
+				var elite_id = result[key_hash][2]
+				if typeof(elite_id) == TYPE_STRING:
+					result[key_hash][2] = Keys.generate_hash(elite_id)
+		else:
+			result[key_hash] = p_effects[key]
+			# Gourmet DLC - JSON deserialization turns saved ints into floats;
+			# our runtime counters feed '%' arithmetic, which hard-crashes on
+			# float operands after a resume (loyalty card discount did exactly
+			# this). Values are only key-converted above, never re-typed.
+			if result[key_hash] is float and (key_hash == Keys.shop_purchases_hash or key_hash == Keys.gourmet_foods_eaten_hash or key_hash == Keys.banked_leftovers_hash or key_hash == Keys.selected_spawner_hash or key_hash == Keys.soul_food_streak_hash):
+				result[key_hash] = int(result[key_hash])
+
+	return result
+
+
+func _get_or_deserialize_effect(serialized_effect: Dictionary, weapon_effect_hashes: Dictionary):
+	var effect_hash = _unsorted_dictionary_hash(serialized_effect)
+	var weapon_effects = weapon_effect_hashes.get(effect_hash)
+	if weapon_effects and weapon_effects.size() > 0 and weapon_effects.back().get_id() == serialized_effect.effect_id:
+		
+		
+		
+		
+		var effect = weapon_effects.pop_back()
+		if weapon_effects.size() == 0:
+			var _removed = weapon_effect_hashes.erase(effect_hash)
+		return effect
+	
+	for effect in ItemService.effects:
+		if effect.get_id() == serialized_effect.effect_id:
+			var instance = effect.new()
+			instance.deserialize_and_merge(serialized_effect)
+			return instance
+	return null
+
+
+func _cache_effect_hashes(elements: Array, weapon_effect_hashes: Dictionary) -> void :
+		for element in elements:
+			for effect in element.effects:
+				var effect_hash = _unsorted_dictionary_hash(effect.serialize())
+				var existing_effects = weapon_effect_hashes.get(effect_hash)
+				if existing_effects == null:
+					weapon_effect_hashes[effect_hash] = [effect]
+				else:
+					existing_effects.push_back(effect)
+
+
+func _unsorted_dictionary_hash(dictionary: Dictionary) -> int:
+	
+	
+	
+	var sort_keys = true
+	return JSON.print(dictionary, "", sort_keys).hash()
+
+
+static func init_stats(all_null_values: bool = false) -> Dictionary:
+	var stats: = {
+		Keys.stat_max_hp_hash: DEFAULT_MAX_HP if not all_null_values else 0, 
+		Keys.stat_armor_hash: 0, 
+		Keys.stat_crit_chance_hash: 0, 
+		Keys.stat_luck_hash: 0, 
+		Keys.stat_attack_speed_hash: 0, 
+		Keys.stat_elemental_damage_hash: 0, 
+		Keys.stat_hp_regeneration_hash: 0, 
+		Keys.stat_lifesteal_hash: 0, 
+		Keys.stat_melee_damage_hash: 0, 
+		Keys.stat_percent_damage_hash: 0, 
+		Keys.stat_dodge_hash: 0, 
+		Keys.stat_engineering_hash: 0, 
+		Keys.stat_range_hash: 0, 
+		Keys.stat_ranged_damage_hash: 0, 
+		Keys.stat_speed_hash: 0, 
+		Keys.stat_harvesting_hash: 0, 
+		Keys.xp_gain_hash: 0, 
+		Keys.number_of_enemies_hash: 0, 
+		Keys.consumable_heal_hash: 0, 
+		Keys.burning_cooldown_reduction_hash: 0, 
+		Keys.burning_cooldown_increase_hash: 0, 
+		Keys.burning_spread_hash: 0, 
+		Keys.piercing_hash: 0, 
+		Keys.piercing_damage_hash: 0, 
+		Keys.pickup_range_hash: 0, 
+		Keys.chance_double_gold_hash: 0, 
+		Keys.bounce_hash: 0, 
+		Keys.bounce_damage_hash: 0, 
+		Keys.heal_when_pickup_gold_hash: 0, 
+		Keys.item_box_gold_hash: 0, 
+		Keys.knockback_hash: 0, 
+		Keys.hp_cap_hash: Utils.LARGE_NUMBER if not all_null_values else 0, 
+		Keys.speed_cap_hash: Utils.LARGE_NUMBER if not all_null_values else 0, 
+		Keys.lose_hp_per_second_hash: 0, 
+		Keys.map_size_hash: 0, 
+		Keys.dodge_cap_hash: 60, 
+		Keys.curse_cap_hash: 0,
+		Keys.generate_hash("vampire_fang_desc"): 0,
+		Keys.generate_hash("overtime_pay_desc"): 0,
+		Keys.generate_hash("second_mortgage_desc"): 0,
+		Keys.crit_chance_cap_hash: Utils.LARGE_NUMBER if not all_null_values else 0, 
+		Keys.gold_drops_hash: 0, 
+		Keys.enemy_health_hash: 0, 
+		Keys.enemy_damage_hash: 0, 
+		Keys.enemy_speed_hash: 0, 
+		Keys.boss_strength_hash: 0, 
+		Keys.explosion_size_hash: 0, 
+		Keys.explosion_damage_hash: 0, 
+		Keys.damage_against_bosses_hash: 0, 
+		Keys.weapon_slot_hash: 6 if not all_null_values else 0, 
+		Keys.items_price_hash: 0,
+		Keys.food_items_price_hash: 0,
+		Keys.tourist_danger_done_hash: 0,
+		Keys.gourmet_foods_eaten_hash: 0,
+		Keys.wave_start_foods_hash: [],
+		Keys.kill_foods_hash: [],
+		Keys.burning_kill_foods_hash: [],
+		Keys.crit_foods_hash: [],
+		Keys.burning_tick_foods_hash: [],
+		Keys.explosion_foods_hash: [],
+		Keys.material_foods_hash: [],
+		Keys.level_up_foods_hash: [],
+		Keys.damage_taken_foods_hash: [],
+		Keys.elite_kill_foods_hash: [],
+		Keys.consumable_count_foods_hash: [],
+		Keys.step_foods_hash: [],
+		Keys.timer_foods_hash: [],
+		Keys.full_hp_timer_foods_hash: [],
+		Keys.standstill_timer_foods_hash: [],
+		Keys.mid_wave_foods_hash: [],
+		Keys.random_times_foods_hash: [],
+		Keys.reroll_banked_foods_hash: [],
+		Keys.close_kill_foods_hash: [],
+		Keys.turret_kill_foods_hash: [],
+		Keys.far_kill_foods_hash: [],
+		Keys.banked_rerolls_hash: 0,
+		Keys.doggy_bag_hash: 0,
+		Keys.banked_leftovers_hash: 0,
+		Keys.damage_vs_burning_hash: 0,
+		Keys.consumables_no_heal_hash: 0,
+		Keys.food_buff_duration_hash: 0,
+		Keys.food_buff_strength_hash: 0,
+		Keys.food_heal_disabled_hash: 0,
+		Keys.food_bonus_heal_hash: 0,
+		Keys.mystery_meat_safe_hash: 0,
+		Keys.spawner_trigger_speed_hash: 0,
+		Keys.food_spawns_halved_hash: 0,
+		Keys.second_helping_hash: 0,
+		Keys.cooler_box_hash: 0,
+		Keys.compost_bin_hash: 0,
+		Keys.food_speed_burst_hash: 0,
+		Keys.grease_fire_hash: 0,
+		Keys.full_belly_hash: 0,
+		Keys.food_stack_cap_bonus_hash: 0,
+		Keys.wine_cellar_hash: 0,
+		Keys.delivery_drone_hash: 0,
+		Keys.food_coma_hash: 0,
+		Keys.snack_break_hash: 0,
+		Keys.buffet_insurance_hash: 0,
+		Keys.crit_vs_elites_hash: 0,
+		Keys.burning_damage_taken_hash: 0,
+		Keys.caltrops_hash: 0,
+		Keys.static_cling_hash: 0,
+		Keys.echo_chamber_hash: 0,
+		Keys.nine_lives_hash: 0,
+		Keys.nine_lives_used_hash: 0,
+		Keys.loyalty_card_hash: 0,
+		Keys.shop_purchases_hash: 0,
+		Keys.regen_per_burning_enemy_hash: 0,
+		Keys.burp_of_power_hash: 0,
+		Keys.panic_button_hash: 0,
+		Keys.pocket_sand_slow_hash: 0,
+		Keys.set_menu_hash: 0,
+		Keys.selected_spawner_hash: 0,
+		Keys.spawner_items_price_hash: 0,
+		Keys.enemy_attack_speed_hash: 0,
+		Keys.execute_damage_hash: 0,
+		Keys.gourmet_slow_on_hit_hash: 0,
+		Keys.gourmet_slow_chance_hash: 0,
+		Keys.tenderize_on_hit_hash: 0,
+		Keys.extend_buffs_on_hit_hash: 0,
+		Keys.heal_on_hit_hash: 0,
+		Keys.soul_food_hash: 0,
+		Keys.soul_food_streak_hash: 0,
+		Keys.reroll_price_hash: 0, 
+		Keys.harvesting_growth_hash: 5 if not all_null_values else 0, 
+		Keys.hit_protection_hash: 0, 
+		Keys.weapons_price_hash: 0, 
+		Keys.structure_attack_speed_hash: 0, 
+		Keys.structure_percent_damage_hash: 0, 
+		Keys.structure_range_hash: 0, 
+		Keys.die_in_one_hit_hash: 0, 
+		Keys.inflation_modifier_hash: 0, 
+	}
+	for stat in ItemService.stats:
+		if stat.is_dlc_stat:
+			stats[Keys.generate_hash(stat.stat_name)] = 0
+	return stats
+
+
+static func init_effects() -> Dictionary:
+	var all_stats = init_stats()
+
+	var all_effects = {
+		# projectiles_on_eat is an Array-valued effect (used by Food Fight via
+		# ProjectileEffect), NOT a stat. It must live here, not in init_stats(), or
+		# is_stat_key() misclassifies it and apply_item_effects crashes doing [] - [].
+		Keys.projectiles_on_eat_hash: [],
+		Keys.gain_stat_max_hp_hash: 0,
+		Keys.gain_stat_armor_hash: 0, 
+		Keys.gain_stat_crit_chance_hash: 0, 
+		Keys.gain_stat_luck_hash: 0, 
+		Keys.gain_stat_attack_speed_hash: 0, 
+		Keys.generate_hash("gain_stat_elemental_damage"): 0, 
+		Keys.generate_hash("gain_stat_hp_regeneration"): 0, 
+		Keys.generate_hash("gain_stat_lifesteal"): 0, 
+		Keys.generate_hash("gain_stat_melee_damage"): 0, 
+		Keys.generate_hash("gain_stat_percent_damage"): 0, 
+		Keys.generate_hash("gain_stat_dodge"): 0, 
+		Keys.generate_hash("gain_stat_engineering"): 0, 
+		Keys.generate_hash("gain_stat_range"): 0, 
+		Keys.generate_hash("gain_stat_ranged_damage"): 0, 
+		Keys.generate_hash("gain_stat_speed"): 0, 
+		Keys.generate_hash("gain_stat_harvesting"): 0, 
+		Keys.generate_hash("gain_stat_curse"): 0,
+		Keys.generate_hash("gain_xp_gain"): 0,
+		Keys.generate_hash("no_melee_weapons"): 0, 
+		Keys.generate_hash("no_ranged_weapons"): 0, 
+		Keys.generate_hash("no_duplicate_weapons"): 0, 
+		Keys.generate_hash("hp_start_wave"): 100, 
+		Keys.generate_hash("hp_start_next_wave"): 100, 
+		Keys.generate_hash("pacifist"): 0, 
+		Keys.generate_hash("cryptid"): 0, 
+		Keys.generate_hash("gain_pct_gold_start_wave"): 0, 
+		Keys.generate_hash("torture"): 0, 
+		Keys.generate_hash("recycling_gains"): 0, 
+		Keys.generate_hash("one_shot_trees"): 0, 
+		Keys.generate_hash("max_ranged_weapons"): 999, 
+		Keys.generate_hash("max_melee_weapons"): 999, 
+		Keys.generate_hash("group_structures"): 0, 
+		Keys.generate_hash("can_attack_while_moving"): 1, 
+		Keys.generate_hash("trees"): 0, 
+		Keys.generate_hash("trees_start_wave"): 0, 
+		Keys.generate_hash("min_weapon_tier"): 0, 
+		Keys.generate_hash("max_weapon_tier"): 99, 
+		Keys.generate_hash("hp_shop"): 0, 
+		Keys.generate_hash("free_rerolls"): 0, 
+		Keys.generate_hash("instant_gold_attracting"): 0, 
+		Keys.generate_hash("double_boss"): 0, 
+		Keys.generate_hash("gain_explosion_damage"): 0, 
+		Keys.generate_hash("gain_piercing_damage"): 0, 
+		Keys.generate_hash("gain_bounce_damage"): 0, 
+		Keys.generate_hash("gain_damage_against_bosses"): 0, 
+		Keys.generate_hash("neutral_gold_drops"): 0, 
+		Keys.generate_hash("enemy_gold_drops"): 0, 
+		Keys.generate_hash("wandering_bots"): 0, 
+		Keys.generate_hash("can_burn_enemies"): 1, 
+		Keys.generate_hash("danger_enemy_health"): 0, 
+		Keys.generate_hash("danger_enemy_damage"): 0, 
+		Keys.generate_hash("danger_enemy_speed"): 0, 
+		Keys.generate_hash("bullet_hell_event"): 0, 
+		Keys.generate_hash("fog_of_war_event"): 0, 
+		Keys.generate_hash("dmg_when_pickup_gold"): [], 
+		Keys.generate_hash("dmg_when_death"): [], 
+		Keys.generate_hash("dmg_when_heal"): [], 
+		Keys.generate_hash("dmg_on_dodge"): [], 
+		Keys.generate_hash("heal_on_dodge"): [], 
+		Keys.generate_hash("remove_speed"): [], 
+		Keys.generate_hash("starting_item"): [], 
+		Keys.generate_hash("cursed_starting_item"): [], 
+		Keys.generate_hash("starting_weapon"): [], 
+		Keys.generate_hash("cursed_starting_weapon"): [], 
+		Keys.generate_hash("projectiles_on_death"): [], 
+		Keys.generate_hash("burn_chance"): BurningData.new(), 
+		Keys.generate_hash("burning_enemy_hp_percent_damage"): [], 
+		Keys.generate_hash("weapon_class_bonus"): [], 
+		Keys.generate_hash("unique_weapon_effects"): [], 
+		Keys.generate_hash("additional_weapon_effects"): [], 
+		Keys.generate_hash("tier_iv_weapon_effects"): [], 
+		Keys.generate_hash("tier_i_weapon_effects"): [], 
+		Keys.generate_hash("gold_on_crit_kill"): [], 
+		Keys.generate_hash("heal_on_crit_kill"): 0, 
+		Keys.generate_hash("temp_stats_while_not_moving"): [], 
+		Keys.generate_hash("temp_stats_while_moving"): [], 
+		Keys.generate_hash("temp_stats_on_hit"): [], 
+		Keys.generate_hash("stats_end_of_wave"): [], 
+		Keys.stat_links_hash: [], 
+		Keys.structures_hash: [], 
+		Keys.explode_on_hit_hash: [], 
+		Keys.explode_when_below_hp_hash: [], 
+		Keys.convert_stats_end_of_wave_hash: [], 
+		Keys.explode_on_death_hash: [], 
+		Keys.alien_eyes_hash: [], 
+		Keys.upgrade_random_weapon_hash: [], 
+		Keys.minimum_weapons_in_shop_hash: 0, 
+		Keys.destroy_weapons_hash: 0, 
+		Keys.extra_enemies_next_wave_hash: [], 
+		Keys.extra_loot_aliens_next_wave_hash: 0, 
+		Keys.extra_loot_aliens_hash: 0, 
+		Keys.stats_next_wave_hash: [], 
+		Keys.consumable_stats_while_max_hash: [], 
+		Keys.temp_consumable_stats_while_max_hash: [], 
+		Keys.explode_on_consumable_hash: [], 
+		Keys.explode_on_consumable_burning_hash: [], 
+		Keys.structures_cooldown_reduction_hash: [], 
+		Keys.convert_stats_half_wave_hash: [], 
+		Keys.stats_on_level_up_hash: [], 
+		Keys.temp_stats_on_dodge_hash: [], 
+		Keys.no_heal_hash: 0, 
+		Keys.tree_turrets_hash: 0, 
+		Keys.stats_below_half_health_hash: [], 
+		Keys.guaranteed_shop_items_hash: [], 
+		Keys.special_enemies_last_wave_hash: 0, 
+		Keys.specific_items_price_hash: [], 
+		Keys.accuracy_hash: 0, 
+		Keys.projectiles_hash: 0, 
+		Keys.upgraded_baits_hash: 0, 
+		Keys.minimum_weapon_cooldowns_hash: [], 
+		Keys.maximum_weapon_cooldowns_hash: [], 
+		Keys.burning_enemy_speed_hash: 0, 
+		Keys.weapon_scaling_stats_hash: [], 
+		Keys.slow_on_hit_hash: [], 
+		Keys.enemy_percent_damage_taken_hash: [], 
+		Keys.gain_stat_for_equipped_item_with_stat_hash: [], 
+		Keys.weapon_slot_upgrades_hash: 0, 
+		Keys.next_level_xp_needed_hash: 0, 
+		Keys.all_weapons_count_for_sets_hash: 0, 
+		Keys.structures_can_crit_hash: 0, 
+		Keys.landmines_on_death_chance_hash: [], 
+		Keys.temp_stats_on_structure_crit_hash: [], 
+		Keys.gain_stat_for_every_step_after_equip_hash: [], 
+		Keys.decaying_stats_on_consumable_hash: [], 
+		Keys.decaying_stats_on_hit_hash: [], 
+		Keys.temp_stats_per_interval_hash: [], 
+		Keys.pierce_on_crit_hash: 0, 
+		Keys.bounce_on_crit_hash: 0, 
+		Keys.consumable_heal_over_time_hash: 0, 
+		Keys.lock_current_weapons_hash: 0, 
+		Keys.knockback_aura_hash: 0, 
+		Keys.level_upgrades_modifications_hash: 0, 
+		Keys.enemy_fruit_drops_hash: 0, 
+		Keys.stats_on_fruit_hash: [], 
+		Keys.duplicate_item_hash: [], 
+		Keys.poisoned_fruit_hash: 0, 
+		Keys.gain_stat_when_attack_killed_enemies_hash: [], 
+		Keys.extra_item_in_crate_hash: [], 
+		Keys.bonus_damage_against_targets_above_hp_hash: [], 
+		Keys.bonus_damage_against_targets_below_hp_hash: [], 
+		Keys.heal_on_kill_hash: 0, 
+		Keys.modify_every_x_projectile_hash: [], 
+		Keys.gold_on_cursed_enemy_kill_hash: 0, 
+		Keys.giant_crit_damage_hash: [], 
+		Keys.loot_alien_speed_hash: 0, 
+		Keys.bonus_non_elemental_damage_against_burning_targets_hash: 0, 
+		Keys.bonus_weapon_class_damage_against_cursed_enemies_hash: [], 
+		Keys.item_steals_hash: 0, 
+		Keys.item_steals_spawns_enemy_hash: [], 
+		Keys.item_steals_spawns_random_elite_hash: 0, 
+		Keys.disable_item_locking_hash: 0, 
+		Keys.explode_on_overkill_hash: [], 
+		Keys.crate_chance_hash: 0, 
+		Keys.loot_alien_chance_hash: 0, 
+		Keys.gain_stat_for_duplicate_items_hash: [], 
+		Keys.max_turret_count_hash: Utils.LARGE_NUMBER, 
+		Keys.convert_bonus_gold_hash: [], 
+		Keys.remove_shop_items_hash: [], 
+		Keys.charm_on_hit_hash: [], 
+		Keys.materials_per_living_enemy_hash: 0, 
+		Keys.negative_knockback_hash: 0, 
+		Keys.weapon_type_bonus_hash: [], 
+		Keys.scale_materials_with_distance_hash: [], 
+		Keys.curse_locked_items_hash: 0, 
+		Keys.increase_tier_on_reroll_hash: [], 
+		Keys.reload_when_pickup_gold_hash: 0, 
+		Keys.increase_material_value_hash: 0, 
+		Keys.gain_stats_on_reroll_hash: [], 
+		Keys.stronger_elites_on_kill_hash: 0, 
+		Keys.stronger_loot_aliens_on_kill_hash: 0, 
+		Keys.hp_regen_bonus_hash: [], 
+		Keys.item_hourglass_hash: 0, 
+		Keys.gain_random_primary_stats_on_go_to_next_wave_hash: [], 
+		Keys.extra_elite_next_wave_chance_hash: 0, 
+		Keys.gain_stat_for_killed_enemies_while_burning_hash: [], 
+		Keys.used_item_locking_hash: 0, 
+		Keys.extra_enemies_at_wave_hash: {}, 
+		Keys.extra_loot_aliens_at_wave_hash: {}, 
+		Keys.stat_pets_hash: [], 
+		Keys.stat_double_lifesteal_bonus_hash: 0, 
+		Keys.stat_jellyshield_count_hash: 0, 
+		Keys.stat_beast_master_effect_hash: 0, 
+		Keys.stat_boosted_wanted_item_tag_hash: 0, 
+		Keys.stat_has_lootworm_hash: 0, 
+		Keys.stat_fog_visibility_hash: 0, 
+
+	}
+
+	all_effects.merge(all_stats)
+
+	return all_effects
+
+func is_full_health() -> bool:
+	return current_health == effects.stat_max_hp
