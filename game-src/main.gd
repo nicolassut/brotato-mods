@@ -725,7 +725,9 @@ func _on_enemy_took_damage(
 		# Chili Pepper buff: your hits ignite enemies; flat part scales with
 		# Appetite (computed at eat time) and the burn itself carries 0.3x
 		# Elemental through the vanilla burning scaling stats
-		if not args.is_burning and not enemy.dead and args.from_player_index < _players.size():
+		# Gourmet DLC - from_player_index is -1 for unowned damage (enemy-on-enemy,
+		# environmental) and -1 < size() passes, so the lower bound is needed too.
+		if not args.is_burning and not enemy.dead and args.from_player_index >= 0 and args.from_player_index < _players.size():
 			var chili_player: Player = _players[args.from_player_index]
 			if chili_player._food_buffs.has("consumable_food_chili_pepper"):
 				if _chili_burning_data[args.from_player_index] == null:
@@ -2492,11 +2494,16 @@ func add_explosion(instance: PlayerExplosion) -> void :
 	_explosions.add_child(instance)
 	# Gourmet DLC - Popcorn Machine: each explosion has a 5% * (1 + 0.10 * Appetite)
 	# chance to pop a Popcorn (was one every explosion - far too much popcorn).
-	var pop_entries = RunData.get_player_effect(Keys.explosion_foods_hash, instance.player_index)
-	if not pop_entries.empty():
-		var pop_app: float = max(0.0, Utils.get_stat(Keys.stat_appetite_hash, instance.player_index))
-		if Utils.get_chance_success(0.05 * (1.0 + 0.10 * pop_app)):
-			count_food_trigger(Keys.explosion_foods_hash, instance.player_index)
+	# NOTE: weapon_service.explode() calls add_explosion() on a freshly instanced
+	# explosion and only assigns instance.player_index afterwards, so it is still -1
+	# here. Guard it, or get_player_effect's assert(player_index >= 0) halts every
+	# explosion in a debug build. Real fix: move this into explode() after assignment.
+	if instance.player_index >= 0:
+		var pop_entries = RunData.get_player_effect(Keys.explosion_foods_hash, instance.player_index)
+		if not pop_entries.empty():
+			var pop_app: float = max(0.0, Utils.get_stat(Keys.stat_appetite_hash, instance.player_index))
+			if Utils.get_chance_success(0.05 * (1.0 + 0.10 * pop_app)):
+				count_food_trigger(Keys.explosion_foods_hash, instance.player_index)
 
 
 # Gourmet DLC - Corn Cannon: every corn blast has a small chance to pop a free
