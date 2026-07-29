@@ -44,11 +44,35 @@ const SLIME_TRAIL_BASE_WIDTH: = 26.0     # visual width at level 0
 const SLIME_TRAIL_SIZE_PER_LEVEL: = 0.06 # +6% trail width & slow radius per level
 const SLIME_TRAIL_SLOW_PER_LEVEL: = 2    # +2 slow-% per level
 const SLIME_TRAIL_SLOW_MAX: = 90         # cap so enemies never fully freeze / reverse
+# Gourmet DLC - Slug: "slimed", a corrosive tick applied by standing in the trail. It is a
+# separate status from burning and is dealt as plain damage rather than through BurningData,
+# so an enemy can be burning AND slimed at once and take both. Deliberately small: it is a
+# constant drip on everything walking through, not a damage source you build around.
+# Card mirror: effect.gd EFFECT_SLUG_SLIME renders int(base + ratio x Elemental Damage).
+const SLIME_DAMAGE_BASE: = 1.0
+const SLIME_DAMAGE_ELEMENTAL_RATIO: = 0.15
+const SLIME_DAMAGE_TICK: = 0.5           # seconds between ticks, tracked per enemy
+const SLIME_META: = "gourmet_slime_next_tick"  # per-enemy next-tick stamp
+# Gourmet DLC - Butcher: share of the wave's temp Damage % that is banked as permanent
+# Appetite when the wave ends. Card mirror: EFFECT_BUTCHER_RENDER in build_pantry_items.py.
+const BUTCHER_APPETITE_SHARE: = 0.2
+# Gourmet DLC - Tourist: XP Gain swing, negative on every Danger except 0 where it is
+# positive. Card mirror: EFFECT_TOURIST_XP in build_pantry_items.py.
+const TOURIST_XP_GAIN: = 15
+# Gourmet DLC - Gourmet fattens up as the run goes: every wave costs him 3% Speed and
+# makes his body 1% bigger, compounding all run. Scaling the Player node grows the sprite,
+# the hurtbox (a bigger target - the real cost), both pickup areas and the weapon orbit
+# in one move. Card mirror: EFFECT_GOURMET_FAT in build_pantry_items.py.
+const GOURMET_FAT_SPEED: = 3
+const GOURMET_FAT_SIZE: = 0.01
 var _food_trigger_thresholds: = {}
 var _chili_burning_data: = [null, null, null, null]
 # per player: food_id_hash -> its anchor structure (foods pop out of these)
 var _food_structures: = [{}, {}, {}, {}]
 var _food_fasting_counters: = [0, 0, 0, 0]
+# Gourmet DLC - Gourmet: whether his once-per-wave doubled food has already been served.
+# main is rebuilt per wave, so this self-resets.
+var _gourmet_first_food_done: = [false, false, false, false]
 var _ate_food_this_wave: = [false, false, false, false]
 var _static_cling_counters: = [0, 0, 0, 0]
 var _space_heater_applied: = [0, 0, 0, 0]
@@ -665,6 +689,7 @@ func _on_enemy_died(enemy: Enemy, args: Entity.DieArgs) -> void :
 		for player in live_players:
 			var echo_chance: int = RunData.get_player_effect(Keys.echo_chamber_hash, player.player_index)
 			if echo_chance > 0 and randf() < echo_chance / 100.0:
+				RunData.add_tracked_value(player.player_index, Keys.generate_hash("item_echo_chamber"), 1)
 				GourmetTracker.ev("echo_proc", {"p": player.player_index})
 				var echo_dmg_when_death = RunData.get_player_effect(Keys.dmg_when_death_hash, player.player_index)
 				if echo_dmg_when_death.size() > 0:
@@ -718,7 +743,8 @@ func _on_enemy_took_damage(
 						break
 					if is_instance_valid(cling_enemy) and not cling_enemy.dead and enemy.global_position.distance_to(cling_enemy.global_position) <= 350.0:
 						var cling_args: = TakeDamageArgs.new(args.from_player_index)
-						var _cling_dealt = cling_enemy.take_damage(cling_dmg, cling_args)
+						var cling_result: Array = cling_enemy.take_damage(cling_dmg, cling_args)
+						RunData.add_tracked_value(args.from_player_index, Keys.generate_hash("item_static_cling"), cling_result[1])
 						zapped += 1
 						GourmetTracker.count("static_cling_zaps")
 
@@ -874,6 +900,9 @@ func spawn_consumables(unit: Unit) -> void :
 				doubling_chance = int(max(doubling_chance, RunData.get_player_effects(di)[Keys.second_helping_hash]))
 			if doubling_chance > 0 and randf() < doubling_chance / 100.0:
 				GourmetTracker.count("enemy_drop_food_doubled")
+				for shi in RunData.get_player_count():
+					if RunData.get_player_effects(shi)[Keys.second_helping_hash] > 0:
+						RunData.add_tracked_value(shi, Keys.generate_hash("item_second_helping"), 1)
 				spawn_food(consumable_to_spawn, pos, - 1.0, - 1, true)
 
 
@@ -917,7 +946,18 @@ func spawn_food(food_data: ConsumableData, pos: Vector2, angle: float = - 1.0, p
 				GourmetTracker.count("fasting_skips")
 				return
 		if spawn_effects[Keys.second_helping_hash] > 0 and randf() < spawn_effects[Keys.second_helping_hash] / 100.0:
+			RunData.add_tracked_value(player_index, Keys.generate_hash("item_second_helping"), 1)
 			spawn_food(food_data, pos, - 1.0, player_index, true)
+
+		# Gourmet DLC - Gourmet: the FIRST food to spawn each wave is served twice. Rides the
+		# same is_bonus recursion guard as Second Helping above, so the extra serving cannot
+		# re-trigger this (or anything else) and the flag is set before the call regardless.
+		if not _gourmet_first_food_done[player_index]:
+			var first_food_char = RunData.get_player_character(player_index)
+			if first_food_char != null and first_food_char.my_id == "character_gourmet":
+				_gourmet_first_food_done[player_index] = true
+				GourmetTracker.count("gourmet_doubled_first_food")
+				spawn_food(food_data, pos, - 1.0, player_index, true)
 
 	var consumable: Consumable = get_node_from_pool(_consumable_pool_id, _consumables_container)
 	if consumable == null:
@@ -945,6 +985,13 @@ func spawn_food(food_data: ConsumableData, pos: Vector2, angle: float = - 1.0, p
 # as a Leftover for the next wave start
 func expire_food(consumable: Consumable) -> void :
 	GourmetTracker.ev("food_expire", {"f": consumable.consumable_data.my_id})
+	# Gourmet DLC - a Leftover must NOT bank another Leftover: the bank never resets and
+	# every bank is served back next wave, so self-feeding would compound into an unbounded
+	# pile of scraps within a few waves. _process_food_expiry already skips Leftovers
+	# outright, so this is belt-and-braces for any future caller. Read BEFORE reset()/
+	# pooling, which is where consumable_data stops being trustworthy.
+	var is_leftover: bool = consumable.consumable_data.my_id == "consumable_food_leftovers"
+
 	consumable.already_picked_up = true
 	_consumables.erase(consumable)
 	consumable.reset()
@@ -955,7 +1002,7 @@ func expire_food(consumable: Consumable) -> void :
 		var expiry_effects = RunData.get_player_effects(i)
 		var expiry_character = RunData.get_player_character(i)
 		var is_dishwasher: bool = expiry_character != null and expiry_character.my_id == "character_dishwasher"
-		if expiry_effects[Keys.doggy_bag_hash] > 0:
+		if expiry_effects[Keys.doggy_bag_hash] > 0 and not is_leftover:
 			var leftovers_gained: int = 2 if is_dishwasher else 1
 			expiry_effects[Keys.banked_leftovers_hash] += leftovers_gained
 			RunData.add_tracked_value(i, Keys.generate_hash("item_doggy_bag"), leftovers_gained)
@@ -987,6 +1034,12 @@ func _process_food_expiry() -> void :
 		if ground_consumable.already_picked_up or ground_consumable.consumable_data == null:
 			continue
 		if not ground_consumable.consumable_data.my_id.begins_with("consumable_food_"):
+			continue
+		# Gourmet DLC - Leftovers never rot. They ARE the rot: they are what the Doggy Bag
+		# bank serves back, so letting them expire would either feed the bank a second time
+		# or quietly delete banked stacks the player never got to collect. They sit on the
+		# ground until eaten or until the wave ends.
+		if ground_consumable.consumable_data.my_id == "consumable_food_leftovers":
 			continue
 		if not ground_consumable.has_meta("food_spawned_at"):
 			continue
@@ -1025,12 +1078,27 @@ func _process_slime_trail() -> void :
 	var slow_pct: int = int(min(SLIME_TRAIL_SLOW_MAX, SLIME_TRAIL_SLOW + level * SLIME_TRAIL_SLOW_PER_LEVEL))
 	var scaled_radius: float = SLIME_TRAIL_RADIUS * size_scale
 	var radius_sq: float = scaled_radius * scaled_radius
+	# slimed damage per tick, recomputed each frame so Elemental Damage picked up mid-wave counts
+	var slime_elemental: float = max(0.0, Utils.get_stat(Keys.stat_elemental_damage_hash, _snail_player_index))
+	var slime_damage: int = int(max(1.0, SLIME_DAMAGE_BASE + SLIME_DAMAGE_ELEMENTAL_RATIO * slime_elemental))
 	for trail_enemy in _entity_spawner.enemies:
 		if not is_instance_valid(trail_enemy) or trail_enemy.dead:
 			continue
 		for trail_point in _slime_trail_points:
 			if trail_enemy.global_position.distance_squared_to(trail_point[0]) <= radius_sq:
 				trail_enemy.apply_gourmet_slow(slow_pct, 0.4)
+				# slimed: an independent DoT, so a burning enemy takes this on top of the burn.
+				# The next-tick stamp rides the enemy node, so it dies with it (no bookkeeping).
+				# Godot 3 get_meta takes no default, hence the has_meta guard.
+				var slime_next: float = float(trail_enemy.get_meta(SLIME_META)) if trail_enemy.has_meta(SLIME_META) else - 1.0
+				if now >= slime_next:
+					trail_enemy.set_meta(SLIME_META, now + SLIME_DAMAGE_TICK)
+					var slime_args: = TakeDamageArgs.new(_snail_player_index)
+					# take_damage returns [full_damage, damage_taken, dodged]; index 1 is what
+					# the enemy actually lost, which is what "Damage dealt" should report.
+					var slimed_result: Array = trail_enemy.take_damage(slime_damage, slime_args)
+					RunData.add_tracked_value(_snail_player_index, Keys.generate_hash("character_snail"), slimed_result[1], 1)
+					GourmetTracker.count("slime_ticks")
 				break
 
 
@@ -1206,14 +1274,19 @@ func _process_food_triggers(delta: float) -> void :
 			count_food_trigger(Keys.step_foods_hash, i, steps - _food_prev_steps[i])
 		_food_prev_steps[i] = steps
 
-		# Pizza Delivery / Street Vendor: precomputed wave times
+		# Pizza Delivery / Street Vendor / Leftovers: precomputed wave times
 		var scheduled: Array = _food_scheduled_spawns[i]
 		for j in range(scheduled.size() - 1, - 1, - 1):
 			if _food_wave_time >= scheduled[j][0]:
 				var food_data = ItemService.get_food_from_hash(scheduled[j][1])
 				if food_data != null:
 					for _k in range(scheduled[j][2]):
-						spawn_food(food_data, get_food_spawn_origin(scheduled[j][1], i), - 1.0, i)
+						# Leftovers are scraps left lying around, so they turn up ANYWHERE in
+						# the arena rather than in the usual ring around the player/anchor.
+						var origin: Vector2 = get_food_spawn_origin(scheduled[j][1], i)
+						if scheduled[j][1] == Keys.generate_hash("consumable_food_leftovers"):
+							origin = ZoneService.get_rand_pos()
+						spawn_food(food_data, origin, - 1.0, i)
 				scheduled.remove(j)
 
 	_process_food_expiry()
@@ -1293,6 +1366,7 @@ func on_consumable_picked_up(consumable: Node, player_index: int) -> void :
 			for grease_enemy in _entity_spawner.enemies:
 				if is_instance_valid(grease_enemy) and not grease_enemy.dead and eat_player.global_position.distance_to(grease_enemy.global_position) <= 150.0:
 					grease_enemy.apply_burning(grease_burn)
+					RunData.add_tracked_value(player_index, Keys.generate_hash("item_grease_fire"), 1)
 					GourmetTracker.count("grease_ignites")
 
 		# Burp of Power: eating shoves nearby enemies away
@@ -1724,6 +1798,20 @@ func _on_EndWaveTimer_timeout() -> void :
 		var end_effects = RunData.get_player_effects(i)
 		GourmetTracker.ev("wave_end", {"p": i, "ate": _ate_food_this_wave[i], "bank": end_effects[Keys.banked_leftovers_hash], "buys": end_effects[Keys.shop_purchases_hash], "s": GourmetTracker.stat_snapshot(i)})
 
+		# Gourmet DLC - Butcher: 20% of the temp Damage he built this wave (1% per consumable
+		# eaten) is rendered down into PERMANENT Appetite. His per-wave counter resets with the
+		# wave either way, so this is the only thing that carries the meal forward.
+		var butcher_character = RunData.get_player_character(i)
+		if butcher_character != null and butcher_character.my_id == "character_butcher":
+			var butcher_player: Player = _players[i]
+			if is_instance_valid(butcher_player) and butcher_player._butcher_wave_damage > 0:
+				var rendered_appetite: int = int(butcher_player._butcher_wave_damage * BUTCHER_APPETITE_SHARE)
+				if rendered_appetite > 0:
+					RunData.add_stat(Keys.stat_appetite_hash, rendered_appetite, i)
+					RunData.add_tracked_value(i, butcher_character.get_my_id_hash(), rendered_appetite, 1)
+					GourmetTracker.ev("butcher_render", {"p": i, "dmg": butcher_player._butcher_wave_damage, "app": rendered_appetite})
+				butcher_player._butcher_wave_damage = 0
+
 	_coop_upgrades_ui.propagate_call("set_process_input", [true])
 	DebugService.log_data("_on_EndWaveTimer_timeout")
 	SoundManager.clear_queue()
@@ -2018,17 +2106,37 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void :
 
 		_players[i].check_hp_regen()
 
+		# Gourmet DLC - Gourmet: one fat stack per wave cleared, so wave 1 is his normal size.
+		# Derived from current_wave and reconciled against what was already applied, rather
+		# than incremented, so retrying a wave cannot double-charge the Speed.
+		var fat_character = RunData.get_player_character(i)
+		if fat_character != null and fat_character.my_id == "character_gourmet":
+			var wanted_fat: int = int(max(0, RunData.current_wave - 1))
+			var applied_fat: int = int(effects[Keys.gourmet_fat_hash])
+			if wanted_fat != applied_fat:
+				var fat_speed_lost: int = GOURMET_FAT_SPEED * (wanted_fat - applied_fat)
+				RunData.add_stat(Keys.stat_speed_hash, - fat_speed_lost, i)
+				RunData.add_tracked_value(i, fat_character.get_my_id_hash(), fat_speed_lost, 1)
+				effects[Keys.gourmet_fat_hash] = wanted_fat
+			_players[i].set_body_scale(1.0 + GOURMET_FAT_SIZE * wanted_fat)
+
 		# Gourmet DLC - Tourist: +10% to all stat modifications per Danger level, once per run
 		var tourist_character = RunData.get_player_character(i)
 		if tourist_character != null and tourist_character.my_id == "character_tourist" and effects[Keys.tourist_danger_done_hash] == 0:
 			effects[Keys.tourist_danger_done_hash] = 1
+			# Gourmet DLC - Tourist XP: -15% XP Gain on any run except Danger 0, where the
+			# sightseer gets +15% instead. Applied here rather than as a card stat effect
+			# because its SIGN depends on the run's Danger, which a static tres cannot express.
+			# Card mirror: the EFFECT_TOURIST_XP line states both halves of the rule.
+			# Sits outside the danger_gain > 0 guard below: Danger 0 is exactly when it flips.
+			effects[Keys.xp_gain_hash] += TOURIST_XP_GAIN if RunData.current_difficulty == 0 else - TOURIST_XP_GAIN
 			var danger_gain = RunData.current_difficulty * 10
 			if danger_gain > 0:
 				for tourist_stat in ["stat_max_hp", "stat_hp_regeneration", "stat_lifesteal", "stat_percent_damage", "stat_melee_damage", "stat_ranged_damage", "stat_elemental_damage", "stat_attack_speed", "stat_crit_chance", "stat_engineering", "stat_range", "stat_armor", "stat_dodge", "stat_speed", "stat_luck", "stat_harvesting"]:
 					effects[Keys.generate_hash("gain_" + tourist_stat)] += danger_gain
 				effects[Keys.generate_hash("enemy_health")] += 5 * RunData.current_difficulty
 				effects[Keys.enemy_attack_speed_hash] += 5 * RunData.current_difficulty
-				_players[i].update_player_stats()
+			_players[i].update_player_stats()
 
 		# Gourmet DLC - food buff HUD row, sits under the player's life container
 		var food_buffs_display = preload("res://ui/hud/food_buffs_display.gd").new()
@@ -2088,11 +2196,18 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void :
 					_food_scheduled_spawns[i].push_back([0.5, reroll_banked_food[0], banked_rerolls * reroll_banked_food[1]])
 		effects[Keys.banked_rerolls_hash] = 0
 
-		# Gourmet DLC - Doggy Bag: every banked Leftover grants +1% Damage this wave
-		# (the bank never resets - wasting food builds an uncapped run-long engine)
+		# Gourmet DLC - Doggy Bag: every banked Leftover is SERVED BACK as a real Leftovers
+		# food, one per bank, scattered across the whole wave and anywhere on the field. The
+		# damage is no longer automatic - you have to go and eat your own scraps, and each one
+		# eaten is +1% Damage for the rest of the wave (uncapped, see the food's stack cap).
+		# The bank itself never resets, so a run-long hoard means a wave-long scavenger hunt.
 		if effects[Keys.doggy_bag_hash] > 0 and effects[Keys.banked_leftovers_hash] > 0:
-			TempStats.add_stat(Keys.stat_percent_damage_hash, effects[Keys.banked_leftovers_hash], i)
-			GourmetTracker.ev("leftovers_grant", {"p": i, "n": effects[Keys.banked_leftovers_hash]})
+			var leftovers_hash: int = Keys.generate_hash("consumable_food_leftovers")
+			if ItemService.get_food_from_hash(leftovers_hash) != null:
+				var leftovers_due: int = int(effects[Keys.banked_leftovers_hash])
+				for _leftover in range(leftovers_due):
+					_food_scheduled_spawns[i].push_back([rand_range(0.05, 0.9) * food_wave_duration, leftovers_hash, 1])
+				GourmetTracker.ev("leftovers_served", {"p": i, "n": leftovers_due})
 
 		# Gourmet DLC - Grandma's Cookbook needs to know when this player takes damage
 		var _error_food_dmg = _players[i].connect("took_damage", self, "_on_player_took_damage_food")

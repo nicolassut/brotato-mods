@@ -35,6 +35,7 @@ var keys_needing_operator: = {
 	"gain_stat_elemental_damage": [0],
 	"gain_stat_armor": [0],
 	"gain_stat_harvesting": [0],
+	"gain_stat_appetite": [0],
 	"gain_xp_gain": [0],
 	"xp_gain": [0],
 	"weapon_slot": [0], 

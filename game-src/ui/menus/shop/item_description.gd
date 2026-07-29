@@ -111,20 +111,22 @@ func set_item(item_data: ItemParentData, player_index: int, item_count: = 1) -> 
 					_category.text = tr("STRUCTURE") + ", " + tr("UNIQUE")
 				else:
 					_category.text = tr("UNIQUE")
+			# Gourmet DLC - the printed X/Y must be the EFFECTIVE cap (RunData.get_item_max_nb),
+			# so the Picky Eater's doubled food-spawner limit shows as e.g. 4/6, not 4/3.
 			elif item_data.max_nb != - 1 and item_data.max_nb != 0:
 				if is_pet:
 					if is_structure:
-						_category.text = tr("PET") + ", " + tr("STRUCTURE") + ", " + Text.text("LIMITED", [str(RunData.get_nb_item(item_data.my_id_hash, player_index)), str(item_data.max_nb)])
+						_category.text = tr("PET") + ", " + tr("STRUCTURE") + ", " + Text.text("LIMITED", [str(RunData.get_nb_item(item_data.my_id_hash, player_index)), str(RunData.get_item_max_nb(item_data, player_index))])
 					else:
-						_category.text = tr("PET") + ", " + Text.text("LIMITED", [str(RunData.get_nb_item(item_data.my_id_hash, player_index)), str(item_data.max_nb)])
+						_category.text = tr("PET") + ", " + Text.text("LIMITED", [str(RunData.get_nb_item(item_data.my_id_hash, player_index)), str(RunData.get_item_max_nb(item_data, player_index))])
 				elif is_structure:
 					# Gourmet DLC - the food-spawner items are the only LIMITED structures, and
 					# "Structure, Limited (X/Y)" overflows the fixed-width Category button, clipping
 					# the (X/Y) count. Show just "Limited (X/Y)" so the limit reads properly (matches
 					# every non-structure limited item, e.g. Grandma's Cookbook).
-					_category.text = Text.text("LIMITED", [str(RunData.get_nb_item(item_data.my_id_hash, player_index)), str(item_data.max_nb)])
+					_category.text = Text.text("LIMITED", [str(RunData.get_nb_item(item_data.my_id_hash, player_index)), str(RunData.get_item_max_nb(item_data, player_index))])
 				else:
-					_category.text = Text.text("LIMITED", [str(RunData.get_nb_item(item_data.my_id_hash, player_index)), str(item_data.max_nb)])
+					_category.text = Text.text("LIMITED", [str(RunData.get_nb_item(item_data.my_id_hash, player_index)), str(RunData.get_item_max_nb(item_data, player_index))])
 			else:
 				if is_pet:
 					if is_structure:
@@ -154,7 +156,12 @@ func _generate_description_effects(player_index, effects: Array, colored: bool =
 		_effect.add_child(line)
 		line._display_effect(player_index, effect, colored, activate_tab)
 
-	if item.tracking_text != "[EMPTY]":
+	# Gourmet DLC - the sentinel tested here is "[EMPTY]", but the export default in
+	# item_parent_data.gd is "", so every card WITHOUT a tracker used to instance an
+	# EffectLine holding an empty string. _display_special_text has no empty-text cull
+	# (unlike _display_effect, effect_line.gd:27-29), so that left a blank row on nearly
+	# every card in the game. Treat "" as "no tracker", which is plainly the intent.
+	if item.tracking_text != "[EMPTY]" and item.tracking_text != "":
 		var line: EffectLine = effect_line.instance()
 		_effect.add_child(line)
 		line._display_special_text(item._get_tracking_text(player_index), null)
@@ -164,8 +171,15 @@ func _generate_description_effects(player_index, effects: Array, colored: bool =
 	# foods share the cap) and how many of EACH the player has eaten this run.
 	var spawner_foods: Array = _get_spawner_foods(item)
 	if spawner_foods.size() > 0:
-		var stack_text: String = _food_max_stacks_text(spawner_foods[0], player_index)
-		if stack_text != "":
+		# One stacks line per DISTINCT cap, not just spawner_foods[0]'s. A source whose foods
+		# share a cap (Sweet Potato: Fries and Fried Rice both 10) still shows a single line;
+		# one whose foods differ no longer prints the first food's cap as if it applied to all.
+		var seen_stack_texts: = {}
+		for spawner_food in spawner_foods:
+			var stack_text: String = _food_max_stacks_text(spawner_food, player_index)
+			if stack_text == "" or seen_stack_texts.has(stack_text):
+				continue
+			seen_stack_texts[stack_text] = true
 			var stack_line: EffectLine = effect_line.instance()
 			_effect.add_child(stack_line)
 			stack_line._display_special_text(stack_text, null)

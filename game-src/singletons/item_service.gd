@@ -74,10 +74,13 @@ var item_groups: Dictionary = {
 	"melee_damage": ["item_mastery", "item_goat_skull", "item_riposte"], 
 	"ranged_damage": ["item_lens"], 
 	"melee_and_ranged_damage": ["item_big_arms", "item_hedgehog"], 
-	"lifesteal": ["item_butterfly", "item_bat", "item_whetstone", "item_decomposing_flesh", "item_bloody_hand", "item_fresh_meat"], 
-	"lifesteal_and_hp_regeneration": ["item_blood_leech"], 
-	"hp_regeneration": ["item_mushroom", "item_plant", "item_sad_tomato", "item_medikit", "item_fairy", "item_potion", "item_fried_rice", "item_baby_squid", "item_coral", "item_penguin"], 
-	"consumable_heal": ["item_jerky", "item_weird_food", "item_lemonade", "item_fruit_basket"], 
+	# Gourmet DLC - the mod's own sustain items are folded into the vanilla groups so a
+	# character that bans a group (Zombie: he cannot heal, so every one of these is a dead
+	# card in his shop) is rid of ALL of them, not just the base-game ones.
+	"lifesteal": ["item_butterfly", "item_bat", "item_whetstone", "item_decomposing_flesh", "item_bloody_hand", "item_fresh_meat", "item_vampire_fang"],
+	"lifesteal_and_hp_regeneration": ["item_blood_leech", "item_mosquito_jar"],
+	"hp_regeneration": ["item_mushroom", "item_plant", "item_sad_tomato", "item_medikit", "item_fairy", "item_potion", "item_fried_rice", "item_baby_squid", "item_coral", "item_penguin", "item_iron_lung", "item_meal_in_a_pill"],
+	"consumable_heal": ["item_jerky", "item_weird_food", "item_lemonade", "item_fruit_basket", "item_chicken_soup", "item_buffet_insurance"],
 	"speed": ["item_terrified_onion", "item_beanie", "item_power_generator"], 
 	"engineering": ["item_lighthouse", "item_cog", "item_nail", "item_toolbox", "item_book", "item_pencil"], 
 	"elemental_damage": ["item_strange_book", "item_frozen_heart", "item_boiling_water", "item_snowball", "item_toxic_sludge", "item_fuel_tank", "item_will_o_the_wisp"], 
@@ -478,7 +481,9 @@ func _get_rand_item_for_wave(wave: int, player_index: int, type: int, args: GetR
 	var limited_items = get_limited_items(args.owned_and_shop_items)
 
 	for key in limited_items:
-		if limited_items[key][1] >= limited_items[key][0].max_nb:
+		# Gourmet DLC - read the effective cap, not the raw one, so the Picky Eater's
+		# doubled spawner limit keeps his spawners in the pool past their printed max
+		if limited_items[key][1] >= RunData.get_item_max_nb(limited_items[key][0], player_index):
 			backup_pool = remove_element_by_id_with_item(backup_pool, limited_items[key][0])
 			items_to_remove.push_back(limited_items[key][0])
 

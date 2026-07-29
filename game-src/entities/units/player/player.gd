@@ -47,6 +47,9 @@ var _food_buffs: = {}
 # Gourmet DLC - Competitive Eater: buffs gained this wave (drives his +5% Speed /
 # +5% Pickup Range momentum; node is wave-fresh so this resets with the wave)
 var _comp_momentum_stacks: = 0
+# Gourmet DLC - Butcher: consumables eaten this wave == the temp Damage % he is carrying.
+# main.gd banks 20% of it as permanent Appetite at wave end (wave-fresh node, so no reset).
+var _butcher_wave_damage: = 0
 var _food_attract_frames: = 0
 var _nine_lives_used_this_wave: = false
 var _full_belly_applied: = 0
@@ -423,6 +426,15 @@ func update_player_stats(reset_current_health: = false) -> void :
 	check_hp_regen()
 
 
+# Gourmet DLC - the Gourmet's fattening: grow the whole body at once. Everything parented
+# to the player scales with it - sprite, movement collider, hurtbox (a bigger target, which
+# is the real cost), both pickup areas and the weapon orbit distance - which is exactly the
+# intended package. The HUD life bar is exempted so it does not balloon along with him.
+func set_body_scale(body_scale: float) -> void :
+	scale = Vector2.ONE * body_scale
+	_life_bar_transform.update_scale = false
+
+
 func add_weapon(weapon: WeaponData, pos: int) -> void :
 	var instance = weapon.scene.instance()
 
@@ -506,6 +518,18 @@ func take_damage(value: int, args: TakeDamageArgs) -> Array:
 				_invincibility_timer.start(1.0)
 				GourmetTracker.ev("nine_lives_save", {"p": player_index, "used": nine_lives_effects[Keys.nine_lives_used_hash]})
 
+		# Gourmet DLC - Zombie: a hit that leaves him on exactly 1 HP rots him straight back
+		# to full. Fires whether the 1 HP came from Nine Lives or from a plain hit (the Nine
+		# Lives charge is still spent either way). Writes health directly rather than going
+		# through heal(), so his own no_heal gate never sees it - the same trick Nine Lives
+		# uses above. Checked AFTER the Nine Lives block so the two chain in one hit.
+		if current_stats.health == 1:
+			var undead_character = RunData.get_player_character(player_index)
+			if undead_character != null and undead_character.my_id == "character_zombie" and max_stats.health > 1:
+				current_stats.health = max_stats.health
+				RunData.add_tracked_value(player_index, undead_character.get_my_id_hash(), 1)
+				GourmetTracker.ev("zombie_reanimate", {"p": player_index})
+
 		emit_signal("health_updated", self, current_stats.health, max_stats.health)
 
 		if dodgeable:
@@ -553,7 +577,8 @@ func take_damage(value: int, args: TakeDamageArgs) -> Array:
 				if global_position.distance_to(hitbox.from.global_position) <= 200.0:
 					var caltrops_dmg: int = int((3.0 + 0.3 * Utils.get_stat(Keys.stat_melee_damage_hash, player_index)) * caltrops_count)
 					_dodge_damage_args._init(player_index)
-					var _caltrops_dealt = hitbox.from.take_damage(caltrops_dmg, _dodge_damage_args)
+					var caltrops_result: Array = hitbox.from.take_damage(caltrops_dmg, _dodge_damage_args)
+					RunData.add_tracked_value(player_index, Keys.generate_hash("item_caltrops"), caltrops_result[1])
 					GourmetTracker.count("caltrops_hits")
 
 			# Gourmet DLC - Pocket Sand: attackers get slowed 20% per stack (max -60%) for 2 seconds
@@ -775,10 +800,11 @@ func _physics_process(delta: float) -> void :
 	if loop_count > 0:
 		on_health_regen(loop_count)
 
-	# Gourmet DLC - foods are magnet-attracted but only at 25% of the normal pickup distance,
-	# so poll distance instead of relying on the one-shot area_entered signal
+	# Gourmet DLC - foods are magnet-attracted at a reduced pickup distance, so poll
+	# distance instead of relying on the one-shot area_entered signal (which fires at the
+	# full radius). 3 frames = 20Hz: fast enough that the magnet never visibly lags.
 	_food_attract_frames += 1
-	if _food_attract_frames >= 6:
+	if _food_attract_frames >= 3:
 		_food_attract_frames = 0
 		_attract_nearby_foods()
 
@@ -849,7 +875,12 @@ func on_healing_effect(value: int, tracking_key: int = Keys.empty_hash, from_tor
 	var actual_value = min(value, heal_cap - current_stats.health)
 	if actual_value < 0:
 		actual_value = 0
+	var overheal_before: int = int(max(0, current_stats.health - max_stats.health))
 	var value_healed = heal(actual_value, from_torture)
+	if allow_overheal and value_healed > 0 and _has_vampire_fang():
+		var overheal_gained: int = int(max(0, current_stats.health - max_stats.health)) - overheal_before
+		if overheal_gained > 0:
+			RunData.add_tracked_value(player_index, Keys.generate_hash("item_vampire_fang"), overheal_gained)
 
 	if value_healed > 0:
 		SoundManager.play(Utils.get_rand_element(hp_regen_sounds), get_heal_db(), 0.1)
@@ -1039,6 +1070,10 @@ func on_consumable_picked_up(consumable_data: ConsumableData, food_age: float = 
 		elif dlc_character.my_id == "character_butcher":
 			TempStats.add_stat(Keys.stat_percent_damage_hash, 1, player_index)
 			RunData.add_tracked_value(player_index, dlc_character.get_my_id_hash(), 1)
+			# Gourmet DLC - Butcher: this wave's temp Damage is exactly 1% per consumable, so
+			# the running count IS the bonus. main.gd banks 20% of it as permanent Appetite at
+			# wave end. The Player node is rebuilt each wave, so this self-resets.
+			_butcher_wave_damage += 1
 
 	# Gourmet DLC - foods route through the shared-timer buff engine (duck-typed by id prefix,
 	# never by class name: see the cyclic-dependency law)
@@ -1219,7 +1254,7 @@ func _apply_food_buff(food_data, food_age: float = - 1.0) -> void :
 	# Gourmet DLC - Buffet Insurance: eating a consumable while critically low (<20% HP) gives a
 	# clutch heal - unless a character forbids consumable healing (that rule wins).
 	if buff_effects[Keys.buffet_insurance_hash] > 0 and not consumable_heal_blocked and current_stats.health < max_stats.health * 0.2:
-		var _clutch_heal = on_healing_effect(buff_effects[Keys.buffet_insurance_hash], Keys.empty_hash)
+		var _clutch_heal = on_healing_effect(buff_effects[Keys.buffet_insurance_hash], Keys.generate_hash("item_buffet_insurance"))
 
 	# Rest-of-wave stats: routed through a timerless food-buff entry so they show in the
 	# HUD (icon + stack count, no timer) and honor the per-food stack cap, instead of a
@@ -1272,8 +1307,11 @@ func _apply_food_buff(food_data, food_age: float = - 1.0) -> void :
 		for magnitude in magnitudes:
 			magnitude[1] = int(magnitude[1] * (100.0 + strength_bonus) / 100.0)
 
+	# Gourmet DLC - there is NO hidden multiplier here. A x1.5 used to be applied after this
+	# line, which meant every card that printed a duration understated it by 50%; the 1.5 is
+	# baked into the authored buff_duration values instead, so the number on the card and the
+	# number used here are the same number. Do not reintroduce a blanket multiplier.
 	var base_duration: float = (food_data.buff_duration + food_data.duration_app_ratio * appetite + buff_effects[Keys.food_buff_duration_hash]) * (1.0 + appetite * 0.01)
-	base_duration *= 1.5  # Gourmet DLC - all food buffs last 50% longer
 
 	if character_id == "character_comp_eater":
 		for magnitude in magnitudes:
@@ -1335,15 +1373,7 @@ func _apply_food_buff(food_data, food_age: float = - 1.0) -> void :
 	# Ruminant chews twice: the same buff lands again at 50% strength 5 seconds later
 	# (Mint's refresh is exempt by balance law, special_id "mint")
 	if character_id == "character_ruminant":
-		var echo_magnitudes: = []
-		for magnitude in magnitudes:
-			var halved: int = int(magnitude[1] / 2.0)
-			if halved > 0:
-				echo_magnitudes.push_back([magnitude[0], halved])
-		if not echo_magnitudes.empty():
-			GourmetTracker.count("ruminant_echoes")
-			var echo_timer: SceneTreeTimer = Utils.get_tree().create_timer(5.0, false)
-			var _error = echo_timer.connect("timeout", self, "_on_ruminant_echo_timeout", [food_data.my_id, echo_magnitudes, base_duration, food_data.buff_stacks, food_data.buff_total_cap, int(food_data.buff_stack_cap), food_data.icon])
+		_schedule_ruminant_echo(food_data.my_id, magnitudes, food_data.buff_total_cap, int(food_data.buff_stack_cap), 2)
 
 
 # magnitudes: array of [stat_hash, value] applied together as one stack
@@ -1428,6 +1458,7 @@ func _grant_wave_buff_stack(food_id: String, magnitudes: Array, stack_cap: int, 
 # clears it); the pickup bonus rides _comp_momentum_stacks on this wave-fresh node.
 func _gain_comp_momentum() -> void :
 	_comp_momentum_stacks += 1
+	RunData.add_tracked_value(player_index, Keys.generate_hash("character_comp_eater"), 1)
 	TempStats.add_stat(Keys.stat_speed_hash, 5, player_index)
 	var momentum_pickup: int = int(RunData.get_player_effect(Keys.pickup_range_hash, player_index))
 	_item_attract_area.apply_pickup_range_effect(momentum_pickup + 5 * _comp_momentum_stacks)
@@ -1495,12 +1526,52 @@ func _update_food_buff_bonuses() -> void :
 			_picky_penalty_active = wanted_penalty
 
 
-func _on_ruminant_echo_timeout(food_id: String, magnitudes: Array, base_duration: float, stacks: bool, total_cap: int, stack_cap: int = 20, icon: Texture = null) -> void :
+# Gourmet DLC - Ruminant: the echo is PURE MAGNITUDE. It adds half-strength stats to the
+# buff that is already running and never touches the shared timer, never spends a stack and
+# never creates a buff of its own - "chews twice" is about strength, not uptime. Each echo
+# then has a chance to chew again for half as much, up to RUMINANT_MAX_CHEWS total mouthfuls.
+const RUMINANT_ECHO_DELAY: = 5.0
+const RUMINANT_ECHO_CHAIN_CHANCE: = 0.25
+const RUMINANT_MAX_CHEWS: = 4  # the eat itself is chew 1, so at most 3 echoes
+
+func _schedule_ruminant_echo(food_id: String, magnitudes: Array, total_cap: int, stack_cap: int, chew: int) -> void :
+	if chew > RUMINANT_MAX_CHEWS:
+		return
+	var echo_magnitudes: = []
+	for magnitude in magnitudes:
+		var halved: int = int(magnitude[1] / 2.0)
+		if halved > 0:
+			echo_magnitudes.push_back([magnitude[0], halved])
+	if echo_magnitudes.empty():
+		return
+	var echo_timer: SceneTreeTimer = Utils.get_tree().create_timer(RUMINANT_ECHO_DELAY, false)
+	var _error = echo_timer.connect("timeout", self, "_on_ruminant_echo_timeout", [food_id, echo_magnitudes, total_cap, stack_cap, chew])
+
+
+func _on_ruminant_echo_timeout(food_id: String, magnitudes: Array, total_cap: int, stack_cap: int, chew: int) -> void :
 
 	if cleaning_up or dead:
 		return
 
-	_grant_food_buff_stack(food_id, magnitudes, base_duration, stacks, total_cap, stack_cap, icon)
+	# the buff has to still be running - an echo never revives an expired one
+	if not _food_buffs.has(food_id):
+		return
+	var buff: Dictionary = _food_buffs[food_id]
+	if not buff.has("timer"):
+		return
+	# Gated on the same stack cap as a real eat (without consuming a stack), so eating at
+	# max stacks - which grants no magnitude - cannot be farmed for free echo magnitude.
+	if buff["stacks"] >= stack_cap + int(RunData.get_player_effect(Keys.food_stack_cap_bonus_hash, player_index)):
+		return
+
+	_food_buff_add_magnitudes(buff, magnitudes, total_cap)
+	_update_food_buff_bonuses()
+	LinkedStats.reset_player(player_index)
+	RunData.add_tracked_value(player_index, Keys.generate_hash("character_ruminant"), 1)
+	GourmetTracker.count("ruminant_echoes")
+
+	if randf() < RUMINANT_ECHO_CHAIN_CHANCE:
+		_schedule_ruminant_echo(food_id, magnitudes, total_cap, stack_cap, chew + 1)
 
 
 func _attract_nearby_consumables() -> void :
@@ -1515,13 +1586,23 @@ func _attract_nearby_consumables() -> void :
 			area.set_physics_process(true)
 
 
-# Gourmet DLC - foods sit in the attract area like any consumable but only start
-# flying to the player once inside 25% of the attract radius
+# Gourmet DLC - foods sit in the attract area like any consumable, but the Pickup Range
+# stat only counts for 20% of its usual effect on them: food always magnets from the base
+# radius, and stacking Pickup Range widens that at a fifth of the rate materials get.
+# Derived from the area's live radius (not the raw stat) so the Competitive Eater's
+# momentum bonus, which is written straight into the shape, feeds food pickup too:
+#   area   = BASE * (1 + range/100)
+#   food   = BASE * (1 + 0.2 * range/100) = BASE * 0.8 + area * 0.2
+# Capped at the area radius so a negative Pickup Range can't make food out-reach gold.
+const FOOD_PICKUP_RANGE_FACTOR: = 0.2
+
 func _attract_nearby_foods() -> void :
 	if dead or not _item_attract_area.monitoring:
 		return
 
-	var attract_radius: float = _item_attract_area.get_node("CollisionShape2D").shape.radius * 0.25
+	var area_radius: float = _item_attract_area.get_node("CollisionShape2D").shape.radius
+	var attract_radius: float = min(area_radius,
+		ItemAttractArea.BASE_RADIUS * (1.0 - FOOD_PICKUP_RANGE_FACTOR) + area_radius * FOOD_PICKUP_RANGE_FACTOR)
 	var attract_dist_sq: float = attract_radius * attract_radius
 
 	for area in _item_attract_area.get_overlapping_areas():

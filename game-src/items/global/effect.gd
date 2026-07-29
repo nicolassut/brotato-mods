@@ -131,33 +131,27 @@ func get_text(player_index: int, colored: bool = true) -> String:
 			var food_signs: = []
 			for food_buff_stat in food.buff_stats:
 				_add_food_formula_args(food_buff_stat[1], food_buff_stat[2], food_args, food_signs, player_index, colored)
-			# Gourmet DLC - an Appetite-scaled duration must show the REAL seconds, so mirror
-			# player.gd's (base + ratio x App) x (1 + App / 100) x 1.5 food-buff math rather
-			# than the raw authored value. Rendered vanilla-style as "{base} ({current})".
+			# Gourmet DLC - the duration pair uses the SAME idiom as every other number on a
+			# card: {n} = "current | base" seconds, {n+1} = the "+rate per Appetite" chunk. It
+			# used to push (base, current) as two bare numbers, which read as "16 (16)" at 0
+			# Appetite - a duplicated value where every other card shows a rate. The x1.5 that
+			# used to be applied here is gone: it is baked into the authored buff_duration now
+			# (see build_food_system.py), so what the card prints is what player.gd uses.
 			if food.duration_app_ratio != 0.0:
 				var dur_app: = 0.0
 				if player_index >= 0 and player_index != RunData.DUMMY_PLAYER_INDEX:
 					dur_app = max(0.0, Utils.get_stat(Keys.stat_appetite_hash, player_index))
-				var dur_current: int = int((food.buff_duration + food.duration_app_ratio * dur_app) * (1.0 + dur_app * 0.01) * 1.5)
-				food_args.push_back(str(int(food.buff_duration * 1.5)))
+				var dur_current: int = int((food.buff_duration + food.duration_app_ratio * dur_app) * (1.0 + dur_app * 0.01))
+				food_args.push_back(_weapon_style_value(dur_current, int(food.buff_duration), colored))
 				food_signs.push_back(Sign.NEUTRAL)
-				food_args.push_back(str(dur_current))
+				food_args.push_back(Utils.get_scaling_stat_icon_text(Keys.stat_appetite_hash, food.duration_app_ratio, true))
 				food_signs.push_back(Sign.NEUTRAL)
 			for food_wave_stat in food.wave_stats:
 				_add_food_formula_args(food_wave_stat[1], food_wave_stat[2], food_args, food_signs, player_index, colored)
 			if food.heal_base > 0.0:
 				_add_food_formula_args(food.heal_base, food.heal_app_ratio, food_args, food_signs, player_index, colored)
-			# Gourmet DLC - permanent grants (Fried Egg +Luck): render {base} ({current})
-			# where current = base * (1 + permanent_app_ratio * Appetite), matching player.gd.
 			for food_perm_stat in food.permanent_stats:
-				var perm_app: float = 0.0
-				if player_index >= 0 and player_index != RunData.DUMMY_PLAYER_INDEX:
-					perm_app = max(0.0, Utils.get_stat(Keys.stat_appetite_hash, player_index))
-				var perm_current: int = int(round(food_perm_stat[1] * (1.0 + food.permanent_app_ratio * perm_app)))
-				food_args.push_back(str(int(food_perm_stat[1])))
-				food_signs.push_back(Sign.POSITIVE)
-				food_args.push_back(str(perm_current))
-				food_signs.push_back(Sign.POSITIVE)
+				_add_food_perm_args(food_perm_stat[1], food.permanent_app_ratio, food_args, food_signs, player_index, colored)
 			return Text.text(text_key, food_args, [] if !colored else food_signs)
 
 	# Gourmet DLC - custom scaling cards render their real formula live (base + scaling stat
@@ -170,6 +164,10 @@ func get_text(player_index: int, colored: bool = true) -> String:
 		return _scaling_formula_text(text_key, 6.0, Keys.stat_elemental_damage_hash, 1.0, player_index, colored)
 	if text_key == "EFFECT_GREASE_FIRE":  # main.gd: (2 + 0.2 * Appetite) * stacks burn/tick
 		return _scaling_formula_text(text_key, 2.0, Keys.stat_appetite_hash, 0.2, player_index, colored)
+	# Gourmet DLC - Slug slimed tick: main.gd SLIME_DAMAGE_BASE + SLIME_DAMAGE_ELEMENTAL_RATIO
+	# x Elemental Damage, floored at 1, every SLIME_DAMAGE_TICK seconds. Keep in sync.
+	if text_key == "EFFECT_SLUG_SLIME":
+		return _scaling_formula_text(text_key, 1.0, Keys.stat_elemental_damage_hash, 0.15, player_index, colored)
 	# Soul Food risk: player.gd flips a buff negative on a FLAT SOUL_FLIP_PCT%. It used to
 	# scale as max(0, 5 - 0.1 x Luck), which floored at 0 and let high-Luck builds delete
 	# the downside, so there is nothing left to compute live - render the effect's own
@@ -200,6 +198,16 @@ func get_text(player_index: int, colored: bool = true) -> String:
 			jt_as = Utils.get_stat(Keys.stat_attack_speed_hash, player_index)
 		var jt_cur: float = stepify(clamp(18.0 / max(0.1, 1.0 + jt_as / 100.0), 3.0, 180.0) / 60.0, 0.01)
 		return Text.text(text_key, ["0.3", str(jt_cur)], [] if !colored else [Sign.NEUTRAL, Sign.NEUTRAL])
+
+	# Gourmet DLC - Juggler combo: weapon.gd JUGGLER_COMBO_PER_WEAPON per weapon already fired
+	# this cycle, so the LAST weapon of an N-weapon loadout hits for 8 x (N - 1) percent more.
+	# {0} is that peak, computed from the live weapon count (0 with fewer than 2 weapons).
+	if text_key == "EFFECT_JUGGLER_COMBO":
+		var jc_weapons: = 0
+		if player_index >= 0 and player_index != RunData.DUMMY_PLAYER_INDEX:
+			jc_weapons = RunData.get_player_weapons_ref(player_index).size()
+		var jc_peak: int = int(round(8.0 * max(0, jc_weapons - 1)))
+		return Text.text(text_key, [str(jc_peak)], [] if !colored else [Sign.POSITIVE])
 
 	# Gourmet DLC - Minimalist summary: always rendered live from the current inventory,
 	# so stale effects embedded in old run saves still display correctly.
@@ -263,6 +271,21 @@ func _add_food_formula_args(base, ratio, args: Array, signs: Array, player_index
 	if player_index >= 0 and player_index != RunData.DUMMY_PLAYER_INDEX:
 		appetite = max(0.0, Utils.get_stat(Keys.stat_appetite_hash, player_index))
 	args.push_back(_weapon_style_value(int(base + ratio * appetite), int(base), colored))
+	signs.push_back(Sign.NEUTRAL)
+	if ratio != 0.0:
+		args.push_back(Utils.get_scaling_stat_icon_text(Keys.stat_appetite_hash, ratio, true))
+		signs.push_back(Sign.NEUTRAL)
+
+
+# Gourmet DLC - the permanent-grant twin of _add_food_formula_args (Fried Egg +Luck, Fruit
+# Salad +Harvesting). Same card idiom and same 1-or-2 arg rule, but the maths is
+# MULTIPLICATIVE - base x (1 + ratio x Appetite), mirroring player.gd - where the buff/heal
+# path is additive, so the two cannot share an implementation.
+func _add_food_perm_args(base, ratio, args: Array, signs: Array, player_index: int, colored: bool) -> void:
+	var appetite: = 0.0
+	if player_index >= 0 and player_index != RunData.DUMMY_PLAYER_INDEX:
+		appetite = max(0.0, Utils.get_stat(Keys.stat_appetite_hash, player_index))
+	args.push_back(_weapon_style_value(int(round(base * (1.0 + ratio * appetite))), int(base), colored))
 	signs.push_back(Sign.NEUTRAL)
 	if ratio != 0.0:
 		args.push_back(Utils.get_scaling_stat_icon_text(Keys.stat_appetite_hash, ratio, true))

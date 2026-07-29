@@ -109,18 +109,17 @@ def food_formula_args(d):
     for _k, b, r in re.findall(r'\[ "(\w+)", ([\d.]+), ([\d.]+) \]', d.get("buff_stats", "")):
         add(b, r)
     if float(d.get("duration_app_ratio", "0.0")) != 0:
-        # effect.gd renders an Appetite-scaled duration as the REAL seconds
-        # ({base} ({current}), base = buff_duration x 1.5), not the raw value.
-        dur_base = str(int(float(d.get("buff_duration", "0")) * 1.5))
-        args.append(dur_base)
-        args.append(dur_base)
+        # effect.gd now renders the duration in the SAME "value (rate)" idiom as every other
+        # scaling number. The old x1.5 is gone - it lives in the authored buff_duration.
+        args.append(str(int(float(d.get("buff_duration", "0")))))
+        args.append("+%d%% Appetite" % round(float(d.get("duration_app_ratio", "0")) * 100))
     for _k, b, r in re.findall(r'\[ "(\w+)", ([\d.]+), ([\d.]+) \]', d.get("wave_stats", "")):
         add(b, r)
     if float(d.get("heal_base", "0.0")) > 0:
         add(d.get("heal_base"), d.get("heal_app_ratio", "0"))
-    # permanent grants (Fried Egg +Luck): {base} ({current}); no appetite in codex
+    # permanent grants (Fried Egg +Luck) follow the same idiom and the same 1-or-2 arg rule
     for _k, b in re.findall(r'\[ "(\w+)", ([\d.]+) \]', d.get("permanent_stats", "")):
-        args.append(str(int(float(b)))); args.append(str(int(float(b))))
+        add(b, d.get("permanent_app_ratio", "0"))
     return args
 
 # Mirror of the _scaling_formula_text call sites in items/global/effect.gd:
@@ -131,6 +130,7 @@ SCALING_FORMULAS = {
     "EFFECT_CALTROPS":         (3, 0.3, "Melee Damage"),
     "EFFECT_STATIC_CLING":     (6, 1.0, "Elemental Damage"),
     "EFFECT_GREASE_FIRE":      (2, 0.2, "Appetite"),
+    "EFFECT_SLUG_SLIME":       (1, 0.15, "Elemental Damage"),
 }
 
 # ---------- effect rendering (mirror of Text.text) ----------

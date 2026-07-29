@@ -456,6 +456,8 @@ static func init_stats(all_null_values: bool = false) -> Dictionary:
 		Keys.items_price_hash: 0,
 		Keys.food_items_price_hash: 0,
 		Keys.tourist_danger_done_hash: 0,
+		Keys.gourmet_fat_hash: 0,
+		Keys.gain_stat_appetite_hash: 0,
 		Keys.gourmet_foods_eaten_hash: 0,
 		Keys.wave_start_foods_hash: [],
 		Keys.kill_foods_hash: [],

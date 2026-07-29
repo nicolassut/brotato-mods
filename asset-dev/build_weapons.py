@@ -82,7 +82,7 @@ WEAPONS = [
    [("stat_elemental_damage", 0.4), ("stat_appetite", 0.4)], ["musical", "support"],
    attack_type=1, effect_scale=1.5,
    specials=[("extend_buffs_on_hit", 2, "EFFECT_W_BELL")]),
- w("baguette", "Baguette", "jousting_lance", "melee", 2, 48, 78, .15, 2.0, 270, 22,
+ w("baguette", "Bat-Guette", "jousting_lance", "melee", 2, 48, 78, .15, 2.0, 270, 22,
    [("stat_melee_damage", 1.1)], ["culinary"], attack_type=1),
  w("butchers_saw", "Butcher's Saw", "plank", "melee", 2, 45, 85, .08, 2.0, 170, 15,
    [("stat_melee_damage", 1.1)], ["culinary", "heavy"], attack_type=1,
@@ -122,7 +122,7 @@ WEAPONS = [
    piercing=999, bounce=0, piercing_dmg_reduction=0.0, projectile_speed=1500,
    knockback_piercing=1.0, can_bounce=False,
    proj_script="res://weapons/ranged/galley_cannon/galley_bounce_projectile.gd", proj_scale=0.74,
-   specials=[("", 0, "EFFECT_W_GALLEY_PIERCE")]),
+   specials=[("", 3, "EFFECT_W_GALLEY_PIERCE")]),  # base = T1 wall bounces, +1 per tier
 ]
 
 CSV_ROWS = [
@@ -144,7 +144,7 @@ CSV_ROWS = [
  ("EFFECT_W_WHISK_DROP", "Each hit has a {0}% chance to whip up a Cake Slice"),
  ("EFFECT_W_ROLLING_PIN_DROP", "Each hit has a {0}% chance to roll out a Warm Cookie"),
  ("EFFECT_W_EXPLODE", "Explodes on impact, damaging nearby enemies"),
- ("EFFECT_W_GALLEY_PIERCE", "Projectiles pierce enemies and ricochet off walls up to 4 times before despawning"),
+ ("EFFECT_W_GALLEY_PIERCE", "Projectiles pierce enemies and ricochet off walls up to {0} times before despawning"),
 ] + [("WEAPON_" + x["slug"].upper(), x["name"]) for x in WEAPONS]
 
 
@@ -249,10 +249,16 @@ def draw_weapon(slug, size):
 
 # ---------- tres generation ----------
 
-def scaled_special(key, base, tier_idx, start_tier):
+def scaled_special(key, base, tier_idx, start_tier, text_key=""):
     # gentle per-tier scaling: x1 / 1.5 / 2 / 2.5 from the weapon's start tier. The
     # slow chance stays flat (its text hardcodes the %) and display-only lines (key="",
     # value 0) stay 0. gourmet_slow_on_hit % caps at 90 (a slow can't fully freeze).
+    if text_key == "EFFECT_W_GALLEY_PIERCE":
+        # Galley Cannon wall ricochets: flat +1 per tier (3/4/5/6), NOT the x1.5 curve
+        # and deliberately not a weapon stat, so curse cannot inflate it. The runtime
+        # copy is WALL_BOUNCES_BY_TIER in weapons/ranged/galley_cannon/
+        # galley_bounce_projectile.gd - change both together. key stays "" (display only).
+        return base + (tier_idx - start_tier)
     if key in ("", "gourmet_slow_chance"):
         return base
     v = int(round(base * (1 + 0.5 * (tier_idx - start_tier))))
@@ -615,7 +621,7 @@ def build_weapon(wpn, next_id):
             next_ext += 1
         for i, (sp_key, sp_base, sp_text) in enumerate(wpn["specials"]):
             open(f"{d}/{slug}_{n}_effect_{i}.tres", "w").write(
-                special_effect_tres(sp_key, scaled_special(sp_key, sp_base, tier_idx, wpn["start_tier"]), sp_text))
+                special_effect_tres(sp_key, scaled_special(sp_key, sp_base, tier_idx, wpn["start_tier"], sp_text), sp_text))
             exts.append(f'[ext_resource path="res://weapons/{kind}/{slug}/{n}/{slug}_{n}_effect_{i}.tres" type="Resource" id={next_ext}]')
             effect_refs.append(f"ExtResource( {next_ext} )")
             next_ext += 1
@@ -711,16 +717,24 @@ def register(weapon_entries, set_entries):
 
 
 def add_csv_rows():
+    # update-or-append (same contract as build_food_system.add_csv_rows): append-only left
+    # reworded rows silently stale in the live CSV, so an edit here never reached a card.
     lines = open(CSV).read().rstrip("\n").split("\n")
-    added = 0
+    added, updated = 0, 0
     for key, text in CSV_ROWS:
         # quote values with commas/quotes (RFC-4180); an unquoted comma breaks the import.
         field = '"' + text.replace('"', '""') + '"' if (',' in text or '"' in text) else text
-        if not any(l.startswith(key + ",") for l in lines):
-            lines.append(f"{key},{field}")
+        row = f"{key},{field}"
+        hit = [i for i, l in enumerate(lines) if l.startswith(key + ",")]
+        if hit:
+            if lines[hit[0]] != row:
+                lines[hit[0]] = row
+                updated += 1
+        else:
+            lines.append(row)
             added += 1
     open(CSV, "w").write("\n".join(lines) + "\n")
-    print(f"added {added} translation rows")
+    print(f"added {added} / updated {updated} translation rows")
 
 
 def main():

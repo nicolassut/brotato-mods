@@ -100,17 +100,39 @@ TRACKING = {"gourmet": "GOURMET_APPETITE_GAINED",
             "snail": "GOURMET_SNAIL_ARMOR_GAINED",  # escargot easter-egg armor
             "butcher": "BUTCHER_CONSUMABLES_EATEN",  # +1% dmg per consumable eaten
             "dishwasher": "DISHWASHER_REFUNDED",     # expired-food material refunds
+            "zombie": "ZOMBIE_REANIMATIONS",         # hits survived at 1 HP -> back to full
+            # Gourmet DLC - array trackers: index 0 uses this key, index 1 is relabelled in
+            # items/global/item_parent_data.gd (butcher -> Appetite, gourmet -> Speed lost,
+            # snail -> Damage dealt), mirroring how vanilla Soul Food / Bone Dice do it.
+            "minimalist": "MATERIALS_GAINED",        # item recycling refunds (base_shop.gd)
+            "comp_eater": "COMP_EATER_MOMENTUM",     # momentum stacks gained this run
+            "ruminant": "RUMINANT_CHEWS",            # extra chews from the echo chain
+            "blacksmith": "BLACKSMITH_FORGES",       # weapons forged
+            "mime": "MIME_DUPLICATIONS",             # magic-mirror duplications
             "girly": "GIRLY_PANICS"}                 # panic-teleport count
 
 # banned shop items per character (balance law: Dishwasher bans Cooler Box)
 BANNED = {"dishwasher": ["item_cooler_box"]}
 
+# banned ItemService.item_groups per character. The Zombie cannot heal by any means, so
+# every lifesteal / HP-regen / consumable-heal item is a dead card for him - keep them out
+# of his shop entirely (vanilla already does this for its own 1-HP character). The mod's
+# sustain items were added to these same groups in singletons/item_service.gd so the ban
+# catches them too.
+BANNED_GROUPS = {"zombie": ["lifesteal", "lifesteal_and_hp_regeneration",
+                            "hp_regeneration", "consumable_heal"]}
+
 CHARS = [
  ("gourmet","Gourmet","character_gourmet",["food"],
-   [("LINE","EFFECT_GOURMET_FRUIT",0),("LINE","EFFECT_GOURMET_EAT",0),("LINE","EFFECT_GOURMET_NOHEAL",1),
+   [("LINE","EFFECT_GOURMET_FRUIT",0),("LINE","EFFECT_GOURMET_EAT",0),
+    ("LINE","EFFECT_GOURMET_FIRST_FOOD",0),  # first food of every wave spawns twice (main.gd spawn_food)
+    ("LINE","EFFECT_GOURMET_FAT",1),         # -3% Speed / +1% body size per wave (main.gd GOURMET_FAT_*)
+    ("LINE","EFFECT_GOURMET_NOHEAL",1),
     ("gain_stat_hp_regeneration",-50),("stat_speed",-5)],[]),
  ("picky_eater","Picky Eater","character_picky_eater",["food"],
    [("LINE","EFFECT_PICKY_ONE_SPAWNER",2),("LINE","EFFECT_PICKY_STRONGER",0),
+    ("LINE","EFFECT_PICKY_SPAWNER_LIMIT",0),   # x2 max_nb on "spawner"-tagged items (run_data.get_item_max_nb)
+    ("TXT","food_stack_cap_bonus",5,"EFFECT_FOOD_STACK_CAP",0),  # one food type = his only scaling, so let it stack higher
     ("LINE","EFFECT_PICKY_PENALTY",1),
     ("POS","spawner_items_price",-25),
     ("gain_stat_luck",-50)],[]),
@@ -121,16 +143,20 @@ CHARS = [
  ("comp_eater","Competitive Eater","character_comp_eater",["food"],
    [("LINE","EFFECT_COMP_EATER_STACK",2),            # double-stack/half-duration is live engine code
     ("LINE","EFFECT_COMP_EATER_MOMENTUM",0),         # +5% Speed/Pickup per buff gained, wave-scoped (player.gd)
+    ("gain_stat_appetite",100),                      # Appetite modifications +100%: an item worth +2 App gives him +4
     ("gain_stat_max_hp",-30),("stat_dodge",-10)],[]),
  ("butcher","Butcher","character_butcher",[],
    [("LINE","EFFECT_BUTCHER_FRUIT",0),("LINE","EFFECT_BUTCHER_STEAK",0),
     ("TXT","second_helping",25,"EFFECT_BUTCHER_DOUBLE",0),  # +25% food-spawn doubling (fruit-steak path hooked in main.gd)
+    ("LINE","EFFECT_BUTCHER_RENDER",0),                     # wave end: 20% of the wave's temp Damage -> permanent Appetite (main.gd BUTCHER_APPETITE_SHARE)
     ("FOODDISP","steak"),                                   # rule 2: he produces Steaks
     ("stat_speed",-15),("gain_stat_speed",-50),("stat_attack_speed",-20),
     ("gain_stat_attack_speed",-25),("gain_stat_ranged_damage",-100)],[]),
  ("zombie","Zombie","character_zombie",[],
    [("NEG","no_heal",1),("gain_stat_percent_damage",50),("stat_attack_speed",-20),
     ("stat_speed",-20),
+    ("LINE","EFFECT_ZOMBIE_REANIMATE",0),   # hit that leaves him on 1 HP -> back to full (player.gd)
+    ("LINE","EFFECT_ZOMBIE_NO_SUSTAIN",1),  # lifesteal/regen/consumable-heal groups banned from his shop
     ("TXT","dodge_cap",-50,"EFFECT_ZOMBIE_DODGE_CAP")],[GROWLING_STOMACH, NINE_LIVES]),  # Growling Stomach: +4 App, no-consumable-heal downside is FREE for Zombie.
     # Nine Lives survives lethal damage by writing health = 1 directly (player.gd), not via
     # heal(), so the Zombie's no_heal gate does not block it.
@@ -145,12 +171,17 @@ CHARS = [
     ("NEG","reroll_price",50),("NEG","enemy_health",15),("NEG","enemy_attack_speed",15)],[]),
  ("tourist","Tourist","character_tourist",[],
    [("LINE","EFFECT_TOURIST_MODS",0),("LINE","EFFECT_TOURIST_ENEMY",1),
-    ("xp_gain",-20),("gain_xp_gain",-50)],[MAGNIFYING_GLASS]),        # danger scaling applied in main.gd hook
+    # XP Gain is NOT a flat card stat for him: main.gd's danger hook applies -15, or +15
+    # when the run is Danger 0 (TOURIST_XP_GAIN). The LINE states both halves of the rule.
+    ("LINE","EFFECT_TOURIST_XP",2),
+    ("gain_xp_gain",-50)],[MAGNIFYING_GLASS]),        # danger scaling applied in main.gd hook
  ("ruminant","Ruminant","character_ruminant",["food"],
    [("LINE","EFFECT_RUMINANT_ECHO",0),
     ("stat_speed",-20),("gain_stat_speed",-25),("stat_armor",-2)],[CHICKEN_SOUP]),
  ("snail","Slug","character_snail",[],
-   [("LINE","EFFECT_SLUG_TRAIL",0),("stat_armor",6),("stat_max_hp",20),("gain_stat_dodge",-100),
+   [("LINE","EFFECT_SLUG_TRAIL",0),
+    ("LINE","EFFECT_SLUG_SLIME",0),   # live formula case in effect.gd (main.gd SLIME_DAMAGE_*)
+    ("stat_armor",6),("stat_max_hp",20),("gain_stat_dodge",-100),
     ("TXT","speed_cap",-100000019,"EFFECT_SLUG_SPEED_CAP")],[FONDUE_SET]),
  ("blacksmith","Blacksmith","character_blacksmith",[],
    [("LINE","EFFECT_BLACKSMITH_FORGE",0),
@@ -158,6 +189,7 @@ CHARS = [
  ("juggler","Juggler","character_juggler",[],
    [("LINE","EFFECT_JUGGLER_CYCLE",2),
     ("LINE","EFFECT_JUGGLER_TEMPO",0),  # 0.3s metronome (user redesign 2026-07-24), live formula case in effect.gd
+    ("LINE","EFFECT_JUGGLER_COMBO",0),  # +8% dmg per weapon already fired this cycle (weapon.gd JUGGLER_COMBO_PER_WEAPON)
     ("stat_percent_damage",-15),("gain_stat_armor",-50),
     ("gain_stat_attack_speed",-25)],[]),     # cycling is live engine code
  ("mole","Mole","character_mole",[],
@@ -168,9 +200,12 @@ CHARS = [
  # (10s cd), then spawns 2 Fries + 2 Fried Rice around her -> she is a FOOD SOURCE,
  # so both foods get a FOODDISP line (rule 2: buff + max stacks + eaten). Runtime in
  # main.gd girly_panic_teleport behind character_girly check.
- ("girly","Girly","character_girly",["stat_dodge"],
+ # display name is "Sweet Potato" (renamed 2026-07-29); the slug, my_id and every asset
+ # path stay "girly" so saves, ext id 998 and the installed art keep resolving.
+ ("girly","Sweet Potato","character_girly",["stat_dodge"],
    [("LINE","EFFECT_GIRLY_PANIC",2),("LINE","EFFECT_GIRLY_FOOD",2),
     ("FOODDISP","fries"),("FOODDISP","fried_rice"),
+    ("stat_appetite",10),
     ("stat_max_hp",10),("map_size",10),("NEG","items_price",50),("gain_stat_luck",-30)],[]),
 ]
 
@@ -403,7 +438,7 @@ def char_tres(slug, disp, myid, wanted, n_effects, weapon_paths):
       f"item_appearances = [ {apps} ]",
       "tags = [  ]",
       f"wanted_tags = [ {wanted_str} ]",
-      "banned_item_groups = [  ]",
+      f"banned_item_groups = [ {', '.join(chr(34) + g + chr(34) for g in BANNED_GROUPS.get(slug, []))} ]",
       f"banned_items = [ {', '.join(chr(34) + b + chr(34) for b in BANNED.get(slug, []))} ]",
       "banned_upgrades = [  ]",
       f"starting_weapons = [ {weps} ]",

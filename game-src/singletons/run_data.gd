@@ -71,8 +71,8 @@ var effect_keys_with_weapon_stats = [
 ]
 
 var init_tracked_items: = {
-	Keys.generate_hash("character_gourmet"): 0,
-	Keys.generate_hash("character_snail"): 0,
+	Keys.generate_hash("character_gourmet"): [0, 0],  # Gourmet DLC - Appetite gained, Speed lost to fat
+	Keys.generate_hash("character_snail"): [0, 0],  # Gourmet DLC - Escargot armor, slime damage dealt
 	Keys.generate_hash("character_girly"): 0,
 	Keys.generate_hash("weapon_frying_pan"): 0,
 	Keys.generate_hash("item_doggy_bag"): 0,
@@ -83,8 +83,27 @@ var init_tracked_items: = {
 	Keys.generate_hash("item_overtime_pay"): 0,
 	Keys.generate_hash("item_second_mortgage"): 0,
 	Keys.generate_hash("item_snack_break"): 0,
-	Keys.generate_hash("character_butcher"): 0,
+	Keys.generate_hash("character_butcher"): [0, 0],  # Gourmet DLC - consumables eaten, permanent Appetite rendered
 	Keys.generate_hash("character_dishwasher"): 0,
+	Keys.generate_hash("character_zombie"): 0,
+	# Gourmet DLC - fed but previously unseeded, so add_tracked_value printed and dropped them:
+	# Food Fight on every projectile hit (main.gd -> hitbox.gd), Spyglass on every paid reroll.
+	Keys.generate_hash("item_food_fight"): 0,
+	Keys.generate_hash("item_spyglass"): 0,
+	# Gourmet DLC - run-long accumulators that had no card counter until now. Array seeds are
+	# characters that already tracked something else; index 1 is relabelled in item_parent_data.
+	Keys.generate_hash("character_minimalist"): 0,
+	Keys.generate_hash("character_comp_eater"): 0,
+	Keys.generate_hash("character_ruminant"): 0,
+	Keys.generate_hash("character_blacksmith"): 0,
+	Keys.generate_hash("character_mime"): 0,
+	Keys.generate_hash("item_vampire_fang"): 0,
+	Keys.generate_hash("item_buffet_insurance"): 0,
+	Keys.generate_hash("item_caltrops"): 0,
+	Keys.generate_hash("item_grease_fire"): 0,
+	Keys.generate_hash("item_static_cling"): 0,
+	Keys.generate_hash("item_echo_chamber"): 0,
+	Keys.generate_hash("item_second_helping"): 0,
 	Keys.generate_hash("item_nine_lives"): 0,
 	Keys.generate_hash("item_vigilante_ring"): 0,
 	Keys.generate_hash("item_alien_eyes"): 0, 
@@ -1781,12 +1800,30 @@ func get_nb_item(item_id_hash: int, player_index: int, use_cache: bool = true) -
 	return nb
 
 
+# Gourmet DLC - the effective per-run cap on an item, and the single source of truth for
+# it: shop gating, the loot pool and the "LIMITED (n/max)" card label all go through here.
+# Picky Eater: only one food spawner TYPE ever fires for him, so he is allowed twice as
+# many copies of that type (a limit-3 spawner becomes limit 6). Keyed on the "spawner"
+# tag that build_food_system.py stamps on every spawner item, so non-spawner food items
+# (Soul Food, Set Menu, Wine Cellar and the other unique diamonds) keep their own cap.
+func get_item_max_nb(item_data, player_index: int) -> int:
+	if item_data.max_nb <= 0:
+		return item_data.max_nb
+
+	if item_data.tags.has("spawner"):
+		var picky_character = get_player_character(player_index)
+		if picky_character != null and picky_character.my_id == "character_picky_eater":
+			return item_data.max_nb * 2
+
+	return item_data.max_nb
+
+
 func get_remaining_max_nb_item(item_data: ItemData, player_index: int) -> int:
 	if item_data.max_nb == - 1:
 		return Utils.LARGE_NUMBER
 
 	var existing_item_count: = get_nb_item(item_data.my_id_hash, player_index)
-	return max(0, item_data.max_nb - existing_item_count) as int
+	return max(0, get_item_max_nb(item_data, player_index) - existing_item_count) as int
 
 
 func get_nb_different_items_of_tier(tier: int, player_index: int, use_cache: = true) -> int:

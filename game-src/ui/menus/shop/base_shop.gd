@@ -670,6 +670,7 @@ func buy_weapon(item_data: WeaponData, player_index: int) -> void :
 				var extra_weapon = RunData.add_weapon(item_data, player_index)
 				player_gear_container.weapons_container._elements.add_element(extra_weapon)
 				mime_duplicated = true
+				RunData.add_tracked_value(player_index, Keys.generate_hash("character_mime"), 1)
 		if mime_duplicated:
 			player_gear_container.set_items_data(RunData.get_player_items(player_index))
 
@@ -801,6 +802,7 @@ func _forge_weapon(weapon_data: WeaponData, partner: WeaponData, player_index: i
 
 	var forged: WeaponData = Utils.get_rand_element(forge_pool)
 	var new_weapon = RunData.add_weapon(forged, player_index)
+	RunData.add_tracked_value(player_index, Keys.generate_hash("character_blacksmith"), 1)
 	GourmetTracker.ev("blacksmith_forge", {"p": player_index, "a": weapon_data.my_id, "b": partner.my_id, "out": forged.my_id})
 
 	_update_stats(player_index)
@@ -929,6 +931,11 @@ func recycle_minimalist_item(item_data: ItemData, player_index: int) -> void :
 
 	var recycling_value = ItemService.get_recycling_value(RunData.current_wave, item_data.value, player_index, true)
 	RunData.add_gold(recycling_value, player_index)
+	# Gourmet DLC - item recycling is the Minimalist's alone, and it is the run-long payout
+	# his card advertises; credit it to him so the materials are actually visible somewhere.
+	var recycle_char = RunData.get_player_character(player_index)
+	if recycle_char != null and recycle_char.my_id == "character_minimalist":
+		RunData.add_tracked_value(player_index, recycle_char.get_my_id_hash(), recycling_value)
 
 	SoundManager.play(Utils.get_rand_element(recycle_sounds), 0, 0.1, true)
 	_update_stats(player_index)

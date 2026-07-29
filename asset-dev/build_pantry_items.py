@@ -34,7 +34,7 @@ ITEMS = [
    ("key", "consumables_no_heal", 1, "EFFECT_CONSUMABLES_NO_HEAL", 1)], ["stat_appetite"]),
  item("sous_vide_machine", "Sous-Vide Machine", 2, 80, [
    ("stat", "stat_appetite", 4),
-   ("key", "food_buff_duration", 1, "EFFECT_FOOD_BUFF_DURATION", 0)], ["stat_appetite"], max_nb=2),
+   ("key", "food_buff_duration", 2, "EFFECT_FOOD_BUFF_DURATION", 0)], ["stat_appetite"], max_nb=2),
  item("cast_iron_stomach", "Cast-Iron Stomach", 2, 75, [
    ("stat", "stat_appetite", 5),
    ("key", "mystery_meat_safe", 1, "EFFECT_MYSTERY_MEAT_SAFE", 0)], ["stat_appetite"]),
@@ -48,9 +48,9 @@ ITEMS = [
    ("stat", "stat_speed", -5)], ["stat_appetite"]),
  # --- 2b: system texture ---
  item("slow_cooker", "Slow Cooker", 1, 50, [
-   ("key", "food_buff_duration", 2, "EFFECT_FOOD_BUFF_DURATION", 0)], max_nb=3),
+   ("key", "food_buff_duration", 3, "EFFECT_FOOD_BUFF_DURATION", 0)], max_nb=3),
  item("preservatives", "Preservatives", 2, 70, [
-   ("key", "food_buff_duration", 4, "EFFECT_FOOD_BUFF_DURATION", 0),
+   ("key", "food_buff_duration", 6, "EFFECT_FOOD_BUFF_DURATION", 0),
    ("key", "food_heal_disabled", 1, "EFFECT_FOOD_HEAL_DISABLED", 1)], max_nb=2),
  item("msg", "MSG", 2, 85, [
    ("key", "food_buff_strength", 50, "EFFECT_FOOD_BUFF_STRENGTH", 0),
@@ -59,7 +59,8 @@ ITEMS = [
    ("key", "food_buff_strength", 100, "EFFECT_FOOD_BUFF_STRENGTH", 0),
    ("key", "food_spawns_halved", 1, "EFFECT_FOOD_SPAWNS_HALVED", 1)], (), 1),
  item("second_helping", "Second Helping", 2, 75, [
-   ("key", "second_helping", 25, "EFFECT_SECOND_HELPING", 0)], max_nb=2),
+   ("key", "second_helping", 25, "EFFECT_SECOND_HELPING", 0)], max_nb=2,
+   tracking="SECOND_HELPING_DOUBLED"),
  item("cooler_box", "Cooler Box", 1, 55, [
    ("key", "cooler_box", 1, "EFFECT_COOLER_BOX", 0)], (), 1),
  item("compost_bin", "Compost Bin", 1, 45, [
@@ -70,9 +71,11 @@ ITEMS = [
  item("sugar_rush", "Sugar Rush", 0, 25, [
    ("key", "food_speed_burst", 1, "EFFECT_FOOD_SPEED_BURST", 0)], ["stat_speed"], max_nb=4),
  item("food_fight", "Food Fight", 2, 80, [
-   ("proj", "EFFECT_FOOD_FIGHT")], ["stat_ranged_damage"], max_nb=3),
+   ("proj", "EFFECT_FOOD_FIGHT")], ["stat_ranged_damage"], max_nb=3,
+   tracking="DAMAGE_DEALT"),
  item("grease_fire", "Grease Fire", 2, 75, [
-   ("key", "grease_fire", 1, "EFFECT_GREASE_FIRE", 0)], ["stat_elemental_damage"]),
+   ("key", "grease_fire", 1, "EFFECT_GREASE_FIRE", 0)], ["stat_elemental_damage"],
+   tracking="GREASE_FIRE_IGNITES"),
  item("full_belly", "Full Belly", 1, 55, [
    ("key", "full_belly", 2, "EFFECT_FULL_BELLY", 0)], ["stat_armor"]),
  item("food_coma", "Food Coma", 3, 100, [
@@ -81,7 +84,8 @@ ITEMS = [
    ("key", "snack_break", 1, "EFFECT_SNACK_BREAK", 0)], ["stat_harvesting"], 3,
    tracking="SNACK_BREAK_GAINED"),
  item("buffet_insurance", "Buffet Insurance", 1, 60, [
-   ("key", "buffet_insurance", 5, "EFFECT_BUFFET_INSURANCE", 0)], max_nb=2),
+   ("key", "buffet_insurance", 5, "EFFECT_BUFFET_INSURANCE", 0)], max_nb=2,
+   tracking="HEALTH_RECOVERED"),
  # --- 3a: stat-clone replacements ---
  item("alarm_clock", "Alarm Clock", 0, 20, [
    ("stat", "stat_attack_speed", 10), ("stat", "stat_percent_damage", -2)], ["stat_attack_speed"]),
@@ -97,7 +101,8 @@ ITEMS = [
    ("key", "regen_per_burning_enemy", 1, "EFFECT_REGEN_PER_BURNING_ENEMY", 0)], ["stat_hp_regeneration"]),
  # --- 3c: new general items ---
  item("caltrops", "Caltrops", 0, 25, [
-   ("key", "caltrops", 1, "EFFECT_CALTROPS", 0)], ["stat_melee_damage"]),
+   ("key", "caltrops", 1, "EFFECT_CALTROPS", 0)], ["stat_melee_damage"],
+   tracking="DAMAGE_DEALT"),
  item("magnifying_glass", "Magnifying Glass", 1, 45, [
    ("key", "crit_vs_elites", 5, "EFFECT_CRIT_VS_ELITES", 0),
    ("key", "pickup_range", 15, "EFFECT_PICKUP_RANGE_BONUS", 0)], ["stat_crit_chance"]),
@@ -110,10 +115,12 @@ ITEMS = [
    ("key", "loyalty_card", 1, "EFFECT_LOYALTY_CARD", 0)], (), 1,
    tracking="MATERIALS_SAVED"),
  item("static_cling", "Static Cling", 2, 85, [
-   ("key", "static_cling", 1, "EFFECT_STATIC_CLING", 0)], ["stat_elemental_damage"]),
+   ("key", "static_cling", 1, "EFFECT_STATIC_CLING", 0)], ["stat_elemental_damage"],
+   tracking="DAMAGE_DEALT"),
  item("echo_chamber", "Echo Chamber", 3, 105, [
    ("key", "echo_chamber", 20, "EFFECT_ECHO_CHAMBER", 0),
-   ("stat", "stat_armor", -2)]),
+   ("stat", "stat_armor", -2)],
+   tracking="ECHO_CHAMBER_PROCS"),
  item("nine_lives", "Nine Lives", 3, 110, [
    ("key", "nine_lives", 1, "EFFECT_NINE_LIVES", 0),
    ("stat", "stat_percent_damage", -15)], (), 1, "NINE_LIVES_USED"),
@@ -177,16 +184,36 @@ CSV_ROWS = [
  ("GOURMET_SELECT_SPAWNER", "Set active"),
  ("GOURMET_SPAWNER_ACTIVE", "Active"),
  ("SPAWNER_ITEMS_PRICE", "% Food Spawner Price"),
- ("EFFECT_PICKY_ONE_SPAWNER", "Only one food spawner is active at a time. Press an owned spawner in the shop to choose it"),
- ("EFFECT_PICKY_STRONGER", "The active spawner's food is +100% stronger"),
+ ("EFFECT_PICKY_ONE_SPAWNER", "Only one food spawner type is active at a time. Press an owned spawner in the shop to choose it"),
+ ("EFFECT_PICKY_STRONGER", "The active spawner type's food is +100% stronger"),
+ ("EFFECT_PICKY_SPAWNER_LIMIT", "You can hold twice the limit of every food spawner"),
  ("EFFECT_PICKY_PENALTY", "-15% Damage while no food buff is active"),
  ("EFFECT_DISHWASHER_EXPIRY", "Food on the ground expires 50% faster"),
- ("EFFECT_RUMINANT_ECHO", "Every food buff triggers again at 50% strength 5 seconds later"),
+ ("EFFECT_RUMINANT_ECHO", "Every food buff triggers again at 50% strength 5 seconds later. Each echo has a 25% chance to chew again for half as much"),
  ("EFFECT_GOURMET_FRUIT", "All fruit becomes food"),
  ("EFFECT_DISHWASHER_LEFTOVERS", "Leftovers generation is doubled"),
  ("EFFECT_DISHWASHER_REFUND", "Expired food refunds 1 material"),
  ("EFFECT_BLACKSMITH_FORGE", "Combine two same-tier weapons sharing a class into a random next-tier weapon of that class"),
  ("EFFECT_MOLE_FOG", "Fog of war covers every wave"),
+ ("GREASE_FIRE_IGNITES", "Enemies ignited: {0}"),
+ ("ECHO_CHAMBER_PROCS", "Effects repeated: {0}"),
+ ("SECOND_HELPING_DOUBLED", "Servings doubled: {0}"),
+ ("COMP_EATER_MOMENTUM", "Momentum stacks: {0}"),
+ ("RUMINANT_CHEWS", "Extra chews: {0}"),
+ ("BLACKSMITH_FORGES", "Weapons forged: {0}"),
+ ("MIME_DUPLICATIONS", "Items duplicated: {0}"),
+ ("BUTCHER_APPETITE_RENDERED", "Appetite rendered: {0}"),
+ ("GOURMET_SPEED_LOST", "Speed lost to fat: {0}"),
+ ("GAIN_STAT_APPETITE", "% Appetite modifications"),
+ ("EFFECT_GOURMET_FIRST_FOOD", "The first food to spawn each wave is served twice"),
+ ("EFFECT_GOURMET_FAT", "He gets 3% slower and 1% bigger with every wave. A bigger body is a bigger target, but it also reaches further for pickups"),
+ ("EFFECT_TOURIST_XP", "-15% XP Gain, or +15% instead on Danger 0"),
+ ("EFFECT_BUTCHER_RENDER", "At the end of each wave, 20% of the Damage gained that wave becomes permanent Appetite"),
+ ("EFFECT_ZOMBIE_REANIMATE", "A hit that leaves him on 1 HP heals him back to full"),
+ ("EFFECT_ZOMBIE_NO_SUSTAIN", "Life Steal, HP Regeneration and consumable-healing items never appear in his shop"),
+ ("ZOMBIE_REANIMATIONS", "Reanimations: {0}"),
+ ("EFFECT_SLUG_SLIME", "Enemies in the slime take {0} ({1}) damage every 0.5 seconds. Slimed stacks with burning"),
+ ("EFFECT_JUGGLER_COMBO", "Each weapon that already fired this cycle makes the shot +8% stronger, up to +{0}% on the last one"),
  ("EFFECT_SLUG_TRAIL", "Leaves a slime trail (lasts 7.5s) that slows enemies 30% (+2% per Level, max 90%). Trail width (base 26) and slow radius (base 45) each grow +6% per Level"),
  ("ENEMY_ATTACK_SPEED", "% Enemy Attack Speed"),
  ("EFFECT_FOOD_STACK_CAP", "+{0} max stacks to every food buff"),
