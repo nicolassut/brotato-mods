@@ -322,6 +322,12 @@ func _reflow_into_grid() -> void :
 			shop_item.rect_position = Vector2(0, 0)
 			shop_item.rect_scale = Vector2(CARD_SCALE, CARD_SCALE)
 		wrapper.rect_min_size = footprint
+		# Pin every card to the SAME width. The wrapper is a plain Control and does not
+		# stretch its child, so without this each card self-sizes to its own text and the
+		# cards come out ragged (short-text cards render narrower than long-text ones).
+		# Autowrap is already on, so a fixed width just makes the text wrap uniformly.
+		shop_item.rect_min_size = CARD_NATIVE
+		shop_item.rect_size = CARD_NATIVE
 		shop_item.visible = true
 
 	# focus chain across the whole grid so controller nav still reaches all 8, both rows
