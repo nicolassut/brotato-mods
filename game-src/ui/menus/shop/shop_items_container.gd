@@ -279,6 +279,15 @@ func _ensure_shop_item_capacity(wanted: int) -> void :
 # so both rows fit the fixed 603px-tall area; the card's own ScrollContainer takes the overflow
 # text. Only runs on a widened shop; a normal 4-card shop never enters _ensure_shop_item_capacity
 # and keeps its authored single-row layout untouched.
+# 4 columns, and the cards are scaled DOWN the way the co-op shop minimizes its cards, because
+# a full-size solo card cannot be shrunk by lowering rect_min_size (that is only a floor; a
+# text-heavy card keeps its content height and the second row runs off the bottom). Each card
+# is wrapped in a plain Control that reserves the SCALED footprint in the grid, and the card
+# itself is drawn at CARD_SCALE via rect_scale. Buttons stay clickable because input is
+# transformed by rect_scale. Native card ~465x500; at 0.6 that is ~280x300, so 4 across and 2
+# rows both fit the 1890x603 area with room to spare.
+const CARD_SCALE: = 0.6
+const CARD_NATIVE: = Vector2(465, 500)
 var _grid: GridContainer
 
 func _reflow_into_grid() -> void :
@@ -286,38 +295,36 @@ func _reflow_into_grid() -> void :
 		_grid = GridContainer.new()
 		_grid.name = "WideShopGrid"
 		_grid.columns = 4
-		_grid.size_flags_horizontal = SIZE_EXPAND_FILL
-		_grid.size_flags_vertical = SIZE_EXPAND_FILL
-		_grid.add_constant_override("hseparation", 5)
-		_grid.add_constant_override("vseparation", 5)
+		_grid.add_constant_override("hseparation", 6)
+		_grid.add_constant_override("vseparation", 6)
 		add_child(_grid)
 
-	# hide ONLY the scene's spacer Controls (EmptySpace*) so they stop eating a column.
-	# Must exclude the shop cards: at this point all 8 are still direct children of self
-	# (they are reparented into the grid below), and blanking them here left the shop empty.
+	# hide ONLY the scene's spacer Controls (EmptySpace*). Exclude the cards: at this point
+	# they are still direct children of self, and blanking them once left the shop empty.
 	for child in get_children():
 		if child != _grid and child is Control and not (child is Timer) and not (child in _shop_items):
 			child.visible = false
 
-	# the fixed height of this container in the scene; fall back to it if layout has not run
-	var area_h: float = rect_size.y if rect_size.y > 1.0 else 603.0
-	var rows: int = int(ceil(_shop_items.size() / 4.0))
-	var row_h: int = int((area_h - (rows - 1) * 5) / rows)
+	var footprint: = CARD_NATIVE * CARD_SCALE
 
 	for shop_item in _shop_items:
-		if shop_item.get_parent() != _grid:
-			shop_item.get_parent().remove_child(shop_item)
-			_grid.add_child(shop_item)
+		var wrapper = shop_item.get_parent()
+		# wrap once; on later shop refills the card is already inside its wrapper in the grid
+		if not (wrapper is Control) or wrapper.get_parent() != _grid or not wrapper.name.begins_with("CardWrap"):
+			var host = shop_item.get_parent()
+			if host != null:
+				host.remove_child(shop_item)
+			wrapper = Control.new()
+			wrapper.name = "CardWrap" + str(_shop_items.find(shop_item))
+			wrapper.rect_min_size = footprint
+			_grid.add_child(wrapper)
+			wrapper.add_child(shop_item)
+			shop_item.rect_position = Vector2(0, 0)
+			shop_item.rect_scale = Vector2(CARD_SCALE, CARD_SCALE)
+		wrapper.rect_min_size = footprint
 		shop_item.visible = true
-		shop_item.size_flags_horizontal = SIZE_EXPAND_FILL
-		shop_item.size_flags_vertical = SIZE_EXPAND_FILL
-		shop_item.rect_min_size.x = 0
-		# the 475px PanelContainer floor is what blocks two rows; shrink it, scroll the rest
-		var panel = shop_item.get_node_or_null("PanelContainer")
-		if panel != null:
-			panel.rect_min_size.y = row_h
 
-	# focus chain across the whole grid so controller nav still reaches all 8
+	# focus chain across the whole grid so controller nav still reaches all 8, both rows
 	for i in _shop_items.size():
 		var button = _shop_items[i]._button
 		if button == null:
