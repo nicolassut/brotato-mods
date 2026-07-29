@@ -97,7 +97,9 @@ func activate() -> void :
 
 
 func manage_lock_button_visibility() -> void :
-	if RunData.get_player_effect_bool(Keys.disable_item_locking_hash, player_index):
+	# Gourmet DLC - The Freeloader cannot lock. Locking is a soft reroll (hold the good
+	# card, refresh the rest) and he is not allowed to reconsider anything.
+	if RunData.is_freeloader(player_index) or RunData.get_player_effect_bool(Keys.disable_item_locking_hash, player_index):
 		_lock_button.disable()
 		_lock_button.hide()
 	else:
@@ -150,6 +152,14 @@ func set_shop_item(p_item_data: ItemParentData, p_wave_value: int = RunData.curr
 		var value_before_loyalty: int = value
 		value = max(1, int(value * 0.7))
 		loyalty_saving = value_before_loyalty - value
+
+	# Gourmet DLC - The Freeloader takes everything for free, and free means 0, never 1.
+	# ItemService.get_value already returns 0 for him at the root, but the three price
+	# modifiers above are each wrapped in max(1, ...), so any of them that applies would
+	# turn that 0 back into 1. Re-zeroing here after all of them is what actually holds
+	# the price at nothing.
+	if RunData.is_freeloader(player_index):
+		value = 0
 
 	activate()
 

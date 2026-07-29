@@ -42,21 +42,35 @@ func _ready() -> void :
 
 func connect_shop_items() -> void :
 	for shop_item in _shop_items:
-		var _error_buy = shop_item.connect("buy_button_pressed", self, "on_shop_item_buy_button_pressed")
-		var _error_steal = shop_item.connect("steal_button_pressed", self, "on_shop_item_steal_button_pressed")
-		var _error_deactivate = shop_item.connect("shop_item_deactivated", self, "on_shop_item_deactivated")
-		var _error_focused = shop_item.connect("shop_item_focused", self, "on_shop_item_focused")
-		var _error_unfocused = shop_item.connect("shop_item_unfocused", self, "on_shop_item_unfocused")
-		var _error_category_hovered = shop_item.connect("mouse_hovered_category", self, "on_mouse_hovered_category")
-		var _error_category_exited = shop_item.connect("mouse_exited_category", self, "on_mouse_exited_category")
-		var _error_ban = shop_item.connect("ban_item_pressed", self, "on_shop_item_ban_button_pressed")
-		var _error_ban_update = shop_item.connect("ban_update_remaining_token", self, "on_ban_update_remaining_token")
+		_connect_shop_item(shop_item)
+
+
+# Gourmet DLC - split out of connect_shop_items so a single late-added card (the
+# Freeloader's extra 4 slots) can be wired without re-connecting the original 4.
+func _connect_shop_item(shop_item) -> void :
+	var _error_buy = shop_item.connect("buy_button_pressed", self, "on_shop_item_buy_button_pressed")
+	var _error_steal = shop_item.connect("steal_button_pressed", self, "on_shop_item_steal_button_pressed")
+	var _error_deactivate = shop_item.connect("shop_item_deactivated", self, "on_shop_item_deactivated")
+	var _error_focused = shop_item.connect("shop_item_focused", self, "on_shop_item_focused")
+	var _error_unfocused = shop_item.connect("shop_item_unfocused", self, "on_shop_item_unfocused")
+	var _error_category_hovered = shop_item.connect("mouse_hovered_category", self, "on_mouse_hovered_category")
+	var _error_category_exited = shop_item.connect("mouse_exited_category", self, "on_mouse_exited_category")
+	var _error_ban = shop_item.connect("ban_item_pressed", self, "on_shop_item_ban_button_pressed")
+	var _error_ban_update = shop_item.connect("ban_update_remaining_token", self, "on_ban_update_remaining_token")
 
 
 func on_shop_item_buy_button_pressed(shop_item: ShopItem) -> void :
 	if _is_delay_active:
 		return
 	if RunData.get_player_currency(player_index) < shop_item.value:
+		emit_signal("shop_item_insufficient_currency", shop_item)
+		return
+
+	# Gourmet DLC - The Freeloader takes exactly ONE thing per shop, item or weapon. Gated
+	# here rather than per-category because this is the single entry point both routes
+	# through, and it blocks before anything is committed. Reuses the insufficient-currency
+	# shake, same as the Minimalist slot cap below.
+	if not _can_freeloader_still_buy():
 		emit_signal("shop_item_insufficient_currency", shop_item)
 		return
 
@@ -84,6 +98,10 @@ func on_shop_item_steal_button_pressed(shop_item: ShopItem) -> void :
 	if _is_delay_active:
 		return
 
+	if not _can_freeloader_still_buy():
+		emit_signal("shop_item_insufficient_currency", shop_item)
+		return
+
 	if shop_item.item_data.get_category() == Category.WEAPON:
 		if not _can_weapon_be_bought(shop_item):
 			return
@@ -96,6 +114,15 @@ func on_shop_item_steal_button_pressed(shop_item: ShopItem) -> void :
 
 	_is_delay_active = true
 	_buy_delay_timer.start()
+
+
+# Gourmet DLC - false once the Freeloader has already taken his one thing this shop.
+# Always true for every other character.
+func _can_freeloader_still_buy() -> bool:
+	if not RunData.is_freeloader(player_index):
+		return true
+
+	return not RunData.freeloader_bought_this_shop[player_index]
 
 
 # Gourmet DLC - Minimalist: purchases are blocked while all 6 item slots are full
@@ -216,7 +243,67 @@ func get_shop_item_node(index: int) -> ShopItem:
 	return _shop_items[index]
 
 
+# Gourmet DLC - grows the row to `wanted` cards by instancing the same scene the existing
+# cards came from (read off template.filename, so the coop shop gets coop_shop_item.tscn
+# instead of a hardcoded path). Instancing beats Node.duplicate() here: duplicate() copies
+# signal connections by default and these cards are already connected by _ready, so clones
+# would fire every handler twice.
+func _ensure_shop_item_capacity(wanted: int) -> void :
+	if _shop_items.empty() or wanted <= _shop_items.size():
+		return
+
+	var template = _shop_items[0]
+	var scene_path: String = template.filename
+
+	if scene_path == "":
+		push_error("ShopItemsContainer: cannot widen the shop, template card has no scene filename")
+		return
+
+	var packed = load(scene_path)
+	var parent = template.get_parent()
+
+	while _shop_items.size() < wanted:
+		var clone = packed.instance()
+		clone.name = "ShopItemExtra" + str(_shop_items.size())
+		parent.add_child(clone)
+		clone.player_index = player_index
+		_shop_items.push_back(clone)
+		_connect_shop_item(clone)
+
+	_fit_shop_items_to_row()
+
+
+# The authored cards are rect_min_size.x = 300 inside an 1890-wide row, so anything past
+# six overflows. Drop the minimum and let every card expand to an even share instead, and
+# collapse the scene's expanding spacer Controls (BoxContainer skips hidden children) so
+# they stop eating the width. Only ever runs on a widened shop; a normal 4-card shop never
+# reaches here and keeps its authored layout untouched.
+func _fit_shop_items_to_row() -> void :
+	for child in get_children():
+		if child is Control and not (child in _shop_items) and not (child is Timer):
+			child.visible = false
+
+	for shop_item in _shop_items:
+		shop_item.rect_min_size.x = 150
+		shop_item.size_flags_horizontal = SIZE_EXPAND_FILL
+
+	# Re-point the left/right focus chain across the widened row so controller navigation
+	# still walks all 8 cards. The scene only wired neighbours for the original 4.
+	for i in _shop_items.size():
+		var button = _shop_items[i]._button
+		if button == null:
+			continue
+		button.focus_neighbour_left = button.get_path_to(_shop_items[i - 1]._button) if i > 0 else NodePath("")
+		button.focus_neighbour_right = button.get_path_to(_shop_items[i + 1]._button) if i < _shop_items.size() - 1 else NodePath("")
+
+
 func set_shop_items(items_data: Array) -> void :
+	# Gourmet DLC - The Freeloader's shop holds 8 offerings, but the scene only ships 4
+	# ShopItem nodes and the loop below would silently drop the extras. Grow to fit
+	# whatever the item service handed us. Deliberately self-sizing rather than gated on
+	# the character, so a normal 4-item shop never enters the branch.
+	_ensure_shop_item_capacity(items_data.size())
+
 	for i in _shop_items.size():
 		if i < items_data.size():
 			_shop_items[i].item_steals = item_steals

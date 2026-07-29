@@ -967,6 +967,15 @@ func add_gold(value: int, player_index: int) -> void :
 	if value == 0:
 		return
 
+	# Gourmet DLC - The Freeloader: materials grant no currency, only XP. Gating the single
+	# add_gold entry point kills all 18 call sites at once (pickups, harvesting, recycling,
+	# item boxes, trees, cursed-enemy payouts) and takes overtime_pay_gold_this_wave with it,
+	# so Overtime Pay and Second Mortgage die for free without their own hooks. add_xp is a
+	# separate call at every pickup site and is deliberately left untouched, which is what
+	# keeps "materials only give XP" true.
+	if is_freeloader(player_index):
+		return
+
 	var player_data = players_data[player_index]
 	player_data.gold += value
 	if value > 0:
@@ -1515,6 +1524,30 @@ func _forge_weapons_for(player_index: int) -> Array:
 func is_blacksmith(player_index: int) -> bool:
 	var forge_character = get_player_character(player_index)
 	return forge_character != null and forge_character.my_id == "character_blacksmith"
+
+
+# Gourmet DLC - The Freeloader may take exactly one thing per shop. Reset per player when
+# the shop is filled on entry (base_shop.fill_shop_items), set when a purchase completes.
+# Not serialized: a resumed run re-enters the shop, which refills and resets it.
+var freeloader_bought_this_shop: = [false, false, false, false]
+
+
+# Gourmet DLC - The Freeloader (character #16). Single gate for his whole kit: 8 shop
+# items / 8 upgrades, everything free, one purchase per shop, no reroll, no lock, no
+# crate items, no gold economy, flat 25% curse roll. Every other rule checks this.
+func is_freeloader(player_index: int) -> bool:
+	var character = get_player_character(player_index)
+	return character != null and character.my_id == "character_freeloader"
+
+
+# True when ANY player in the run is the Freeloader. Needed by the few hooks that have
+# no player_index in scope (the gold gate runs per-player, but the shop-width helper is
+# asked for a layout before player context exists in coop).
+func has_freeloader() -> bool:
+	for i in get_player_count():
+		if is_freeloader(i):
+			return true
+	return false
 
 
 # The weapon currently armed as the first half of a forge. Self-heals if that weapon

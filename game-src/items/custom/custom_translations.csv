@@ -248,3 +248,11 @@ BLACKSMITH_FORGES,Weapons forged: {0}
 MIME_DUPLICATIONS,Items duplicated: {0}
 BUTCHER_APPETITE_RENDERED,Appetite rendered: {0}
 GOURMET_SPEED_LOST,Speed lost to fat: {0}
+EFFECT_FREELOADER_MENU,Shops show 8 items and level ups offer 8 upgrades
+EFFECT_FREELOADER_FREE,Everything in the shop is free
+EFFECT_FREELOADER_ONE_PICK,Can only take one thing per shop
+EFFECT_FREELOADER_NO_REROLL,Cannot reroll or lock
+EFFECT_FREELOADER_NO_CRATES,Crates never contain items
+EFFECT_FREELOADER_MATERIALS,Materials grant XP but no money
+EFFECT_FREELOADER_WEAPON_TIER,Weapons in the shop are always Tier II or better
+EFFECT_FREELOADER_CURSE,Every shop offering has a 25% chance to be cursed

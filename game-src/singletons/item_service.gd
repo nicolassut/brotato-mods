@@ -20,6 +20,13 @@ const TIER_RARE_COLOR_DARK = Color(16.0 / 255, 10.0 / 255, 27.0 / 255, 1)
 const TIER_UNCOMMON_COLOR_DARK = Color(15.0 / 255, 32.0 / 255, 40.0 / 255, 1)
 
 const NB_SHOP_ITEMS: = 4
+# Gourmet DLC - The Freeloader sees twice the menu but may only take one thing from it.
+# Everything that used to size itself off NB_SHOP_ITEMS now asks get_nb_shop_items().
+const NB_SHOP_ITEMS_FREELOADER: = 8
+# ... and the same doubling on the level-up draft. Was a bare literal 4 passed into
+# get_upgrades() from upgrades_ui_player_container.
+const NB_UPGRADE_OPTIONS: = 4
+const NB_UPGRADE_OPTIONS_FREELOADER: = 8
 
 const CHANCE_WEAPON: = 0.35
 const CHANCE_SAME_WEAPON: = 0.2
@@ -230,6 +237,23 @@ func process_item_box(consumable_data: ConsumableData, wave: int, player_index: 
 		args.fixed_tier = Tier.LEGENDARY
 	var item: = _get_rand_item_for_wave(wave, player_index, TierData.ITEMS, args)
 	return item
+
+
+# Gourmet DLC - how many offerings this player's shop holds. Character-aware replacement
+# for the old NB_SHOP_ITEMS const, which was read in three places.
+func get_nb_shop_items(player_index: int) -> int:
+	if RunData.is_freeloader(player_index):
+		return NB_SHOP_ITEMS_FREELOADER
+
+	return NB_SHOP_ITEMS
+
+
+# Gourmet DLC - how many choices this player's level-up draft offers.
+func get_nb_upgrade_options(player_index: int) -> int:
+	if RunData.is_freeloader(player_index):
+		return NB_UPGRADE_OPTIONS_FREELOADER
+
+	return NB_UPGRADE_OPTIONS
 
 
 func get_player_shop_items(wave: int, player_index: int, args: ItemServiceGetShopItemsArgs) -> Array:
@@ -761,6 +785,11 @@ func change_inventory_element_stylebox_from_entity_type(stylebox: StyleBox, item
 	stylebox.bg_color = color
 
 func get_value(wave: int, base_value: int, player_index: int, affected_by_items_price_stat: bool, is_weapon: bool, item_id: int = Keys.empty_hash) -> int:
+	# Gourmet DLC - nothing has a price for the Freeloader. Returned at the root so every
+	# caller agrees on zero (shop card, coupon maths, item popups), not just the shop card.
+	if RunData.is_freeloader(player_index):
+		return 0
+
 	var value_after_weapon_price = base_value
 	var specific_item_price_factor = 0
 	var items_price_factor = 1.0
@@ -797,6 +826,13 @@ func get_reroll_price(wave: int, reroll_count: int, player_index: int) -> Array:
 
 
 func get_recycling_value(wave: int, from_value: int, player_index: int, is_weapon: bool = false, affected_by_items_price_stat: bool = true) -> int:
+	# Gourmet DLC - the Freeloader receives no materials from recycling, so the Recycle
+	# button must not advertise any. Needs its own gate rather than riding on get_value
+	# returning 0, because both the max(1.0, ...) below and the from_value == 1 early
+	# return would resurrect a value of 1.
+	if RunData.is_freeloader(player_index):
+		return 0
+
 	var actually_affected = affected_by_items_price_stat and RunData.current_wave <= RunData.nb_of_waves
 	var recycling_gains = RunData.get_player_effect(Keys.recycling_gains_hash, player_index)
 	var shop_value = get_value(wave, from_value, player_index, affected_by_items_price_stat, is_weapon)

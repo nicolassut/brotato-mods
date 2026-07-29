@@ -158,6 +158,9 @@ func _ready() -> void :
 
 		var reroll_button = _get_reroll_button(player_index)
 		_error_connect = reroll_button.connect("pressed", self, "_on_RerollButton_pressed", [player_index])
+		# Gourmet DLC - The Freeloader cannot reroll. Hidden here and hard-guarded in
+		# _on_RerollButton_pressed, so a controller shortcut cannot reach it either.
+		reroll_button.visible = not RunData.is_freeloader(player_index)
 
 		var item_popup = _get_item_popup(player_index)
 		item_popup.item_steals = _item_steals[player_index]
@@ -362,11 +365,17 @@ func _clear_go_button_pressed(player_index: int) -> void :
 
 
 func fill_shop_items(player_locked_items: Array, player_index: int, just_entered_shop: bool = false) -> void :
+	# Gourmet DLC - fresh shop, so the Freeloader's single pick is available again. Only on
+	# entry, not on reroll: he cannot reroll, but guarding it keeps the rule honest if that
+	# ever changes.
+	if just_entered_shop:
+		RunData.freeloader_bought_this_shop[player_index] = false
+
 	var player_shop_items = _shop_items[player_index]
 	var prev_items = player_locked_items.duplicate() if just_entered_shop else player_shop_items.duplicate()
 	_shop_items[player_index] = player_locked_items.duplicate()
 
-	var new_item_count = ItemService.NB_SHOP_ITEMS - player_locked_items.size()
+	var new_item_count = ItemService.get_nb_shop_items(player_index) - player_locked_items.size()
 
 	if new_item_count > 0:
 		var args: = ItemServiceGetShopItemsArgs.new(_shop_items, player_index)
@@ -410,7 +419,11 @@ func _on_RerollButton_pressed(player_index: int) -> void :
 	var player_locked_items = RunData.get_player_locked_shop_items(player_index)
 	var shop_items_container = _get_shop_items_container(player_index)
 
-	if player_locked_items.size() >= ItemService.NB_SHOP_ITEMS:
+	# Gourmet DLC - The Freeloader cannot reroll, by any input path.
+	if RunData.is_freeloader(player_index):
+		return
+
+	if player_locked_items.size() >= ItemService.get_nb_shop_items(player_index):
 		return
 	if RunData.get_player_gold(player_index) < _reroll_price[player_index]:
 		UIService._reached_max_shake(_get_gold_label(player_index).get_parent())
@@ -523,6 +536,10 @@ func on_shop_item_bought(shop_item: ShopItem, player_index: int) -> void :
 			break
 
 	RunData.remove_currency(shop_item.value, player_index)
+
+	# Gourmet DLC - The Freeloader has now taken his one thing for this shop. Set after the
+	# purchase is committed, so a purchase blocked further up never burns his pick.
+	RunData.freeloader_bought_this_shop[player_index] = true
 
 	# Gourmet DLC - Loyalty Card counts every completed purchase
 	RunData.get_player_effects(player_index)[Keys.shop_purchases_hash] += 1

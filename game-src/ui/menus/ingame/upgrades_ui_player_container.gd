@@ -39,6 +39,9 @@ var _consumable_data: ConsumableData = null
 var _item_data: ItemParentData = null
 var _button_pressed: = false
 var is_pressing_b: = false
+# Gourmet DLC - extra draft cards added at runtime for the Freeloader's 8-option level up.
+# Empty for every other character, so _get_upgrade_uis() returns the authored 4 unchanged.
+var _extra_upgrade_uis: = []
 
 
 func _ready() -> void :
@@ -62,8 +65,11 @@ func show_upgrades_for_level(level: int) -> void :
 	_reroll_button.init(_reroll_price, player_index)
 
 	_level = level
-	var upgrades = ItemService.get_upgrades(level, 4, _old_upgrades, player_index)
+	var upgrades = ItemService.get_upgrades(level, ItemService.get_nb_upgrade_options(player_index), _old_upgrades, player_index)
 	_old_upgrades = upgrades
+
+	# Gourmet DLC - the Freeloader drafts from 8, so make sure there are 8 cards to fill.
+	_ensure_upgrade_ui_capacity(upgrades.size())
 
 	var upgrade_uis: = _get_upgrade_uis()
 	for i in upgrade_uis.size():
@@ -72,7 +78,8 @@ func show_upgrades_for_level(level: int) -> void :
 		if upgrade_ui.visible:
 			upgrade_ui.set_upgrade(upgrades[i], player_index)
 
-	_reroll_button.visible = upgrades.size() > 1
+	# Gourmet DLC - the Freeloader cannot reroll anything, level-up draft included.
+	_reroll_button.visible = upgrades.size() > 1 and not RunData.is_freeloader(player_index)
 	_update_gold_label()
 	_items_container.hide()
 	_upgrades_container.show()
@@ -169,7 +176,41 @@ func focus() -> void :
 
 
 func _get_upgrade_uis() -> Array:
-	return [_upgrade_ui_1, _upgrade_ui_2, _upgrade_ui_3, _upgrade_ui_4]
+	return [_upgrade_ui_1, _upgrade_ui_2, _upgrade_ui_3, _upgrade_ui_4] + _extra_upgrade_uis
+
+
+# Gourmet DLC - grows the level-up draft to `wanted` cards for the Freeloader. Same
+# approach as ShopItemsContainer._ensure_shop_item_capacity: instance the card's own
+# scene (read off filename) rather than Node.duplicate(), because duplicate() copies
+# signal connections and _ready has already connected the original 4.
+func _ensure_upgrade_ui_capacity(wanted: int) -> void :
+	var existing: = _get_upgrade_uis()
+
+	if wanted <= existing.size():
+		return
+
+	var template = _upgrade_ui_1
+	var scene_path: String = template.filename
+
+	if scene_path == "":
+		push_error("UpgradesUIPlayerContainer: cannot widen the draft, template card has no scene filename")
+		return
+
+	var packed = load(scene_path)
+	var parent = template.get_parent()
+
+	while _get_upgrade_uis().size() < wanted:
+		var clone = packed.instance()
+		clone.name = "UpgradeUIExtra" + str(_get_upgrade_uis().size())
+		parent.add_child(clone)
+		_extra_upgrade_uis.push_back(clone)
+		clone.connect("choose_button_pressed", self, "_on_choose_button_pressed")
+
+	# The authored cards size themselves for a row of 4. Let all of them expand to an
+	# even share instead so 8 fit without overflowing the row.
+	for upgrade_ui in _get_upgrade_uis():
+		upgrade_ui.rect_min_size.x = 150
+		upgrade_ui.size_flags_horizontal = SIZE_EXPAND_FILL
 
 
 func _on_RerollButton_pressed() -> void :

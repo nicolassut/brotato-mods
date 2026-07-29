@@ -74,6 +74,11 @@ POOLS = {
                  "cheese_grater","pruner","torch"],
  "girly":       ["pistol","smg","wand","slingshot","taser","scissors","knife","medical_gun",
                  "pizza_cutter","champagne_popper"],
+ # deliberately wide: his run is decided by what he drafts, so the start should not
+ # pre-commit him to melee or ranged.
+ "freeloader":  ["knife","stick","plank","rock","fist","hand","screwdriver","scissors",
+                 "spear","torch","hatchet","dagger","fighting_stick","pistol","slingshot",
+                 "smg","wand","taser","crossbow","revolver"],
 }
 
 # guaranteed starting weapons per spec ("Gourmet starts with Ladle", "Butcher
@@ -207,11 +212,43 @@ CHARS = [
     ("FOODDISP","fries"),("FOODDISP","fried_rice"),
     ("stat_appetite",10),
     ("stat_max_hp",10),("map_size",10),("NEG","items_price",50),("gain_stat_luck",-30)],[]),
+ # #16 The Freeloader (2026-07-29, user spec). ABYSSAL-LOCKED like the Mime: his curse
+ # clause is entirely dlcs/dlc_1 content, and ProgressData.get_dlc_data() returning null
+ # for non-owners is what makes it degrade quietly instead of crashing.
+ # A draft character. 8 shop items and 8 level-up upgrades instead of 4, everything free,
+ # and he may take exactly ONE thing per shop (item or weapon). No reroll, no lock, no
+ # crate items, so the shop pick is his only acquisition: ~20 for a whole run against a
+ # normal character's 25-40. Materials grant XP but no currency, so he sits at 0 all run
+ # and every economy item is dead weight (filtered out of his pool rather than shown).
+ # Weapons in his shop are forced to tier >= 1 (0-indexed; the user's "minimum tier 2")
+ # because a 1-per-shop budget makes combining up unaffordable: tier 2 costs 2 picks,
+ # tier 4 costs 8 of the ~20 he ever gets.
+ # Every offering carries a flat 25% curse chance that ignores both his stat_curse and
+ # the game's 0.15 hard ceiling. Cursed items are STRICTLY STRONGER (dlc_1_data boosts
+ # every effect by 40 + 2*min(20,wave-1) +/- 30 percent), so curse is opt-in power he can
+ # dodge, paid for with a permanently more cursed enemy pool. Cursed enemies compensate
+ # in gold, which he cannot use, so they are pure cost for him alone.
+ # Runtime lives in run_data.gd (is_freeloader + add_gold gate), item_service.gd
+ # (shop/upgrade counts, pool filter, weapon tier floor), base_shop.gd + shop_items_
+ # container.gd (free, one pick, no reroll/lock, 8 slots), upgrades_ui_player_container.gd
+ # (8 draft cards), main.gd (harvesting gate, no crate items), dlc_1_data.gd (curse roll).
+ ("freeloader","Freeloader","character_freeloader",[],
+   [("LINE","EFFECT_FREELOADER_MENU",0),
+    ("LINE","EFFECT_FREELOADER_FREE",0),
+    ("LINE","EFFECT_FREELOADER_ONE_PICK",1),
+    ("LINE","EFFECT_FREELOADER_NO_REROLL",1),
+    ("LINE","EFFECT_FREELOADER_NO_CRATES",1),
+    ("LINE","EFFECT_FREELOADER_MATERIALS",1),
+    # real functional key, not just card text: vanilla already clamps weapon rolls to
+    # min_weapon_tier in item_service._get_rand_item_for_wave, same as the Knight.
+    ("REPL","min_weapon_tier",1,"EFFECT_FREELOADER_WEAPON_TIER",0),
+    ("LINE","EFFECT_FREELOADER_CURSE",2),
+    ("gain_stat_luck",50)],[]),
 ]
 
 # explicit ext ids for characters added after the original 14 (base+i past 824
 # collides with stat resources - stat_appetite is id=825)
-EXT_IDS = {"girly": 998}
+EXT_IDS = {"girly": 998, "freeloader": 1004}
 
 SKINNED = {"zombie","snail","mole"}
 LEGS_MOD = {
@@ -248,6 +285,26 @@ text_key = "{text_key}"
 value = {value}
 custom_key = ""
 storage_method = 0
+effect_sign = {sign}
+custom_args = [  ]
+"""
+
+def repl_effect_tres(key, value, text_key, sign=1):
+    """storage_method REPLACE (2) instead of the default SUM. Vanilla uses this for
+    min_weapon_tier (knight_effect_4.tres / sailor_effect_3b.tres): the value overwrites
+    the seed rather than adding to it, so a tier floor stays a floor even if another
+    source ever sets one too."""
+    return f"""[gd_resource type="Resource" load_steps=2 format=2]
+
+[ext_resource path="res://items/global/effect.gd" type="Script" id=1]
+
+[resource]
+script = ExtResource( 1 )
+key = "{key}"
+text_key = "{text_key}"
+value = {value}
+custom_key = ""
+storage_method = 2
 effect_sign = {sign}
 custom_args = [  ]
 """
@@ -374,6 +431,7 @@ def effect_txt(entry):
     if entry[0]=="POS":  return plain(entry[1],entry[2],0)
     if entry[0]=="NEG":  return plain(entry[1],entry[2],1)
     if entry[0]=="TXT":  return txt_effect_tres(entry[1],entry[2],entry[3],entry[4] if len(entry)>4 else 1)
+    if entry[0]=="REPL": return repl_effect_tres(entry[1],entry[2],entry[3],entry[4] if len(entry)>4 else 1)
     if entry[0]=="LINE": return line_tres(entry[1],entry[2])
     if entry[0]=="MINISUM": return minisum_tres()
     if entry[0]=="FOODDISP": return fooddisp_tres(entry[1])

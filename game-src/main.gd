@@ -859,6 +859,18 @@ func spawn_consumables(unit: Unit) -> void :
 		item_chance = 1.0
 
 	var consumable_to_spawn: ConsumableData = ItemService.get_consumable_to_drop(unit, item_chance)
+
+	# Gourmet DLC - The Freeloader gets no items from crates at all: his single shop pick is
+	# his only acquisition all run. Suppressed here at the drop site rather than at the Take
+	# button, so he never crosses the arena for a box that turns out to be empty. Uses
+	# has_freeloader() because crates belong to no player index; in coop this denies his
+	# partners too, which is a known limitation of the solo-first design. Food and fruit are
+	# deliberately untouched: they are consumables but not item boxes, so the whole food
+	# layer still works for him.
+	if consumable_to_spawn != null and RunData.has_freeloader():
+		if consumable_to_spawn.my_id_hash == Keys.consumable_item_box_hash or consumable_to_spawn.my_id_hash == Keys.consumable_legendary_item_box_hash:
+			consumable_to_spawn = null
+
 	if consumable_to_spawn != null:
 		var pos: = unit.global_position
 		var dist: = rand_range(50, 100 + unit.stats.gold_spread)
@@ -1985,6 +1997,14 @@ func check_lootworm_chal():
 
 func manage_harvesting() -> void :
 	for player_index in RunData.get_player_count():
+		# Gourmet DLC - Freeloader: harvesting grants him nothing at all. add_gold is already
+		# gated for him, but the add_xp paired with it on the next line would quietly make
+		# Harvesting his single best stat, a hidden scaling stat this character is explicitly
+		# not supposed to have. Skipping the whole block also suppresses the misleading
+		# floating harvest number and the pointless harvest-timer restart.
+		if RunData.is_freeloader(player_index):
+			continue
+
 		var pacifist_effect = RunData.get_player_effect(Keys.pacifist_hash, player_index)
 		var cryptid_effect = RunData.get_player_effect(Keys.cryptid_hash, player_index)
 		var materials_per_living_enemy_effect = RunData.get_player_effect(Keys.materials_per_living_enemy_hash, player_index)
