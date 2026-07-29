@@ -206,11 +206,37 @@ func _ensure_upgrade_ui_capacity(wanted: int) -> void :
 		_extra_upgrade_uis.push_back(clone)
 		clone.connect("choose_button_pressed", self, "_on_choose_button_pressed")
 
-	# The authored cards size themselves for a row of 4. Let all of them expand to an
-	# even share instead so 8 fit without overflowing the row.
+	_reflow_upgrades_into_grid(parent)
+
+
+# 8 upgrade cards do not fit the authored single row. The parent HBoxContainer cannot wrap,
+# so drop a GridContainer into it (columns 4) and reparent every card so the draft becomes
+# 2 rows of 4. Each card is compressed to fit the fixed ~512px-tall row area. Mirrors the shop
+# widening in shop_items_container.gd. Only runs when the Freeloader forces 8 upgrades.
+var _upgrade_grid: GridContainer
+
+func _reflow_upgrades_into_grid(parent) -> void :
+	if _upgrade_grid == null:
+		_upgrade_grid = GridContainer.new()
+		_upgrade_grid.name = "WideUpgradeGrid"
+		_upgrade_grid.columns = 4
+		_upgrade_grid.size_flags_horizontal = SIZE_EXPAND_FILL
+		_upgrade_grid.size_flags_vertical = SIZE_EXPAND_FILL
+		_upgrade_grid.add_constant_override("hseparation", 8)
+		_upgrade_grid.add_constant_override("vseparation", 8)
+		parent.add_child(_upgrade_grid)
+
+	var area_h: float = parent.rect_size.y if parent.rect_size.y > 1.0 else 512.0
+	var rows: int = int(ceil(_get_upgrade_uis().size() / 4.0))
+	var row_h: int = int((area_h - (rows - 1) * 8) / rows)
+
 	for upgrade_ui in _get_upgrade_uis():
-		upgrade_ui.rect_min_size.x = 150
+		if upgrade_ui.get_parent() != _upgrade_grid:
+			upgrade_ui.get_parent().remove_child(upgrade_ui)
+			_upgrade_grid.add_child(upgrade_ui)
 		upgrade_ui.size_flags_horizontal = SIZE_EXPAND_FILL
+		upgrade_ui.size_flags_vertical = SIZE_EXPAND_FILL
+		upgrade_ui.rect_min_size = Vector2(0, row_h)
 
 
 func _on_RerollButton_pressed() -> void :

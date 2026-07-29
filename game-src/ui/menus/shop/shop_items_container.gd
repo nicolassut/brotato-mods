@@ -270,31 +270,61 @@ func _ensure_shop_item_capacity(wanted: int) -> void :
 		_shop_items.push_back(clone)
 		_connect_shop_item(clone)
 
-	_fit_shop_items_to_row()
+	_reflow_into_grid()
 
 
-# The authored cards are rect_min_size.x = 300 inside an 1890-wide row, so anything past
-# six overflows. Drop the minimum and let every card expand to an even share instead, and
-# collapse the scene's expanding spacer Controls (BoxContainer skips hidden children) so
-# they stop eating the width. Only ever runs on a widened shop; a normal 4-card shop never
-# reaches here and keeps its authored layout untouched.
-func _fit_shop_items_to_row() -> void :
+# 8 cards do not fit one row. self is an HBoxContainer (the script lives on it) so it can only
+# sort horizontally and cannot wrap. Instead of fighting it, drop a GridContainer into it,
+# reparent every card into that, and let the grid do 2 rows of 4. Each card is then compressed
+# so both rows fit the fixed 603px-tall area; the card's own ScrollContainer takes the overflow
+# text. Only runs on a widened shop; a normal 4-card shop never enters _ensure_shop_item_capacity
+# and keeps its authored single-row layout untouched.
+var _grid: GridContainer
+
+func _reflow_into_grid() -> void :
+	if _grid == null:
+		_grid = GridContainer.new()
+		_grid.name = "WideShopGrid"
+		_grid.columns = 4
+		_grid.size_flags_horizontal = SIZE_EXPAND_FILL
+		_grid.size_flags_vertical = SIZE_EXPAND_FILL
+		_grid.add_constant_override("hseparation", 5)
+		_grid.add_constant_override("vseparation", 5)
+		add_child(_grid)
+
+	# hide the scene's spacer Controls (EmptySpace*) so they stop eating a column
 	for child in get_children():
-		if child is Control and not (child in _shop_items) and not (child is Timer):
+		if child != _grid and child is Control and not (child is Timer):
 			child.visible = false
 
-	for shop_item in _shop_items:
-		shop_item.rect_min_size.x = 150
-		shop_item.size_flags_horizontal = SIZE_EXPAND_FILL
+	# the fixed height of this container in the scene; fall back to it if layout has not run
+	var area_h: float = rect_size.y if rect_size.y > 1.0 else 603.0
+	var rows: int = int(ceil(_shop_items.size() / 4.0))
+	var row_h: int = int((area_h - (rows - 1) * 5) / rows)
 
-	# Re-point the left/right focus chain across the widened row so controller navigation
-	# still walks all 8 cards. The scene only wired neighbours for the original 4.
+	for shop_item in _shop_items:
+		if shop_item.get_parent() != _grid:
+			shop_item.get_parent().remove_child(shop_item)
+			_grid.add_child(shop_item)
+		shop_item.size_flags_horizontal = SIZE_EXPAND_FILL
+		shop_item.size_flags_vertical = SIZE_EXPAND_FILL
+		shop_item.rect_min_size.x = 0
+		# the 475px PanelContainer floor is what blocks two rows; shrink it, scroll the rest
+		var panel = shop_item.get_node_or_null("PanelContainer")
+		if panel != null:
+			panel.rect_min_size.y = row_h
+
+	# focus chain across the whole grid so controller nav still reaches all 8
 	for i in _shop_items.size():
 		var button = _shop_items[i]._button
 		if button == null:
 			continue
 		button.focus_neighbour_left = button.get_path_to(_shop_items[i - 1]._button) if i > 0 else NodePath("")
 		button.focus_neighbour_right = button.get_path_to(_shop_items[i + 1]._button) if i < _shop_items.size() - 1 else NodePath("")
+		var up: int = i - 4
+		var down: int = i + 4
+		button.focus_neighbour_top = button.get_path_to(_shop_items[up]._button) if up >= 0 else NodePath("")
+		button.focus_neighbour_bottom = button.get_path_to(_shop_items[down]._button) if down < _shop_items.size() else NodePath("")
 
 
 func set_shop_items(items_data: Array) -> void :
