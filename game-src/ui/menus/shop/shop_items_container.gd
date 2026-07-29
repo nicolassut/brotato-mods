@@ -199,11 +199,16 @@ func on_shop_item_deactivated(shop_item: ShopItem) -> void :
 
 
 func on_shop_item_focused(shop_item: ShopItem) -> void :
+	# widened (banner) shop only: expand the hovered banner into the full card
+	if _grid != null:
+		_set_banner_mode(shop_item, false)
 	enable_shop_lock_buttons_focus()
 	emit_signal("shop_item_focused", shop_item)
 
 
 func on_shop_item_unfocused(shop_item: ShopItem) -> void :
+	if _grid != null:
+		_set_banner_mode(shop_item, true)
 	emit_signal("shop_item_unfocused", shop_item)
 
 
@@ -279,24 +284,28 @@ func _ensure_shop_item_capacity(wanted: int) -> void :
 # so both rows fit the fixed 603px-tall area; the card's own ScrollContainer takes the overflow
 # text. Only runs on a widened shop; a normal 4-card shop never enters _ensure_shop_item_capacity
 # and keeps its authored single-row layout untouched.
-# 4 columns, and the cards are scaled DOWN the way the co-op shop minimizes its cards, because
-# a full-size solo card cannot be shrunk by lowering rect_min_size (that is only a floor; a
-# text-heavy card keeps its content height and the second row runs off the bottom). Each card
-# is wrapped in a plain Control that reserves the SCALED footprint in the grid, and the card
-# itself is drawn at CARD_SCALE via rect_scale. Buttons stay clickable because input is
-# transformed by rect_scale. Native card ~465x500; at 0.6 that is ~280x300, so 4 across and 2
-# rows both fit the 1890x603 area with room to spare.
-const CARD_SCALE: = 0.6
-const CARD_NATIVE: = Vector2(465, 500)
+# The co-op shop solves "too many cards, too little space" by showing compact BANNERS
+# (icon + name + category + price) and revealing the full card only on hover. Same idea here.
+# Layout: a GridContainer of 2 columns x 4 rows of banners. A banner is just the normal card
+# with its ItemDescription detail hidden (item_description exposes that via _vbox_container /
+# _scroll_container, the same nodes its show_details flag drives). On focus the detail is shown
+# and the card is raised above its neighbours; on unfocus it collapses back.
+#
+# The trick that keeps the grid stable: each banner lives in a plain Control wrapper with a
+# FIXED min size. A plain Control does not derive its size from its child, so expanding the
+# card (child grows) does NOT change the wrapper's min size and the grid never reflows. The
+# expanded card simply overflows its wrapper and, with a raised z_index, draws over the banner
+# below it. Only ever runs on a widened (Freeloader) shop.
+const BANNER_SIZE: = Vector2(560, 118)
 var _grid: GridContainer
 
 func _reflow_into_grid() -> void :
 	if _grid == null:
 		_grid = GridContainer.new()
 		_grid.name = "WideShopGrid"
-		_grid.columns = 4
-		_grid.add_constant_override("hseparation", 6)
-		_grid.add_constant_override("vseparation", 6)
+		_grid.columns = 2
+		_grid.add_constant_override("hseparation", 12)
+		_grid.add_constant_override("vseparation", 10)
 		add_child(_grid)
 
 	# hide ONLY the scene's spacer Controls (EmptySpace*). Exclude the cards: at this point
@@ -305,42 +314,47 @@ func _reflow_into_grid() -> void :
 		if child != _grid and child is Control and not (child is Timer) and not (child in _shop_items):
 			child.visible = false
 
-	var footprint: = CARD_NATIVE * CARD_SCALE
-
-	for shop_item in _shop_items:
+	for i in _shop_items.size():
+		var shop_item = _shop_items[i]
 		var wrapper = shop_item.get_parent()
-		# wrap once; on later shop refills the card is already inside its wrapper in the grid
 		if not (wrapper is Control) or wrapper.get_parent() != _grid or not wrapper.name.begins_with("CardWrap"):
 			var host = shop_item.get_parent()
 			if host != null:
 				host.remove_child(shop_item)
 			wrapper = Control.new()
-			wrapper.name = "CardWrap" + str(_shop_items.find(shop_item))
-			wrapper.rect_min_size = footprint
+			wrapper.name = "CardWrap" + str(i)
 			_grid.add_child(wrapper)
 			wrapper.add_child(shop_item)
 			shop_item.rect_position = Vector2(0, 0)
-			shop_item.rect_scale = Vector2(CARD_SCALE, CARD_SCALE)
-		wrapper.rect_min_size = footprint
-		# Pin every card to the SAME width. The wrapper is a plain Control and does not
-		# stretch its child, so without this each card self-sizes to its own text and the
-		# cards come out ragged (short-text cards render narrower than long-text ones).
-		# Autowrap is already on, so a fixed width just makes the text wrap uniformly.
-		shop_item.rect_min_size = CARD_NATIVE
-		shop_item.rect_size = CARD_NATIVE
+		wrapper.rect_min_size = BANNER_SIZE
+		shop_item.rect_min_size.x = BANNER_SIZE.x
 		shop_item.visible = true
+		_set_banner_mode(shop_item, true)
 
-	# focus chain across the whole grid so controller nav still reaches all 8, both rows
+	# focus chain for a 2-wide grid so controller nav walks columns and rows
 	for i in _shop_items.size():
 		var button = _shop_items[i]._button
 		if button == null:
 			continue
-		button.focus_neighbour_left = button.get_path_to(_shop_items[i - 1]._button) if i > 0 else NodePath("")
-		button.focus_neighbour_right = button.get_path_to(_shop_items[i + 1]._button) if i < _shop_items.size() - 1 else NodePath("")
-		var up: int = i - 4
-		var down: int = i + 4
-		button.focus_neighbour_top = button.get_path_to(_shop_items[up]._button) if up >= 0 else NodePath("")
-		button.focus_neighbour_bottom = button.get_path_to(_shop_items[down]._button) if down < _shop_items.size() else NodePath("")
+		button.focus_neighbour_left = button.get_path_to(_shop_items[i - 1]._button) if (i % 2) == 1 else NodePath("")
+		button.focus_neighbour_right = button.get_path_to(_shop_items[i + 1]._button) if (i % 2) == 0 and i + 1 < _shop_items.size() else NodePath("")
+		button.focus_neighbour_top = button.get_path_to(_shop_items[i - 2]._button) if i - 2 >= 0 else NodePath("")
+		button.focus_neighbour_bottom = button.get_path_to(_shop_items[i + 2]._button) if i + 2 < _shop_items.size() else NodePath("")
+
+
+# Collapse a card to a banner (detail hidden) or expand it to the full card. Reaches the same
+# two containers item_description's show_details flag drives, but at runtime.
+func _set_banner_mode(shop_item, banner: bool) -> void :
+	var d = shop_item._item_description
+	if d == null:
+		return
+	if d._vbox_container != null:
+		d._vbox_container.visible = not banner
+	if d._scroll_container != null:
+		d._scroll_container.visible = not banner
+	# raise the expanded card so it draws over the banner beneath it, and clear the raise
+	# when it collapses back to a banner
+	shop_item.z_index = 0 if banner else 1
 
 
 func set_shop_items(items_data: Array) -> void :
