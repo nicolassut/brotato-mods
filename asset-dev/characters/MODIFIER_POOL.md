@@ -113,6 +113,95 @@ colliding with the PLAYER'S CURRENT STATE**, which is a different problem and ju
 
 Every modifier needs an `is_eligible(player_index) -> bool` alongside its conflict tags.
 
+## FULL AUDIT (2026-07-29) - every modifier checked against the failure classes
+
+Failure classes used: **A** non-invertible transform · **B** capability removal with no
+compensation · **C** destructive to persistent state · **D** wrong lifetime · **E** eligibility
+vs the player's board · **F** serialisation · **G** conflict pair · **H** duplicates a wave
+event · **I** flat number that dies by wave 20 · **J** collides with our own mod systems ·
+**K** co-op.
+
+Result: **21 modifiers need changes, 84 are clean as written.**
+
+### CRITICAL - these break the modifier or lose the run
+
+**1. Butterfingers is nullified by shield AND by dodge.** `get_damage_value`
+(player.gd:357) sets damage to 0 when `_hit_protection > 0` or when dodged, and the entire
+`explode_on_hit` block sits inside `if dmg_taken > 0:` (player.gd:570). So the explosion
+**never fires** on a shielded or dodged hit.
+- The compensation must be **ARMOUR, Max HP and HP Regen, never shield.** Armour is
+  `max(1, round(dmg * armor_coef))`, so it floors at 1 damage and the trigger still fires.
+  Shield and dodge zero it and silently disable the whole modifier.
+- Butterfingers must also **suppress dodge for its duration**, or a dodge-built player does
+  near-zero damage through no fault of play.
+
+**2. Butterfingers + Glass is instant death.** `die_in_one_hit` is evaluated in the same
+handler (player.gd:594) and sets health to 0. You must be hit to deal damage; being hit kills
+you. **Hard-forbidden pair.**
+
+**3. Butterfingers explosion does not scale.** Bull's explosion rides on his own stat
+investment via the `explosion_damage` key. A player who is not Bull has none, so at wave 14
+this does nothing. The modifier must grant `explosion_damage` scaled to the current wave.
+
+**4. Blunt Instruments is unbuildable.** 28 weapons have no tier-1 variant on disk.
+Rewrite as "your weapons deal tier-1 damage", a reversible stat delta. (Class A)
+
+**5. Front of House / Back of House can zero your output.** If the whole loadout is one type,
+disabling that type is not a hard wave, it is a guaranteed loss. **Needs an eligibility
+predicate**, and it should also never roll alongside Butterfingers. (Class B, E, G)
+
+**6. Full Belly / Intermittent Fasting remove a whole layer in a FOOD mod** with no
+compensation. Both need something back, or they are pure punishment. (Class B)
+
+### HIGH - silent no-ops or permanent state loss
+
+**7. The eight next-shop-scoped modifiers** (Comped, Fire Sale, Blood Money, Bare Cupboard,
+Cash Only, Clearance, Sticky Fingers, Surge Pricing) tear down at the wrong time under a
+single wave-scoped lifetime and **silently do nothing, with no error**. (Class D)
+
+**8. Borrowed Knives and Top Shelf must stash the ORIGINAL instances**, not copies, or
+per-weapon upgrade and curse state is silently wiped. Every weapon does have a tier 4
+(verified), so Top Shelf is at least possible, but both are safer as damage deltas. (Class C)
+
+**9. 86'd, Spoiled, Clearance need eligibility.** 86'd and Spoiled require the player to own
+items at all; Clearance is dead with full weapon slots. (Class E)
+
+**10. Spoiled and Foraging leave deliberate permanent residue.** Flag them explicitly or a
+future session "fixes" them as bugs. (Class C)
+
+**11. Nine Lives has `max_nb = 1`.** Granting it as a modifier to a player who already owns it
+needs a guard. (Class J)
+
+### MEDIUM - scaling and mod-system collisions
+
+**12. Every flat number needs a wave-scaled form.** +5 HP Regen and +15 Armour are
+meaningful at wave 3 and irrelevant at wave 20. (Class I - affects ~20 modifiers)
+
+**13. Food-buff magnitude modifiers (Sugar Rush, Crash Diet, Chews Twice) must not leak.**
+Our shared-timer stacking bakes magnitude at gain time, so a buff gained under a doubling
+modifier could persist doubled into the next wave. Verify before shipping. (Class J)
+
+**14. Spoiled Batch** builds on Druid's `poisoned_fruit`, which is a chance-based fruit swap.
+Applying it to our whole food layer needs its own path. (Class J)
+
+**15. Dedupe against the wave's own events**: Kitchen Fire vs `_is_bullet_hell_wave`,
+Blackout vs `_is_fog_wave`, The Rush vs `is_elite_wave(HORDE)`, the elite modifiers vs
+`_is_elite_wave`. (Class H)
+
+**16. Co-op scope is undecided.** Arena-wide modifiers (fog, bullet hell, map size, enemy
+count) necessarily hit every player, not just The Special. That is a design call, not a bug,
+but it must be made explicitly. (Class K)
+
+### Forbidden pairs (hard conflicts, beyond the axis tags)
+- Butterfingers + Glass (instant death, above)
+- Butterfingers + any shield/dodge grant (nullifies it, above)
+- Butterfingers + Front/Back of House (already no weapons)
+- Butterfingers + weapon-stat modifiers (Sharpened, Rapid Service, Skewered - all dead rolls)
+- Blunt Instruments + Top Shelf (direct contradiction)
+- Full Belly + any food modifier (all dead)
+- Stiffed + Generous Tips (direct contradiction)
+- Dead Shift + any elite modifier
+
 ## Cost key
 - **FREE** = an existing effect key or an existing system, pure data or a trigger call
 - **CHEAP** = small new hook on top of something that already exists
