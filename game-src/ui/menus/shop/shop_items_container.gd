@@ -292,9 +292,11 @@ func _reflow_into_grid() -> void :
 		_grid.add_constant_override("vseparation", 5)
 		add_child(_grid)
 
-	# hide the scene's spacer Controls (EmptySpace*) so they stop eating a column
+	# hide ONLY the scene's spacer Controls (EmptySpace*) so they stop eating a column.
+	# Must exclude the shop cards: at this point all 8 are still direct children of self
+	# (they are reparented into the grid below), and blanking them here left the shop empty.
 	for child in get_children():
-		if child != _grid and child is Control and not (child is Timer):
+		if child != _grid and child is Control and not (child is Timer) and not (child in _shop_items):
 			child.visible = false
 
 	# the fixed height of this container in the scene; fall back to it if layout has not run
@@ -306,6 +308,7 @@ func _reflow_into_grid() -> void :
 		if shop_item.get_parent() != _grid:
 			shop_item.get_parent().remove_child(shop_item)
 			_grid.add_child(shop_item)
+		shop_item.visible = true
 		shop_item.size_flags_horizontal = SIZE_EXPAND_FILL
 		shop_item.size_flags_vertical = SIZE_EXPAND_FILL
 		shop_item.rect_min_size.x = 0
