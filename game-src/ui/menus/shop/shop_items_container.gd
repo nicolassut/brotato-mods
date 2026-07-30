@@ -327,6 +327,15 @@ func _rebuild_as_compact_grid(wanted: int) -> void :
 		card.size_flags_horizontal = SIZE_EXPAND_FILL
 		# full-Vector2 assignment: `rect_min_size.x = ...` silently no-ops in Godot 3
 		card.rect_min_size = Vector2(CARD_MIN_WIDTH, 0)
+		# Push the price to the card's right edge. Inside BuyButton/HBoxContainer the order is
+		# [MarginContainer(icon+name)] [Label(price)] [GoldIcon] [lock/steal/ban], and nothing
+		# carries an expand flag, so on a card this wide all the slack collects past the price
+		# and it sits mid-box. Co-op never shows this because its cards are narrow. Expanding
+		# the description makes it absorb the slack and shove the price hard right.
+		var desc_margin = card.get_node_or_null("PanelContainer/BuyButton/HBoxContainer/MarginContainer")
+		if desc_margin != null:
+			desc_margin.size_flags_horizontal = SIZE_EXPAND_FILL
+
 		# tier is conveyed by tinting the icon panel, the way co-op does it
 		card.use_compact_style = true
 		# and the card needs a real background: both panels in coop_shop_item.tscn are
