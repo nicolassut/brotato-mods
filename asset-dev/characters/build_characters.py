@@ -248,6 +248,8 @@ CHARS = [
     # min_weapon_tier in item_service._get_rand_item_for_wave, same as the Knight.
     ("REPL","min_weapon_tier",1,"EFFECT_FREELOADER_WEAPON_TIER",0),
     ("LINE","EFFECT_FREELOADER_CURSE",2),
+    # materials give him XP but no money, so XP is the only currency he actually banks
+    ("xp_gain",25),
     ("gain_stat_luck",50)],[]),
 ]
 
