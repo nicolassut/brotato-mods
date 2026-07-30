@@ -290,7 +290,23 @@ func _shift_ids(ids: Array, player_index: int, sign_mult: int) -> void :
 			var key_hash: int = Keys.generate_hash(pair[0])
 			if not effects.has(key_hash):
 				continue
-			effects[key_hash] += pair[1] * sign_mult
+
+			var delta: int = pair[1] * sign_mult
+
+			# STAT keys must go through RunData.add_stat / remove_stat, not a raw dict write.
+			# Those set _are_player_stats_dirty, which is what makes the player actually
+			# RECOMPUTE its stats. Writing the dict directly left the player using the values
+			# it had already baked, so a modifier appeared to do nothing until something else
+			# happened to dirty the player, which read as "applies a few seconds late".
+			# Non-stat keys (enemy_health, no_heal, map_size, prices...) are read live through
+			# get_player_effect, so a direct write is correct for those.
+			if Utils.is_stat_key(key_hash):
+				if delta >= 0:
+					RunData.add_stat(key_hash, delta, player_index)
+				else:
+					RunData.remove_stat(key_hash, - delta, player_index)
+			else:
+				effects[key_hash] += delta
 
 	Utils.reset_stat_cache(player_index)
 	LinkedStats.reset_player(player_index)

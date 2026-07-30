@@ -2117,6 +2117,26 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void :
 	for player in _players:
 		_floating_text_manager.players_add_stats_count.push_back(0)
 
+	# Gourmet DLC - The Special: apply this wave's modifiers BEFORE anything reads player
+	# stats. The ids were rolled and stored at the END of the previous wave, so what the shop
+	# previewed is exactly what lands, and a mid-wave reload re-applies rather than re-rolls.
+	# Order matters: the per-player loop further down sets current health from max_stats, so
+	# applying after it left current health above a reduced max (the 41/37 bug). The
+	# _emit_stats_updated() call is deliberate and synchronous: RunData only flushes the dirty
+	# flag on a deferred call, so without it the recompute lands a frame late and modifiers
+	# look like they take effect seconds after the wave starts.
+	for special_index in RunData.get_player_count():
+		if not RunData.is_special(special_index):
+			continue
+		var sp_effects: Dictionary = RunData.get_player_effects(special_index)
+		var pending: Array = sp_effects[Keys.special_next_mods_hash]
+		if pending.empty():
+			continue
+		sp_effects[Keys.special_active_mods_hash] = pending.duplicate()
+		sp_effects[Keys.special_next_mods_hash] = []
+		SpecialModifiers.apply_ids(SpecialModifiers.ids_of_life(pending, SpecialModifiers.LIFE_WAVE), special_index)
+	RunData._emit_stats_updated()
+
 	
 	EffectBehaviorService.update_active_effect_behaviors()
 
@@ -2173,17 +2193,6 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void :
 				RunData.add_tracked_value(i, fat_character.get_my_id_hash(), fat_speed_lost, 1)
 				effects[Keys.gourmet_fat_hash] = wanted_fat
 			_players[i].set_body_scale(1.0 + GOURMET_FAT_SIZE * wanted_fat)
-
-		# Gourmet DLC - The Special: apply the modifiers the shop already previewed for this
-		# wave. The ids were rolled and stored at the END of the previous wave, so what the
-		# player was shown is exactly what they get. Applying from the stored ids (rather than
-		# rolling here) is also what makes a mid-wave reload safe: the roll is not repeated.
-		if RunData.is_special(i):
-			var pending: Array = effects[Keys.special_next_mods_hash]
-			if not pending.empty():
-				effects[Keys.special_active_mods_hash] = pending.duplicate()
-				effects[Keys.special_next_mods_hash] = []
-				SpecialModifiers.apply_ids(SpecialModifiers.ids_of_life(pending, SpecialModifiers.LIFE_WAVE), i)
 
 		# Gourmet DLC - Tourist: +10% to all stat modifications per Danger level, once per run
 		var tourist_character = RunData.get_player_character(i)
