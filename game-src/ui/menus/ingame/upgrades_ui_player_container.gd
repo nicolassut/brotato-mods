@@ -213,13 +213,14 @@ func _ensure_upgrade_ui_capacity(wanted: int) -> void :
 # so drop a GridContainer into it (columns 4) and reparent every card so the draft becomes
 # 2 rows of 4. Each card is compressed to fit the fixed ~512px-tall row area. Mirrors the shop
 # widening in shop_items_container.gd. Only runs when the Freeloader forces 8 upgrades.
+const UPGRADE_GRID_COLUMNS: = 4
 var _upgrade_grid: GridContainer
 
 func _reflow_upgrades_into_grid(parent) -> void :
 	if _upgrade_grid == null:
 		_upgrade_grid = GridContainer.new()
 		_upgrade_grid.name = "WideUpgradeGrid"
-		_upgrade_grid.columns = 4
+		_upgrade_grid.columns = UPGRADE_GRID_COLUMNS
 		_upgrade_grid.size_flags_horizontal = SIZE_EXPAND_FILL
 		_upgrade_grid.size_flags_vertical = SIZE_EXPAND_FILL
 		_upgrade_grid.add_constant_override("hseparation", 8)
@@ -227,7 +228,7 @@ func _reflow_upgrades_into_grid(parent) -> void :
 		parent.add_child(_upgrade_grid)
 
 	var area_h: float = parent.rect_size.y if parent.rect_size.y > 1.0 else 512.0
-	var rows: int = int(ceil(_get_upgrade_uis().size() / 4.0))
+	var rows: int = int(ceil(_get_upgrade_uis().size() / float(UPGRADE_GRID_COLUMNS)))
 	var row_h: int = int((area_h - (rows - 1) * 8) / rows)
 
 	for upgrade_ui in _get_upgrade_uis():
@@ -237,6 +238,20 @@ func _reflow_upgrades_into_grid(parent) -> void :
 		upgrade_ui.size_flags_horizontal = SIZE_EXPAND_FILL
 		upgrade_ui.size_flags_vertical = SIZE_EXPAND_FILL
 		upgrade_ui.rect_min_size = Vector2(0, row_h)
+
+	# Rebuild the focus chain for the GRID. The authored cards are a single row, so they only
+	# carry left/right neighbours; without this, WASD and controller input can move sideways
+	# but never between the two rows. Columns are UPGRADE_GRID_COLUMNS wide.
+	var uis: = _get_upgrade_uis()
+	var cols: int = UPGRADE_GRID_COLUMNS
+	for i in uis.size():
+		var button = uis[i].button
+		if button == null:
+			continue
+		button.focus_neighbour_left = button.get_path_to(uis[i - 1].button) if (i % cols) != 0 else NodePath("")
+		button.focus_neighbour_right = button.get_path_to(uis[i + 1].button) if (i % cols) != cols - 1 and i + 1 < uis.size() else NodePath("")
+		button.focus_neighbour_top = button.get_path_to(uis[i - cols].button) if i - cols >= 0 else NodePath("")
+		button.focus_neighbour_bottom = button.get_path_to(uis[i + cols].button) if i + cols < uis.size() else NodePath("")
 
 
 func _on_RerollButton_pressed() -> void :
