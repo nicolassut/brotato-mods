@@ -291,7 +291,7 @@ func _ensure_shop_item_capacity(wanted: int) -> void :
 # the show_details flag drives) and its PanelContainer min-height floor dropped so the card
 # collapses to header + price. The banners stay collapsed; hovering pops the full card in a
 # separate floating overlay (see _show_banner_detail). Only runs on a widened shop.
-const BANNER_SIZE: = Vector2(560, 140)
+const BANNER_SIZE: = Vector2(560, 128)
 var _grid: GridContainer
 
 func _reflow_into_grid() -> void :
@@ -348,11 +348,16 @@ func _set_banner_mode(shop_item, banner: bool) -> void :
 	if d._scroll_container != null:
 		d._scroll_container.visible = not banner
 	# Hiding the detail is not enough: the card's PanelContainer has a 475px min-height floor,
-	# so the card stays full height with an empty middle and overflows the banner slot. Drop
-	# that floor so the card collapses to just its header + price row.
+	# so the card stays full height and the EmptySpace spacer stretches to fill it. Drop that
+	# floor. NOTE the full-Vector2 assignment: `panel.rect_min_size.y = 0` silently no-ops in
+	# Godot 3 because rect_min_size returns a copy, which is exactly the bug that left the tall
+	# gap. Also collapse the expanding spacer so the price sits right under the header.
 	var panel = shop_item.get_node_or_null("PanelContainer")
 	if panel != null:
-		panel.rect_min_size.y = 0 if banner else 475
+		panel.rect_min_size = Vector2(panel.rect_min_size.x, 0 if banner else 475)
+	var spacer = shop_item.get_node_or_null("PanelContainer/MarginContainer/VBoxContainer/EmptySpace")
+	if spacer != null:
+		spacer.visible = not banner
 
 
 # On hover, the full card is shown in a floating panel anchored to the banner, exactly like the
