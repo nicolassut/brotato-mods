@@ -1985,7 +1985,7 @@ func _on_WaveTimer_timeout() -> void :
 			continue
 
 		var sp_effects: Dictionary = RunData.get_player_effects(special_index)
-		var active: Array = sp_effects[Keys.special_active_mods_hash]
+		var active: Array = SpecialModifiers.stored_ids(Keys.special_active_mods_hash, special_index)
 		if not active.empty():
 			SpecialModifiers.unapply_ids(SpecialModifiers.ids_of_life(active, SpecialModifiers.LIFE_WAVE), special_index)
 			sp_effects[Keys.special_active_mods_hash] = []
@@ -2129,7 +2129,7 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void :
 		if not RunData.is_special(special_index):
 			continue
 		var sp_effects: Dictionary = RunData.get_player_effects(special_index)
-		var pending: Array = sp_effects[Keys.special_next_mods_hash]
+		var pending: Array = SpecialModifiers.stored_ids(Keys.special_next_mods_hash, special_index)
 		if pending.empty():
 			continue
 		sp_effects[Keys.special_active_mods_hash] = pending.duplicate()

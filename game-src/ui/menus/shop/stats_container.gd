@@ -132,7 +132,9 @@ func _ensure_rules_ui(player_index: int) -> void :
 
 	_stats_top_tab.connect("pressed", self, "_on_StatsTop_pressed")
 	_rules_top_tab.connect("pressed", self, "_on_RulesTop_pressed")
-	_set_rules_mode(false)
+	# Rules is the default view for The Special: what the wave is about to do to you matters
+	# more than the stat sheet, and the stat sheet is one click away.
+	_set_rules_mode(true)
 
 
 func _on_StatsTop_pressed() -> void :
@@ -178,7 +180,7 @@ func _refresh_rules_list(player_index: int) -> void :
 	# waves only special_next_mods is populated (so the shop previews what is coming). The
 	# active set is filtered to wave-scoped ids, because the shop-scoped ones in that roll
 	# already did their job in the shop and would be misleading listed under "this wave".
-	var active: Array = RunData.get_player_effect(Keys.special_active_mods_hash, player_index)
+	var active: Array = SpecialModifiers.stored_ids(Keys.special_active_mods_hash, player_index)
 	var ids: Array
 	var heading_text: String
 
@@ -186,7 +188,7 @@ func _refresh_rules_list(player_index: int) -> void :
 		ids = SpecialModifiers.ids_of_life(active, SpecialModifiers.LIFE_WAVE)
 		heading_text = "THIS WAVE" if not ids.empty() else "THIS WAVE IS CLEAR"
 	else:
-		ids = RunData.get_player_effect(Keys.special_next_mods_hash, player_index)
+		ids = SpecialModifiers.stored_ids(Keys.special_next_mods_hash, player_index)
 		heading_text = "NEXT WAVE" if not ids.empty() else "NEXT WAVE IS CLEAR"
 
 	var heading: = Label.new()

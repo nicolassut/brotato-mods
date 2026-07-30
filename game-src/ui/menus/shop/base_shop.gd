@@ -1223,7 +1223,7 @@ func _on_tree_exited() -> void :
 		if not RunData.is_special(special_index):
 			continue
 		var sp_effects: Dictionary = RunData.get_player_effects(special_index)
-		var shop_ids: Array = sp_effects[Keys.special_shop_mods_hash]
+		var shop_ids: Array = SpecialModifiers.stored_ids(Keys.special_shop_mods_hash, special_index)
 		if not shop_ids.empty():
 			SpecialModifiers.unapply_ids(shop_ids, special_index)
 			sp_effects[Keys.special_shop_mods_hash] = []

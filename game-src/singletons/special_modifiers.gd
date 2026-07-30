@@ -312,6 +312,26 @@ func _shift_ids(ids: Array, player_index: int, sign_mult: int) -> void :
 	LinkedStats.reset_player(player_index)
 
 
+# Read a stored id list DEFENSIVELY. get_player_effect is a raw dict access, so a run started
+# before these keys were seeded (or a save written before they existed) can leave a non-Array
+# here. `for id in <int>` then iterates integers and hands get_by_id an int, which is a hard
+# type error. Anything that is not a genuine array of known string ids reads as empty.
+func stored_ids(key_hash: int, player_index: int) -> Array:
+	var effects: Dictionary = RunData.get_player_effects(player_index)
+	if not effects.has(key_hash):
+		return []
+
+	var raw = effects[key_hash]
+	if not (raw is Array):
+		return []
+
+	var out: = []
+	for v in raw:
+		if v is String and not get_by_id(v).empty():
+			out.push_back(v)
+	return out
+
+
 func ids_of_life(ids: Array, life: int) -> Array:
 	var out: = []
 	for id in ids:
