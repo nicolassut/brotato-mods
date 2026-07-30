@@ -890,10 +890,15 @@ func _find_lowest_mergeable_weapon(weapon_id: String, player_index: int):
 	for element in weapons_container._elements.get_children():
 		owned.push_back(element.item)
 
+	var tier_cap: int = int(RunData.get_player_effect(Keys.max_weapon_tier_hash, player_index))
 	var best = null
 	for i in owned.size():
 		var candidate = owned[i]
 		if candidate == null or candidate.weapon_id != weapon_id or candidate.upgrades_into == null:
+			continue
+		# match RunData._mime_copies_fit exactly, or the shop promises merges the cascade
+		# then refuses to perform
+		if candidate.upgrades_into.tier > tier_cap:
 			continue
 		if best != null and candidate.tier >= best.tier:
 			continue

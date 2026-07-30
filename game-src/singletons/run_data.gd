@@ -1575,14 +1575,26 @@ func _mime_copies_fit(shop_weapon: WeaponData, player_index: int, copies: int) -
 			line[weapon.tier] = int(line.get(weapon.tier, 0)) + 1
 	line[shop_weapon.tier] = int(line.get(shop_weapon.tier, 0)) + copies
 
-	var max_tier: int = int(effects[Keys.max_weapon_tier_hash])
+	# The real merge ceiling: a weapon can only combine while it HAS an upgrade to become.
+	# Walk the shop weapon's upgrades_into chain to find the top tier of this line, and cap
+	# that by the run's max_weapon_tier. WITHOUT this the loop ran to max_weapon_tier, which
+	# DEFAULTS TO 99 - so it merged T4 pairs into an imaginary T5, T6, ... concluded that any
+	# number of copies eventually fits, and offered "x62" on a full inventory. Buying that
+	# then added 62 weapons the real cascade could not absorb.
+	var chain_top: int = shop_weapon.tier
+	var chain_walk = shop_weapon
+	while chain_walk != null and chain_walk.upgrades_into != null:
+		chain_walk = chain_walk.upgrades_into
+		chain_top = chain_walk.tier
+	var merge_ceiling: int = int(min(chain_top, int(effects[Keys.max_weapon_tier_hash])))
+
 	var guard: = 0
 	while total > slot_max:
 		guard += 1
 		if guard > 64:
 			return false
 		var merged: = false
-		for tier in range(0, max_tier):
+		for tier in range(0, merge_ceiling):
 			if int(line.get(tier, 0)) >= 2:
 				line[tier] = int(line[tier]) - 2
 				line[tier + 1] = int(line.get(tier + 1, 0)) + 1
