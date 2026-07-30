@@ -1,7 +1,7 @@
 class_name StatsContainer
 extends PanelContainer
 
-enum Tab{PRIMARY, SECONDARY, RULES}
+enum Tab{PRIMARY, SECONDARY}
 
 signal stat_focused(stat_button, stat_title, stat_value, player_index)
 signal stat_unfocused(player_index)
@@ -85,31 +85,85 @@ func _notification(what):
 		set_process_input(is_visible_in_tree())
 
 
-# Gourmet DLC - The Special: a third tab, "Rules", sitting beside Primary and Secondary and
-# listing the modifiers rolled for the NEXT wave. Built by duplicating the existing Secondary
-# button so it inherits the panel's exact button styling, rather than hand-rolling a look that
-# would drift from the theme. Only ever created for The Special; every other character sees the
-# untouched two-tab panel.
-var _rules_tab: Button
+# Gourmet DLC - The Special: a TOP-LEVEL [Stats] [Rules] toggle that replaces the panel title,
+# sitting ABOVE the Primary/Secondary row. Three buttons in the Primary/Secondary row did not
+# fit; this gives Rules its own level instead. Selecting Rules hides the whole stats side
+# (including the Primary/Secondary row) and shows the modifiers rolled for the NEXT wave.
+# Buttons are duplicated from the existing Secondary button so they inherit the panel's exact
+# theme styling. Only ever created for The Special.
+var _top_tabs: HBoxContainer
+var _stats_top_tab: Button
+var _rules_top_tab: Button
 var _rules_list: VBoxContainer
+var _showing_rules: = false
 var _rules_player_index: = 0
 
 
-func _ensure_rules_tab(player_index: int) -> void :
-	if _rules_tab != null or not RunData.is_special(player_index):
+func _ensure_rules_ui(player_index: int) -> void :
+	if _top_tabs != null or not RunData.is_special(player_index):
 		return
 
-	_rules_tab = _secondary_tab.duplicate(DUPLICATE_SCRIPTS)
-	_rules_tab.name = "Rules"
-	_rules_tab.text = "Rules"
-	_buttons_container.add_child(_rules_tab)
-	_rules_tab.connect("pressed", self, "_on_Rules_pressed")
+	_top_tabs = HBoxContainer.new()
+	_top_tabs.name = "TopTabs"
+	_top_tabs.add_constant_override("separation", 8)
+	_top_tabs.alignment = BoxContainer.ALIGN_CENTER
+
+	_stats_top_tab = _secondary_tab.duplicate(DUPLICATE_SCRIPTS)
+	_stats_top_tab.name = "StatsTop"
+	_stats_top_tab.text = "Stats"
+	_top_tabs.add_child(_stats_top_tab)
+
+	_rules_top_tab = _secondary_tab.duplicate(DUPLICATE_SCRIPTS)
+	_rules_top_tab.name = "RulesTop"
+	_rules_top_tab.text = "Rules"
+	_top_tabs.add_child(_rules_top_tab)
+
+	# slot the toggle in where the "STATS" title sits, and retire the title itself
+	var holder = title_label.get_parent()
+	holder.add_child(_top_tabs)
+	holder.move_child(_top_tabs, title_label.get_index())
+	title_label.hide()
 
 	_rules_list = VBoxContainer.new()
 	_rules_list.name = "RulesList"
 	_rules_list.add_constant_override("separation", 6)
 	_secondary_stats.get_parent().add_child(_rules_list)
 	_rules_list.hide()
+
+	_stats_top_tab.connect("pressed", self, "_on_StatsTop_pressed")
+	_rules_top_tab.connect("pressed", self, "_on_RulesTop_pressed")
+	_set_rules_mode(false)
+
+
+func _on_StatsTop_pressed() -> void :
+	_set_rules_mode(false)
+
+
+func _on_RulesTop_pressed() -> void :
+	_set_rules_mode(true)
+
+
+func _set_rules_mode(on: bool) -> void :
+	_showing_rules = on
+	if _top_tabs == null:
+		return
+
+	_set_flat(_stats_top_tab, not on)
+	_set_flat(_rules_top_tab, on)
+
+	if on:
+		# hide the entire stats side, Primary/Secondary row included
+		_buttons_container.hide()
+		_general_stats.hide()
+		_primary_stats.hide()
+		_secondary_stats.hide()
+		_refresh_rules_list(_rules_player_index)
+		_rules_list.show()
+	else:
+		_rules_list.hide()
+		_buttons_container.visible = show_buttons
+		# restore whichever stat tab was last selected
+		update_tab(focused_tab)
 
 
 func _refresh_rules_list(player_index: int) -> void :
@@ -119,10 +173,24 @@ func _refresh_rules_list(player_index: int) -> void :
 	for child in _rules_list.get_children():
 		child.queue_free()
 
-	var ids: Array = RunData.get_player_effect(Keys.special_next_mods_hash, player_index)
+	# Which set to show is derived, not passed in: during a wave the roll has been moved into
+	# special_active_mods (so the pause menu shows what is happening RIGHT NOW), and between
+	# waves only special_next_mods is populated (so the shop previews what is coming). The
+	# active set is filtered to wave-scoped ids, because the shop-scoped ones in that roll
+	# already did their job in the shop and would be misleading listed under "this wave".
+	var active: Array = RunData.get_player_effect(Keys.special_active_mods_hash, player_index)
+	var ids: Array
+	var heading_text: String
+
+	if not active.empty():
+		ids = SpecialModifiers.ids_of_life(active, SpecialModifiers.LIFE_WAVE)
+		heading_text = "THIS WAVE" if not ids.empty() else "THIS WAVE IS CLEAR"
+	else:
+		ids = RunData.get_player_effect(Keys.special_next_mods_hash, player_index)
+		heading_text = "NEXT WAVE" if not ids.empty() else "NEXT WAVE IS CLEAR"
 
 	var heading: = Label.new()
-	heading.text = "NEXT WAVE" if not ids.empty() else "NEXT WAVE: CLEAR"
+	heading.text = heading_text
 	heading.add_color_override("font_color", Color(0.72, 0.72, 0.72))
 	_rules_list.add_child(heading)
 
@@ -134,7 +202,7 @@ func _refresh_rules_list(player_index: int) -> void :
 		var name_label: = Label.new()
 		name_label.text = mod.name
 		name_label.autowrap = true
-		# same colour vocabulary the rest of the game uses for good / bad / cursed
+		# the game's own colour vocabulary for good / bad / cursed
 		match mod.kind:
 			"good":
 				name_label.add_color_override("font_color", Color(ProgressData.settings.color_positive))
@@ -153,8 +221,9 @@ func _refresh_rules_list(player_index: int) -> void :
 
 func update_player_stats(player_index: int) -> void :
 	_rules_player_index = player_index
-	_ensure_rules_tab(player_index)
-	_refresh_rules_list(player_index)
+	_ensure_rules_ui(player_index)
+	if _showing_rules:
+		_refresh_rules_list(player_index)
 
 	var update_stats
 	if show_buttons:
@@ -209,30 +278,16 @@ func _on_Secondary_pressed() -> void :
 	update_tab(Tab.SECONDARY)
 
 
-func _on_Rules_pressed() -> void :
-	update_tab(Tab.RULES)
-
-
 func update_tab(tab: int) -> void :
 	focused_tab = tab
 
-	# Gourmet DLC - The Special's Rules tab. Handled before the vanilla branches so the two
-	# stat lists are hidden the same way they hide each other.
-	if tab == Tab.RULES and _rules_list != null:
-		_set_flat(_primary_tab, false)
-		_set_flat(_secondary_tab, false)
-		_set_flat(_rules_tab, true)
-		_general_stats.hide()
-		_primary_stats.hide()
-		_secondary_stats.hide()
-		_refresh_rules_list(_rules_player_index)
-		_rules_list.show()
+	# Gourmet DLC - while the Rules view is open the stats side stays hidden; _set_rules_mode
+	# calls back into here when the player switches away from it.
+	if _showing_rules:
 		return
 
 	if _rules_list != null:
 		_rules_list.hide()
-	if _rules_tab != null:
-		_set_flat(_rules_tab, false)
 
 	if tab == Tab.PRIMARY:
 		_set_flat(_primary_tab, true)
