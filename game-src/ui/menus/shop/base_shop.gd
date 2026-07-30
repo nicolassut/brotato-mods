@@ -665,28 +665,52 @@ func buy_item(item_data: ItemData, player_index: int) -> void :
 func buy_weapon(item_data: WeaponData, player_index: int) -> void :
 	var player_gear_container = _get_gear_container(player_index)
 
-	# Gourmet DLC - Mime: Magic Mirrors also duplicate weapon purchases. EVERY mirror (and
-	# its value) adds one extra copy - matching item duplication - consuming that mirror,
-	# until weapon slots run out (one is reserved for the weapon being bought) or mirrors
-	# are used up.
-	var mime_char = RunData.get_player_character(player_index)
-	if mime_char != null and mime_char.my_id == "character_mime":
-		var mime_duplicated: = false
-		var weapon_slot_max: = int(RunData.get_player_effect(Keys.weapon_slot_hash, player_index))
+	# Gourmet DLC - Mime: Magic Mirrors also duplicate weapon purchases. EVERY mirror (and its
+	# value) adds one extra copy, matching item duplication and consuming that mirror. Slots
+	# are deliberately NOT checked here - see the cascade note below.
+	if RunData.is_mime(player_index):
+		# Only spend the mirrors whose copies can actually be absorbed - RunData decides, and
+		# the shop gate asked the same question before enabling the buy, so the two agree.
+		var wanted_copies: int = RunData.mime_max_copies_that_fit(item_data, player_index)
+		var mirror_copies: = 0
 		for dup_effect in RunData.get_player_effect(Keys.duplicate_item_hash, player_index):
 			for _nb in range(int(dup_effect[1])):
-				if RunData.get_player_weapons_ref(player_index).size() >= weapon_slot_max - 1:
+				if mirror_copies >= wanted_copies - 1:
 					break
 				var source_item = RunData.get_player_item(dup_effect[0], player_index)
 				if source_item == null:
 					break
 				RunData.remove_item(source_item, player_index)
-				var extra_weapon = RunData.add_weapon(item_data, player_index)
-				player_gear_container.weapons_container._elements.add_element(extra_weapon)
-				mime_duplicated = true
+				mirror_copies += 1
 				RunData.add_tracked_value(player_index, Keys.generate_hash("character_mime"), 1)
-		if mime_duplicated:
+		if mirror_copies > 0:
 			player_gear_container.set_items_data(RunData.get_player_items(player_index))
+			# A full inventory used to abort mirror duplication entirely (the old
+			# `weapons.size() >= weapon_slot_max - 1` bail), which is backwards: a duplicate
+			# is exactly what MAKES room, because two identical weapons merge into one of the
+			# next tier. Add the purchase and every mirror copy first, then cascade-merge the
+			# whole inventory down until it fits - "as if buying repeatedly" per the spec.
+			# The result of a merge can itself pair with an existing weapon of that tier, so
+			# 2xT1 -> T2 can chain into T2+T2 -> T3 in one purchase.
+			for _copy in range(mirror_copies + 1):
+				var copy_weapon = RunData.add_weapon(item_data, player_index)
+				player_gear_container.weapons_container._elements.add_element(copy_weapon)
+			_auto_merge_to_fit(item_data.weapon_id, player_index)
+			# If its own line could not absorb everything (nothing left to pair with, or the
+			# line is already max tier) drop the copies that do not fit rather than leaving
+			# the player over their slot limit. The purchase itself always survives.
+			var fit_max: = int(RunData.get_player_effect(Keys.weapon_slot_hash, player_index))
+			while RunData.get_player_weapons_ref(player_index).size() > fit_max:
+				var overflow = _find_lowest_weapon_in_line(item_data.weapon_id, player_index)
+				if overflow == null:
+					break  # nothing of this line left to shed; leave the rest to the caller
+				player_gear_container.weapons_container._elements.remove_element(overflow, 1, true)
+				var _dropped = RunData.remove_weapon(overflow, player_index)
+				GourmetTracker.ev("mime_copy_dropped", {"p": player_index, "id": overflow.my_id})
+			_update_stats(player_index)
+			_get_shop_items_container(player_index).reload_shop_items()
+			_on_player_focus_lost(player_index)
+			return
 
 	if not RunData.has_weapon_slot_available(item_data, player_index):
 		player_gear_container.weapons_container._elements.add_element(item_data)
@@ -826,6 +850,73 @@ func _forge_weapon(weapon_data: WeaponData, partner: WeaponData, player_index: i
 		weapons_container._elements.focus_element(new_weapon)
 	SoundManager.play(Utils.get_rand_element(combine_sounds), 0, 0.1, true)
 
+
+
+# Gourmet DLC - Mime: merge duplicate weapons until the inventory is back within its slot
+# limit. Each pass merges the LOWEST-tier duplicate pair, because merging low first is what
+# lets a result cascade: 2xT1 Stick -> T2 Stick, which then pairs with an existing T2 Stick
+# -> T3. Merging high first would strand the low pair. Purely a fitting operation - it stops
+# the moment the inventory fits, so an under-capacity Mime still merges only when vanilla
+# would. Bounded by a hard iteration cap as well as by the pair search failing, since this
+# runs inside a shop interaction and must never hang the UI.
+const MIME_MAX_CASCADE_MERGES: = 32
+
+func _auto_merge_to_fit(weapon_id: String, player_index: int) -> void :
+	var slot_max: = int(RunData.get_player_effect(Keys.weapon_slot_hash, player_index))
+	var merges: = 0
+	while RunData.get_player_weapons_ref(player_index).size() > slot_max:
+		if merges >= MIME_MAX_CASCADE_MERGES:
+			break
+		var pair_seed = _find_lowest_mergeable_weapon(weapon_id, player_index)
+		if pair_seed == null:
+			break
+		merges += 1
+		_combine_weapon(pair_seed, player_index, false)
+	if merges > 0:
+		GourmetTracker.ev("mime_cascade_merge", {"p": player_index, "id": weapon_id, "n": merges})
+
+
+# Returns the lowest-tier weapon IN THE BOUGHT WEAPON'S OWN LINE that has an identical
+# partner it can upgrade with, or null. Restricted to weapon_id (the untiered id, so every
+# Stick tier qualifies but nothing else) because a purchase must never silently consume an
+# unrelated pair - buying a Stick should not merge away two Galley Cannons to make room.
+# Lowest tier first: merging low is what lets the result cascade (2xT1 -> T2, then that T2
+# pairs with an owned T2 -> T3). Reads the UI element list rather than RunData because that
+# is what _combine_weapon operates on, and the two must agree on instance identity (see the
+# Blacksmith note in buy_weapon).
+func _find_lowest_mergeable_weapon(weapon_id: String, player_index: int):
+	var weapons_container: = _get_gear_container(player_index).weapons_container
+	var owned: = []
+	for element in weapons_container._elements.get_children():
+		owned.push_back(element.item)
+
+	var best = null
+	for i in owned.size():
+		var candidate = owned[i]
+		if candidate == null or candidate.weapon_id != weapon_id or candidate.upgrades_into == null:
+			continue
+		if best != null and candidate.tier >= best.tier:
+			continue
+		for j in range(owned.size()):
+			if j != i and owned[j] != null and owned[j].my_id == candidate.my_id:
+				best = candidate
+				break
+	return best
+
+
+# Lowest-tier weapon of a line regardless of whether it can pair. Used only to shed copies
+# that the cascade could not absorb (e.g. buying into an inventory full of OTHER weapons: the
+# two new copies merge once and then have nothing left to pair with). Sheds the least
+# valuable copy, never a merge result the player earned.
+func _find_lowest_weapon_in_line(weapon_id: String, player_index: int):
+	var best = null
+	for element in _get_gear_container(player_index).weapons_container._elements.get_children():
+		var owned = element.item
+		if owned == null or owned.weapon_id != weapon_id:
+			continue
+		if best == null or owned.tier < best.tier:
+			best = owned
+	return best
 
 
 func _combine_weapon(weapon_data: WeaponData, player_index: int, is_upgrade: bool) -> void :

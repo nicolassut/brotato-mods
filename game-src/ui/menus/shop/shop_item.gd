@@ -206,8 +206,11 @@ func set_shop_item(p_item_data: ItemParentData, p_wave_value: int = RunData.curr
 				additional_icon = source_item.icon.get_data()
 
 		elif item_data.get_category() == Category.WEAPON:
-			# Gourmet DLC - Mime: mirrors duplicate weapons too, show the x2 + mirror icon
-			if current_character != null and current_character.my_id == "character_mime" and RunData.has_weapon_slot_available(item_data, player_index):
+			# Gourmet DLC - Mime: mirrors duplicate weapons too, so show the x2 + mirror icon.
+			# Shown whenever the mirrored buy is actually legal, which includes the full-
+			# inventory case where the copies merge to make their own room.
+			if current_character != null and current_character.my_id == "character_mime" \
+					and (RunData.has_weapon_slot_available(item_data, player_index) or RunData.mime_purchase_fits(item_data, player_index)):
 				item_count = 2
 				var mirror_item_id = duplicate_item_effects[0][0]
 				assert (mirror_item_id is int)

@@ -189,6 +189,16 @@ func _can_weapon_be_bought(shop_item: ShopItem) -> bool:
 	if no_duplicate_weapons and player_has_weapon_family:
 		return false
 
+	# Gourmet DLC - Mime: mirrors deliver 2+ copies at once and copies merge with each other,
+	# so a full inventory does not necessarily block the buy. The vanilla allowance above only
+	# fires on an EXACT my_id match, which wrongly blocked "own 3x Stick T2, buy Stick T1"
+	# even though the two mirrored T1s become a T2 that then pairs with an owned T2. Ask
+	# whether the cascade actually lands within the slot limit instead of assuming it cannot.
+	if not weapon_slot_available and RunData.is_mime(player_index) \
+			and weapon_data.upgrades_into != null and weapon_data.upgrades_into.tier <= max_weapon_tier \
+			and RunData.mime_purchase_fits(weapon_data, player_index):
+		return true
+
 	return weapon_slot_available
 
 

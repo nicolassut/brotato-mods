@@ -1526,6 +1526,74 @@ func is_blacksmith(player_index: int) -> bool:
 	return forge_character != null and forge_character.my_id == "character_blacksmith"
 
 
+func is_mime(player_index: int) -> bool:
+	var mirror_character = get_player_character(player_index)
+	return mirror_character != null and mirror_character.my_id == "character_mime"
+
+
+# Gourmet DLC - Mime: can a mirrored weapon purchase actually fit?
+# The shop gate cannot simply ask has_weapon_slot_available. Mirrors hand him 2+ copies at
+# once, copies merge with EACH OTHER, and the result can merge again up the line - so a buy
+# that looks impossible on a full inventory frequently is not. Vanilla's gate only allows a
+# full-inventory buy when an EXACT my_id match is already owned, which wrongly blocked
+# "3x Stick T2, buy Stick T1 with a mirror" even though the two new T1s merge into a T2 and
+# then pair with an owned T2 for a T3.
+# This simulates the same lowest-tier-first cascade base_shop._auto_merge_to_fit performs and
+# reports whether it lands back inside the slot limit. Keep the two in sync.
+func mime_purchase_fits(shop_weapon: WeaponData, player_index: int) -> bool:
+	return mime_max_copies_that_fit(shop_weapon, player_index) > 0
+
+
+# Largest number of total copies (purchase + mirrors) that the cascade can absorb, or 0 if
+# even the bare purchase cannot fit. Mirrors are capped to this, exactly as the ITEM path
+# already caps duplication with min(value, remaining_item_count - 1): taking every mirror is
+# not always better. Owning 1x Stick T1 on a full inventory, a normal character can buy a
+# Stick T1 and merge to T2, but forcing two mirrored copies leaves 1x T1 + 1x T2 and does not
+# fit - so the Mime would be unable to make a purchase anyone else could. He takes as many
+# mirrors as fit and no more.
+func mime_max_copies_that_fit(shop_weapon: WeaponData, player_index: int) -> int:
+	var mirrors: = 0
+	for dup_effect in get_player_effect(Keys.duplicate_item_hash, player_index):
+		mirrors += int(dup_effect[1])
+	for copies in range(mirrors + 1, 0, -1):
+		if _mime_copies_fit(shop_weapon, player_index, copies):
+			return copies
+	return 0
+
+
+func _mime_copies_fit(shop_weapon: WeaponData, player_index: int, copies: int) -> bool:
+	var effects: = get_player_effects(player_index)
+	var slot_max: int = int(effects[Keys.weapon_slot_hash])
+	var owned: = get_player_weapons_ref(player_index)
+
+	var total: int = owned.size() + copies
+
+	# only the bought weapon's own line can merge; everything else is immovable ballast
+	var line: = {}
+	for weapon in owned:
+		if weapon.weapon_id == shop_weapon.weapon_id:
+			line[weapon.tier] = int(line.get(weapon.tier, 0)) + 1
+	line[shop_weapon.tier] = int(line.get(shop_weapon.tier, 0)) + copies
+
+	var max_tier: int = int(effects[Keys.max_weapon_tier_hash])
+	var guard: = 0
+	while total > slot_max:
+		guard += 1
+		if guard > 64:
+			return false
+		var merged: = false
+		for tier in range(0, max_tier):
+			if int(line.get(tier, 0)) >= 2:
+				line[tier] = int(line[tier]) - 2
+				line[tier + 1] = int(line.get(tier + 1, 0)) + 1
+				total -= 1
+				merged = true
+				break
+		if not merged:
+			return false
+	return true
+
+
 # Gourmet DLC - The Freeloader (character #16). Single gate for his whole kit: 8 shop
 # items / 8 upgrades, everything free, one purchase per shop, no reroll, no lock, no
 # crate items, no gold economy, flat 25% curse roll. Every other rule checks this.
