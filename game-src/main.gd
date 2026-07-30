@@ -2625,13 +2625,27 @@ func _add_node_to_pool(node: Node, id: int) -> void :
 
 func add_explosion(instance: PlayerExplosion) -> void :
 	_explosions.add_child(instance)
-	# Gourmet DLC - Popcorn Machine: each explosion has a 5% * (1 + 0.10 * Appetite)
-	# chance to pop a Popcorn (was one every explosion - far too much popcorn).
-	var pop_entries = RunData.get_player_effect(Keys.explosion_foods_hash, instance.player_index)
-	if not pop_entries.empty():
-		var pop_app: float = max(0.0, Utils.get_stat(Keys.stat_appetite_hash, instance.player_index))
-		if Utils.get_chance_success(0.05 * (1.0 + 0.10 * pop_app)):
-			count_food_trigger(Keys.explosion_foods_hash, instance.player_index)
+
+
+# Gourmet DLC - Popcorn Machine: each explosion has a 5% * (1 + 0.10 * Appetite) chance to
+# pop a Popcorn. Called from WeaponService.explode once the explosion's player_index is
+# actually assigned. This used to sit inside add_explosion(), which was wrong twice over:
+#   1. add_explosion only runs when a FRESH node is instanced - every pooled explosion (which
+#      is nearly all of them after the first) skipped the check entirely, so the Popcorn
+#      Machine barely ever fired.
+#   2. it ran BEFORE weapon_service assigns instance.player_index, so it always read the -1
+#      default from player_explosion.gd and tripped get_player_effect's player_index >= 0
+#      assert - a hard crash in any debug build.
+# Enemy and unowned explosions legitimately carry no player, hence the guard.
+func on_explosion_spawned(player_index: int) -> void :
+	if _cleaning_up or player_index < 0 or player_index >= _players.size():
+		return
+	var pop_entries = RunData.get_player_effect(Keys.explosion_foods_hash, player_index)
+	if pop_entries.empty():
+		return
+	var pop_app: float = max(0.0, Utils.get_stat(Keys.stat_appetite_hash, player_index))
+	if Utils.get_chance_success(0.05 * (1.0 + 0.10 * pop_app)):
+		count_food_trigger(Keys.explosion_foods_hash, player_index)
 
 
 # Gourmet DLC - Corn Cannon: every corn blast has a small chance to pop a free

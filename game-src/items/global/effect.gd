@@ -185,7 +185,7 @@ func get_text(player_index: int, colored: bool = true) -> String:
 	if text_key == "EFFECT_W_BELL":
 		return Text.text(text_key, [str(stepify(value / 10.0, 0.1))], [] if !colored else [Sign.NEUTRAL])
 
-	if text_key == "EFFECT_POPCORN_MACHINE":  # main.gd add_explosion: 5% * (1 + 0.10 * Appetite) chance per explosion
+	if text_key == "EFFECT_POPCORN_MACHINE":  # main.gd on_explosion_spawned: 5% * (1 + 0.10 * Appetite) chance per explosion
 		var pop_app: = 0.0
 		if player_index >= 0 and player_index != RunData.DUMMY_PLAYER_INDEX:
 			pop_app = max(0.0, Utils.get_stat(Keys.stat_appetite_hash, player_index))
