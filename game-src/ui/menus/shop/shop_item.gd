@@ -206,16 +206,20 @@ func set_shop_item(p_item_data: ItemParentData, p_wave_value: int = RunData.curr
 				additional_icon = source_item.icon.get_data()
 
 		elif item_data.get_category() == Category.WEAPON:
-			# Gourmet DLC - Mime: mirrors duplicate weapons too, so show the x2 + mirror icon.
-			# Shown whenever the mirrored buy is actually legal, which includes the full-
-			# inventory case where the copies merge to make their own room.
-			if current_character != null and current_character.my_id == "character_mime" \
-					and (RunData.has_weapon_slot_available(item_data, player_index) or RunData.mime_purchase_fits(item_data, player_index)):
-				item_count = 2
-				var mirror_item_id = duplicate_item_effects[0][0]
-				assert (mirror_item_id is int)
-				var mirror_source_item: ItemData = ItemService.get_item_from_id(mirror_item_id)
-				additional_icon = mirror_source_item.icon.get_data()
+			# Gourmet DLC - Mime: mirrors duplicate weapons too, so show the count + mirror
+			# icon. The badge used to be hardcoded x2, which is only right with ONE mirror -
+			# three mirrors buy four copies. mime_max_copies_that_fit is the same number
+			# buy_weapon will actually deliver (mirrors capped to what the inventory can
+			# absorb), so the badge cannot promise copies the purchase then declines to make.
+			# A count of 1 means no duplication is possible, so no badge.
+			if RunData.is_mime(player_index):
+				var mime_copies: int = RunData.mime_max_copies_that_fit(item_data, player_index)
+				if mime_copies > 1:
+					item_count = mime_copies
+					var mirror_item_id = duplicate_item_effects[0][0]
+					assert (mirror_item_id is int)
+					var mirror_source_item: ItemData = ItemService.get_item_from_id(mirror_item_id)
+					additional_icon = mirror_source_item.icon.get_data()
 
 	_button.remove_additional_icon()
 
