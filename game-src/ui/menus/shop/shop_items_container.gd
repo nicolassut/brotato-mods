@@ -270,7 +270,9 @@ const GRID_HSEPARATION: = 16
 # small enough that the grid never demands more width than the shop column actually gets.
 # Deriving this from a guessed 1890px made the container minimum 1890 and pushed the Stats
 # panel and Go button out of the layout entirely. Cards EXPAND_FILL into the real width.
-const CARD_MIN_WIDTH: = 320
+# Wide enough that icon + name + price fit INSIDE the drawn panel even before expansion. At
+# 320 the content minimum exceeded the card, so the price spilled outside the background box.
+const CARD_MIN_WIDTH: = 400
 var _grid: GridContainer
 
 
@@ -300,6 +302,12 @@ func _rebuild_as_compact_grid(wanted: int) -> void :
 		_grid.size_flags_horizontal = SIZE_EXPAND_FILL
 		_grid.size_flags_vertical = SIZE_SHRINK_CENTER
 		add_child(_grid)
+
+	# self is an HBoxContainer sitting at its own minimum width, so EXPAND_FILL on the grid had
+	# nothing to expand INTO and the cards stayed at CARD_MIN_WIDTH. Let self claim the shop
+	# column's full width; the stats panel lives in a different branch of the tree so it keeps
+	# its space, and the grid then splits the real width evenly between the two columns.
+	size_flags_horizontal = SIZE_EXPAND_FILL
 
 	for old in _shop_items:
 		old.queue_free()
