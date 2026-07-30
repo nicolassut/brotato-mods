@@ -238,6 +238,10 @@ CHARS = [
     ("LINE","EFFECT_FREELOADER_FREE",0),
     ("LINE","EFFECT_FREELOADER_ONE_PICK",1),
     ("LINE","EFFECT_FREELOADER_NO_REROLL",1),
+    # real functional flag, not just card text: vanilla already guards BOTH the lock button's
+    # visibility AND change_lock_status() on this key (Gangster uses it), so it closes every
+    # input path at once. Hidden line: EFFECT_FREELOADER_NO_REROLL above already says it.
+    ("TXT","disable_item_locking",1,"EFFECT_HIDDEN",3),
     ("LINE","EFFECT_FREELOADER_NO_CRATES",1),
     ("LINE","EFFECT_FREELOADER_MATERIALS",1),
     # real functional key, not just card text: vanilla already clamps weapon rolls to

@@ -102,9 +102,11 @@ func activate() -> void :
 
 
 func manage_lock_button_visibility() -> void :
-	# Gourmet DLC - The Freeloader cannot lock. Locking is a soft reroll (hold the good
-	# card, refresh the rest) and he is not allowed to reconsider anything.
-	if RunData.is_freeloader(player_index) or RunData.get_player_effect_bool(Keys.disable_item_locking_hash, player_index):
+	# Gourmet DLC - the Freeloader reaches this via the disable_item_locking effect on his
+	# character (locking is a soft reroll, and he may not reconsider anything). Using the
+	# vanilla key rather than a character check means change_lock_status() blocks the ACTION
+	# too, so hiding the button is not the only thing standing in the way.
+	if RunData.get_player_effect_bool(Keys.disable_item_locking_hash, player_index):
 		_lock_button.disable()
 		_lock_button.hide()
 	else:
