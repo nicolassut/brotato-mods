@@ -262,6 +262,7 @@ func _ensure_shop_item_capacity(wanted: int) -> void :
 # already calls display_item_data(item_data, attachment) and handles positioning, it was merely
 # gated to co-op. Do NOT hand-roll a banner or a detail overlay here; both already exist.
 const COMPACT_CARD: = "res://ui/menus/shop/coop_shop_item.tscn"
+const GRID_HSEPARATION: = 16
 var _grid: GridContainer
 
 
@@ -272,7 +273,7 @@ func _rebuild_as_compact_grid(wanted: int) -> void :
 		_grid = GridContainer.new()
 		_grid.name = "WideShopGrid"
 		_grid.columns = 2
-		_grid.add_constant_override("hseparation", 10)
+		_grid.add_constant_override("hseparation", GRID_HSEPARATION)
 		_grid.add_constant_override("vseparation", 4)
 		_grid.size_flags_horizontal = SIZE_EXPAND_FILL
 		_grid.size_flags_vertical = SIZE_SHRINK_CENTER
@@ -287,6 +288,13 @@ func _rebuild_as_compact_grid(wanted: int) -> void :
 		if child != _grid and child is Control and not (child is Timer):
 			child.visible = false
 
+	# Give each card an explicit column width. The compact card is authored for co-op's narrow
+	# ~400px panel and demands almost no width of its own, so the grid sized both columns to
+	# their minimum and drew them on top of each other at x=0. Full-Vector2 assignment because
+	# `rect_min_size.x = ...` silently no-ops in Godot 3.
+	var avail: float = rect_size.x if rect_size.x > 1.0 else 1890.0
+	var col_w: float = (avail - GRID_HSEPARATION) / 2.0
+
 	var packed = load(COMPACT_CARD)
 	for i in wanted:
 		var card = packed.instance()
@@ -294,6 +302,7 @@ func _rebuild_as_compact_grid(wanted: int) -> void :
 		_grid.add_child(card)
 		card.player_index = player_index
 		card.size_flags_horizontal = SIZE_EXPAND_FILL
+		card.rect_min_size = Vector2(col_w, 0)
 		_shop_items.push_back(card)
 		_connect_shop_item(card)
 
