@@ -291,7 +291,7 @@ func _ensure_shop_item_capacity(wanted: int) -> void :
 # the show_details flag drives) and its PanelContainer min-height floor dropped so the card
 # collapses to header + price. The banners stay collapsed; hovering pops the full card in a
 # separate floating overlay (see _show_banner_detail). Only runs on a widened shop.
-const BANNER_SIZE: = Vector2(560, 128)
+const BANNER_SIZE: = Vector2(560, 104)
 var _grid: GridContainer
 
 func _reflow_into_grid() -> void :
@@ -312,7 +312,7 @@ func _reflow_into_grid() -> void :
 	# Cards go DIRECTLY into the grid (no wrapper). A GridContainer stretches each child to a
 	# uniform cell; a plain Control wrapper does not, which is why the cards kept their old
 	# ~500px height and overflowed. Combined with the PanelContainer min-height drop in
-	# _set_banner_mode (so a card is ALLOWED to be short), every card is forced to BANNER_SIZE.
+	# _make_banner (so a card is ALLOWED to be short), every card is forced to BANNER_SIZE.
 	for shop_item in _shop_items:
 		if shop_item.get_parent() != _grid:
 			var host = shop_item.get_parent()
@@ -323,7 +323,7 @@ func _reflow_into_grid() -> void :
 		shop_item.size_flags_vertical = SIZE_FILL
 		shop_item.rect_min_size = BANNER_SIZE
 		shop_item.visible = true
-		_set_banner_mode(shop_item, true)
+		_make_banner(shop_item)
 
 	# focus chain for a 2-wide grid so controller nav walks columns and rows
 	for i in _shop_items.size():
@@ -339,25 +339,44 @@ func _reflow_into_grid() -> void :
 # Collapse a card to a banner: hide the ItemDescription detail (the same two containers its
 # show_details flag drives), leaving just the icon + name + category header and the price.
 # The banners stay collapsed; the full detail is shown separately by the hover overlay below.
-func _set_banner_mode(shop_item, banner: bool) -> void :
+# Turn a card into a one-row banner: [icon] [name / category] [price]. One-way and permanent,
+# because hovering shows the full card in the overlay rather than expanding this in place.
+#
+# THIS is what actually makes it short. Stacked, the card's minimum height is IconPanel (96)
+# + BuyButton (~68) + margins, about 180px, and that is a CONTENT minimum: no rect_min_size
+# can go below it, which is why shrinking min sizes did nothing. Moving the price into the
+# header row makes the height max(96, 68) = 96 instead of their sum.
+func _make_banner(shop_item) -> void :
 	var d = shop_item._item_description
 	if d == null:
 		return
+	# hide the two detail containers (the same nodes the show_details flag drives). Hidden
+	# children are excluded from a container's minimum size, so this genuinely removes them.
 	if d._vbox_container != null:
-		d._vbox_container.visible = not banner
+		d._vbox_container.visible = false
 	if d._scroll_container != null:
-		d._scroll_container.visible = not banner
-	# Hiding the detail is not enough: the card's PanelContainer has a 475px min-height floor,
-	# so the card stays full height and the EmptySpace spacer stretches to fill it. Drop that
-	# floor. NOTE the full-Vector2 assignment: `panel.rect_min_size.y = 0` silently no-ops in
-	# Godot 3 because rect_min_size returns a copy, which is exactly the bug that left the tall
-	# gap. Also collapse the expanding spacer so the price sits right under the header.
+		d._scroll_container.visible = false
+
+	# release the 475px floor so the panel is ALLOWED to be short. Full-Vector2 assignment:
+	# `rect_min_size.y = 0` silently no-ops in Godot 3 because rect_min_size returns a copy.
 	var panel = shop_item.get_node_or_null("PanelContainer")
 	if panel != null:
-		panel.rect_min_size = Vector2(panel.rect_min_size.x, 0 if banner else 475)
+		panel.rect_min_size = Vector2(panel.rect_min_size.x, 0)
+
+	# the expanding spacer would otherwise push the price away from the header
 	var spacer = shop_item.get_node_or_null("PanelContainer/MarginContainer/VBoxContainer/EmptySpace")
 	if spacer != null:
-		spacer.visible = not banner
+		spacer.visible = false
+
+	# move the price into the header row, to the right of the name. The header's name
+	# ScrollContainer already expands horizontally, so the button lands hard right.
+	var header = d.get_node_or_null("HBoxContainer")
+	var buy = shop_item._button
+	if header != null and buy != null and buy.get_parent() != header:
+		buy.get_parent().remove_child(buy)
+		header.add_child(buy)
+		buy.size_flags_horizontal = SIZE_SHRINK_END
+		buy.size_flags_vertical = SIZE_SHRINK_CENTER
 
 
 # On hover, the full card is shown in a floating panel anchored to the banner, exactly like the
