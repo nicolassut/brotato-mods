@@ -291,7 +291,7 @@ func _ensure_shop_item_capacity(wanted: int) -> void :
 # the show_details flag drives). The banners stay collapsed; hovering pops the full card in a
 # separate floating overlay (see _show_banner_detail). Each banner sits in a plain Control
 # wrapper with a FIXED min size so the grid never reflows. Only runs on a widened shop.
-const BANNER_SIZE: = Vector2(560, 118)
+const BANNER_SIZE: = Vector2(560, 140)
 var _grid: GridContainer
 
 func _reflow_into_grid() -> void :
@@ -348,6 +348,12 @@ func _set_banner_mode(shop_item, banner: bool) -> void :
 		d._vbox_container.visible = not banner
 	if d._scroll_container != null:
 		d._scroll_container.visible = not banner
+	# Hiding the detail is not enough: the card's PanelContainer has a 475px min-height floor,
+	# so the card stays full height with an empty middle and overflows the banner slot. Drop
+	# that floor so the card collapses to just its header + price row.
+	var panel = shop_item.get_node_or_null("PanelContainer")
+	if panel != null:
+		panel.rect_min_size.y = 0 if banner else 475
 
 
 # On hover, the full card is shown in a floating panel anchored to the banner, exactly like the
