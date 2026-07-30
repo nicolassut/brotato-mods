@@ -89,8 +89,13 @@ func activate() -> void :
 
 	
 	if not _lock_button.visible and not _steal_button.visible and not _ban_button.visible:
-		_steal_button.modulate = Color(1, 1, 1, 0)
-		_steal_button.show()
+		# Vanilla shows a fully TRANSPARENT steal button here purely to reserve layout space so
+		# cards keep a consistent shape. Gourmet DLC - on the Freeloader's compact cards that
+		# reserved width lands between the price and the card's right edge and reads as a bug,
+		# so skip the placeholder and let the expanding description push the price hard right.
+		if not use_compact_style:
+			_steal_button.modulate = Color(1, 1, 1, 0)
+			_steal_button.show()
 
 	_button.activate()
 	active = true
