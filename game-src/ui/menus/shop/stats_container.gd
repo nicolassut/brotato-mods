@@ -132,9 +132,37 @@ func _ensure_rules_ui(player_index: int) -> void :
 
 	_stats_top_tab.connect("pressed", self, "_on_StatsTop_pressed")
 	_rules_top_tab.connect("pressed", self, "_on_RulesTop_pressed")
-	# Rules is the default view for The Special: what the wave is about to do to you matters
-	# more than the stat sheet, and the stat sheet is one click away.
-	_set_rules_mode(true)
+
+	# Default view depends on the screen. On the level-up screen you are picking a stat, so
+	# Stats is what you want in front of you; in the shop and the pause menu what the wave is
+	# about to do matters more. Derived from the owning scene so no .tscn edit is needed.
+	var owner_scene: String = owner.filename if owner != null else ""
+	var on_upgrade_screen: bool = "upgrades_ui" in owner_scene
+	_set_rules_mode(not on_upgrade_screen)
+
+
+# Without this the new tabs are unreachable by keyboard or controller: nothing points focus at
+# them, and set_focus_neighbours() would overwrite anything set once. Called from there too so
+# the vanilla wiring cannot clobber it.
+func _wire_top_tab_focus() -> void :
+	if _top_tabs == null:
+		return
+
+	_stats_top_tab.focus_mode = Control.FOCUS_ALL
+	_rules_top_tab.focus_mode = Control.FOCUS_ALL
+
+	_stats_top_tab.focus_neighbour_right = _stats_top_tab.get_path_to(_rules_top_tab)
+	_rules_top_tab.focus_neighbour_left = _rules_top_tab.get_path_to(_stats_top_tab)
+
+	if _showing_rules:
+		# the rules list holds no focusable controls, so there is nowhere below to go
+		_stats_top_tab.focus_neighbour_bottom = NodePath("")
+		_rules_top_tab.focus_neighbour_bottom = NodePath("")
+	else:
+		_stats_top_tab.focus_neighbour_bottom = _stats_top_tab.get_path_to(_primary_tab)
+		_rules_top_tab.focus_neighbour_bottom = _rules_top_tab.get_path_to(_secondary_tab)
+		_primary_tab.focus_neighbour_top = _primary_tab.get_path_to(_stats_top_tab)
+		_secondary_tab.focus_neighbour_top = _secondary_tab.get_path_to(_rules_top_tab)
 
 
 func _on_StatsTop_pressed() -> void :
@@ -166,6 +194,8 @@ func _set_rules_mode(on: bool) -> void :
 		_buttons_container.visible = show_buttons
 		# restore whichever stat tab was last selected
 		update_tab(focused_tab)
+
+	_wire_top_tab_focus()
 
 
 func _refresh_rules_list(player_index: int) -> void :
@@ -354,6 +384,10 @@ func set_focus_neighbours() -> void :
 			stat.focus_neighbour_left = stat.get_path_to(get_node(focus_neighbour_left))
 		if focus_neighbour_right:
 			stat.focus_neighbour_right = stat.get_path_to(get_node(focus_neighbour_right))
+
+	# Gourmet DLC - reassert the Stats/Rules tab wiring; the block above rewrites the
+	# Primary/Secondary neighbours from the exported paths and would clobber it.
+	_wire_top_tab_focus()
 
 
 func _reset_focus_neighbours() -> void :

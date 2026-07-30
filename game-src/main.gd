@@ -312,6 +312,25 @@ func _ready() -> void :
 		var effect_behavior: SceneEffectBehavior = effect_behavior_data.scene.instance()
 		_effect_behaviors.add_child(effect_behavior.init(_entity_spawner, _wave_manager))
 
+	# Gourmet DLC - The Special: apply this wave's modifiers BEFORE the entity spawner creates
+	# the players, so their max_stats are computed WITH the modifiers already in the effects
+	# dict. The ids were rolled and stored at the END of the previous wave, so what the shop
+	# previewed is exactly what lands, and a mid-wave reload re-applies rather than re-rolls.
+	# This position matters twice over: applying after the players spawn left current health
+	# above a reduced max, and forcing a synchronous stats flush there crashed, because
+	# stats_updated reaches stats_manager while _entity_spawner is still mid-init and Nil.
+	# RunData defers that flush for exactly this reason; applying early sidesteps it entirely.
+	for special_index in RunData.get_player_count():
+		if not RunData.is_special(special_index):
+			continue
+		var sp_pending: Array = SpecialModifiers.stored_ids(Keys.special_next_mods_hash, special_index)
+		if sp_pending.empty():
+			continue
+		var sp_effects: Dictionary = RunData.get_player_effects(special_index)
+		sp_effects[Keys.special_active_mods_hash] = sp_pending.duplicate()
+		sp_effects[Keys.special_next_mods_hash] = []
+		SpecialModifiers.apply_ids(SpecialModifiers.ids_of_life(sp_pending, SpecialModifiers.LIFE_WAVE), special_index)
+
 	
 	_entity_spawner.init(
 		ZoneService.current_zone_min_position, 
@@ -2116,26 +2135,6 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void :
 	_floating_text_manager.players_add_stats_count = []
 	for player in _players:
 		_floating_text_manager.players_add_stats_count.push_back(0)
-
-	# Gourmet DLC - The Special: apply this wave's modifiers BEFORE anything reads player
-	# stats. The ids were rolled and stored at the END of the previous wave, so what the shop
-	# previewed is exactly what lands, and a mid-wave reload re-applies rather than re-rolls.
-	# Order matters: the per-player loop further down sets current health from max_stats, so
-	# applying after it left current health above a reduced max (the 41/37 bug). The
-	# _emit_stats_updated() call is deliberate and synchronous: RunData only flushes the dirty
-	# flag on a deferred call, so without it the recompute lands a frame late and modifiers
-	# look like they take effect seconds after the wave starts.
-	for special_index in RunData.get_player_count():
-		if not RunData.is_special(special_index):
-			continue
-		var sp_effects: Dictionary = RunData.get_player_effects(special_index)
-		var pending: Array = SpecialModifiers.stored_ids(Keys.special_next_mods_hash, special_index)
-		if pending.empty():
-			continue
-		sp_effects[Keys.special_active_mods_hash] = pending.duplicate()
-		sp_effects[Keys.special_next_mods_hash] = []
-		SpecialModifiers.apply_ids(SpecialModifiers.ids_of_life(pending, SpecialModifiers.LIFE_WAVE), special_index)
-	RunData._emit_stats_updated()
 
 	
 	EffectBehaviorService.update_active_effect_behaviors()
