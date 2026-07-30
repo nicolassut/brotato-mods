@@ -159,6 +159,32 @@ def effects_of(data_path):
                 out.append(props(full))
     return out
 
+def check_spawn_counts():
+    """Curse multiplies a plain spawn effect's `value`, which IS the per-fire food count
+    (dlc_1_data.gd _boost_effect_value_positively). If the row hardcodes the number instead of
+    using {0}, a cursed spawner silently produces more food than its card admits -- a cursed
+    Espresso Machine spawned 4 while advertising 2. Structure spawners are exempt: curse takes
+    a different branch there and shortens spawn_cooldown, which turret_effect renders live."""
+    for rel in sorted(registered_paths("items")):
+        full = f"{DEC}/{rel}"
+        if not os.path.exists(full):
+            continue
+        slug = unquote(props(full).get("my_id", rel))
+        for e in effects_of(full):
+            key, ck = unquote(e.get("key")), unquote(e.get("custom_key"))
+            text_key = unquote(e.get("text_key"))
+            # a trigger spawn effect: key is the food, custom_key is the *_foods trigger
+            if not (key.startswith("consumable_food_") and ck.endswith("_foods")):
+                continue
+            if text_key in ("", "EFFECT_HIDDEN"):
+                continue
+            row = TR.get(text_key, "")
+            if not placeholders(row):
+                err(slug, f"{text_key} hardcodes its spawn count -> a cursed copy fires "
+                          f"value={unquote(e.get('value','?'))} but the card cannot show it. "
+                          f"Use {{0}}.\n        row: {row}")
+
+
 def check_food_sources():
     for kind in ("items", "weapons", "characters"):
         for rel in sorted(registered_paths(kind)):
@@ -237,6 +263,7 @@ def check_trackers():
 
 def main():
     check_food_rows()
+    check_spawn_counts()
     check_food_sources()
     check_trackers()
 

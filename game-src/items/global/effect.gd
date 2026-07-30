@@ -190,7 +190,10 @@ func get_text(player_index: int, colored: bool = true) -> String:
 		if player_index >= 0 and player_index != RunData.DUMMY_PLAYER_INDEX:
 			pop_app = max(0.0, Utils.get_stat(Keys.stat_appetite_hash, player_index))
 		var pop_current: = stepify(5.0 * (1.0 + 0.10 * pop_app), 0.1)
-		return Text.text(text_key, ["5", str(pop_current)], [] if !colored else [Sign.NEUTRAL, Sign.NEUTRAL])
+		# {2} is the per-pop food count. This branch bypasses get_args(), so without pushing
+		# `value` explicitly a cursed Popcorn Machine would pop 2 and still advertise 1.
+		return Text.text(text_key, ["5", str(pop_current), str(int(value))],
+			[] if !colored else [Sign.NEUTRAL, Sign.NEUTRAL, Sign.NEUTRAL])
 
 	if text_key == "EFFECT_JUGGLER_TEMPO":  # weapon.gd metronome: 18 frames / (1 + AttackSpeed/100), clamped [3, 180] -> 0.3s base
 		var jt_as: float = 0.0

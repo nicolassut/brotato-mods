@@ -40,44 +40,44 @@ EFFECT_BUTCHER_STEAK,+1% Damage per consumable eaten this wave
 EFFECT_MINIMALIST_ALL12,They all give +12 instead while your 6 items are all max tier
 GAIN_STAT_HARVESTING,% Harvesting modifications
 GAIN_XP_GAIN,% XP Gain modifications
-EFFECT_ESPRESSO_MACHINE,Spawns 2 Espressos at the start of each wave
+EFFECT_ESPRESSO_MACHINE,Spawns {0}x Espresso at the start of each wave
 EFFECT_FOOD_ESPRESSO,Eating an Espresso grants +{0}% ({1}) Attack Speed for 10 seconds. Stacks
-EFFECT_BUTCHERS_HOOK,Spawns a Steak every 40 kills
+EFFECT_BUTCHERS_HOOK,Spawns {0}x Steak every 40 kills
 EFFECT_FOOD_STEAK,Eating a Steak grants +{0}% ({1}) Damage for 9 seconds. Stacks
-EFFECT_BAKERS_OVEN,Spawns a Cake Slice on every level up
+EFFECT_BAKERS_OVEN,Spawns {0}x Cake Slice on every level up
 EFFECT_FOOD_CAKE_SLICE,Eating a Cake Slice heals {1} HP ({2}) and grants +{0} Max HP until the end of the wave. Stacks
 EFFECT_BEEHIVE,Places a Beehive that drips a Honey Drop every {0} seconds
 EFFECT_FOOD_HONEY_DROP,Eating a Honey Drop grants +{0} ({1}) HP Regeneration until the end of the wave. Stacks
-EFFECT_WOK_STATION,Serves a Fried Rice at the wok every 8 enemies that die burning
+EFFECT_WOK_STATION,Serves {0}x Fried Rice at the wok every 8 enemies that die burning
 EFFECT_FOOD_FRIED_RICE,Eating Fried Rice grants +{0}% ({1}) Attack Speed for 10 seconds. Stacks
-EFFECT_POPCORN_MACHINE,Each explosion has a {0}% ({1}%) chance to pop a Popcorn
+EFFECT_POPCORN_MACHINE,Each explosion has a {0}% ({1}%) chance to pop {2}x Popcorn
 EFFECT_FOOD_POPCORN,Eating Popcorn grants +{0}% ({1}) Explosion Damage and +{2}% ({3}) Explosion Size for 9 seconds. Stacks
-EFFECT_DEEP_FRYER,Spawns a Fries every 30 materials you collect
+EFFECT_DEEP_FRYER,Spawns {0}x Fries every 30 materials you collect
 EFFECT_FOOD_FRIES,Eating Fries grants +{0}% ({1}) Speed for 9 seconds. Stacks
-EFFECT_SUSHI_BAR,Spawns a Sushi Roll every 12 critical hits
+EFFECT_SUSHI_BAR,Spawns {0}x Sushi Roll every 12 critical hits
 EFFECT_FOOD_SUSHI_ROLL,Eating a Sushi Roll grants +{0}% ({1}) Crit Chance for 10 seconds. Stacks
-EFFECT_GRANDMAS_COOKBOOK,Spawns a Warm Cookie when you take damage (2 second cooldown)
+EFFECT_GRANDMAS_COOKBOOK,Spawns {0}x Warm Cookie when you take damage (2 second cooldown)
 EFFECT_FOOD_WARM_COOKIE,Eating a Warm Cookie heals {2} HP and grants +{0} ({1}) HP Regeneration for 10 seconds. Stacks
-EFFECT_PIZZA_DELIVERY,"Delivers 2 Pizza Slices mid-wave, each to its own spot"
+EFFECT_PIZZA_DELIVERY,"Delivers {0}x Pizza Slice mid-wave, each to its own spot"
 EFFECT_FOOD_PIZZA_SLICE,Eating a Pizza Slice grants +{0}% Damage and +{1}% Speed for {2} ({3}) seconds. Stacks
-EFFECT_VICTORY_FEAST,Spawns a Golden Apple when an elite or a boss dies
+EFFECT_VICTORY_FEAST,Spawns {0}x Golden Apple when an elite or a boss dies
 EFFECT_FOOD_GOLDEN_APPLE,Eating a Golden Apple heals {2} HP ({3}) and grants +20% to a random stat for {0} ({1}) seconds. Stacks
-EFFECT_STREET_VENDOR,"A Mystery Meat shows up 1 to 3 times per wave, +0.3 per Appetite to both bounds (rounded)"
+EFFECT_STREET_VENDOR,"Mystery Meat shows up 1 to 3 times per wave ({0}x each), +0.3 per Appetite to both bounds (rounded)"
 EFFECT_FOOD_MYSTERY_MEAT,Eating Mystery Meat grants +{0}% ({1}) Damage for 14 seconds half the time. Otherwise you lose 2 HP. Stacks
-EFFECT_FONDUE_SET,Spawns a Cheese Cube every 3 seconds you stand still
+EFFECT_FONDUE_SET,Spawns {0}x Cheese Cube every 3 seconds you stand still
 EFFECT_FOOD_CHEESE_CUBE,Eating a Cheese Cube grants +{0}% ({1}) Dodge for 8 seconds. Stacks
-EFFECT_GYM_MEMBERSHIP,Spawns a Protein Shake every 200 steps
+EFFECT_GYM_MEMBERSHIP,Spawns {0}x Protein Shake every 200 steps
 EFFECT_FOOD_PROTEIN_SHAKE,Eating a Protein Shake grants +{0}% ({1}) Speed and +{2} ({3}) Melee Damage for 10 seconds. Stacks
 EFFECT_FANCY_RESTAURANT,Places a restaurant that serves an Escargot every {0} seconds to nearby players at full HP
 EFFECT_FOOD_ESCARGOT,Eating an Escargot grants +{0} ({1}) Armor for 14 seconds. Stacks
-EFFECT_FARMERS_MARKET,Banks every shop reroll as a Fruit Salad served at the stall next wave
+EFFECT_FARMERS_MARKET,Banks every shop reroll as {0}x Fruit Salad served at the stall next wave
 EFFECT_FOOD_FRUIT_SALAD,Eating a Fruit Salad heals {0} HP ({1}) and grants +{2} Harvesting permanently
-EFFECT_AFTER_DINNER_MINTS,Spawns a Mint every 5 consumables you pick up
+EFFECT_AFTER_DINNER_MINTS,Spawns {0}x Mint every 5 consumables you pick up
 EFFECT_FOOD_MINT,Eating a Mint refreshes all your active food buffs to their full duration
 GOURMET_APPETITE_GAINED,Appetite gained: {0}
 GOURMET_HARVESTING_GAINED,Harvesting gained: {0}
 GOURMET_SNAIL_ARMOR_GAINED,Armor gained: {0}
-EFFECT_CHILI_GREENHOUSE,Grows a Chili Pepper at the greenhouse every 10 burning ticks you deal
+EFFECT_CHILI_GREENHOUSE,Grows {0}x Chili Pepper at the greenhouse every 10 burning ticks you deal
 EFFECT_FOOD_CHILI_PEPPER,Eating a Chili Pepper makes your attacks burn enemies for 8 seconds. Burns deal {0} ({1}) damage plus 30% Elemental Damage
 EFFECT_DOGGY_BAG,Food that expires uneaten banks a Leftover. Every banked Leftover is served somewhere on the map next wave. The bank never resets
 EFFECT_FOOD_LEFTOVERS,Eating a Leftover grants +{0}% Damage until the end of the wave. Stacks with no limit. Leftovers never rot
@@ -196,9 +196,9 @@ ITEM_TEST_ARSENAL,Test Arsenal
 EFFECT_TEST_ARSENAL,TEST: start with all 20 Gourmet weapons and 20 weapon slots
 CHARACTER_TEST_ARMORY,Test Armory
 EFFECT_TEST_ARMORY,TEST: starts with all 20 Gourmet weapons and +20 weapon slots
-EFFECT_BBQ_GRILL,Spawns Ribs every 15 enemies that die within 300 range of you
+EFFECT_BBQ_GRILL,Spawns {0}x Ribs every 15 enemies that die within 300 range of you
 EFFECT_FOOD_RIBS,Eating Ribs grants +{0} ({1}) Melee Damage for 10 seconds. Stacks
-EFFECT_HOT_DOG_CART,Spawns a Chili Dog every 15 enemies that die more than 300 range from you
+EFFECT_HOT_DOG_CART,Spawns {0}x Chili Dog every 15 enemies that die more than 300 range from you
 EFFECT_FOOD_CHILI_DOG,Eating a Chili Dog grants +{0} ({1}) Ranged Damage for 10 seconds. Stacks
 EFFECT_FOOD_STACK_CAP,+{0} max stacks to every food buff
 EFFECT_WINE_CELLAR,Food eaten at least 5 seconds after it appeared grants a +{0}% stronger buff
@@ -219,7 +219,7 @@ EFFECT_W_SAUCE_BLASTER_DROP,Each hit has a {0}% chance to squirt out a Chili Pep
 EFFECT_W_ICE_CREAM_SCOOP_DROP,Each hit has a {0}% chance to scoop out an Ice Cream
 EFFECT_W_GOLDEN_SPATULA_DROP,Each hit has a {0}% chance to flip out a Golden Apple
 EFFECT_W_EXPLODE,"Explodes on impact, damaging nearby enemies"
-EFFECT_GUMBALL_MACHINE,Dispenses a Gumball at the machine every 5 kills your turrets get
+EFFECT_GUMBALL_MACHINE,Dispenses {0}x Gumball at the machine every 5 kills your turrets get
 EFFECT_FOOD_GUMBALL,Eating a Gumball grants +{0} ({1}) Engineering for 14 seconds. Stacks
 EFFECT_COCKTAIL_BAR,Places a bar that serves a Bloody Mary every {0} seconds to nearby players
 EFFECT_FOOD_BLOODY_MARY,Drinking a Bloody Mary grants +{0}% ({1}) Life Steal for 10 seconds. Stacks
