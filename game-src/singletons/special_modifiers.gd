@@ -312,22 +312,19 @@ func _shift_ids(ids: Array, player_index: int, sign_mult: int) -> void :
 			if not effects.has(key_hash):
 				continue
 
-			var delta: int = pair[1] * sign_mult
-
-			# STAT keys must go through RunData.add_stat / remove_stat, not a raw dict write.
-			# Those set _are_player_stats_dirty, which is what makes the player actually
-			# RECOMPUTE its stats. Writing the dict directly left the player using the values
-			# it had already baked, so a modifier appeared to do nothing until something else
-			# happened to dirty the player, which read as "applies a few seconds late".
-			# Non-stat keys (enemy_health, no_heal, map_size, prices...) are read live through
-			# get_player_effect, so a direct write is correct for those.
-			if Utils.is_stat_key(key_hash):
-				if delta >= 0:
-					RunData.add_stat(key_hash, delta, player_index)
-				else:
-					RunData.remove_stat(key_hash, - delta, player_index)
-			else:
-				effects[key_hash] += delta
+			# Plain dict write, deliberately NOT RunData.add_stat.
+			#
+			# Brotato rebuilds the main scene every wave, so players are constructed fresh and
+			# read this dict when they are built. Applying BEFORE entity_spawner.init (which is
+			# what main.gd does) therefore needs no dirty flag and no recompute: the values are
+			# simply in place before anything reads them.
+			#
+			# add_stat is actively wrong here. It emits stat_added, and floating_text_manager
+			# handles that by indexing players[player_index] - which is an empty array before
+			# the spawn, so it crashed. It would also spray "+50 Damage" popups across the
+			# screen on teardown at wave end, which is not what a modifier expiring should look
+			# like.
+			effects[key_hash] += pair[1] * sign_mult
 
 	Utils.reset_stat_cache(player_index)
 	LinkedStats.reset_player(player_index)
