@@ -256,3 +256,7 @@ EFFECT_FREELOADER_NO_CRATES,Crates never contain items
 EFFECT_FREELOADER_MATERIALS,Materials grant XP but no money
 EFFECT_FREELOADER_WEAPON_TIER,Weapons in the shop are always Tier II or better
 EFFECT_FREELOADER_CURSE,Every shop offering has a 25% chance to be cursed
+EFFECT_SPECIAL_ROLL,Every wave rolls random modifiers that rewrite the rules
+EFFECT_SPECIAL_PREVIEW,The shop shows you what is coming next wave
+EFFECT_SPECIAL_TEMPORARY,Modifiers last one wave only
+EFFECT_SPECIAL_SKEW,More modifiers are bad than good

@@ -170,6 +170,10 @@ func _ready() -> void :
 
 		_popup_manager.add_item_popup(item_popup, player_index)
 
+		# Gourmet DLC - The Special: brief the player on what next wave will throw at them
+		if RunData.is_special(player_index):
+			_show_special_briefing(player_index)
+
 		var weapons_container = player_gear_container.weapons_container
 		_popup_manager.connect_inventory_container(weapons_container)
 		_error_connect = weapons_container._elements.connect("focus_lost", self, "_on_player_focus_lost", [player_index])
@@ -1214,7 +1218,87 @@ func on_shop_item_banned(shop_item: ShopItem, player_index: int) -> void :
 	_has_bonus_free_reroll[player_index] = _shop_items[player_index].empty()
 	set_reroll_button_price(player_index)
 
+# Gourmet DLC - The Special: the shop briefing. Lists the modifiers rolled for the NEXT wave,
+# so the player shops knowing what is coming. Built in code rather than as a scene so it needs
+# no .tscn edits. Colour follows the game's own settings: green good, red bad, white mixed.
+func _show_special_briefing(player_index: int) -> void :
+	var ids: Array = RunData.get_player_effect(Keys.special_next_mods_hash, player_index)
+	if ids.empty():
+		return
+
+	var overlay: = PanelContainer.new()
+	overlay.name = "SpecialBriefing"
+	overlay.set_as_toplevel(true)
+	var sb: = StyleBoxFlat.new()
+	sb.bg_color = Color(0, 0, 0, 0.93)
+	sb.set_border_width_all(4)
+	sb.border_color = Color(0.55, 0.38, 0.75)
+	sb.set_corner_radius_all(8)
+	sb.content_margin_left = 26
+	sb.content_margin_right = 26
+	sb.content_margin_top = 20
+	sb.content_margin_bottom = 22
+	overlay.add_stylebox_override("panel", sb)
+
+	var box: = VBoxContainer.new()
+	box.add_constant_override("separation", 12)
+	overlay.add_child(box)
+
+	var title: = Label.new()
+	title.text = "TONIGHT'S SPECIALS  -  WAVE %d" % (RunData.current_wave + 1)
+	box.add_child(title)
+
+	for id in ids:
+		var mod: Dictionary = SpecialModifiers.get_by_id(id)
+		if mod.empty():
+			continue
+
+		var name_label: = Label.new()
+		name_label.text = mod.name
+		match mod.kind:
+			"good":
+				name_label.add_color_override("font_color", Color(ProgressData.settings.color_positive))
+			"bad":
+				name_label.add_color_override("font_color", Color(ProgressData.settings.color_negative))
+			_:
+				name_label.add_color_override("font_color", Utils.CURSE_COLOR)
+		box.add_child(name_label)
+
+		var text_label: = Label.new()
+		text_label.text = "    " + mod.text
+		text_label.add_color_override("font_color", Color(0.87, 0.87, 0.87))
+		box.add_child(text_label)
+
+	var hint: = Label.new()
+	hint.text = "(click to dismiss)"
+	hint.add_color_override("font_color", Color(0.55, 0.55, 0.55))
+	box.add_child(hint)
+
+	add_child(overlay)
+	overlay.rect_position = Vector2(60, 120)
+	# dismiss on click anywhere on the panel
+	overlay.connect("gui_input", self, "_on_special_briefing_input", [overlay])
+
+
+func _on_special_briefing_input(event: InputEvent, overlay: Control) -> void :
+	if event is InputEventMouseButton and event.pressed:
+		overlay.queue_free()
+
+
 func _on_tree_exited() -> void :
+	# Gourmet DLC - The Special: strip the NEXT-SHOP scoped modifiers now that the shop they
+	# were rolled for is closing. These are the second lifetime: they are applied at wave end
+	# so they are live while shopping, and removed here. Tearing them down at wave end with
+	# the wave-scoped ones would have made every shop modifier silently do nothing.
+	for special_index in RunData.get_player_count():
+		if not RunData.is_special(special_index):
+			continue
+		var sp_effects: Dictionary = RunData.get_player_effects(special_index)
+		var shop_ids: Array = sp_effects[Keys.special_shop_mods_hash]
+		if not shop_ids.empty():
+			SpecialModifiers.unapply_ids(shop_ids, special_index)
+			sp_effects[Keys.special_shop_mods_hash] = []
+
 	for player_index in range(RunData.get_player_count()):
 		var curse_locked_items: int = RunData.get_player_effect(Keys.curse_locked_items_hash, player_index)
 		var has_cursed_an_item = false

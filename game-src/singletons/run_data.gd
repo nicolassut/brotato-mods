@@ -1606,6 +1606,12 @@ func _mime_copies_fit(shop_weapon: WeaponData, player_index: int, copies: int) -
 	return true
 
 
+# Gourmet DLC - The Special (character #18): every wave rolls random modifiers.
+func is_special(player_index: int) -> bool:
+	var character = get_player_character(player_index)
+	return character != null and character.my_id == "character_special"
+
+
 # Gourmet DLC - The Freeloader (character #16). Single gate for his whole kit: 8 shop
 # items / 8 upgrades, everything free, one purchase per shop, no reroll, no lock, no
 # crate items, no gold economy, flat 25% curse roll. Every other rule checks this.

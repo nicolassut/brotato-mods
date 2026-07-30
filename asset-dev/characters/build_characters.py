@@ -76,6 +76,11 @@ POOLS = {
                  "pizza_cutter","champagne_popper"],
  # deliberately wide: his run is decided by what he drafts, so the start should not
  # pre-commit him to melee or ranged.
+ # wide and neutral: his run is decided by what the wave throws at him, so the start
+ # should not pre-commit him to melee or ranged.
+ "special":     ["knife","stick","plank","rock","fist","hand","screwdriver","scissors",
+                 "spear","torch","hatchet","dagger","fighting_stick","pistol","slingshot",
+                 "smg","wand","taser","crossbow","revolver"],
  "freeloader":  ["knife","stick","plank","rock","fist","hand","screwdriver","scissors",
                  "spear","torch","hatchet","dagger","fighting_stick","pistol","slingshot",
                  "smg","wand","taser","crossbow","revolver"],
@@ -251,11 +256,30 @@ CHARS = [
     # materials give him XP but no money, so XP is the only currency he actually banks
     ("xp_gain",25),
     ("gain_stat_luck",50)],[]),
+ # #18 The Special (2026-07-30, user spec). Every wave rolls random modifiers that rewrite the
+ # rules for that wave only; the shop previews the NEXT wave's set so he shops informed.
+ # Wave 1 rolls nothing. Count follows a jagged curve peaking at 4-6 around waves 13-20. The
+ # pool holds more bad than good and good gets slightly rarer as the run climbs, so a late
+ # wave can still roll all good but usually will not.
+ # BASELINE KIT: deliberately sturdy rather than sharp. He cannot build around a plan because
+ # the rules change every wave, so he gets survivability and economy to absorb bad rolls, and
+ # no damage bonus (the modifiers supply the swings).
+ # Runtime lives in singletons/special_modifiers.gd (registry + roll + apply/unapply),
+ # main.gd (wave-start apply, wave-end teardown + reroll) and base_shop.gd (briefing +
+ # next-shop-scoped teardown).
+ ("special","The Special","character_special",[],
+   [("LINE","EFFECT_SPECIAL_ROLL",2),
+    ("LINE","EFFECT_SPECIAL_PREVIEW",0),
+    ("LINE","EFFECT_SPECIAL_TEMPORARY",0),
+    ("LINE","EFFECT_SPECIAL_SKEW",1),
+    ("stat_max_hp",15),("stat_armor",3),("stat_hp_regeneration",2),
+    ("stat_harvesting",5),
+    ("stat_percent_damage",-10)],[]),
 ]
 
 # explicit ext ids for characters added after the original 14 (base+i past 824
 # collides with stat resources - stat_appetite is id=825)
-EXT_IDS = {"girly": 998, "freeloader": 1004}
+EXT_IDS = {"girly": 998, "freeloader": 1004, "special": 1005}
 
 SKINNED = {"zombie","snail","mole"}
 LEGS_MOD = {

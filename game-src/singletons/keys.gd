@@ -69,6 +69,12 @@ var tourist_danger_done_hash: = generate_hash("tourist_danger_done")
 # because that IS serialized with the run; a plain RunData var reset on reload and let him
 # buy a second thing from the same shop.
 var freeloader_shop_wave_hash: = generate_hash("freeloader_shop_wave")
+# Gourmet DLC - The Special: ids of the modifiers currently applied, and the ones previewed
+# in the shop for the NEXT wave. Both live in the serialized effects dict so a reload keeps
+# the same roll instead of silently re-rolling or double-applying.
+var special_active_mods_hash: = generate_hash("special_active_mods")
+var special_next_mods_hash: = generate_hash("special_next_mods")
+var special_shop_mods_hash: = generate_hash("special_shop_mods")
 # Gourmet DLC - Gourmet: fat stacks applied so far (1 per wave; -3% Speed, +1% size each)
 var gourmet_fat_hash: = generate_hash("gourmet_fat")
 # Gourmet DLC - Competitive Eater: Appetite modifications multiplier (run_data.get_stat_gain

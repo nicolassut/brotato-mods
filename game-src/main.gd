@@ -1976,6 +1976,40 @@ func _on_WaveTimer_timeout() -> void :
 	for player_index in RunData.get_player_count():
 		Utils.convert_stats(RunData.get_player_effect(Keys.convert_stats_end_of_wave_hash, player_index), player_index)
 
+	# Gourmet DLC - The Special: tear the wave's modifiers back off, then roll the NEXT wave's
+	# set so the shop can preview it. Teardown is the exact inverse of the wave-start apply.
+	# LIFE_SHOP modifiers are deliberately NOT removed here: they exist to affect the shop that
+	# is about to open, and are stripped when it closes (base_shop).
+	for special_index in RunData.get_player_count():
+		if not RunData.is_special(special_index):
+			continue
+
+		var sp_effects: Dictionary = RunData.get_player_effects(special_index)
+		var active: Array = sp_effects[Keys.special_active_mods_hash]
+		if not active.empty():
+			SpecialModifiers.unapply_ids(SpecialModifiers.ids_of_life(active, SpecialModifiers.LIFE_WAVE), special_index)
+			sp_effects[Keys.special_active_mods_hash] = []
+
+		# Never hand the player an event the wave was already going to run: two fog of wars, or
+		# a "horde" roll on a wave that is already a horde, reads as broken.
+		var blocked: = []
+		if _is_fog_wave:
+			blocked.push_back("VISION")
+		if _is_bullet_hell_wave:
+			blocked.push_back("BULLET_HELL")
+		if _is_elite_wave or _is_horde_wave:
+			blocked.push_back("ENEMY_COUNT")
+
+		var next_wave: int = RunData.current_wave + 1
+		var rolled: Array = SpecialModifiers.roll_for_wave(next_wave, special_index, blocked)
+		sp_effects[Keys.special_next_mods_hash] = rolled
+
+		# shop-scoped ones apply NOW so they are live in the shop that follows this wave
+		var shop_ids: Array = SpecialModifiers.ids_of_life(rolled, SpecialModifiers.LIFE_SHOP)
+		if not shop_ids.empty():
+			SpecialModifiers.apply_ids(shop_ids, special_index)
+			sp_effects[Keys.special_shop_mods_hash] = shop_ids.duplicate()
+
 	emit_signal("end_of_the_wave")
 
 	manage_harvesting()
@@ -2139,6 +2173,17 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void :
 				RunData.add_tracked_value(i, fat_character.get_my_id_hash(), fat_speed_lost, 1)
 				effects[Keys.gourmet_fat_hash] = wanted_fat
 			_players[i].set_body_scale(1.0 + GOURMET_FAT_SIZE * wanted_fat)
+
+		# Gourmet DLC - The Special: apply the modifiers the shop already previewed for this
+		# wave. The ids were rolled and stored at the END of the previous wave, so what the
+		# player was shown is exactly what they get. Applying from the stored ids (rather than
+		# rolling here) is also what makes a mid-wave reload safe: the roll is not repeated.
+		if RunData.is_special(i):
+			var pending: Array = effects[Keys.special_next_mods_hash]
+			if not pending.empty():
+				effects[Keys.special_active_mods_hash] = pending.duplicate()
+				effects[Keys.special_next_mods_hash] = []
+				SpecialModifiers.apply_ids(SpecialModifiers.ids_of_life(pending, SpecialModifiers.LIFE_WAVE), i)
 
 		# Gourmet DLC - Tourist: +10% to all stat modifications per Danger level, once per run
 		var tourist_character = RunData.get_player_character(i)
