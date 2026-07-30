@@ -152,11 +152,32 @@ const FORBIDDEN_PAIRS: = [
 ]
 
 
+# Modifier ids are stored in the effects dict as KEY HASHES, never as strings. On load the
+# engine runs convert_dictionary_to_hash(recursive), which walks every array value and turns
+# any String into Keys.generate_hash(it). Storing strings therefore silently became ints on
+# reload: the rules list read as empty and get_by_id was handed an int. Ints survive that pass
+# untouched, so hashes are the only round-trip-safe representation here.
+var _by_hash: = {}
+
+
+func _ready() -> void :
+	for m in REGISTRY:
+		_by_hash[Keys.generate_hash(m.id)] = m
+
+
 func get_by_id(id: String) -> Dictionary:
 	for m in REGISTRY:
 		if m.id == id:
 			return m
 	return {}
+
+
+func get_by_hash(id_hash: int) -> Dictionary:
+	return _by_hash[id_hash] if _by_hash.has(id_hash) else {}
+
+
+func hash_of(id: String) -> int:
+	return Keys.generate_hash(id)
 
 
 # How many modifiers this wave rolls. Wave 1 is always clean.
@@ -247,7 +268,7 @@ func roll_for_wave(wave: int, player_index: int, blocked_axes: Array = []) -> Ar
 
 	var ids: = []
 	for m in chosen:
-		ids.push_back(m.id)
+		ids.push_back(Keys.generate_hash(m.id))
 	return ids
 
 
@@ -282,8 +303,8 @@ func _shift_ids(ids: Array, player_index: int, sign_mult: int) -> void :
 		return
 
 	var effects: Dictionary = RunData.get_player_effects(player_index)
-	for id in ids:
-		var mod: Dictionary = get_by_id(id)
+	for id_hash in ids:
+		var mod: Dictionary = get_by_hash(id_hash)
 		if mod.empty():
 			continue
 		for pair in mod.effects:
@@ -327,15 +348,17 @@ func stored_ids(key_hash: int, player_index: int) -> Array:
 
 	var out: = []
 	for v in raw:
-		if v is String and not get_by_id(v).empty():
-			out.push_back(v)
+		# tolerate a String left by an older save; the engine will have hashed most of them
+		var h: int = Keys.generate_hash(v) if v is String else (int(v) if (v is int or v is float) else 0)
+		if _by_hash.has(h):
+			out.push_back(h)
 	return out
 
 
 func ids_of_life(ids: Array, life: int) -> Array:
 	var out: = []
-	for id in ids:
-		var mod: Dictionary = get_by_id(id)
+	for id_hash in ids:
+		var mod: Dictionary = get_by_hash(id_hash)
 		if not mod.empty() and mod.life == life:
-			out.push_back(id)
+			out.push_back(id_hash)
 	return out
