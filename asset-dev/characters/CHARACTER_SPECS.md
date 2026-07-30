@@ -97,7 +97,9 @@ live (butcher_skin.gd autoload); test character removed from the roster (2026-07
 ## #8 The Mime ⚓ (Abyssal owners only — bonus character)
 - **Every shop contains exactly one Magic Mirror** (Abyssal T2 duplicate-next-purchase item) [DEEP: shop injection]
 - **Mirrors work on weapons too**; auto-merge to make room as if buying repeatedly; can't buy if it can't fit [DEEP]
-- Magic Mirrors cost −50%; rerolls +50%; enemies +15% health and +15% attack speed [DATA-ish: reroll_price +50; enemy scaling keys exist (enemy_health/enemy_speed family); mirror pricing DEEP]
+- Magic Mirrors cost −66% (user change 2026-07-30, was −50%); **+15 Luck** (user addition
+  2026-07-30); rerolls +50%; enemies +15% health and +15% attack speed [DATA-ish: reroll_price
+  +50; enemy scaling keys exist (enemy_health/enemy_speed family); mirror pricing DEEP]
 - Mirror-on-mirror: 2→3→4 (each works once, not doubling)
 - Mirrors refuse ⋄ unique items
 
