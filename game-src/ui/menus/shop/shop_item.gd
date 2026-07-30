@@ -106,7 +106,9 @@ func manage_lock_button_visibility() -> void :
 	# character (locking is a soft reroll, and he may not reconsider anything). Using the
 	# vanilla key rather than a character check means change_lock_status() blocks the ACTION
 	# too, so hiding the button is not the only thing standing in the way.
-	if RunData.get_player_effect_bool(Keys.disable_item_locking_hash, player_index):
+	# is_freeloader is checked alongside the effect for the same serialization reason as
+	# change_lock_status: an in-flight run carries the old kit without the effect.
+	if RunData.is_freeloader(player_index) or RunData.get_player_effect_bool(Keys.disable_item_locking_hash, player_index):
 		_lock_button.disable()
 		_lock_button.hide()
 	else:
@@ -284,6 +286,14 @@ func _on_LockButton_toggled(button_pressed: bool) -> void :
 
 func change_lock_status(button_pressed: bool) -> void :
 	if RunData.get_player_effect_bool(Keys.disable_item_locking_hash, player_index):
+		return
+
+	# Gourmet DLC - belt and braces for the Freeloader. The disable_item_locking effect above is
+	# the proper mechanism, but CHARACTER EFFECTS ARE SERIALIZED INTO THE RUN: a run started
+	# before that effect was added keeps the old kit, so the guard above silently misses and the
+	# lock still works mid-run. my_id survives serialization, so this closes the hole on
+	# in-flight runs too. This is the ACTION chokepoint; hiding the button is not enough.
+	if RunData.is_freeloader(player_index):
 		return
 
 	if button_pressed:
