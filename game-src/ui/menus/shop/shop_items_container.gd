@@ -199,16 +199,16 @@ func on_shop_item_deactivated(shop_item: ShopItem) -> void :
 
 
 func on_shop_item_focused(shop_item: ShopItem) -> void :
-	# widened (banner) shop only: expand the hovered banner into the full card
+	# widened (banner) shop only: pop the full card in the hover overlay
 	if _grid != null:
-		_set_banner_mode(shop_item, false)
+		_show_banner_detail(shop_item)
 	enable_shop_lock_buttons_focus()
 	emit_signal("shop_item_focused", shop_item)
 
 
 func on_shop_item_unfocused(shop_item: ShopItem) -> void :
 	if _grid != null:
-		_set_banner_mode(shop_item, true)
+		_hide_banner_detail()
 	emit_signal("shop_item_unfocused", shop_item)
 
 
@@ -286,16 +286,11 @@ func _ensure_shop_item_capacity(wanted: int) -> void :
 # and keeps its authored single-row layout untouched.
 # The co-op shop solves "too many cards, too little space" by showing compact BANNERS
 # (icon + name + category + price) and revealing the full card only on hover. Same idea here.
-# Layout: a GridContainer of 2 columns x 4 rows of banners. A banner is just the normal card
-# with its ItemDescription detail hidden (item_description exposes that via _vbox_container /
-# _scroll_container, the same nodes its show_details flag drives). On focus the detail is shown
-# and the card is raised above its neighbours; on unfocus it collapses back.
-#
-# The trick that keeps the grid stable: each banner lives in a plain Control wrapper with a
-# FIXED min size. A plain Control does not derive its size from its child, so expanding the
-# card (child grows) does NOT change the wrapper's min size and the grid never reflows. The
-# expanded card simply overflows its wrapper and, with a raised z_index, draws over the banner
-# below it. Only ever runs on a widened (Freeloader) shop.
+# Layout: a GridContainer of 2 columns x 4 rows of banners. A banner is the normal card with
+# its ItemDescription detail hidden (via _vbox_container / _scroll_container, the same nodes
+# the show_details flag drives). The banners stay collapsed; hovering pops the full card in a
+# separate floating overlay (see _show_banner_detail). Each banner sits in a plain Control
+# wrapper with a FIXED min size so the grid never reflows. Only runs on a widened shop.
 const BANNER_SIZE: = Vector2(560, 118)
 var _grid: GridContainer
 
@@ -342,8 +337,9 @@ func _reflow_into_grid() -> void :
 		button.focus_neighbour_bottom = button.get_path_to(_shop_items[i + 2]._button) if i + 2 < _shop_items.size() else NodePath("")
 
 
-# Collapse a card to a banner (detail hidden) or expand it to the full card. Reaches the same
-# two containers item_description's show_details flag drives, but at runtime.
+# Collapse a card to a banner: hide the ItemDescription detail (the same two containers its
+# show_details flag drives), leaving just the icon + name + category header and the price.
+# The banners stay collapsed; the full detail is shown separately by the hover overlay below.
 func _set_banner_mode(shop_item, banner: bool) -> void :
 	var d = shop_item._item_description
 	if d == null:
@@ -352,9 +348,52 @@ func _set_banner_mode(shop_item, banner: bool) -> void :
 		d._vbox_container.visible = not banner
 	if d._scroll_container != null:
 		d._scroll_container.visible = not banner
-	# raise the expanded card so it draws over the banner beneath it, and clear the raise
-	# when it collapses back to a banner
-	shop_item.z_index = 0 if banner else 1
+
+
+# On hover, the full card is shown in a floating panel anchored to the banner, exactly like the
+# co-op shop pops an ItemPopup. It lives in a top-level overlay that is the LAST child of self,
+# so it draws over the other banners by tree order (Control has no z_index in Godot 3). One
+# reused ItemDescription is repopulated per hover.
+var _detail_overlay: Control
+var _detail_panel: PanelContainer
+var _detail_desc
+
+func _ensure_detail_overlay() -> void :
+	if _detail_overlay != null:
+		return
+	_detail_overlay = Control.new()
+	_detail_overlay.name = "BannerDetailOverlay"
+	_detail_overlay.set_as_toplevel(true)
+	_detail_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_detail_overlay)
+
+	_detail_panel = PanelContainer.new()
+	var sb: = StyleBoxFlat.new()
+	sb.bg_color = Color(0, 0, 0, 0.96)
+	sb.set_border_width_all(3)
+	sb.border_color = Color(0.35, 0.35, 0.35)
+	sb.set_corner_radius_all(6)
+	_detail_panel.add_stylebox_override("panel", sb)
+	_detail_panel.rect_min_size = Vector2(BANNER_SIZE.x, 0)
+	_detail_overlay.add_child(_detail_panel)
+
+	_detail_desc = load("res://ui/menus/shop/item_description.tscn").instance()
+	_detail_panel.add_child(_detail_desc)
+	_detail_overlay.visible = false
+
+
+func _show_banner_detail(shop_item) -> void :
+	if shop_item == null or shop_item.item_data == null:
+		return
+	_ensure_detail_overlay()
+	_detail_desc.set_item(shop_item.item_data, player_index)
+	_detail_panel.rect_global_position = shop_item.get_global_rect().position
+	_detail_overlay.visible = true
+
+
+func _hide_banner_detail() -> void :
+	if _detail_overlay != null:
+		_detail_overlay.visible = false
 
 
 func set_shop_items(items_data: Array) -> void :
