@@ -1526,12 +1526,6 @@ func is_blacksmith(player_index: int) -> bool:
 	return forge_character != null and forge_character.my_id == "character_blacksmith"
 
 
-# Gourmet DLC - The Freeloader may take exactly one thing per shop. Reset per player when
-# the shop is filled on entry (base_shop.fill_shop_items), set when a purchase completes.
-# Not serialized: a resumed run re-enters the shop, which refills and resets it.
-var freeloader_bought_this_shop: = [false, false, false, false]
-
-
 # Gourmet DLC - The Freeloader (character #16). Single gate for his whole kit: 8 shop
 # items / 8 upgrades, everything free, one purchase per shop, no reroll, no lock, no
 # crate items, no gold economy, flat 25% curse roll. Every other rule checks this.

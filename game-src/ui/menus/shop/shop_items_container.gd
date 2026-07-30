@@ -122,7 +122,10 @@ func _can_freeloader_still_buy() -> bool:
 	if not RunData.is_freeloader(player_index):
 		return true
 
-	return not RunData.freeloader_bought_this_shop[player_index]
+	# Compare against the wave the purchase was made in, read from the SERIALIZED effects
+	# dict. A plain non-serialized flag reset on reload, which let him buy a second thing
+	# out of a shop he had already bought from.
+	return RunData.get_player_effect(Keys.freeloader_shop_wave_hash, player_index) != RunData.current_wave
 
 
 # Gourmet DLC - Minimalist: purchases are blocked while all 6 item slots are full
@@ -263,11 +266,30 @@ func _ensure_shop_item_capacity(wanted: int) -> void :
 # gated to co-op. Do NOT hand-roll a banner or a detail overlay here; both already exist.
 const COMPACT_CARD: = "res://ui/menus/shop/coop_shop_item.tscn"
 const GRID_HSEPARATION: = 16
+# Modest per-card minimum: enough that the two columns cannot collapse onto each other, but
+# small enough that the grid never demands more width than the shop column actually gets.
+# Deriving this from a guessed 1890px made the container minimum 1890 and pushed the Stats
+# panel and Go button out of the layout entirely. Cards EXPAND_FILL into the real width.
+const CARD_MIN_WIDTH: = 320
 var _grid: GridContainer
 
 
 # Rebuild the shop as a 2-column grid of compact cards, discarding the authored tall solo
 # cards entirely rather than trying to squash them.
+# A dark rounded panel behind each compact row. Built here rather than edited into
+# coop_shop_item.tscn so the real co-op shop, which supplies its own surrounding panel, is
+# untouched.
+func _compact_card_stylebox() -> StyleBoxFlat:
+	var sb: = StyleBoxFlat.new()
+	sb.bg_color = Color(0, 0, 0, 0.55)
+	sb.set_corner_radius_all(6)
+	sb.content_margin_left = 6
+	sb.content_margin_right = 6
+	sb.content_margin_top = 4
+	sb.content_margin_bottom = 4
+	return sb
+
+
 func _rebuild_as_compact_grid(wanted: int) -> void :
 	if _grid == null:
 		_grid = GridContainer.new()
@@ -288,13 +310,6 @@ func _rebuild_as_compact_grid(wanted: int) -> void :
 		if child != _grid and child is Control and not (child is Timer):
 			child.visible = false
 
-	# Give each card an explicit column width. The compact card is authored for co-op's narrow
-	# ~400px panel and demands almost no width of its own, so the grid sized both columns to
-	# their minimum and drew them on top of each other at x=0. Full-Vector2 assignment because
-	# `rect_min_size.x = ...` silently no-ops in Godot 3.
-	var avail: float = rect_size.x if rect_size.x > 1.0 else 1890.0
-	var col_w: float = (avail - GRID_HSEPARATION) / 2.0
-
 	var packed = load(COMPACT_CARD)
 	for i in wanted:
 		var card = packed.instance()
@@ -302,7 +317,14 @@ func _rebuild_as_compact_grid(wanted: int) -> void :
 		_grid.add_child(card)
 		card.player_index = player_index
 		card.size_flags_horizontal = SIZE_EXPAND_FILL
-		card.rect_min_size = Vector2(col_w, 0)
+		# full-Vector2 assignment: `rect_min_size.x = ...` silently no-ops in Godot 3
+		card.rect_min_size = Vector2(CARD_MIN_WIDTH, 0)
+		# tier is conveyed by tinting the icon panel, the way co-op does it
+		card.use_compact_style = true
+		# and the card needs a real background: both panels in coop_shop_item.tscn are
+		# StyleBoxEmpty because co-op's own container draws the surrounding panel, so in a
+		# solo shop the rows would otherwise float on the bare shop backdrop.
+		card.add_stylebox_override("panel", _compact_card_stylebox())
 		_shop_items.push_back(card)
 		_connect_shop_item(card)
 

@@ -65,6 +65,10 @@ var stat_fog_visibility_hash: = generate_hash("fog_visibility")
 var items_price_hash: = generate_hash("items_price")
 var food_items_price_hash: = generate_hash("food_items_price")
 var tourist_danger_done_hash: = generate_hash("tourist_danger_done")
+# Gourmet DLC - wave number in which the Freeloader last bought. Lives in the effects dict
+# because that IS serialized with the run; a plain RunData var reset on reload and let him
+# buy a second thing from the same shop.
+var freeloader_shop_wave_hash: = generate_hash("freeloader_shop_wave")
 # Gourmet DLC - Gourmet: fat stacks applied so far (1 per wave; -3% Speed, +1% size each)
 var gourmet_fat_hash: = generate_hash("gourmet_fat")
 # Gourmet DLC - Competitive Eater: Appetite modifications multiplier (run_data.get_stat_gain

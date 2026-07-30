@@ -291,10 +291,19 @@ func get_category_text_pos() -> Vector2:
 	return _item_description._category.rect_global_position
 
 
+# Gourmet DLC - set on the Freeloader's compact cards (coop_shop_item.tscn used in a solo
+# run). Those cards carry StyleBoxEmpty panels on purpose because co-op conveys tier by
+# tinting the ICON panel, so the solo branch below would try to tier-colour an empty stylebox
+# and draw nothing. Routing them down the co-op path gives the intended look.
+var use_compact_style: = false
+
+
 func _set_panel_lock_style() -> void :
-	var panel = _item_description.icon_panel if RunData.is_coop_run else _panel
+	# explicit bool: `var compact: = ...` cannot infer a type from untyped is_coop_run
+	var compact: bool = RunData.is_coop_run or use_compact_style
+	var panel = _item_description.icon_panel if compact else _panel
 	var stylebox = panel.get_stylebox("panel").duplicate()
-	if RunData.is_coop_run:
+	if compact:
 		var tier_color = ItemService.get_color_from_tier(item_data.tier)
 		tier_color.a = stylebox.bg_color.a
 		stylebox.bg_color = tier_color

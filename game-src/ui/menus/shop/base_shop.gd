@@ -365,12 +365,6 @@ func _clear_go_button_pressed(player_index: int) -> void :
 
 
 func fill_shop_items(player_locked_items: Array, player_index: int, just_entered_shop: bool = false) -> void :
-	# Gourmet DLC - fresh shop, so the Freeloader's single pick is available again. Only on
-	# entry, not on reroll: he cannot reroll, but guarding it keeps the rule honest if that
-	# ever changes.
-	if just_entered_shop:
-		RunData.freeloader_bought_this_shop[player_index] = false
-
 	var player_shop_items = _shop_items[player_index]
 	var prev_items = player_locked_items.duplicate() if just_entered_shop else player_shop_items.duplicate()
 	_shop_items[player_index] = player_locked_items.duplicate()
@@ -537,9 +531,12 @@ func on_shop_item_bought(shop_item: ShopItem, player_index: int) -> void :
 
 	RunData.remove_currency(shop_item.value, player_index)
 
-	# Gourmet DLC - The Freeloader has now taken his one thing for this shop. Set after the
-	# purchase is committed, so a purchase blocked further up never burns his pick.
-	RunData.freeloader_bought_this_shop[player_index] = true
+	# Gourmet DLC - The Freeloader has now taken his one thing for this shop. Recorded as the
+	# CURRENT WAVE in the serialized effects dict, so quitting and reloading cannot hand him a
+	# second purchase from the same shop. Set after the purchase is committed, so a purchase
+	# blocked further up never burns his pick.
+	if RunData.is_freeloader(player_index):
+		RunData.get_player_effects(player_index)[Keys.freeloader_shop_wave_hash] = RunData.current_wave
 
 	# Gourmet DLC - Loyalty Card counts every completed purchase
 	RunData.get_player_effects(player_index)[Keys.shop_purchases_hash] += 1

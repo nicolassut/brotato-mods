@@ -355,7 +355,7 @@ func _deserialize_effects(p_effects: Dictionary, weapon_effect_hashes: Dictionar
 			# our runtime counters feed '%' arithmetic, which hard-crashes on
 			# float operands after a resume (loyalty card discount did exactly
 			# this). Values are only key-converted above, never re-typed.
-			if result[key_hash] is float and (key_hash == Keys.shop_purchases_hash or key_hash == Keys.gourmet_foods_eaten_hash or key_hash == Keys.banked_leftovers_hash or key_hash == Keys.selected_spawner_hash or key_hash == Keys.soul_food_streak_hash):
+			if result[key_hash] is float and (key_hash == Keys.shop_purchases_hash or key_hash == Keys.gourmet_foods_eaten_hash or key_hash == Keys.banked_leftovers_hash or key_hash == Keys.selected_spawner_hash or key_hash == Keys.soul_food_streak_hash or key_hash == Keys.freeloader_shop_wave_hash):
 				result[key_hash] = int(result[key_hash])
 
 	return result
@@ -456,6 +456,7 @@ static func init_stats(all_null_values: bool = false) -> Dictionary:
 		Keys.items_price_hash: 0,
 		Keys.food_items_price_hash: 0,
 		Keys.tourist_danger_done_hash: 0,
+		Keys.freeloader_shop_wave_hash: -1,
 		Keys.gourmet_fat_hash: 0,
 		Keys.gain_stat_appetite_hash: 0,
 		Keys.gourmet_foods_eaten_hash: 0,
