@@ -288,9 +288,9 @@ func _ensure_shop_item_capacity(wanted: int) -> void :
 # (icon + name + category + price) and revealing the full card only on hover. Same idea here.
 # Layout: a GridContainer of 2 columns x 4 rows of banners. A banner is the normal card with
 # its ItemDescription detail hidden (via _vbox_container / _scroll_container, the same nodes
-# the show_details flag drives). The banners stay collapsed; hovering pops the full card in a
-# separate floating overlay (see _show_banner_detail). Each banner sits in a plain Control
-# wrapper with a FIXED min size so the grid never reflows. Only runs on a widened shop.
+# the show_details flag drives) and its PanelContainer min-height floor dropped so the card
+# collapses to header + price. The banners stay collapsed; hovering pops the full card in a
+# separate floating overlay (see _show_banner_detail). Only runs on a widened shop.
 const BANNER_SIZE: = Vector2(560, 140)
 var _grid: GridContainer
 
@@ -309,20 +309,19 @@ func _reflow_into_grid() -> void :
 		if child != _grid and child is Control and not (child is Timer) and not (child in _shop_items):
 			child.visible = false
 
-	for i in _shop_items.size():
-		var shop_item = _shop_items[i]
-		var wrapper = shop_item.get_parent()
-		if not (wrapper is Control) or wrapper.get_parent() != _grid or not wrapper.name.begins_with("CardWrap"):
+	# Cards go DIRECTLY into the grid (no wrapper). A GridContainer stretches each child to a
+	# uniform cell; a plain Control wrapper does not, which is why the cards kept their old
+	# ~500px height and overflowed. Combined with the PanelContainer min-height drop in
+	# _set_banner_mode (so a card is ALLOWED to be short), every card is forced to BANNER_SIZE.
+	for shop_item in _shop_items:
+		if shop_item.get_parent() != _grid:
 			var host = shop_item.get_parent()
 			if host != null:
 				host.remove_child(shop_item)
-			wrapper = Control.new()
-			wrapper.name = "CardWrap" + str(i)
-			_grid.add_child(wrapper)
-			wrapper.add_child(shop_item)
-			shop_item.rect_position = Vector2(0, 0)
-		wrapper.rect_min_size = BANNER_SIZE
-		shop_item.rect_min_size.x = BANNER_SIZE.x
+			_grid.add_child(shop_item)
+		shop_item.size_flags_horizontal = SIZE_FILL
+		shop_item.size_flags_vertical = SIZE_FILL
+		shop_item.rect_min_size = BANNER_SIZE
 		shop_item.visible = true
 		_set_banner_mode(shop_item, true)
 
