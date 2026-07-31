@@ -109,7 +109,7 @@ WEAPONS = [
    ["culinary", "elemental"], nb_projectiles=3, spread=0.44, burn_chance=0.25,
    food_key="consumable_food_chili_pepper", food_drop="consumable_food_chili_pepper"),
  w("champagne_popper", "Champagne Popper", "pistol", "ranged", 0, 16, 75, .10, 2.0, 350, 32,
-   [("stat_ranged_damage", 1.0)], ["culinary", "gun"], bounce=1),
+   [("stat_ranged_damage", 1.0)], ["culinary", "gun"], bounce=[0, 1, 2, 3]),
  w("pizza_cutter", "Pizza Cutter", "shuriken", "ranged", 0, 9, 60, .15, 2.2, 320, 0,
    [("stat_ranged_damage", 0.7)], ["culinary", "precise"], piercing=1,
    food_key="consumable_food_pizza_slice", food_drop="consumable_food_pizza_slice"),
@@ -484,7 +484,10 @@ def patch_stats(template_text, wpn, tier_idx):
     if wpn["piercing"] is not None:
         setf("piercing", wpn["piercing"])
     if wpn["bounce"] is not None:
-        setf("bounce", wpn["bounce"])
+        # bounce may be a single value (same on every tier) or a LIST of per-tier values
+        # indexed by absolute tier 0..3, e.g. [0, 1, 2, 3] to make bounces climb with level.
+        _b = wpn["bounce"]
+        setf("bounce", _b[tier_idx] if isinstance(_b, (list, tuple)) else _b)
     if wpn["piercing_dmg_reduction"] is not None:
         setf("piercing_dmg_reduction", wpn["piercing_dmg_reduction"])
     if wpn["projectile_speed"] is not None:
