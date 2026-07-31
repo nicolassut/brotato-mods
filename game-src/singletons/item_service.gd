@@ -464,6 +464,18 @@ func _get_rand_item_for_wave(wave: int, player_index: int, type: int, args: GetR
 				if not has_wanted_tag:
 					items_to_remove.push_back(item)
 
+		# Gourmet DLC - food characters get a real chance at SPAWNERS specifically. The
+		# wanted_tags bias above is too weak for them: it fires only 5% of the time, and the
+		# "food" tag also matches ~25 plain food items, so spawners were a minority even when
+		# it did fire. This restricts the roll to spawner-tagged items outright. If the tier
+		# holds no spawners the pool empties and the existing backup_pool fallback below picks
+		# normally, so a bad tier degrades to "no bias" rather than breaking.
+		var spawner_chance: int = RunData.get_player_effect(Keys.spawner_shop_chance_hash, player_index)
+		if spawner_chance > 0 and Utils.get_chance_success(spawner_chance / 100.0):
+			for item in pool:
+				if not item.tags.has("spawner"):
+					items_to_remove.push_back(item)
+
 		if args.forced_shop_tag != null:
 			for item in pool:
 				if not items_to_remove.has(item) and not item.tags.has(args.forced_shop_tag):

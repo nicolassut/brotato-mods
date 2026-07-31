@@ -72,6 +72,10 @@ var freeloader_shop_wave_hash: = generate_hash("freeloader_shop_wave")
 # Gourmet DLC - The Special: ids of the modifiers currently applied, and the ones previewed
 # in the shop for the NEXT wave. Both live in the serialized effects dict so a reload keeps
 # the same roll instead of silently re-rolling or double-applying.
+# Gourmet DLC - per-shop-slot chance that the roll is restricted to food SPAWNER items.
+# The vanilla wanted_tags bias only fires 5% of the time and "food" also matches ~25 plain
+# food items, so spawners stayed rare for the characters built around them.
+var spawner_shop_chance_hash: = generate_hash("spawner_shop_chance")
 var special_active_mods_hash: = generate_hash("special_active_mods")
 var special_next_mods_hash: = generate_hash("special_next_mods")
 var special_shop_mods_hash: = generate_hash("special_shop_mods")

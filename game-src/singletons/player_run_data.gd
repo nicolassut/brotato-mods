@@ -457,6 +457,7 @@ static func init_stats(all_null_values: bool = false) -> Dictionary:
 		Keys.food_items_price_hash: 0,
 		Keys.tourist_danger_done_hash: 0,
 		Keys.freeloader_shop_wave_hash: -1,
+		Keys.spawner_shop_chance_hash: 0,
 		Keys.special_active_mods_hash: [],
 		Keys.special_next_mods_hash: [],
 		Keys.special_shop_mods_hash: [],

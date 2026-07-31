@@ -260,3 +260,4 @@ EFFECT_SPECIAL_ROLL,Every wave rolls random modifiers that rewrite the rules
 EFFECT_SPECIAL_PREVIEW,The shop shows you what is coming next wave
 EFFECT_SPECIAL_TEMPORARY,Modifiers last one wave only
 EFFECT_SPECIAL_SKEW,More modifiers are bad than good
+EFFECT_SPAWNER_CHANCE,{0}% chance each shop slot is a food spawner

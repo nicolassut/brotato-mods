@@ -134,29 +134,34 @@ BANNED_GROUPS = {"zombie": ["lifesteal", "lifesteal_and_hp_regeneration",
 
 CHARS = [
  ("gourmet","Gourmet","character_gourmet",["food"],
-   [("LINE","EFFECT_GOURMET_FRUIT",0),("LINE","EFFECT_GOURMET_EAT",0),
+   [("TXT","spawner_shop_chance",30,"EFFECT_SPAWNER_CHANCE",0),
+    ("LINE","EFFECT_GOURMET_FRUIT",0),("LINE","EFFECT_GOURMET_EAT",0),
     ("LINE","EFFECT_GOURMET_FIRST_FOOD",0),  # first food of every wave spawns twice (main.gd spawn_food)
     ("LINE","EFFECT_GOURMET_FAT",1),         # -3% Speed / +1% body size per wave (main.gd GOURMET_FAT_*)
     ("LINE","EFFECT_GOURMET_NOHEAL",1),
     ("gain_stat_hp_regeneration",-50),("stat_speed",-5)],[]),
  ("picky_eater","Picky Eater","character_picky_eater",["food"],
-   [("LINE","EFFECT_PICKY_ONE_SPAWNER",2),("LINE","EFFECT_PICKY_STRONGER",0),
+   [("TXT","spawner_shop_chance",35,"EFFECT_SPAWNER_CHANCE",0),
+    ("LINE","EFFECT_PICKY_ONE_SPAWNER",2),("LINE","EFFECT_PICKY_STRONGER",0),
     ("LINE","EFFECT_PICKY_SPAWNER_LIMIT",0),   # x2 max_nb on "spawner"-tagged items (run_data.get_item_max_nb)
     ("TXT","food_stack_cap_bonus",5,"EFFECT_FOOD_STACK_CAP",0),  # one food type = his only scaling, so let it stack higher
     ("LINE","EFFECT_PICKY_PENALTY",1),
     ("POS","spawner_items_price",-25),
     ("gain_stat_luck",-50)],[]),
  ("dishwasher","Dishwasher","character_dishwasher",["food"],
-   [("LINE","EFFECT_DISHWASHER_EXPIRY",1),("LINE","EFFECT_DISHWASHER_LEFTOVERS",0),
+   [("TXT","spawner_shop_chance",30,"EFFECT_SPAWNER_CHANCE",0),
+    ("LINE","EFFECT_DISHWASHER_EXPIRY",1),("LINE","EFFECT_DISHWASHER_LEFTOVERS",0),
     ("LINE","EFFECT_DISHWASHER_REFUND",0),
     ("weapon_slot",-1),("stat_percent_damage",-10),("NEG","items_price",5)],[DOGGY_BAG]),
  ("comp_eater","Competitive Eater","character_comp_eater",["food"],
-   [("LINE","EFFECT_COMP_EATER_STACK",2),            # double-stack/half-duration is live engine code
+   [("TXT","spawner_shop_chance",30,"EFFECT_SPAWNER_CHANCE",0),
+    ("LINE","EFFECT_COMP_EATER_STACK",2),            # double-stack/half-duration is live engine code
     ("LINE","EFFECT_COMP_EATER_MOMENTUM",0),         # +5% Speed/Pickup per buff gained, wave-scoped (player.gd)
     ("gain_stat_appetite",100),                      # Appetite modifications +100%: an item worth +2 App gives him +4
     ("gain_stat_max_hp",-30),("stat_dodge",-10)],[]),
  ("butcher","Butcher","character_butcher",[],
-   [("LINE","EFFECT_BUTCHER_FRUIT",0),("LINE","EFFECT_BUTCHER_STEAK",0),
+   [("TXT","spawner_shop_chance",25,"EFFECT_SPAWNER_CHANCE",0),
+    ("LINE","EFFECT_BUTCHER_FRUIT",0),("LINE","EFFECT_BUTCHER_STEAK",0),
     ("TXT","second_helping",25,"EFFECT_BUTCHER_DOUBLE",0),  # +25% food-spawn doubling (fruit-steak path hooked in main.gd)
     ("LINE","EFFECT_BUTCHER_RENDER",0),                     # wave end: 20% of the wave's temp Damage -> permanent Appetite (main.gd BUTCHER_APPETITE_SHARE)
     ("FOODDISP","steak"),                                   # rule 2: he produces Steaks
@@ -187,7 +192,8 @@ CHARS = [
     ("LINE","EFFECT_TOURIST_XP",2),
     ("gain_xp_gain",-50)],[MAGNIFYING_GLASS]),        # danger scaling applied in main.gd hook
  ("ruminant","Ruminant","character_ruminant",["food"],
-   [("LINE","EFFECT_RUMINANT_ECHO",0),
+   [("TXT","spawner_shop_chance",30,"EFFECT_SPAWNER_CHANCE",0),
+    ("LINE","EFFECT_RUMINANT_ECHO",0),
     ("stat_speed",-20),("gain_stat_speed",-25),("stat_armor",-2)],[CHICKEN_SOUP]),
  ("snail","Slug","character_snail",[],
    [("LINE","EFFECT_SLUG_TRAIL",0),
