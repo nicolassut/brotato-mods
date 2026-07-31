@@ -64,7 +64,11 @@ const TOURIST_XP_GAIN: = 15
 # the hurtbox (a bigger target - the real cost), both pickup areas and the weapon orbit
 # in one move. Card mirror: EFFECT_GOURMET_FAT in build_pantry_items.py.
 const GOURMET_FAT_SPEED: = 3
-const GOURMET_FAT_SIZE: = 0.01
+const GOURMET_FAT_SIZE: = 0.02
+# Size is capped at +80%, so 40 stacks. The speed penalty rides the same stack count and is
+# therefore capped with it, at -120% Speed modifications at full size.
+const GOURMET_FAT_MAX_STACKS: = 40
+const GOURMET_FAT_PER_FOODS: = 50
 var _food_trigger_thresholds: = {}
 var _chili_burning_data: = [null, null, null, null]
 # per player: food_id_hash -> its anchor structure (foods pop out of these)
@@ -2048,6 +2052,26 @@ func check_lootworm_chal():
 			ChallengeService.complete_challenge(ChallengeService.chal_lootworm_hash)
 			RunData.check_beast_master_chal()
 
+# Gourmet DLC - bring the Gourmet's fat stacks in line with how much he has eaten. Safe to call
+# from anywhere and as often as you like: it derives the target from the eaten counter and only
+# applies the DIFFERENCE, so it can never double-charge.
+func reconcile_gourmet_fat(player_index: int) -> void :
+	var effects: Dictionary = RunData.get_player_effects(player_index)
+	var eaten: int = int(effects[Keys.gourmet_foods_eaten_hash])
+	var wanted_fat: int = int(min(GOURMET_FAT_MAX_STACKS, eaten / GOURMET_FAT_PER_FOODS))
+	var applied_fat: int = int(effects[Keys.gourmet_fat_hash])
+
+	if wanted_fat == applied_fat:
+		return
+
+	var character = RunData.get_player_character(player_index)
+	var fat_speed_lost: int = GOURMET_FAT_SPEED * (wanted_fat - applied_fat)
+	RunData.add_stat(Keys.stat_speed_hash, - fat_speed_lost, player_index)
+	if character != null:
+		RunData.add_tracked_value(player_index, character.get_my_id_hash(), fat_speed_lost, 1)
+	effects[Keys.gourmet_fat_hash] = wanted_fat
+
+
 func manage_harvesting() -> void :
 	for player_index in RunData.get_player_count():
 		# Gourmet DLC - Freeloader: harvesting grants him nothing at all. add_gold is already
@@ -2179,19 +2203,14 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void :
 
 		_players[i].check_hp_regen()
 
-		# Gourmet DLC - Gourmet: one fat stack per wave cleared, so wave 1 is his normal size.
-		# Derived from current_wave and reconciled against what was already applied, rather
-		# than incremented, so retrying a wave cannot double-charge the Speed.
+		# Gourmet DLC - Gourmet: one fat stack per GOURMET_FAT_PER_FOODS consumables eaten
+		# (was one per wave). Still DERIVED from the running total and reconciled against what
+		# was already applied rather than incremented, so it is idempotent: retrying a wave, or
+		# running this alongside the live update in player.gd, cannot double-charge the Speed.
 		var fat_character = RunData.get_player_character(i)
 		if fat_character != null and fat_character.my_id == "character_gourmet":
-			var wanted_fat: int = int(max(0, RunData.current_wave - 1))
-			var applied_fat: int = int(effects[Keys.gourmet_fat_hash])
-			if wanted_fat != applied_fat:
-				var fat_speed_lost: int = GOURMET_FAT_SPEED * (wanted_fat - applied_fat)
-				RunData.add_stat(Keys.stat_speed_hash, - fat_speed_lost, i)
-				RunData.add_tracked_value(i, fat_character.get_my_id_hash(), fat_speed_lost, 1)
-				effects[Keys.gourmet_fat_hash] = wanted_fat
-			_players[i].set_body_scale(1.0 + GOURMET_FAT_SIZE * wanted_fat)
+			reconcile_gourmet_fat(i)
+			_players[i].set_body_scale(1.0 + GOURMET_FAT_SIZE * int(effects[Keys.gourmet_fat_hash]))
 
 		# Gourmet DLC - Tourist: +10% to all stat modifications per Danger level, once per run
 		var tourist_character = RunData.get_player_character(i)

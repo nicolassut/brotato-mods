@@ -238,7 +238,7 @@ ZOMBIE_REANIMATIONS,Reanimations: {0}
 EFFECT_TOURIST_XP,"-15% XP Gain, or +15% instead on Danger 0"
 GAIN_STAT_APPETITE,% Appetite modifications
 EFFECT_GOURMET_FIRST_FOOD,The first food to spawn each wave is served twice
-EFFECT_GOURMET_FAT,"He gets 3% slower and 1% bigger with every wave. A bigger body is a bigger target, but it also reaches further for pickups"
+EFFECT_GOURMET_FAT,"He gets 3% slower and 2% bigger for every 50 consumables eaten, up to +80% size. A bigger body is a bigger target, but it also reaches further for pickups"
 GREASE_FIRE_IGNITES,Enemies ignited: {0}
 ECHO_CHAMBER_PROCS,Effects repeated: {0}
 SECOND_HELPING_DOUBLED,Servings doubled: {0}

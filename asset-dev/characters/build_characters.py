@@ -139,6 +139,7 @@ CHARS = [
     ("LINE","EFFECT_GOURMET_FIRST_FOOD",0),  # first food of every wave spawns twice (main.gd spawn_food)
     ("LINE","EFFECT_GOURMET_FAT",1),         # -3% Speed / +1% body size per wave (main.gd GOURMET_FAT_*)
     ("LINE","EFFECT_GOURMET_NOHEAL",1),
+    ("stat_appetite",10),
     ("gain_stat_hp_regeneration",-50),("stat_speed",-5)],[]),
  ("picky_eater","Picky Eater","character_picky_eater",["food"],
    [("TXT","spawner_shop_chance",35,"EFFECT_SPAWNER_CHANCE",0),

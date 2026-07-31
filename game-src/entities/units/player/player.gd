@@ -1067,6 +1067,15 @@ func on_consumable_picked_up(consumable_data: ConsumableData, food_age: float = 
 				RunData.add_stat(Keys.stat_appetite_hash, 1, player_index)
 				RunData.add_tracked_value(player_index, dlc_character.get_my_id_hash(), 1)
 				GourmetTracker.ev("gourmet_app_gain", {"p": player_index})
+
+			# Gourmet DLC - his fat stacks are driven by how much he has eaten, so reconcile
+			# them here rather than waiting for the next wave to start. main.reconcile_gourmet_
+			# _fat derives the target from the eaten counter and applies only the difference,
+			# so calling it here AND at wave start cannot double-charge the Speed.
+			var main_node = Utils.get_scene_node()
+			if main_node != null and main_node.has_method("reconcile_gourmet_fat"):
+				main_node.reconcile_gourmet_fat(player_index)
+				set_body_scale(1.0 + main_node.GOURMET_FAT_SIZE * int(dlc_effects[Keys.gourmet_fat_hash]))
 		elif dlc_character.my_id == "character_butcher":
 			TempStats.add_stat(Keys.stat_percent_damage_hash, 1, player_index)
 			RunData.add_tracked_value(player_index, dlc_character.get_my_id_hash(), 1)
