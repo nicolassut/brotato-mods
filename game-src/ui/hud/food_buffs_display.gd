@@ -16,7 +16,15 @@ func _process(_delta: float) -> void :
 		visible = false
 		return
 
-	var buffs: Dictionary = player._food_buffs
+	# Gourmet DLC - render food buffs AND item-buff chips (Sugar Rush) in one row. They live in
+	# separate dicts on the player because _food_buffs.size() drives Full Belly and Food Coma,
+	# so the chips must not be mixed into it. Merged here purely for display.
+	var buffs: = {}
+	for food_id in player._food_buffs:
+		buffs[food_id] = player._food_buffs[food_id]
+	for item_id in player._item_buff_chips:
+		buffs[item_id] = player._item_buff_chips[item_id]
+
 	visible = buffs.size() > 0
 
 	for food_id in buffs:

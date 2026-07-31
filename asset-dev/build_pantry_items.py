@@ -69,7 +69,7 @@ ITEMS = [
  item("chicken_soup", "Chicken Soup", 0, 20, [
    ("key", "food_bonus_heal", 1, "EFFECT_FOOD_BONUS_HEAL", 0)], max_nb=3),
  item("sugar_rush", "Sugar Rush", 0, 25, [
-   ("key", "food_speed_burst", 1, "EFFECT_FOOD_SPEED_BURST", 0)], ["stat_speed"], max_nb=4),
+   ("key", "food_speed_burst", 1, "EFFECT_FOOD_SPEED_BURST", 0)], ["stat_speed"], max_nb=3),
  item("food_fight", "Food Fight", 2, 80, [
    ("proj", "EFFECT_FOOD_FIGHT")], ["stat_ranged_damage"], max_nb=3,
    tracking="DAMAGE_DEALT"),
@@ -206,7 +206,7 @@ CSV_ROWS = [
  ("GOURMET_SPEED_LOST", "Speed lost to fat: {0}"),
  ("GAIN_STAT_APPETITE", "% Appetite modifications"),
  ("EFFECT_GOURMET_FIRST_FOOD", "The first food to spawn each wave is served twice"),
- ("EFFECT_GOURMET_FAT", "He gets 3% slower and 1% bigger with every wave. A bigger body is a bigger target, but it also reaches further for pickups"),
+ ("EFFECT_GOURMET_FAT", "He gets 3% slower and 2% bigger for every 50 consumables eaten, up to +80% size. A bigger body is a bigger target, but it also reaches further for pickups"),
  ("EFFECT_TOURIST_XP", "-15% XP Gain, or +15% instead on Danger 0"),
  ("EFFECT_BUTCHER_RENDER", "At the end of each wave, 20% of the Damage gained that wave becomes permanent Appetite"),
  ("EFFECT_ZOMBIE_REANIMATE", "A hit that leaves him on 1 HP heals him back to full"),

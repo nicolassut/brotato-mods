@@ -44,6 +44,11 @@ var _decaying_stats_on_consumable: = []
 var _decaying_stats_on_hit: = []
 # Gourmet DLC - active food buffs: food my_id -> {stacks, applied, timer, stat_hash, icon}
 var _food_buffs: = {}
+# Gourmet DLC - cosmetic HUD chips for ITEM buffs that are not food buffs (Sugar Rush's Speed
+# burst). Deliberately a SEPARATE dict from _food_buffs: that one's SIZE drives Full Belly
+# (+Armor while any food buff is active) and Food Coma (5+ distinct buffs), so a display-only
+# entry in there would silently grant Armor and inflate the Food Coma count.
+var _item_buff_chips: = {}
 # Gourmet DLC - Competitive Eater: buffs gained this wave (drives his +5% Speed /
 # +5% Pickup Range momentum; node is wave-fresh so this resets with the wave)
 var _comp_momentum_stacks: = 0
@@ -1156,6 +1161,33 @@ func on_consumable_picked_up(consumable_data: ConsumableData, food_age: float = 
 		ChallengeService.try_complete_challenge(ChallengeService.chal_herbalist_hash, player_data.consumables_picked_up_this_run)
 
 
+# Show (or refresh) a HUD chip for an item buff. Mirrors _start_decaying_stats_effect_timer's
+# behaviour: refreshing does NOT create a second timer, it resets the existing one, so the
+# timeout that erases the chip is never ambiguous.
+func _set_item_buff_chip(item_id: String, stacks: int, duration: float) -> void :
+	if cleaning_up or dead:
+		return
+
+	if _item_buff_chips.has(item_id):
+		var existing: Dictionary = _item_buff_chips[item_id]
+		existing["stacks"] = stacks
+		existing["timer"].time_left = duration
+		return
+
+	var icon = null
+	var item_data = ItemService.get_item_from_id(Keys.generate_hash(item_id))
+	if item_data != null:
+		icon = item_data.icon
+
+	var chip_timer: SceneTreeTimer = Utils.get_tree().create_timer(duration, false)
+	_item_buff_chips[item_id] = {"icon": icon, "stacks": stacks, "timer": chip_timer, "base_duration": duration}
+	var _err = chip_timer.connect("timeout", self, "_on_item_buff_chip_expired", [item_id])
+
+
+func _on_item_buff_chip_expired(item_id: String) -> void :
+	var _erased = _item_buff_chips.erase(item_id)
+
+
 func _start_decaying_stats_effect_timer(stats_array: Array, stat_hash: int, stat_value: int, stat_duration: int) -> void :
 
 	if cleaning_up:
@@ -1224,8 +1256,11 @@ func _apply_food_buff(food_data, food_age: float = - 1.0) -> void :
 
 	# Sugar Rush: eating any food grants a short Speed burst (decaying-stat primitive)
 	if buff_effects[Keys.food_speed_burst_hash] > 0:
-		var sugar_value: int = int((5.0 + 0.1 * appetite) * buff_effects[Keys.food_speed_burst_hash])
+		var sugar_copies: int = int(buff_effects[Keys.food_speed_burst_hash])
+		var sugar_value: int = int((5.0 + 0.1 * appetite) * sugar_copies)
 		_start_decaying_stats_effect_timer(_decaying_stats_on_consumable, Keys.stat_speed_hash, sugar_value, 2)
+		# HUD chip so the burst is visible while it is running, beside the food buffs
+		_set_item_buff_chip("item_sugar_rush", sugar_copies, 2.0)
 		GourmetTracker.count("sugar_bursts")
 
 	# Mint refreshes every active food buff back to its full base duration and does nothing else
