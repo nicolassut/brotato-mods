@@ -69,9 +69,15 @@ const GOURMET_FAT_SIZE: = 0.02
 # therefore capped with it, at -120% Speed modifications at full size.
 const GOURMET_FAT_MAX_STACKS: = 40
 const GOURMET_FAT_PER_FOODS: = 50
+# Gourmet DLC - Street Vendor servings per wave, per copy owned. Flat by design: the card
+# prints these two numbers and nothing shifts them. Card mirror: EFFECT_STREET_VENDOR.
+const STREET_VENDOR_MIN_SERVINGS: = 3
+const STREET_VENDOR_MAX_SERVINGS: = 6
 var _food_trigger_thresholds: = {}
 var _chili_burning_data: = [null, null, null, null]
-# per player: food_id_hash -> its anchor structure (foods pop out of these)
+# per player: food_id_hash -> ARRAY of its anchor structures (foods pop out of these). One
+# entry per stand actually standing on the map, so owning three carts gives three real
+# dispensing points instead of three servings out of whichever one registered last.
 var _food_structures: = [{}, {}, {}, {}]
 var _food_fasting_counters: = [0, 0, 0, 0]
 # Gourmet DLC - Gourmet: whether his once-per-wave doubled food has already been served.
@@ -195,8 +201,8 @@ func _ready() -> void :
 		Keys.level_up_foods_hash: 1,
 		Keys.damage_taken_foods_hash: 1,
 		Keys.elite_kill_foods_hash: 1,
-		Keys.consumable_count_foods_hash: 5,
-		Keys.step_foods_hash: 200,
+		Keys.consumable_count_foods_hash: 8,
+		Keys.step_foods_hash: 180,
 		Keys.close_kill_foods_hash: 15,
 		Keys.far_kill_foods_hash: 15,
 		Keys.turret_kill_foods_hash: 5,
@@ -1250,11 +1256,21 @@ func knockback_burst(pos: Vector2, amount: float, radius: float) -> void :
 
 
 # Gourmet DLC - foods anchored to a structure (greenhouse, wok, cart, stall) pop
-# out of it; everything else pops out of the player
+# out of it; everything else pops out of the player. Every copy of a spawner item puts its
+# own stand on the map, so pick a live one at random per serving - the stands share the
+# item's output rather than three of them idling behind one.
 func get_food_spawn_origin(food_id_hash: int, player_index: int) -> Vector2:
-	var anchor = _food_structures[player_index].get(food_id_hash)
-	if anchor != null and is_instance_valid(anchor) and not anchor.dead:
-		return anchor.global_position
+	var anchors = _food_structures[player_index].get(food_id_hash)
+	if anchors is Array and not anchors.empty():
+		var live_anchors: = []
+		for anchor in anchors:
+			if anchor != null and is_instance_valid(anchor) and not anchor.dead:
+				live_anchors.push_back(anchor)
+		# Stands can be destroyed mid-wave; drop the dead ones so the list does not grow
+		# stale across a long wave, then serve from whatever is still standing.
+		_food_structures[player_index][food_id_hash] = live_anchors
+		if not live_anchors.empty():
+			return live_anchors[Utils.randi() % live_anchors.size()].global_position
 	return _players[player_index].global_position
 
 
@@ -1373,8 +1389,10 @@ func on_consumable_picked_up(consumable: Node, player_index: int) -> void :
 		_consumables_to_process[player_index_to_add_to].push_back(consumable_to_process)
 		_things_to_process_player_containers[player_index_to_add_to].consumables.add_element(consumable_data)
 
-	# Gourmet DLC - After-Dinner Mints count every consumable picked up
-	count_food_trigger(Keys.consumable_count_foods_hash, player_index)
+	# Gourmet DLC - After-Dinner Mints count FOOD and fruit only. Item crates are consumables
+	# too, and counting those meant the Mints ticked on shop loot rather than on eating.
+	if consumable_data.my_id.begins_with("consumable_food_") or consumable_data.my_id == "consumable_fruit":
+		count_food_trigger(Keys.consumable_count_foods_hash, player_index)
 
 	# Gourmet DLC - on-eat item effects for foods: Snack Break materials, Grease
 	# Fire melee-range ignition, Food Fight projectile, Buffet Insurance tracking
@@ -2272,11 +2290,11 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void :
 			for _j in range(mid_wave_food[1]):
 				_food_scheduled_spawns[i].push_back([rand_range(0.3, 0.7) * food_wave_duration, mid_wave_food[0], 1])
 		for random_times_food in effects[Keys.random_times_foods_hash]:
-			# Gourmet DLC - Street Vendor: the Mystery Meat count range shifts up with Appetite
-			# without widening - both ends gain 0.3 per Appetite (30% of base 1 == 10% of base 3).
-			var mm_bonus: int = int(round(max(0.0, Utils.get_stat(Keys.stat_appetite_hash, i)) * 0.3))
+			# Gourmet DLC - Street Vendor: a FLAT 3 to 6 servings per wave per copy owned.
+			# Appetite used to shift both ends by 0.3 each, which made the item's whole output
+			# a function of a stat you may not be building; the range is now what the card says.
 			for _j in range(random_times_food[1]):
-				for _k in range(Utils.randi_range(1 + mm_bonus, 3 + mm_bonus)):
+				for _k in range(Utils.randi_range(STREET_VENDOR_MIN_SERVINGS, STREET_VENDOR_MAX_SERVINGS)):
 					_food_scheduled_spawns[i].push_back([rand_range(0.15, 0.85) * food_wave_duration, random_times_food[0], 1])
 
 		# Gourmet DLC - Farmers' Market: shop rerolls banked last shop become Fruit Salads now
@@ -2402,9 +2420,15 @@ func _on_EntitySpawner_structure_spawned(structure: Structure) -> void :
 	var _error_fruit = structure.connect("wanted_to_spawn_fruit", self, "on_structure_wanted_to_spawn_fruit")
 	# Gourmet DLC - Ice Cream Truck serves food through the structure signal
 	var _error_food = structure.connect("wanted_to_spawn_food", self, "on_structure_wanted_to_spawn_food", [structure])
-	# Gourmet DLC - food structures register as the spawn anchor for their food
+	# Gourmet DLC - food structures register as a spawn anchor for their food. They APPEND:
+	# an owned copy each spawns its own stand, and assigning here would have left every copy
+	# but the last one decorative.
 	if "anchored_food" in structure and structure.anchored_food != "" and structure.player_index >= 0:
-		_food_structures[structure.player_index][Keys.generate_hash(structure.anchored_food)] = structure
+		var anchor_hash: int = Keys.generate_hash(structure.anchored_food)
+		var player_anchors: Dictionary = _food_structures[structure.player_index]
+		if not player_anchors.has(anchor_hash):
+			player_anchors[anchor_hash] = []
+		player_anchors[anchor_hash].push_back(structure)
 		GourmetTracker.ev("structure_anchor", {"f": structure.anchored_food, "p": structure.player_index})
 
 

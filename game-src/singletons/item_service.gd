@@ -330,6 +330,43 @@ func get_player_shop_items(wave: int, player_index: int, args: ItemServiceGetSho
 					if not has_mirror and new_items.size() > 0:
 						new_items[new_items.size() - 1] = [item, wave]
 					break
+
+	# Gourmet DLC - food characters: ONE roll per shop puts a guaranteed spawner in it. This
+	# is a FLOOR, not a bias - the normal spawner appearances are rolled above and untouched,
+	# so a shop that already offers one is left exactly as it came out. It only ever fires on
+	# a shop that rolled none, which is the case the food characters actually lose runs to.
+	var spawner_chance: int = RunData.get_player_effect(Keys.spawner_shop_chance_hash, player_index)
+	if spawner_chance > 0 and Utils.get_chance_success(spawner_chance / 100.0):
+		var has_spawner: = false
+		# `tags` lives on ItemData only - a weapon in the shop or on a lock has no such
+		# property, so every read of it is type-gated first.
+		for locked_item in args.locked_items:
+			if locked_item[0] is ItemData and locked_item[0].tags.has("spawner"):
+				has_spawner = true
+				break
+		if not has_spawner:
+			for shop_entry in new_items:
+				if shop_entry[0] is ItemData and shop_entry[0].tags.has("spawner"):
+					has_spawner = true
+					break
+		if not has_spawner:
+			var spawner_args: = GetRandItemForWaveArgs.new()
+			spawner_args.excluded_items = args.prev_items + new_items
+			spawner_args.owned_and_shop_items = args.owned_and_shop_items
+			spawner_args.increase_tier = args.increase_tier
+			spawner_args.forced_shop_tag = "spawner"
+			var spawner_item = _get_rand_item_for_wave(wave, player_index, TierData.ITEMS, spawner_args)
+			# The tier can hold no eligible spawner at all (all owned to their cap, or a tier
+			# with none registered). _get_rand_item_for_wave then falls back to its backup pool
+			# and hands back an ordinary item, so check what actually came out - forcing that
+			# into a slot would delete an offer to grant nothing.
+			if spawner_item is ItemData and spawner_item.tags.has("spawner"):
+				# Only ever overwrite an item slot. Waves 1-2 guarantee weapons, and eating one
+				# of those to honour a 30% nicety would break a stronger promise.
+				for i in range(new_items.size() - 1, - 1, - 1):
+					if not new_items[i][0] is WeaponData:
+						new_items[i] = [spawner_item, wave]
+						break
 	return new_items
 
 
@@ -464,17 +501,10 @@ func _get_rand_item_for_wave(wave: int, player_index: int, type: int, args: GetR
 				if not has_wanted_tag:
 					items_to_remove.push_back(item)
 
-		# Gourmet DLC - food characters get a real chance at SPAWNERS specifically. The
-		# wanted_tags bias above is too weak for them: it fires only 5% of the time, and the
-		# "food" tag also matches ~25 plain food items, so spawners were a minority even when
-		# it did fire. This restricts the roll to spawner-tagged items outright. If the tier
-		# holds no spawners the pool empties and the existing backup_pool fallback below picks
-		# normally, so a bad tier degrades to "no bias" rather than breaking.
-		var spawner_chance: int = RunData.get_player_effect(Keys.spawner_shop_chance_hash, player_index)
-		if spawner_chance > 0 and Utils.get_chance_success(spawner_chance / 100.0):
-			for item in pool:
-				if not item.tags.has("spawner"):
-					items_to_remove.push_back(item)
+		# Gourmet DLC - the food characters' spawner help is a per-SHOP floor, not a per-slot
+		# bias: see the spawner_shop_chance block at the end of get_player_shop_items. Rolling
+		# it here (once per slot, restricting that slot's pool) stacked with the shop's normal
+		# spawner rolls and skewed whole shops toward spawners.
 
 		if args.forced_shop_tag != null:
 			for item in pool:

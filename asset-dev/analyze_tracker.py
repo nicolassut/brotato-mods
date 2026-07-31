@@ -208,7 +208,7 @@ if mystery_bad + mystery_good:
 gold = Counter(e.get("gold", "") for e in by["buff_apply"] if e.get("gold"))
 if gold:
     print(f"  golden apple stats: {dict(gold)}")
-for kind, label in [("mint_refresh", "mint refreshes"), ("nine_lives_save", "nine lives saves"),
+for kind, label in [("mint_extend", "mint extensions"), ("nine_lives_save", "nine lives saves"),
                     ("buffet_heal", "buffet heals"), ("echo_proc", "echo procs"),
                     ("leftovers_grant", "leftovers grants"), ("escargot_snail", "snail escargots"),
                     ("panic_button", "panic button bursts"),

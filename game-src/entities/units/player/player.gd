@@ -86,6 +86,12 @@ const VAMPIRE_FANG_OVERHEAL_PCT: = 0.20
 # Gourmet DLC - Soul Food flip risk, FLAT (was (5 - 0.1 x Luck)% which floored at 0).
 # Must stay in sync with soul_food_effect_1.tres value, which the card renders as {0}.
 const SOUL_FLIP_PCT: = 3.0
+# Gourmet DLC - Mint: seconds added to every active food buff timer.
+# Card mirror: EFFECT_FOOD_MINT in build_food_system.py.
+const MINT_EXTEND_SECONDS: = 6.0
+# Gourmet DLC - Wine Cellar: seconds a food must sit on the ground to count as aged.
+# Card mirror: EFFECT_WINE_CELLAR in build_pantry_items.py.
+const WINE_CELLAR_AGE_SECONDS: = 6.0
 
 onready var _lifesteal_timer = $LifestealTimer
 onready var _invincibility_timer = $InvincibilityTimer
@@ -1244,10 +1250,10 @@ func _apply_food_buff(food_data, food_age: float = - 1.0) -> void :
 	if character_id == "character_picky_eater" and buff_effects[Keys.selected_spawner_hash] == Keys.generate_hash(food_data.my_id):
 		strength_bonus += 100
 
-	# Wine Cellar: food that sat on the ground 5+ seconds grants a stronger buff.
-	# Only counted when the food actually has a buff to strengthen, so the card
+	# Wine Cellar: food that sat on the ground WINE_CELLAR_AGE_SECONDS+ grants a stronger
+	# buff. Only counted when the food actually has a buff to strengthen, so the card
 	# counter never ticks on pure heal/special foods.
-	if food_age >= 5.0 and (food_data.buff_stats.size() > 0 or not food_data.wave_stats.empty()):
+	if food_age >= WINE_CELLAR_AGE_SECONDS and (food_data.buff_stats.size() > 0 or not food_data.wave_stats.empty()):
 		var wine_cellar_bonus: int = int(buff_effects[Keys.wine_cellar_hash])
 		if wine_cellar_bonus > 0:
 			strength_bonus += wine_cellar_bonus
@@ -1263,13 +1269,16 @@ func _apply_food_buff(food_data, food_age: float = - 1.0) -> void :
 		_set_item_buff_chip("item_sugar_rush", sugar_copies, 2.0)
 		GourmetTracker.count("sugar_bursts")
 
-	# Mint refreshes every active food buff back to its full base duration and does nothing else
+	# Mint ADDS a flat MINT_EXTEND_SECONDS to every active food buff and does nothing else.
+	# It used to reset each timer to that food's BASE duration, which was a nerf the moment a
+	# buff was stacked: three Pizza Slices run one shared timer well past a single slice's
+	# base, so "refreshing" it cut the time left instead of restoring it.
 	if food_data.special_id == "mint":
-		GourmetTracker.ev("mint_refresh", {"p": player_index, "n": _food_buffs.size()})
+		GourmetTracker.ev("mint_extend", {"p": player_index, "n": _food_buffs.size()})
 		for active_buff in _food_buffs.values():
-			# rest-of-wave buffs have no timer to refresh - Mint leaves them untouched
+			# rest-of-wave buffs have no timer to extend - Mint leaves them untouched
 			if active_buff.has("timer"):
-				active_buff["timer"].time_left = active_buff["base_duration"]
+				active_buff["timer"].time_left += MINT_EXTEND_SECONDS
 		return
 
 	# Mystery Meat: 50/50 between its buff and losing 2 HP (Cast-Iron Stomach removes the risk)

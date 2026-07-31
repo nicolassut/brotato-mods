@@ -217,7 +217,7 @@ CSV_ROWS = [
  ("EFFECT_SLUG_TRAIL", "Leaves a slime trail (lasts 7.5s) that slows enemies 30% (+2% per Level, max 90%). Trail width (base 26) and slow radius (base 45) each grow +6% per Level"),
  ("ENEMY_ATTACK_SPEED", "% Enemy Attack Speed"),
  ("EFFECT_FOOD_STACK_CAP", "+{0} max stacks to every food buff"),
- ("EFFECT_WINE_CELLAR", "Food eaten at least 5 seconds after it appeared grants a +{0}% stronger buff"),
+ ("EFFECT_WINE_CELLAR", "Food eaten at least 6 seconds after it appeared grants a +{0}% stronger buff"),
  ("EFFECT_DELIVERY_DRONE", "Every food spawner you own serves {0} extra food at the start of each wave (Doggy Bag excluded)"),
  ("WINE_CELLAR_AGED", "Aged servings: {0}"),
  ("DELIVERY_DRONE_DELIVERED", "Foods delivered: {0}"),

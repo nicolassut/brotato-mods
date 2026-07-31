@@ -41,7 +41,7 @@ EFFECT_MINIMALIST_ALL12,They all give +12 instead while your 6 items are all max
 GAIN_STAT_HARVESTING,% Harvesting modifications
 GAIN_XP_GAIN,% XP Gain modifications
 EFFECT_ESPRESSO_MACHINE,Spawns {0}x Espresso at the start of each wave
-EFFECT_FOOD_ESPRESSO,Eating an Espresso grants +{0}% ({1}) Attack Speed for 10 seconds. Stacks
+EFFECT_FOOD_ESPRESSO,Eating an Espresso grants +{0}% ({1}) Attack Speed for 12 seconds. Stacks
 EFFECT_BUTCHERS_HOOK,Spawns {0}x Steak every 40 kills
 EFFECT_FOOD_STEAK,Eating a Steak grants +{0}% ({1}) Damage for 9 seconds. Stacks
 EFFECT_BAKERS_OVEN,Spawns {0}x Cake Slice on every level up
@@ -62,18 +62,18 @@ EFFECT_PIZZA_DELIVERY,"Delivers {0}x Pizza Slice mid-wave, each to its own spot"
 EFFECT_FOOD_PIZZA_SLICE,Eating a Pizza Slice grants +{0}% Damage and +{1}% Speed for {2} ({3}) seconds. Stacks
 EFFECT_VICTORY_FEAST,Spawns {0}x Golden Apple when an elite or a boss dies
 EFFECT_FOOD_GOLDEN_APPLE,Eating a Golden Apple heals {2} HP ({3}) and grants +20% to a random stat for {0} ({1}) seconds. Stacks
-EFFECT_STREET_VENDOR,"Mystery Meat shows up 1 to 3 times per wave ({0}x each), +0.3 per Appetite to both bounds (rounded)"
+EFFECT_STREET_VENDOR,Mystery Meat shows up 3 to 6 times per wave ({0}x each)
 EFFECT_FOOD_MYSTERY_MEAT,Eating Mystery Meat grants +{0}% ({1}) Damage for 14 seconds half the time. Otherwise you lose 2 HP. Stacks
 EFFECT_FONDUE_SET,Spawns {0}x Cheese Cube every 3 seconds you stand still
 EFFECT_FOOD_CHEESE_CUBE,Eating a Cheese Cube grants +{0}% ({1}) Dodge for 8 seconds. Stacks
-EFFECT_GYM_MEMBERSHIP,Spawns {0}x Protein Shake every 200 steps
+EFFECT_GYM_MEMBERSHIP,Spawns {0}x Protein Shake every 180 steps
 EFFECT_FOOD_PROTEIN_SHAKE,Eating a Protein Shake grants +{0}% ({1}) Speed and +{2} ({3}) Melee Damage for 10 seconds. Stacks
 EFFECT_FANCY_RESTAURANT,Places a restaurant that serves an Escargot every {0} seconds to nearby players at full HP
 EFFECT_FOOD_ESCARGOT,Eating an Escargot grants +{0} ({1}) Armor for 14 seconds. Stacks
 EFFECT_FARMERS_MARKET,Banks every shop reroll as {0}x Fruit Salad served at the stall next wave
 EFFECT_FOOD_FRUIT_SALAD,Eating a Fruit Salad heals {0} HP ({1}) and grants +{2} Harvesting permanently
-EFFECT_AFTER_DINNER_MINTS,Spawns {0}x Mint every 5 consumables you pick up
-EFFECT_FOOD_MINT,Eating a Mint refreshes all your active food buffs to their full duration
+EFFECT_AFTER_DINNER_MINTS,Spawns {0}x Mint every 8 Foods or fruit you eat
+EFFECT_FOOD_MINT,Eating a Mint adds 6 seconds to all your active food buffs
 GOURMET_APPETITE_GAINED,Appetite gained: {0}
 GOURMET_HARVESTING_GAINED,Harvesting gained: {0}
 GOURMET_SNAIL_ARMOR_GAINED,Armor gained: {0}
@@ -201,7 +201,7 @@ EFFECT_FOOD_RIBS,Eating Ribs grants +{0} ({1}) Melee Damage for 10 seconds. Stac
 EFFECT_HOT_DOG_CART,Spawns {0}x Chili Dog every 15 enemies that die more than 300 range from you
 EFFECT_FOOD_CHILI_DOG,Eating a Chili Dog grants +{0} ({1}) Ranged Damage for 10 seconds. Stacks
 EFFECT_FOOD_STACK_CAP,+{0} max stacks to every food buff
-EFFECT_WINE_CELLAR,Food eaten at least 5 seconds after it appeared grants a +{0}% stronger buff
+EFFECT_WINE_CELLAR,Food eaten at least 6 seconds after it appeared grants a +{0}% stronger buff
 EFFECT_DELIVERY_DRONE,Every food spawner you own serves {0} extra food at the start of each wave (Doggy Bag excluded)
 WINE_CELLAR_AGED,Aged servings: {0}
 DELIVERY_DRONE_DELIVERED,Foods delivered: {0}
@@ -260,4 +260,4 @@ EFFECT_SPECIAL_ROLL,Every wave rolls random modifiers that rewrite the rules
 EFFECT_SPECIAL_PREVIEW,The shop shows you what is coming next wave
 EFFECT_SPECIAL_TEMPORARY,Modifiers last one wave only
 EFFECT_SPECIAL_SKEW,More modifiers are bad than good
-EFFECT_SPAWNER_CHANCE,{0}% chance each shop slot is a food spawner
+EFFECT_SPAWNER_CHANCE,Each shop has a {0}% chance to guarantee a food spawner
