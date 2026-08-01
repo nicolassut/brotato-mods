@@ -155,6 +155,7 @@ func _ready() -> void :
 
 		var gold_label = _get_gold_label(player_index)
 		gold_label.update_value(RunData.get_player_gold(player_index))
+		_update_shop_debt(player_index)  # Gourmet DLC - show the debt readout in the shop too
 
 		var reroll_button = _get_reroll_button(player_index)
 		_error_connect = reroll_button.connect("pressed", self, "_on_RerollButton_pressed", [player_index])
@@ -1197,6 +1198,32 @@ func hide_tags(shop_item: ShopItem) -> void :
 func _on_gold_changed(new_value: int, player_index: int) -> void :
 	var gold_label = _get_gold_label(player_index)
 	gold_label.update_value(new_value)
+	_update_shop_debt(player_index)
+
+
+# Gourmet DLC - the shop's gold label is a plain Label (no per-part colour), so the debt is
+# shown as a separate red Label created once beside it, mirroring the battle HUD. Reads the
+# gold label's own font so the two match. Hidden when not in debt.
+func _update_shop_debt(player_index: int) -> void :
+	var gold_label = _get_gold_label(player_index)
+	if gold_label == null:
+		return
+	var parent = gold_label.get_parent()
+	if parent == null:
+		return
+	var debt_label: Label = parent.get_node_or_null("GourmetDebtLabel")
+	if debt_label == null:
+		debt_label = Label.new()
+		debt_label.name = "GourmetDebtLabel"
+		var gold_font = gold_label.get("custom_fonts/font")
+		if gold_font != null:
+			debt_label.set("custom_fonts/font", gold_font)
+		debt_label.add_color_override("font_color", Color(1, 0.27, 0.27, 1))
+		parent.add_child(debt_label)
+		parent.move_child(debt_label, gold_label.get_index() + 1)
+	var debt: int = RunData.get_player_debt(player_index)
+	debt_label.visible = debt > 0
+	debt_label.text = " -" + str(debt) if debt > 0 else ""
 
 
 func _on_shop_item_focused(shop_item: ShopItem, player_index: int) -> void :

@@ -185,13 +185,13 @@ func get_text(player_index: int, colored: bool = true) -> String:
 	if text_key == "EFFECT_W_BELL":
 		return Text.text(text_key, [str(stepify(value / 10.0, 0.1))], [] if !colored else [Sign.NEUTRAL])
 
-	# Gourmet DLC - Bank Loan: the action line flips from its offer to "Used" once the loan has
-	# fired. A fresh loan (only ever seen in the shop) has value 1; buy_item sets it to 0 the
-	# instant it is bought, so an owned loan always reads "Used". The debt explainer is a
-	# separate always-on line, so the "how debt works" text stays visible either way.
-	if text_key == "EFFECT_BANK_LOAN":
+	# Gourmet DLC - Bank Loan "Used" marker. This is a SEPARATE line from the offer (the offer
+	# text always shows). The used-flag effect carries value 1 while fresh and add_item flips it
+	# to 0 on firing; render nothing while fresh (the line self-removes) and "Used" once fired.
+	# So an owned loan shows: the offer + "Used" + the debt explainer.
+	if text_key == "EFFECT_BANK_LOAN_USED":
 		if int(value) > 0:
-			return Text.text("EFFECT_BANK_LOAN", [] if !colored else [])
+			return ""
 		return Text.text("EFFECT_BANK_LOAN_USED", [] if !colored else [])
 
 	if text_key == "EFFECT_POPCORN_MACHINE":  # main.gd on_explosion_spawned: 5% * (1 + 0.10 * Appetite) chance per explosion

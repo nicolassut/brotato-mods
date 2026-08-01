@@ -152,11 +152,14 @@ ITEMS = [
    ("key", "credit_limit", 100, "EFFECT_CREDIT_CARD", 0),
    ("key", "", 0, "EFFECT_DEBT_EXPLAIN", 2)], (), 2,
    tracking="CREDIT_CARD_DEBT", ext_id=1006),
- # Bank Loan: fires once on purchase in base_shop.buy_item (+500 materials, +300 debt). The
- # action effect carries a "bank_loan" custom_key and value 1 while fresh; buy_item flips it
- # to 0, which effect.gd renders as "Used". effect_1 is the same debt explainer.
+ # Bank Loan: fires once the moment it is acquired (RunData.add_item): +500 materials, +300
+ # debt. effect_0 is the OFFER (always shown). effect_1 is the used-flag: custom_key
+ # "bank_loan" value 1 while fresh, which add_item finds and flips to 0 on firing; effect.gd
+ # renders it as an extra "Used" line only once fired (nothing while fresh). effect_2 is the
+ # shared debt explainer. So the card keeps its full description and just gains a "Used" line.
  item("bank_loan", "Bank Loan", 2, 90, [
-   ("custom", "", "bank_loan", 1, "EFFECT_BANK_LOAN", 0),
+   ("key", "", 0, "EFFECT_BANK_LOAN", 0),
+   ("custom", "", "bank_loan", 1, "EFFECT_BANK_LOAN_USED", 0),
    ("key", "", 0, "EFFECT_DEBT_EXPLAIN", 2)], (), -1,
    ext_id=1007),
 ]

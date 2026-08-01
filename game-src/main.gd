@@ -2624,6 +2624,11 @@ func _on_player_health_updated(player: Player, current_val: int, max_val: int) -
 func on_gold_changed(new_value: int, player_index: int) -> void :
 	var player_ui: PlayerUIElements = _players_ui[player_index]
 	player_ui.gold.update_value(new_value)
+	# Gourmet DLC - refresh the debt readout on the SAME live signal as gold. update_hud (the
+	# other place that sets it) only runs at wave setup, which is why debt used to look frozen
+	# mid-wave: add_gold repays it per gem, but nothing repainted the label until the next
+	# round. gold_changed fires on every add_gold / add_debt / overspend, so this tracks it live.
+	player_ui.gold.update_debt(RunData.get_player_debt(player_index))
 
 
 func on_damage_effect(value: int, player_index: int, armor_applied: bool, dodgeable: bool, from = null) -> void :
