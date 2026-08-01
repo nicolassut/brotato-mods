@@ -19,6 +19,30 @@ const TIER_LEGENDARY_COLOR_DARK = Color(36.0 / 255, 9.0 / 255, 9.0 / 255, 1)
 const TIER_RARE_COLOR_DARK = Color(16.0 / 255, 10.0 / 255, 27.0 / 255, 1)
 const TIER_UNCOMMON_COLOR_DARK = Color(15.0 / 255, 32.0 / 255, 40.0 / 255, 1)
 
+# Gourmet DLC - Blacksmith weapon ladder. Four extra rarities sit between and above
+# the vanilla four. They use tier numbers 7-10 because 4/5/6 are already taken by
+# Tier.DANGER_4 / DANGER_5 / NIGHTMARE.
+const TIER_BS_GREEN = 7
+const TIER_BS_ORANGE = 8
+const TIER_BS_PINK = 9
+const TIER_BS_GOLD = 10
+
+# Ladder order, weakest to strongest. Position in this array is the progression
+# step; the value is the real tier number stored on the weapon resource.
+const BS_TIER_LADDER = [Tier.COMMON, TIER_BS_GREEN, Tier.UNCOMMON, TIER_BS_ORANGE,
+						Tier.RARE, Tier.LEGENDARY, TIER_BS_PINK, TIER_BS_GOLD]
+const VANILLA_TIER_LADDER = [Tier.COMMON, Tier.UNCOMMON, Tier.RARE, Tier.LEGENDARY]
+
+const TIER_BS_GREEN_COLOR = Color(122.0 / 255, 219.0 / 255, 88.0 / 255, 1)
+const TIER_BS_ORANGE_COLOR = Color(255.0 / 255, 158.0 / 255, 42.0 / 255, 1)
+const TIER_BS_PINK_COLOR = Color(255.0 / 255, 105.0 / 255, 199.0 / 255, 1)
+const TIER_BS_GOLD_COLOR = Color(255.0 / 255, 205.0 / 255, 60.0 / 255, 1)
+
+const TIER_BS_GREEN_COLOR_DARK = Color(12.0 / 255, 26.0 / 255, 9.0 / 255, 1)
+const TIER_BS_ORANGE_COLOR_DARK = Color(33.0 / 255, 20.0 / 255, 5.0 / 255, 1)
+const TIER_BS_PINK_COLOR_DARK = Color(33.0 / 255, 13.0 / 255, 26.0 / 255, 1)
+const TIER_BS_GOLD_COLOR_DARK = Color(33.0 / 255, 26.0 / 255, 7.0 / 255, 1)
+
 const NB_SHOP_ITEMS: = 4
 
 const CHANCE_WEAPON: = 0.35
@@ -100,8 +124,20 @@ func reset_tiers_data() -> void :
 		_tiers_data = [
 		[[], [], [], [], [], 0, 1.0, 0.0, 1.0], 
 		[[], [], [], [], [], 0, 0.0, 0.06, 0.6], 
-		[[], [], [], [], [], 2, 0.0, 0.02, 0.25], 
-		[[], [], [], [], [], 6, 0.0, 0.0023, 0.08]
+		[[], [], [], [], [], 2, 0.0, 0.02, 0.25],
+		[[], [], [], [], [], 6, 0.0, 0.0023, 0.08],
+		# Gourmet DLC - rows 4/5/6 are unused padding: those indices are already taken
+		# by Tier.DANGER_4 / DANGER_5 / NIGHTMARE, so the Blacksmith's extra weapon
+		# tiers start at 7 to avoid colliding with the danger colours and checks.
+		[[], [], [], [], [], 0, 0.0, 0.0, 0.0],
+		[[], [], [], [], [], 0, 0.0, 0.0, 0.0],
+		[[], [], [], [], [], 0, 0.0, 0.0, 0.0],
+		# Blacksmith-only ladder tiers. Only rolled when the player is the Blacksmith
+		# (see get_tier_from_wave), so no other character can ever draw them.
+		[[], [], [], [], [], 0, 0.0, 0.09, 0.75],
+		[[], [], [], [], [], 1, 0.0, 0.035, 0.4],
+		[[], [], [], [], [], 10, 0.0, 0.0012, 0.04],
+		[[], [], [], [], [], 15, 0.0, 0.0006, 0.02]
 	]
 
 
@@ -260,10 +296,19 @@ func get_player_shop_items(wave: int, player_index: int, args: ItemServiceGetSho
 		else:
 			type = TierData.WEAPONS if (Utils.get_chance_success(CHANCE_WEAPON) or nb_weapons_added + nb_locked_weapons < nb_weapons_guaranteed) else TierData.ITEMS
 
+		# Gourmet DLC - Blacksmith: his shop is weapons-only. He forges rather than
+		# collecting items, so override the vanilla weapon/item roll outright. The
+		# no-free-slots fallback to ITEMS is skipped for him too - a full Blacksmith
+		# can still forge two weapons into one, so weapons stay the useful offer.
+		var bs_char = RunData.get_player_character(player_index)
+		var bs_weapons_only: bool = bs_char != null and bs_char.my_id == "character_blacksmith"
+		if bs_weapons_only:
+			type = TierData.WEAPONS
+
 		if type == TierData.WEAPONS:
 			nb_weapons_added += 1
 
-		if not RunData.player_has_weapon_slots(player_index):
+		if not RunData.player_has_weapon_slots(player_index) and not bs_weapons_only:
 			type = TierData.ITEMS
 
 		var new_item
@@ -333,7 +378,10 @@ func get_rand_item_for_wave(wave: int, player_index: int) -> ItemParentData:
 func _get_rand_item_for_wave(wave: int, player_index: int, type: int, args: GetRandItemForWaveArgs) -> ItemParentData:
 	var player_character = RunData.get_player_character(player_index)
 	var rand_wanted = randf()
-	var item_tier = get_tier_from_wave(wave, player_index, args.increase_tier)
+	# only the weapon roll may use the Blacksmith ladder - items/upgrades/consumables
+	# have no entries at tiers 7-10 and would come back null
+	var item_tier = get_tier_from_wave(wave, player_index, args.increase_tier,
+									   type == TierData.WEAPONS)
 
 	if args.fixed_tier != - 1:
 		item_tier = args.fixed_tier
@@ -550,12 +598,25 @@ func apply_item_effect_modifications(item: ItemParentData, player_index: int) ->
 	return item
 
 
-func get_tier_from_wave(wave: int, player_index: int, increase_tier: = 0) -> int:
+func get_tier_from_wave(wave: int, player_index: int, increase_tier: = 0, use_bs_ladder: = false) -> int:
 	var rand = rand_range(0.0, 1.0)
 	var luck = Utils.get_stat(Keys.stat_luck_hash, player_index) / 100.0
 
+	# Gourmet DLC - the Blacksmith rolls an 8-step weapon ladder that interleaves four
+	# extra tiers (7 green, 8 orange, 9 pink, 10 gold) with the vanilla four. Every
+	# other character iterates the vanilla ladder only, so the extra tiers are
+	# unreachable for them and the rest of the game is untouched. Never iterate
+	# _tiers_data directly here - it now has padding rows that must never be rolled.
+	# use_bs_ladder MUST stay opt-in and weapons-only. The extra tiers exist solely
+	# as weapon rarities - _tiers_data[7..10] has no items, upgrades or consumables -
+	# so letting level-up upgrades roll them returns null from get_rand_element and
+	# the card renders the scene's placeholder labels before crashing on null.
+	var bs_tier_char = RunData.get_player_character(player_index)
+	var ladder: Array = BS_TIER_LADDER if (use_bs_ladder and bs_tier_char != null and bs_tier_char.my_id == "character_blacksmith") else VANILLA_TIER_LADDER
+
 	var tier: int = Tier.COMMON
-	for i in range(_tiers_data.size() - 1, - 1, - 1):
+	for pos in range(ladder.size() - 1, - 1, - 1):
+		var i = ladder[pos]
 		var tier_data = _tiers_data[i]
 
 		
@@ -575,7 +636,14 @@ func get_tier_from_wave(wave: int, player_index: int, increase_tier: = 0) -> int
 			tier = i
 			break
 
-	tier = clamp(tier + increase_tier, Tier.COMMON, Tier.LEGENDARY) as int
+	# Gourmet DLC - increase_tier steps along the active ladder rather than the raw
+	# tier number, so a +1 on the Blacksmith moves green -> vanilla T2 rather than
+	# jumping out of his ladder entirely.
+	if increase_tier != 0:
+		var cur_pos = ladder.find(tier)
+		if cur_pos == - 1:
+			cur_pos = 0
+		tier = ladder[clamp(cur_pos + increase_tier, 0, ladder.size() - 1)]
 
 	return tier
 
@@ -642,6 +710,51 @@ func get_upgrade_data(level: int, player_index: int) -> UpgradeData:
 	return upgrade_data
 
 
+# Gourmet DLC - tier ladder helpers. Anything that advances a weapon by "one tier"
+# must step the player's ladder rather than doing tier + 1: for the Blacksmith the
+# ladder is 0,7,1,8,2,3,9,10, so tier + 1 from vanilla T4 lands on 4 (DANGER_4, an
+# empty pool) instead of pink, and from T1 it skips green entirely.
+func get_tier_ladder(player_index: int) -> Array:
+	var c = RunData.get_player_character(player_index)
+	return BS_TIER_LADDER if (c != null and c.my_id == "character_blacksmith") else VANILLA_TIER_LADDER
+
+
+func get_next_tier(tier: int, player_index: int) -> int:
+	var ladder: = get_tier_ladder(player_index)
+	var pos: = ladder.find(tier)
+	if pos == - 1 or pos >= ladder.size() - 1:
+		return - 1
+	return ladder[pos + 1]
+
+
+# 1-based position on the ladder - what the UI should call this tier.
+func get_tier_step(tier: int, player_index: int) -> int:
+	var pos: = get_tier_ladder(player_index).find(tier)
+	return (pos + 1) if pos != - 1 else (tier + 1)
+
+
+func get_weapon_at_tier(weapon_id: String, tier: int):
+	for w in weapons:
+		if w.weapon_id == weapon_id and w.tier == tier:
+			return w
+	return null
+
+
+# The weapon this one upgrades into for THIS player. Falls back to the resource's
+# own upgrades_into so non-Blacksmith behaviour is bit-for-bit unchanged.
+func get_upgrade_target(weapon_data, player_index: int):
+	var nt: = get_next_tier(weapon_data.tier, player_index)
+	if nt != - 1:
+		var w = get_weapon_at_tier(weapon_data.weapon_id, nt)
+		if w != null:
+			return w
+	return weapon_data.upgrades_into
+
+
+func can_upgrade_further(weapon_data, player_index: int) -> bool:
+	return get_upgrade_target(weapon_data, player_index) != null
+
+
 func get_color_from_tier(tier: int, dark_version: bool = false) -> Color:
 	match tier:
 		Tier.UNCOMMON:
@@ -656,6 +769,16 @@ func get_color_from_tier(tier: int, dark_version: bool = false) -> Color:
 			return Color(ProgressData.settings.tier_4_color_dark) if dark_version else Color(ProgressData.settings.tier_4_color)
 		Tier.DANGER_5, Tier.NIGHTMARE:
 			return Color(ProgressData.settings.tier_5_color_dark) if dark_version else Color(ProgressData.settings.tier_5_color)
+		# Gourmet DLC - Blacksmith ladder rarities. Fixed colours rather than the
+		# player's configurable tier palette, since those slots are already used.
+		TIER_BS_GREEN:
+			return TIER_BS_GREEN_COLOR_DARK if dark_version else TIER_BS_GREEN_COLOR
+		TIER_BS_ORANGE:
+			return TIER_BS_ORANGE_COLOR_DARK if dark_version else TIER_BS_ORANGE_COLOR
+		TIER_BS_PINK:
+			return TIER_BS_PINK_COLOR_DARK if dark_version else TIER_BS_PINK_COLOR
+		TIER_BS_GOLD:
+			return TIER_BS_GOLD_COLOR_DARK if dark_version else TIER_BS_GOLD_COLOR
 		_:
 			return Color.white
 
@@ -680,6 +803,15 @@ func get_tier_text(tier: int) -> String:
 
 
 func get_tier_number(tier: int) -> String:
+	# Gourmet DLC - in a Blacksmith run the ladder is 8 steps long, so weapons are
+	# named I..VIII by ladder POSITION. Without this every tier above 2 fell through
+	# to "IV", which is why all four new rarities were named IV.
+	# Vanilla runs keep vanilla naming exactly: no numeral at T1, then II/III/IV.
+	if RunData.any_player_is_blacksmith():
+		var pos: = BS_TIER_LADDER.find(tier)
+		if pos != - 1:
+			return ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][pos]
+
 	if tier == 0: return ""
 	elif tier == 1: return "II"
 	elif tier == 2: return "III"

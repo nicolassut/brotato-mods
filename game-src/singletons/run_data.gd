@@ -1215,9 +1215,17 @@ func update_sets(player_index: int) -> void :
 			var set = ItemService.get_set(key)
 			var set_effects = set.set_bonuses[min(active_sets[key] - 2, set.set_bonuses.size() - 1)]
 
+			# Gourmet DLC - Blacksmith: weapon-class (set) bonuses count double.
+			# Each effect is applied AND recorded twice: active_set_effects is
+			# unapplied one entry at a time above, so apply/record must stay 1:1
+			# or the doubled half would never be removed and leak permanently.
+			var bs_set_char = get_player_character(player_index)
+			var bs_set_mult: int = 2 if (bs_set_char != null and bs_set_char.my_id == "character_blacksmith") else 1
+
 			for effect in set_effects:
-				effect.apply(player_index)
-				active_set_effects.push_back([key, effect])
+				for _bs_i in bs_set_mult:
+					effect.apply(player_index)
+					active_set_effects.push_back([key, effect])
 
 
 func get_unique_weapon_ids(player_index: int) -> Dictionary:
@@ -1498,6 +1506,16 @@ func is_blacksmith(player_index: int) -> bool:
 	return forge_character != null and forge_character.my_id == "character_blacksmith"
 
 
+# Gourmet DLC - run-level check for UI that has no player_index to work with
+# (weapon name suffixes in particular). The extended tier ladder is a property of
+# the run's weapon pool, so if any player is the Blacksmith the 8-step naming applies.
+func any_player_is_blacksmith() -> bool:
+	for i in get_player_count():
+		if is_blacksmith(i):
+			return true
+	return false
+
+
 # The weapon currently armed as the first half of a forge. Self-heals if that weapon
 # has since left the inventory (recycled, forged away), so it can never dangle.
 func get_forge_pick(player_index: int) -> WeaponData:
@@ -1568,7 +1586,9 @@ func can_combine(weapon_data: WeaponData, player_index: int) -> bool:
 			nb_duplicates += 1
 
 	var max_weapon_tier = get_player_effect(Keys.max_weapon_tier_hash, player_index)
-	if nb_duplicates >= 2 and weapon_data.upgrades_into != null and weapon_data.tier < max_weapon_tier:
+	# Gourmet DLC - "can this merge?" follows the player's ladder, so the Blacksmith
+	# can still combine at vanilla T4 (-> pink) and stops only at gold.
+	if nb_duplicates >= 2 and ItemService.can_upgrade_further(weapon_data, player_index) and weapon_data.tier < max_weapon_tier:
 		return true
 
 	return false

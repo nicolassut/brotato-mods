@@ -1,0 +1,235 @@
+key,en
+PERCENT_MATERIALS,% Materials Gained
+STAT_CURSE,Curse
+OVERTIME_PAY_DESC,"Gain 1% Attack Speed per 80 Materials collected each wave (max +6% per wave, permanent)"
+SECOND_MORTGAGE_DESC,+15% Materials at the end of each wave
+VAMPIRE_FANG_DESC,Life Steal can heal up to 20% of your max HP past your max HP
+FOOD_ITEM,Food item
+ITEM_MYSTERY_SEASONING,Mystery Seasoning
+STAT_APPETITE,Appetite
+INFO_POS_STAT_APPETITE,Boosts food buffs. +{0} Appetite
+INFO_NEG_STAT_APPETITE,Boosts food buffs. {0} Appetite
+FOOD_ITEMS_PRICE,% Food Items Price
+GAIN_STAT_PERCENT_DAMAGE,% Damage modifications
+GAIN_STAT_MELEE_DAMAGE,% Melee Damage modifications
+GAIN_STAT_ATTACK_SPEED,% Attack Speed modifications
+NO_HEAL,Cannot heal in any way
+GAIN_STAT_SPEED,% Speed modifications
+GAIN_STAT_RANGED_DAMAGE,% Ranged Damage modifications
+GAIN_STAT_LUCK,% Luck modifications
+GAIN_STAT_DODGE,% Dodge modifications
+GAIN_STAT_MAX_HP,% Max HP modifications
+GAIN_STAT_HP_REGENERATION,% HP Regeneration modifications
+GAIN_STAT_ELEMENTAL_DAMAGE,% Elemental Damage modifications
+GAIN_STAT_ARMOR,% Armor modifications
+EFFECT_ZOMBIE_DODGE_CAP,Dodge is capped at 10%. Anything raising the cap is 50% less effective
+EFFECT_SLUG_SPEED_CAP,Speed is capped at -20%
+EFFECT_MIME_MIRROR_SHOP,A Magic Mirror appears in every shop
+EFFECT_MIME_MIRROR_WEAPONS,Magic Mirrors also work on weapons
+EFFECT_JUGGLER_CYCLE,Weapons attack one at a time cycling left to right
+EFFECT_JUGGLER_TEMPO,"A weapon fires every {0}s ({1}s), left to right: 0.3s divided by (100% + Attack Speed), ignoring weapon cooldowns"
+EFFECT_MINIMALIST_ALL,Items give +2/+4/+6/+8 All Stats by their tier [+{0}]
+EFFECT_MINIMALIST_SELL,You can recycle items by pressing them in the shop
+EFFECT_MINIMALIST_CAP,You can hold a maximum of 6 items
+EFFECT_TOURIST_MODS,+10% to all stat modifications per Danger level
+EFFECT_TOURIST_ENEMY,+5% enemy health and enemy attack speed per Danger level
+EFFECT_COMP_EATER_STACK,Food buffs are twice as strong but last half as long
+EFFECT_GOURMET_EAT,+1 permanent Appetite for every 10 consumables eaten
+EFFECT_GOURMET_NOHEAL,Consumables no longer heal you
+EFFECT_BUTCHER_STEAK,+1% Damage per consumable eaten this wave
+EFFECT_MINIMALIST_ALL12,They all give +12 instead while your 6 items are all max tier
+GAIN_STAT_HARVESTING,% Harvesting modifications
+GAIN_XP_GAIN,% XP Gain modifications
+EFFECT_ESPRESSO_MACHINE,Spawns 2 Espressos at the start of each wave
+EFFECT_FOOD_ESPRESSO,Eating grants +{0}% ({1}) Attack Speed for 6 seconds. Stacks
+EFFECT_BUTCHERS_HOOK,Spawns a Steak every 40 kills
+EFFECT_FOOD_STEAK,Eating grants +{0}% ({1}) Damage for 5 seconds. Stacks
+EFFECT_BAKERS_OVEN,Spawns a Cake Slice on every level up
+EFFECT_FOOD_CAKE_SLICE,Eating heals {1} HP ({2}) and grants +{0} Max HP until the end of the wave
+EFFECT_BEEHIVE,Places a Beehive that drips a Honey Drop every {0} seconds
+EFFECT_FOOD_HONEY_DROP,Eating grants +{0} ({1}) HP Regeneration until the end of the wave. Stacks
+EFFECT_WOK_STATION,Serves a Fried Rice at the wok every 8 enemies that die burning
+EFFECT_FOOD_FRIED_RICE,Eating Fried Rice grants +{0}% ({1}) Attack Speed for 6 seconds. Stacks
+EFFECT_POPCORN_MACHINE,Each explosion has a {0}% ({1}%) chance to pop a Popcorn
+EFFECT_FOOD_POPCORN,Eating grants +{0}% ({1}) Explosion Damage and +{2}% ({3}) Explosion Size for 5 seconds. Stacks
+EFFECT_DEEP_FRYER,Spawns a Fries every 30 materials you collect
+EFFECT_FOOD_FRIES,Eating Fries grants +{0}% ({1}) Speed for 5 seconds. Stacks
+EFFECT_SUSHI_BAR,Spawns a Sushi Roll every 12 critical hits
+EFFECT_FOOD_SUSHI_ROLL,Eating grants +{0}% ({1}) Crit Chance for 6 seconds. Stacks
+EFFECT_GRANDMAS_COOKBOOK,Spawns a Warm Cookie when you take damage (2 second cooldown)
+EFFECT_FOOD_WARM_COOKIE,Eating heals {2} HP and grants +{0} ({1}) HP Regeneration for 6 seconds. Stacks
+EFFECT_PIZZA_DELIVERY,Delivers a Pizza Slice somewhere mid-wave
+EFFECT_FOOD_PIZZA_SLICE,Eating grants +{0}% Damage and +{1}% Speed for {2} ({3}) seconds
+EFFECT_VICTORY_FEAST,Spawns a Golden Apple when an elite or a boss dies
+EFFECT_FOOD_GOLDEN_APPLE,Eating heals {0} HP ({1}) and grants +20% to a random stat for 10 seconds
+EFFECT_STREET_VENDOR,"A Mystery Meat shows up 1 to 3 times per wave, +0.3 per Appetite to both bounds (rounded)"
+EFFECT_FOOD_MYSTERY_MEAT,Eating grants +{0}% ({1}) Damage for 8 seconds half the time. Otherwise you lose 2 HP
+EFFECT_FONDUE_SET,Spawns a Cheese Cube every 3 seconds you stand still
+EFFECT_FOOD_CHEESE_CUBE,Eating grants +{0}% ({1}) Dodge for 4 seconds. Stacks
+EFFECT_GYM_MEMBERSHIP,Spawns a Protein Shake every 200 steps
+EFFECT_FOOD_PROTEIN_SHAKE,Eating grants +{0}% ({1}) Speed and +{2} ({3}) Melee Damage for 6 seconds. Stacks
+EFFECT_FANCY_RESTAURANT,Places a restaurant that serves an Escargot every {0} seconds to nearby players at full HP
+EFFECT_FOOD_ESCARGOT,Eating grants +{0} ({1}) Armor for 8 seconds. Stacks
+EFFECT_FARMERS_MARKET,Banks every shop reroll as a Fruit Salad served at the stall next wave
+EFFECT_FOOD_FRUIT_SALAD,Eating heals {0} HP ({1}) and grants +1 Harvesting permanently
+EFFECT_AFTER_DINNER_MINTS,Spawns a Mint every 5 consumables you pick up
+EFFECT_FOOD_MINT,Eating refreshes all your active food buffs to their full duration
+GOURMET_APPETITE_GAINED,Appetite gained: {0}
+GOURMET_HARVESTING_GAINED,Harvesting gained: {0}
+GOURMET_SNAIL_ARMOR_GAINED,Armor gained: {0}
+EFFECT_CHILI_GREENHOUSE,Grows a Chili Pepper at the greenhouse every 10 burning ticks you deal
+EFFECT_FOOD_CHILI_PEPPER,Eating makes your attacks burn enemies for 4 seconds. Burns deal {0} ({1}) damage plus 30% Elemental Damage
+EFFECT_DOGGY_BAG,Food that expires uneaten becomes a Leftover granting +1% Damage every following wave. Stacks endlessly
+EFFECT_FOOD_LEFTOVERS,Each banked Leftover grants +1% Damage for the wave
+EFFECT_ICE_CREAM_TRUCK,Places a truck that serves an Ice Cream every {0} seconds to nearby players
+EFFECT_FOOD_ICE_CREAM,Eating grants +{0}% ({1}) Attack Speed for 4 seconds. Stacks
+DOGGY_BAG_LEFTOVERS,Leftovers banked: {0}
+EFFECT_SOUL_FOOD,Every 20th consecutive food buff becomes permanent instead of temporary
+EFFECT_SOUL_FOOD_RISK,Each food buff has a {0}% ({1}%) chance to instead become permanently negative and reset the count
+SOUL_FOOD_BANKED,Permanent stats banked: {0}
+OVERTIME_PAY_GAINED,Attack Speed gained: {0}
+BUTCHER_CONSUMABLES_EATEN,Consumables eaten: {0}
+SECOND_MORTGAGE_GAINED,Materials gained: {0}
+SNACK_BREAK_GAINED,Materials gained: {0}
+DISHWASHER_REFUNDED,Materials refunded: {0}
+EFFECT_DAMAGE_VS_BURNING,+{0} Damage against burning enemies
+EFFECT_CONSUMABLES_NO_HEAL,Consumables no longer heal you
+EFFECT_FOOD_BUFF_DURATION,+{0}s food buff duration
+EFFECT_MYSTERY_MEAT_SAFE,Mystery Meat never rolls its bad outcome
+EFFECT_SPAWNER_TRIGGER_SPEED,Food spawners trigger {0}% faster
+EFFECT_FOOD_HEAL_DISABLED,Foods no longer heal you
+EFFECT_FOOD_BUFF_STRENGTH,Food buffs are {0}% stronger
+EFFECT_FOOD_SPAWNS_HALVED,Half as much food spawns
+EFFECT_SECOND_HELPING,{0}% chance food spawns are doubled
+EFFECT_COOLER_BOX,Foods on the ground never expire
+EFFECT_COMPOST_BIN,Expired food grants +1 permanent Harvesting
+EFFECT_FOOD_BONUS_HEAL,Foods heal +{0} additional HP
+EFFECT_FOOD_SPEED_BURST,Eating a food grants +{0} ({1}) Speed for 2 seconds. Stacks
+EFFECT_FOOD_FIGHT,Eating a food throws a projectile dealing {1} ({3}) damage
+EFFECT_GREASE_FIRE,"Eating a food ignites enemies in melee range for {0} ({1}) burn damage per tick, plus 50% Elemental Damage"
+EFFECT_FULL_BELLY,+{0} Armor while any food buff is active
+EFFECT_FOOD_COMA,+20% Damage while you have 5 or more food buffs
+EFFECT_SNACK_BREAK,Eating a food has a 10% chance to grant materials equal to the wave number
+EFFECT_BUFFET_INSURANCE,Eating while below 20% HP heals {0} HP
+EFFECT_EXPLOSION_SIZE,+{0}% Explosion Size
+EFFECT_EXPLOSION_DAMAGE,+{0}% Explosion Damage
+EFFECT_REGEN_PER_BURNING_ENEMY,+{0} HP Regeneration for every burning enemy
+EFFECT_CALTROPS,Enemies that hit you in melee take {0} ({1}) damage back
+EFFECT_CRIT_VS_ELITES,+{0}% Crit Chance against elites and bosses
+EFFECT_PICKUP_RANGE_BONUS,+{0}% Pickup Range
+EFFECT_BURNING_DAMAGE_TAKEN,{0}% burning damage taken
+EFFECT_LOYALTY_CARD,Every 5th shop purchase is 30% off
+EFFECT_STATIC_CLING,Every 8th hit zaps the 3 nearest enemies for {0} ({1}) damage
+EFFECT_ECHO_CHAMBER,{0}% chance for on-kill effects to trigger twice
+EFFECT_NINE_LIVES,Survive lethal damage at 1 HP. Once per wave and 9 times per run
+NINE_LIVES_USED,Lives used: {0}
+EFFECT_BURP_OF_POWER,Eating a food knocks back nearby enemies
+EFFECT_PANIC_BUTTON,Below 30% HP: a burst knocks back nearby enemies. 10 second cooldown
+EFFECT_POCKET_SAND,Enemies that hit you are slowed 20% for 2 seconds
+EFFECT_SET_MENU,Press an owned food spawner in the shop to make it the daily special. It triggers 40% faster and other spawners 20% slower
+GOURMET_SELECT_SPAWNER,Set active
+GOURMET_SPAWNER_ACTIVE,Active
+SPAWNER_ITEMS_PRICE,% Food Spawner Price
+EFFECT_PICKY_ONE_SPAWNER,Only one food spawner is active at a time. Press an owned spawner in the shop to choose it
+EFFECT_PICKY_STRONGER,The active spawner's food is +100% stronger
+EFFECT_PICKY_PENALTY,-15% Damage while no food buff is active
+EFFECT_DISHWASHER_EXPIRY,Food on the ground expires 50% faster
+EFFECT_RUMINANT_ECHO,Every food buff triggers again at 50% strength 5 seconds later
+EFFECT_GOURMET_FRUIT,All fruit becomes food
+EFFECT_DISHWASHER_LEFTOVERS,Leftovers generation is doubled
+EFFECT_DISHWASHER_REFUND,Expired food refunds 1 material
+EFFECT_BLACKSMITH_FORGE,Combine two same-tier weapons sharing a class into a random next-tier weapon of that class
+EFFECT_MOLE_FOG,Fog of war covers every wave
+GOURMET_FORGE_START,Forge
+GOURMET_FORGE_CANCEL,Cancel Forge
+GOURMET_FORGE_CONFIRM,Forge These
+GOURMET_FORGE_HINT,Select a weapon to forge with
+EFFECT_SLUG_TRAIL,"Leaves a slime trail (lasts 7.5s) that slows enemies 30% (+2% per Level, max 90%). Trail width (base 26) and slow radius (base 45) each grow +6% per Level"
+ENEMY_ATTACK_SPEED,% Enemy Attack Speed
+WEAPON_CLASS_CULINARY,Culinary
+EFFECT_W_PAN_SLOW,15% chance to slow enemies {0}% for 1 second
+EFFECT_W_EXECUTE,+{0}% damage against enemies below 25% HP
+EFFECT_W_TENDERIZE,Hit enemies take +{0}% damage for 3 seconds
+EFFECT_W_BELL,Each enemy hit extends your food buffs by {0} seconds
+EFFECT_W_SPATULA_SLOW,Hits slow enemies {0}% for 1 second
+EFFECT_W_SLAP_SLOW,Hits slow enemies {0}% for 1 second
+EFFECT_W_SCOOP,Heal {0} HP for every enemy hit
+FOOD_MAX_STACKS,Max buff stacks: {0}
+FOOD_EATEN,{0} eaten: {1}
+WEAPON_FRYING_PAN,Frying Pan
+WEAPON_CLEAVER,Cleaver
+WEAPON_ROLLING_PIN,Rolling Pin
+WEAPON_SKEWER,Skewer
+WEAPON_CHEESE_GRATER,Cheese Grater
+WEAPON_WHISK,Whisk
+WEAPON_LADLE,Ladle
+WEAPON_DINNER_BELL,Dinner Bell
+WEAPON_BAGUETTE,Bat-Guette
+WEAPON_BUTCHERS_SAW,Butcher's Saw
+WEAPON_MEAT_TENDERIZER,Meat Tenderizer
+WEAPON_GOLDEN_SPATULA,Golden Spatula
+WEAPON_TRIDENT_FORK,Trident Fork
+WEAPON_FISH_SLAPPER,Fish Slapper
+WEAPON_CORN_CANNON,Corn Cannon
+WEAPON_SAUCE_BLASTER,Sauce Blaster
+WEAPON_CHAMPAGNE_POPPER,Champagne Popper
+WEAPON_PIZZA_CUTTER,Pizza Cutter
+WEAPON_ICE_CREAM_SCOOP,Ice Cream Scoop
+WEAPON_GALLEY_CANNON,Galley Cannon
+ITEM_MEAT_RACK,Meat Rack
+ITEM_MEAT_LOCKER,Meat Locker
+ITEM_MEAT_COOLER,Meat Cooler
+ITEM_BEEF_BROTH,Beef Broth
+ITEM_BUTCHERS_APRON,Bloody Butcher's Apron
+EFFECT_MEAT_RACKS,More meat racks spawn
+EFFECT_MEAT_RACKS_PLURAL,More meat racks spawn
+EFFECT_MEAT_LOCKER_SPAWN,Spawns a meat locker that dispenses a steak every {0} seconds
+EFFECT_ENEMY_STEAK_DROPS,Enemies have a higher chance of dropping steaks
+EFFECT_ONE_SHOT_MEAT_RACKS,Meat racks die in one hit
+EFFECT_MEAT_RACK_TURRET,Killing a meat rack spawns a turret
+EFFECT_GAIN_STAT_FOR_EVERY_MEAT_RACK,{0} {1} for every current living meat rack [{4}]
+EFFECT_STAT_ON_STEAK,+{0} {1} until the end of the wave when picking up a steak
+EFFECT_POISONED_STEAK,Steaks have a {0}% chance to be rotten
+EFFECT_PET_LOOTWORM_MEAT,"Spawns a Lootworm pet that collects materials and destroys meat racks for the player. Each time it picks up a material, it has a {0} chance to double it"
+ITEM_TEST_ARSENAL,Test Arsenal
+EFFECT_TEST_ARSENAL,TEST: start with all 20 Gourmet weapons and 20 weapon slots
+CHARACTER_TEST_ARMORY,Test Armory
+EFFECT_TEST_ARMORY,TEST: starts with all 20 Gourmet weapons and +20 weapon slots
+EFFECT_BBQ_GRILL,Spawns Ribs every 15 enemies that die within 300 range of you
+EFFECT_FOOD_RIBS,Eating grants +{0} ({1}) Melee Damage for 6 seconds. Stacks
+EFFECT_HOT_DOG_CART,Spawns a Chili Dog every 15 enemies that die more than 300 range from you
+EFFECT_FOOD_CHILI_DOG,Eating grants +{0} ({1}) Ranged Damage for 6 seconds. Stacks
+EFFECT_FOOD_STACK_CAP,+{0} max stacks to every food buff
+EFFECT_WINE_CELLAR,Food eaten at least 5 seconds after it appeared grants a +{0}% stronger buff
+EFFECT_DELIVERY_DRONE,Every food spawner you own serves {0} extra food at the start of each wave (Doggy Bag excluded)
+WINE_CELLAR_AGED,Aged servings: {0}
+DELIVERY_DRONE_DELIVERED,Foods delivered: {0}
+EFFECT_W_GALLEY_PIERCE,Projectiles pierce enemies and ricochet off walls up to 4 times before despawning
+EFFECT_BUTCHER_FRUIT,All fruit is replaced with a Steak
+EFFECT_COMP_EATER_MOMENTUM,Gaining a food buff grants +5% Speed and +5% Pickup Range until the end of the wave
+EFFECT_BUTCHER_DOUBLE,{0}% chance food spawns are doubled (his Steaks included)
+EFFECT_GIRLY_PANIC,"When hit, even by fully blocked damage, panics and teleports to the spot furthest from all enemies (10 second cooldown)"
+EFFECT_GIRLY_FOOD,"After teleporting, spawns 2 Fries and 2 Fried Rice around her"
+GIRLY_PANICS,Panics: {0}
+EFFECT_W_CORN_CANNON_DROP,Each hit has a {0}% chance to pop a Popcorn
+EFFECT_W_FISH_SLAPPER_DROP,Each hit has a {0}% chance to slap out a Sushi Roll
+EFFECT_W_PIZZA_CUTTER_DROP,Each hit has a {0}% chance to serve a Pizza Slice
+EFFECT_W_SAUCE_BLASTER_DROP,Each hit has a {0}% chance to squirt out a Chili Pepper
+EFFECT_W_ICE_CREAM_SCOOP_DROP,Each hit has a {0}% chance to scoop out an Ice Cream
+EFFECT_W_GOLDEN_SPATULA_DROP,Each hit has a {0}% chance to flip out a Golden Apple
+EFFECT_W_EXPLODE,"Explodes on impact, damaging nearby enemies"
+EFFECT_GUMBALL_MACHINE,Dispenses a Gumball at the machine every 5 kills your turrets get
+EFFECT_FOOD_GUMBALL,Eating grants +{0} ({1}) Engineering for 8 seconds. Stacks
+EFFECT_COCKTAIL_BAR,Places a bar that serves a Bloody Mary every {0} seconds to nearby players
+EFFECT_FOOD_BLOODY_MARY,Eating grants +{0}% ({1}) Life Steal for 6 seconds. Stacks
+EFFECT_FOOD_FRIED_EGG,Eating grants +{0} ({1}) Luck permanently
+FRYING_PAN_LUCK,Luck gained: {0}
+EFFECT_W_FRYING_PAN_DROP,Each hit has a {0}% chance to cook up a Fried Egg
+EFFECT_W_WHISK_DROP,Each hit has a {0}% chance to whip up a Cake Slice
+EFFECT_W_ROLLING_PIN_DROP,Each hit has a {0}% chance to roll out a Warm Cookie
+EFFECT_BLACKSMITH_SHOP_WEAPONS,The shop only offers weapons
+EFFECT_BLACKSMITH_CLASS_DOUBLE,Weapon class bonuses are twice as effective
+TIER_V,V
+TIER_VI,VI
+TIER_VII,VII
+TIER_VIII,VIII
