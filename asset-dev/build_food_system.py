@@ -969,11 +969,15 @@ def main():
         os.makedirs(d, exist_ok=True)
         food_png = f"{d}/{food_slug}.png"
         if not os.path.exists(food_png):
-            # placeholder only when missing: the live food icons are vectorized
-            # finals installed in place and must survive rebuilds
-            img, draw = canvas(80)
-            FOOD_ART[food_slug](draw)
-            img.save(food_png)
+            # missing (fresh machine): install the committed final if we have one, else a
+            # PIL placeholder. Never clobbers an in-place vectorized icon - only fills a gap.
+            food_final = f"{os.path.dirname(os.path.abspath(__file__))}/foods/final/{food_slug}.png"
+            if os.path.exists(food_final):
+                shutil.copy(food_final, food_png)
+            else:
+                img, draw = canvas(80)
+                FOOD_ART[food_slug](draw)
+                img.save(food_png)
         write_png_import(food_png, f"res://items/foods/{food_slug}/{food_slug}.png")
         with open(f"{d}/{food_slug}_text_effect.tres", "w") as fh:
             fh.write(effect_text_tres(f["text_key"], f["my_id"]))
@@ -1017,7 +1021,11 @@ def main():
         os.makedirs(d, exist_ok=True)
         food_png = f"{d}/{food_slug}.png"
         if not os.path.exists(food_png):
-            img, draw = canvas(80); FOOD_ART[food_slug](draw); img.save(food_png)
+            food_final = f"{os.path.dirname(os.path.abspath(__file__))}/foods/final/{food_slug}.png"
+            if os.path.exists(food_final):
+                shutil.copy(food_final, food_png)
+            else:
+                img, draw = canvas(80); FOOD_ART[food_slug](draw); img.save(food_png)
         write_png_import(food_png, f"res://items/foods/{food_slug}/{food_slug}.png")
         with open(f"{d}/{food_slug}_text_effect.tres", "w") as fh:
             fh.write(effect_text_tres(f["text_key"], f["my_id"]))
