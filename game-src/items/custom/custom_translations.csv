@@ -261,3 +261,8 @@ EFFECT_SPECIAL_PREVIEW,The shop shows you what is coming next wave
 EFFECT_SPECIAL_TEMPORARY,Modifiers last one wave only
 EFFECT_SPECIAL_SKEW,More modifiers are bad than good
 EFFECT_SPAWNER_CHANCE,Each shop has a {0}% chance to guarantee a food spawner
+EFFECT_DEBT_EXPLAIN,"While in debt you gain no Materials until it is repaid, and every point of debt costs 2 Materials to clear"
+EFFECT_CREDIT_CARD,"Lets you overspend in the shop, up to {0} into debt"
+CREDIT_CARD_DEBT,Debt taken on: {0}
+EFFECT_BANK_LOAN,"Instantly gain 500 Materials, then go 300 into debt"
+EFFECT_BANK_LOAN_USED,Used

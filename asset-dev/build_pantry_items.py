@@ -143,6 +143,22 @@ ITEMS = [
  item("delivery_drone", "Delivery Drone", 2, 80, [
    ("key", "delivery_drone", 1, "EFFECT_DELIVERY_DRONE", 0)], ["food"], 2,
    tracking="DELIVERY_DRONE_DELIVERED", ext_id=997),
+ # --- debt items ---
+ # Credit Card: credit_limit SUMS across copies (100 each), so 2 cards -> 200 overspend
+ # ceiling (run_data.get_credit_limit). Overspending in the shop is handled in
+ # run_data.remove_currency, which also feeds this item's debt tracker. effect_1 is the
+ # shared debt explainer LINE (key "" -> renders the CSV text, applies nothing).
+ item("credit_card", "Credit Card", 1, 60, [
+   ("key", "credit_limit", 100, "EFFECT_CREDIT_CARD", 0),
+   ("key", "", 0, "EFFECT_DEBT_EXPLAIN", 2)], (), 2,
+   tracking="CREDIT_CARD_DEBT", ext_id=1006),
+ # Bank Loan: fires once on purchase in base_shop.buy_item (+500 materials, +300 debt). The
+ # action effect carries a "bank_loan" custom_key and value 1 while fresh; buy_item flips it
+ # to 0, which effect.gd renders as "Used". effect_1 is the same debt explainer.
+ item("bank_loan", "Bank Loan", 2, 90, [
+   ("custom", "", "bank_loan", 1, "EFFECT_BANK_LOAN", 0),
+   ("key", "", 0, "EFFECT_DEBT_EXPLAIN", 2)], (), -1,
+   ext_id=1007),
 ]
 
 CSV_ROWS = [
@@ -221,6 +237,12 @@ CSV_ROWS = [
  ("EFFECT_DELIVERY_DRONE", "Every food spawner you own serves {0} extra food at the start of each wave (Doggy Bag excluded)"),
  ("WINE_CELLAR_AGED", "Aged servings: {0}"),
  ("DELIVERY_DRONE_DELIVERED", "Foods delivered: {0}"),
+ # debt items. EFFECT_DEBT_EXPLAIN is the shared "how debt works" line on both cards.
+ ("EFFECT_DEBT_EXPLAIN", "While in debt you gain no Materials until it is repaid, and every point of debt costs 2 Materials to clear"),
+ ("EFFECT_CREDIT_CARD", "Lets you overspend in the shop, up to {0} into debt"),
+ ("CREDIT_CARD_DEBT", "Debt taken on: {0}"),
+ ("EFFECT_BANK_LOAN", "Instantly gain 500 Materials, then go 300 into debt"),
+ ("EFFECT_BANK_LOAN_USED", "Used"),
 ]
 
 
@@ -559,6 +581,22 @@ def _(d):
     d.line([30, 72, 20, 86], fill=OUTLINE, width=4)
     d.line([66, 72, 76, 86], fill=OUTLINE, width=4)
 
+@art("credit_card")
+def _(d):
+    _box(d, [12, 26, 84, 70], (72, 120, 180, 255), r=8)
+    d.rectangle([12, 36, 84, 48], fill=(40, 44, 58, 255))          # magnetic stripe
+    _box(d, [20, 54, 40, 64], (240, 196, 80, 255), r=3, w=2)       # gold chip
+    for x in (48, 60, 72):
+        d.line([x, 60, x + 6, 60], fill=(230, 230, 240, 255), width=3)
+
+@art("bank_loan")
+def _(d):
+    _box(d, [16, 30, 80, 74], (104, 160, 88, 255), r=6)            # banknote stack
+    d.rectangle([16, 40, 80, 64], fill=(84, 140, 72, 255))
+    d.ellipse([40, 44, 56, 60], fill=(60, 110, 56, 255), outline=OUTLINE, width=2)
+    d.text((44, 47), "$", fill=(238, 238, 210, 255))
+    _box(d, [22, 22, 74, 32], (150, 104, 66, 255), r=3, w=2)       # band
+
 @art("delivery_drone")
 def _(d):
     for x in (14, 62):
@@ -600,6 +638,25 @@ key = "{key}"
 text_key = "{text_key}"
 value = {value}
 custom_key = ""
+storage_method = 0
+effect_sign = {sign}
+custom_args = [  ]
+"""
+
+def custom_effect_tres(key, custom_key, value, text_key, sign):
+    # like key_effect_tres but with an explicit custom_key. Used by the Bank Loan action
+    # effect: key "" (applies no stat), custom_key "bank_loan" (buy_item finds it by this),
+    # value 1 = fresh / 0 = used (effect.gd flips the card text on this).
+    return f"""[gd_resource type="Resource" load_steps=2 format=2]
+
+[ext_resource path="res://items/global/effect.gd" type="Script" id=1]
+
+[resource]
+script = ExtResource( 1 )
+key = "{key}"
+text_key = "{text_key}"
+value = {value}
+custom_key = "{custom_key}"
 storage_method = 0
 effect_sign = {sign}
 custom_args = [  ]
@@ -779,6 +836,8 @@ def main():
                 open(path, "w").write(stat_effect_tres(entry[1], entry[2]))
             elif entry[0] == "key":
                 open(path, "w").write(key_effect_tres(entry[1], entry[2], entry[3], entry[4]))
+            elif entry[0] == "custom":
+                open(path, "w").write(custom_effect_tres(entry[1], entry[2], entry[3], entry[4], entry[5]))
             elif entry[0] == "proj":
                 open(f"{d}/{slug}_proj_stats.tres", "w").write(proj_stats_tres())
                 open(path, "w").write(proj_effect_tres(slug, entry[1]))

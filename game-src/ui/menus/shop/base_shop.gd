@@ -628,6 +628,9 @@ func on_shop_item_stolen(shop_item: ShopItem, player_index: int) -> void :
 
 
 func buy_item(item_data: ItemData, player_index: int) -> void :
+	# Gourmet DLC - the Bank Loan's one-shot (+500 / +300 debt / flip to "Used") fires in
+	# RunData.add_item, so it works whether the loan is bought here or granted as a starting
+	# item, and cannot re-fire on reload. Nothing loan-specific is needed in this path.
 	var were_items_duplicated: = false
 	var duplicate_item_effects: Array = RunData.get_player_effect(Keys.duplicate_item_hash, player_index)
 

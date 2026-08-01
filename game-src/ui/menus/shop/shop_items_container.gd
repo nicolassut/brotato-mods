@@ -62,7 +62,14 @@ func _connect_shop_item(shop_item) -> void :
 func on_shop_item_buy_button_pressed(shop_item: ShopItem) -> void :
 	if _is_delay_active:
 		return
-	if RunData.get_player_currency(player_index) < shop_item.value:
+	# Gourmet DLC - Credit Card: a purchase is affordable if the wallet plus available credit
+	# covers it. Credit is 0 without a card, so this is unchanged for everyone else. Overspend
+	# turns into debt in RunData.remove_currency. The HP shop cannot be paid on credit.
+	var effects = RunData.get_player_effects(player_index)
+	var spending_power: int = RunData.get_player_currency(player_index)
+	if not effects[Keys.hp_shop_hash]:
+		spending_power += RunData.get_available_credit(player_index)
+	if spending_power < shop_item.value:
 		emit_signal("shop_item_insufficient_currency", shop_item)
 		return
 
@@ -234,7 +241,7 @@ func get_focus_control(latest_focused_shop_item: ShopItem = null) -> Control:
 	var search_range: = range(search_index, _shop_items.size()) + range(search_index - 1, - 1, - 1)
 	for i in search_range:
 		var shop_item = _shop_items[i]
-		if shop_item.active and shop_item.value <= RunData.get_player_gold(player_index):
+		if shop_item.active and shop_item.value <= RunData.get_player_gold(player_index) + RunData.get_available_credit(player_index):
 			return shop_item._button
 	
 	for i in search_range:

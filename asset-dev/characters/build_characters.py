@@ -24,6 +24,8 @@ MAGNIFYING_GLASS = "res://items/custom/magnifying_glass/magnifying_glass_data.tr
 MOSQUITO_JAR = "res://items/custom/mosquito_jar/mosquito_jar_data.tres"
 GROWLING_STOMACH = "res://items/custom/growling_stomach/growling_stomach_data.tres"
 NINE_LIVES = "res://items/custom/nine_lives/nine_lives_data.tres"
+CREDIT_CARD = "res://items/custom/credit_card/credit_card_data.tres"
+BANK_LOAN = "res://items/custom/bank_loan/bank_loan_data.tres"
 
 def weapon_path(name):
     """resolve a tier-1 weapon name to its res:// path, checking disk (handles
@@ -84,6 +86,8 @@ POOLS = {
  "freeloader":  ["knife","stick","plank","rock","fist","hand","screwdriver","scissors",
                  "spear","torch","hatchet","dagger","fighting_stick","pistol","slingshot",
                  "smg","wand","taser","crossbow","revolver"],
+ # DEBUG - not for release. A sturdy generalist for exercising the debt items.
+ "test_debt":   ["pistol","smg","slingshot","wand","knife","stick","screwdriver","crossbow"],
 }
 
 # guaranteed starting weapons per spec ("Gourmet starts with Ladle", "Butcher
@@ -282,11 +286,21 @@ CHARS = [
     ("stat_max_hp",15),("stat_armor",3),("stat_hp_regeneration",2),
     ("stat_harvesting",5),
     ("stat_percent_damage",-10)],[]),
+ # DEBUG - not for release (delete this entry + its EXT_IDS/POOLS lines before shipping, the
+ # way the old test_character was removed 2026-07-22). A sturdy sandbox for the debt items:
+ # starts with a Credit Card AND a Bank Loan, so the run opens at +500 materials / -300 debt
+ # with 100 of overspend credit (which the shared debt pool holds back until debt drops below
+ # 100 - itself a live test of that rule). High HP/Speed/Luck so you survive to the shop and
+ # can watch income repay the debt. Art reused from the Freeloader.
+ ("test_debt","The Debtor","character_test_debt",[],
+   [("LINE","EFFECT_DEBT_EXPLAIN",2),
+    ("stat_max_hp",60),("stat_speed",20),("stat_percent_damage",50),
+    ("stat_luck",50),("stat_hp_regeneration",5)],[CREDIT_CARD, BANK_LOAN]),
 ]
 
 # explicit ext ids for characters added after the original 14 (base+i past 824
 # collides with stat resources - stat_appetite is id=825)
-EXT_IDS = {"girly": 998, "freeloader": 1004, "special": 1005}
+EXT_IDS = {"girly": 998, "freeloader": 1004, "special": 1005, "test_debt": 1008}  # test_debt is DEBUG
 
 SKINNED = {"zombie","snail","mole"}
 LEGS_MOD = {

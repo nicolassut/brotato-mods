@@ -228,7 +228,9 @@ func set_shop_item(p_item_data: ItemParentData, p_wave_value: int = RunData.curr
 		texture.create_from_image(additional_icon)
 		_button.set_additional_icon(texture)
 
-	_button.set_value(value, RunData.get_player_currency(player_index))
+	# Gourmet DLC - Credit Card: the price colour reflects buyability, so it must count
+	# available credit, or a credit-affordable item would show a red price you can still afford.
+	_button.set_value(value, _spending_power(player_index))
 
 	var steal_spawn_elite_effect = RunData.get_player_effect(Keys.item_steals_spawns_random_elite_hash, player_index)
 	var steal_chance = ItemService.get_chance_getting_caught(self, RunData.current_wave, steal_spawn_elite_effect / 100.0)
@@ -265,7 +267,16 @@ func ban_item() -> void :
 	emit_signal("ban_update_remaining_token")
 
 func update_color() -> void :
-	_button.set_color_from_currency(RunData.get_player_currency(player_index))
+	_button.set_color_from_currency(_spending_power(player_index))
+
+
+# Gourmet DLC - materials plus available Credit Card overspend (0 without a card, and the HP
+# shop cannot be paid on credit). Mirrors the affordability gate in shop_items_container.
+func _spending_power(p_index: int) -> int:
+	var power: int = RunData.get_player_currency(p_index)
+	if not RunData.get_player_effects(p_index)[Keys.hp_shop_hash]:
+		power += RunData.get_available_credit(p_index)
+	return power
 
 
 func lock_visually() -> void :

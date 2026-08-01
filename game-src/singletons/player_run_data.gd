@@ -9,6 +9,13 @@ var current_level: int = 0
 
 var current_xp: float = 0.0
 var gold: int = 0
+# Gourmet DLC - debt (Credit Card / Bank Loan). `debt` is the displayed debt in POINTS (the
+# negative number shown next to materials); each point costs 2 materials to clear. `debt_progress`
+# is the 0-or-1 half-material carry so 1-at-a-time gold pickups still repay at the true 2:1 rate.
+# While debt > 0 all incoming materials go to repayment (run_data.add_gold) - you gain nothing
+# until it is clear. See run_data.add_gold / spend_currency / get_credit_limit.
+var debt: int = 0
+var debt_progress: int = 0
 var overtime_pay_gold_this_wave: int = 0
 var selected_weapon: WeaponData
 var selected_item: ItemData
@@ -54,6 +61,8 @@ func duplicate() -> PlayerRunData:
 	copy.current_level = current_level
 	copy.current_xp = current_xp
 	copy.gold = gold
+	copy.debt = debt
+	copy.debt_progress = debt_progress
 	copy.selected_weapon = selected_weapon
 	copy.selected_item = selected_item
 	copy.weapons = weapons.duplicate()
@@ -106,8 +115,10 @@ func serialize() -> Dictionary:
 		"current_character": current_character.my_id if current_character else null, 
 		"current_health": current_health, 
 		"current_level": current_level, 
-		"current_xp": current_xp, 
-		"gold": gold, 
+		"current_xp": current_xp,
+		"gold": gold,
+		"debt": debt,
+		"debt_progress": debt_progress,
 		"selected_weapon": selected_weapon.my_id if selected_weapon else null, 
 		"selected_item": selected_item.my_id if selected_item else null, 
 		"weapons": serialized_weapons, 
@@ -145,6 +156,8 @@ func deserialize(data: Dictionary) -> PlayerRunData:
 	current_level = int(data.current_level)
 	current_xp = data.current_xp
 	gold = int(data.gold)
+	debt = int(data.debt) if data.has("debt") else 0
+	debt_progress = int(data.debt_progress) if data.has("debt_progress") else 0
 
 	if data.selected_weapon != null:
 		var weapon_data = ItemService.get_element_safe(ItemService.weapons, data.selected_weapon)
@@ -583,8 +596,9 @@ static func init_effects() -> Dictionary:
 		Keys.generate_hash("hp_start_next_wave"): 100, 
 		Keys.generate_hash("pacifist"): 0, 
 		Keys.generate_hash("cryptid"): 0, 
-		Keys.generate_hash("gain_pct_gold_start_wave"): 0, 
-		Keys.generate_hash("torture"): 0, 
+		Keys.generate_hash("gain_pct_gold_start_wave"): 0,
+		Keys.generate_hash("credit_limit"): 0,  # Gourmet DLC - Credit Card: 100 materials of shop overspend per card
+		Keys.generate_hash("torture"): 0,
 		Keys.generate_hash("recycling_gains"): 0, 
 		Keys.generate_hash("one_shot_trees"): 0, 
 		Keys.generate_hash("max_ranged_weapons"): 999, 

@@ -79,6 +79,7 @@ var init_tracked_items: = {
 	Keys.generate_hash("item_farmers_market"): 0,
 	Keys.generate_hash("item_compost_bin"): 0,
 	Keys.generate_hash("item_loyalty_card"): 0,
+	Keys.generate_hash("item_credit_card"): 0,  # Gourmet DLC - debt taken on via shop overspend
 	Keys.generate_hash("item_soul_food"): [0, 0],
 	Keys.generate_hash("item_overtime_pay"): 0,
 	Keys.generate_hash("item_second_mortgage"): 0,
@@ -963,7 +964,7 @@ func level_up(player_index: int) -> void :
 		ChallengeService.complete_challenge(ChallengeService.chal_fast_learner_hash)
 
 
-func add_gold(value: int, player_index: int) -> void :
+func add_gold(value: int, player_index: int, ignore_debt: bool = false) -> void :
 	if value == 0:
 		return
 
@@ -977,6 +978,26 @@ func add_gold(value: int, player_index: int) -> void :
 		return
 
 	var player_data = players_data[player_index]
+
+	# Gourmet DLC - debt repayment: while in debt, ALL incoming materials go to the debt first
+	# and you gain nothing until it clears. Each debt point costs 2 materials; debt_progress is
+	# the half-material carry so 1-at-a-time gold pickups still repay at the true 2:1 rate.
+	# ignore_debt=true is the Bank Loan's 500-material grant, which must land in the wallet
+	# rather than instantly repaying the very debt the loan is about to create.
+	if value > 0 and not ignore_debt and player_data.debt > 0:
+		var owed_materials: int = player_data.debt * 2 - player_data.debt_progress
+		var to_debt: int = int(min(value, owed_materials))
+		value -= to_debt
+		player_data.debt_progress += to_debt
+		player_data.debt -= player_data.debt_progress / 2
+		player_data.debt_progress = player_data.debt_progress % 2
+		if player_data.debt <= 0:
+			player_data.debt = 0
+			player_data.debt_progress = 0
+		emit_signal("gold_changed", player_data.gold, player_index)
+		if value <= 0:
+			return
+
 	player_data.gold += value
 	if value > 0:
 		player_data.overtime_pay_gold_this_wave += value
@@ -989,6 +1010,28 @@ func remove_gold(value: int, player_index: int) -> void :
 	var player_data = players_data[player_index]
 	player_data.gold = max(0, player_data.gold - value) as int
 	emit_signal("gold_changed", player_data.gold, player_index)
+
+
+# Gourmet DLC - debt helpers.
+# Credit limit = total shop overspend allowed, in debt POINTS. It is the summed credit_limit
+# effect (100 per Credit Card), so no card = 0 = no overspend for anyone else.
+func get_credit_limit(player_index: int) -> int:
+	return int(get_player_effect(Keys.credit_limit_hash, player_index))
+
+# How much further into debt a shop overspend may go right now: the shared debt pool means a
+# Bank Loan's 300 debt eats into this ceiling until repaid below the limit.
+func get_available_credit(player_index: int) -> int:
+	return int(max(0, get_credit_limit(player_index) - players_data[player_index].debt))
+
+func get_player_debt(player_index: int) -> int:
+	return players_data[player_index].debt
+
+# Add debt directly (Bank Loan). Points, not materials; each point is 2 materials to repay.
+func add_debt(points: int, player_index: int) -> void :
+	if points <= 0:
+		return
+	players_data[player_index].debt += points
+	emit_signal("gold_changed", players_data[player_index].gold, player_index)
 
 
 
@@ -1014,6 +1057,22 @@ func remove_character(character: CharacterData, player_index: int) -> void :
 func add_item(item: ItemData, player_index: int, is_selection: bool = false) -> void :
 	if is_selection:
 		players_data[player_index].selected_item = item.duplicate()
+
+	# Gourmet DLC - Bank Loan fires once, the moment it is acquired by ANY route (bought,
+	# starting item, mirror-duplicated): +500 materials, then +300 debt. The 500 uses
+	# ignore_debt so it lands in the wallet rather than instantly repaying the debt the loan
+	# is about to create. The action effect carries value 1 while fresh; flipping it to 0
+	# both prevents a re-fire and flips the card text to "Used" (effect.gd). Save-restore
+	# rebuilds items directly (not via add_item) AND an owned loan is always already value 0,
+	# so a reload can never re-trigger this.
+	if item.my_id == "item_bank_loan":
+		for loan_effect in item.effects:
+			if loan_effect.custom_key == "bank_loan" and int(loan_effect.value) > 0:
+				add_gold(500, player_index, true)
+				add_debt(300, player_index)
+				loan_effect.value = 0
+				GourmetTracker.ev("bank_loan_used", {"p": player_index})
+				break
 
 	players_data[player_index].items.push_back(item)
 
@@ -1832,8 +1891,25 @@ func remove_currency(value: int, player_index: int) -> void :
 	var effects: = get_player_effects(player_index)
 	if effects[Keys.hp_shop_hash]:
 		remove_stat(Keys.stat_max_hp_hash, value, player_index)
-	else:
-		remove_gold(value, player_index)
+		return
+
+	# Gourmet DLC - Credit Card: a shop purchase may overspend the wallet, and the shortfall
+	# becomes debt (1 material overspent = 1 debt point = 2 materials to repay). The affordability
+	# gate (shop_items_container) already confirmed the overspend fits inside available credit, so
+	# this only ever runs for a card holder buying beyond their materials. The card tracks the
+	# debt it takes on. Rerolls and non-shop costs still use remove_gold and cannot go negative.
+	var player_data = players_data[player_index]
+	if value > player_data.gold and get_available_credit(player_index) > 0:
+		var overspend: int = value - player_data.gold
+		overspend = int(min(overspend, get_available_credit(player_index)))
+		remove_gold(player_data.gold, player_index)  # empty the wallet
+		if overspend > 0:
+			player_data.debt += overspend
+			add_tracked_value(player_index, Keys.generate_hash("item_credit_card"), overspend)
+			emit_signal("gold_changed", player_data.gold, player_index)
+		return
+
+	remove_gold(value, player_index)
 
 
 func get_nb_food_items(player_index: int) -> int:

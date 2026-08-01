@@ -455,6 +455,7 @@ var materials_per_living_enemy_hash: = generate_hash("materials_per_living_enemy
 var hp_start_next_wave_hash: = generate_hash("hp_start_next_wave")
 var hp_start_wave_hash: = generate_hash("hp_start_wave")
 var gain_pct_gold_start_wave_hash: = generate_hash("gain_pct_gold_start_wave")
+var credit_limit_hash: = generate_hash("credit_limit")  # Gourmet DLC - Credit Card shop overspend ceiling
 var dmg_when_heal_hash: = generate_hash("dmg_when_heal")
 var stats_below_half_health_hash: = generate_hash("stats_below_half_health")
 var convert_stats_half_wave_hash: = generate_hash("convert_stats_half_wave")
