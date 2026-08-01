@@ -1,5 +1,11 @@
 # game-src — the Gourmet mod's engine edits
 
+> **`items/custom/custom_translations.csv` lives here too, and it is NOT optional.** The
+> builders regenerate most of its rows, but **55 of them exist nowhere else** — including
+> `STAT_APPETITE`, the mod's own stat label, and hand-edits like `WEAPON_BAGUETTE,Bat-Guette`
+> that no builder knows about. Lose the live file without this mirror and that text is gone
+> with no source to rebuild it from. Re-sync it with the rest of this tree.
+
 The mod is developed against a decompiled Brotato at `~/brotato-decompiled`, which is NOT a
 git repo and lives outside this one. Everything under `items/custom/`, `items/foods/` and the
 per-tier `weapons/*/<slug>/<n>/` folders is GENERATED, so it is reproducible on any machine by

@@ -87,6 +87,7 @@ DOGGY_BAG_LEFTOVERS,Leftovers banked: {0}
 EFFECT_SOUL_FOOD,Every 20th consecutive food buff becomes permanent instead of temporary
 EFFECT_SOUL_FOOD_RISK,Each food buff has a {0}% ({1}%) chance to instead become permanently negative and reset the count
 SOUL_FOOD_BANKED,Permanent stats banked: {0}
+SOUL_FOOD_FLIPPED,Permanent stats lost: {0}
 OVERTIME_PAY_GAINED,Attack Speed gained: {0}
 BUTCHER_CONSUMABLES_EATEN,Consumables eaten: {0}
 SECOND_MORTGAGE_GAINED,Materials gained: {0}
@@ -233,3 +234,41 @@ TIER_V,V
 TIER_VI,VI
 TIER_VII,VII
 TIER_VIII,VIII
+EFFECT_PICKY_SPAWNER_LIMIT,You can hold twice the limit of every food spawner
+EFFECT_BUTCHER_RENDER,"At the end of each wave, 20% of the Damage gained that wave becomes permanent Appetite"
+EFFECT_ZOMBIE_REANIMATE,A hit that leaves him on 1 HP heals him back to full
+EFFECT_ZOMBIE_NO_SUSTAIN,"Life Steal, HP Regeneration and consumable-healing items never appear in his shop"
+EFFECT_SLUG_SLIME,Enemies in the slime take {0} ({1}) damage every 0.5 seconds. Slimed stacks with burning
+EFFECT_JUGGLER_COMBO,"Each weapon that already fired this cycle makes the shot +8% stronger, up to +{0}% on the last one"
+ZOMBIE_REANIMATIONS,Reanimations: {0}
+EFFECT_TOURIST_XP,"-15% XP Gain, or +15% instead on Danger 0"
+GAIN_STAT_APPETITE,% Appetite modifications
+EFFECT_GOURMET_FIRST_FOOD,The first food to spawn each wave is served twice
+EFFECT_GOURMET_FAT,"He gets 3% slower and 2% bigger for every 50 consumables eaten, up to +80% size. A bigger body is a bigger target, but it also reaches further for pickups"
+GREASE_FIRE_IGNITES,Enemies ignited: {0}
+ECHO_CHAMBER_PROCS,Effects repeated: {0}
+SECOND_HELPING_DOUBLED,Servings doubled: {0}
+COMP_EATER_MOMENTUM,Momentum stacks: {0}
+RUMINANT_CHEWS,Extra chews: {0}
+BLACKSMITH_FORGES,Weapons forged: {0}
+MIME_DUPLICATIONS,Items duplicated: {0}
+BUTCHER_APPETITE_RENDERED,Appetite rendered: {0}
+GOURMET_SPEED_LOST,Speed lost to fat: {0}
+EFFECT_FREELOADER_MENU,Shops show 8 items and level ups offer 8 upgrades
+EFFECT_FREELOADER_FREE,Everything in the shop is free
+EFFECT_FREELOADER_ONE_PICK,Can only take one thing per shop
+EFFECT_FREELOADER_NO_REROLL,Cannot reroll or lock
+EFFECT_FREELOADER_NO_CRATES,Crates never contain items
+EFFECT_FREELOADER_MATERIALS,Materials grant XP but no money
+EFFECT_FREELOADER_WEAPON_TIER,Weapons in the shop are always Tier II or better
+EFFECT_FREELOADER_CURSE,Every shop offering has a 25% chance to be cursed
+EFFECT_SPECIAL_ROLL,Every wave rolls random modifiers that rewrite the rules
+EFFECT_SPECIAL_PREVIEW,The shop shows you what is coming next wave
+EFFECT_SPECIAL_TEMPORARY,Modifiers last one wave only
+EFFECT_SPECIAL_SKEW,More modifiers are bad than good
+EFFECT_SPAWNER_CHANCE,Each shop has a {0}% chance to guarantee a food spawner
+EFFECT_DEBT_EXPLAIN,"While in debt you gain no Materials until it is repaid, and every point of debt costs 2 Materials to clear"
+EFFECT_CREDIT_CARD,"Lets you overspend in the shop, up to {0} into debt"
+CREDIT_CARD_DEBT,Debt taken on: {0}
+EFFECT_BANK_LOAN,"Instantly gain 500 Materials, then go 300 into debt"
+EFFECT_BANK_LOAN_USED,Used

@@ -99,6 +99,14 @@ func _get_tracking_text(player_index: int) -> String:
 					tracking_text_to_use = "health_recovered"
 				elif my_id_hash == Keys.item_soul_food_hash and i == 1:
 					tracking_text_to_use = "soul_food_flipped"
+				# Gourmet DLC - characters that bank a second, different quantity. Index 0 keeps
+				# the card's own tracking_text; index 1 is relabelled here, same as Soul Food.
+				elif my_id_hash == Keys.generate_hash("character_butcher") and i == 1:
+					tracking_text_to_use = "butcher_appetite_rendered"
+				elif my_id_hash == Keys.generate_hash("character_gourmet") and i == 1:
+					tracking_text_to_use = "gourmet_speed_lost"
+				elif my_id_hash == Keys.generate_hash("character_snail") and i == 1:
+					tracking_text_to_use = "damage_dealt"
 
 				text += "\n[color=#" + Utils.SECONDARY_FONT_COLOR.to_html() + "]" + Text.text(tracking_text_to_use.to_upper(), [Text.get_formatted_number(tracked_count)]) + "[/color]"
 		else:

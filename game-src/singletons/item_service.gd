@@ -44,6 +44,13 @@ const TIER_BS_PINK_COLOR_DARK = Color(33.0 / 255, 13.0 / 255, 26.0 / 255, 1)
 const TIER_BS_GOLD_COLOR_DARK = Color(33.0 / 255, 26.0 / 255, 7.0 / 255, 1)
 
 const NB_SHOP_ITEMS: = 4
+# Gourmet DLC - The Freeloader sees twice the menu but may only take one thing from it.
+# Everything that used to size itself off NB_SHOP_ITEMS now asks get_nb_shop_items().
+const NB_SHOP_ITEMS_FREELOADER: = 8
+# ... and the same doubling on the level-up draft. Was a bare literal 4 passed into
+# get_upgrades() from upgrades_ui_player_container.
+const NB_UPGRADE_OPTIONS: = 4
+const NB_UPGRADE_OPTIONS_FREELOADER: = 8
 
 const CHANCE_WEAPON: = 0.35
 const CHANCE_SAME_WEAPON: = 0.2
@@ -98,10 +105,13 @@ var item_groups: Dictionary = {
 	"melee_damage": ["item_mastery", "item_goat_skull", "item_riposte"], 
 	"ranged_damage": ["item_lens"], 
 	"melee_and_ranged_damage": ["item_big_arms", "item_hedgehog"], 
-	"lifesteal": ["item_butterfly", "item_bat", "item_whetstone", "item_decomposing_flesh", "item_bloody_hand", "item_fresh_meat"], 
-	"lifesteal_and_hp_regeneration": ["item_blood_leech"], 
-	"hp_regeneration": ["item_mushroom", "item_plant", "item_sad_tomato", "item_medikit", "item_fairy", "item_potion", "item_fried_rice", "item_baby_squid", "item_coral", "item_penguin"], 
-	"consumable_heal": ["item_jerky", "item_weird_food", "item_lemonade", "item_fruit_basket"], 
+	# Gourmet DLC - the mod's own sustain items are folded into the vanilla groups so a
+	# character that bans a group (Zombie: he cannot heal, so every one of these is a dead
+	# card in his shop) is rid of ALL of them, not just the base-game ones.
+	"lifesteal": ["item_butterfly", "item_bat", "item_whetstone", "item_decomposing_flesh", "item_bloody_hand", "item_fresh_meat", "item_vampire_fang"],
+	"lifesteal_and_hp_regeneration": ["item_blood_leech", "item_mosquito_jar"],
+	"hp_regeneration": ["item_mushroom", "item_plant", "item_sad_tomato", "item_medikit", "item_fairy", "item_potion", "item_fried_rice", "item_baby_squid", "item_coral", "item_penguin", "item_iron_lung", "item_meal_in_a_pill"],
+	"consumable_heal": ["item_jerky", "item_weird_food", "item_lemonade", "item_fruit_basket", "item_chicken_soup", "item_buffet_insurance"],
 	"speed": ["item_terrified_onion", "item_beanie", "item_power_generator"], 
 	"engineering": ["item_lighthouse", "item_cog", "item_nail", "item_toolbox", "item_book", "item_pencil"], 
 	"elemental_damage": ["item_strange_book", "item_frozen_heart", "item_boiling_water", "item_snowball", "item_toxic_sludge", "item_fuel_tank", "item_will_o_the_wisp"], 
@@ -265,6 +275,23 @@ func process_item_box(consumable_data: ConsumableData, wave: int, player_index: 
 	return item
 
 
+# Gourmet DLC - how many offerings this player's shop holds. Character-aware replacement
+# for the old NB_SHOP_ITEMS const, which was read in three places.
+func get_nb_shop_items(player_index: int) -> int:
+	if RunData.is_freeloader(player_index):
+		return NB_SHOP_ITEMS_FREELOADER
+
+	return NB_SHOP_ITEMS
+
+
+# Gourmet DLC - how many choices this player's level-up draft offers.
+func get_nb_upgrade_options(player_index: int) -> int:
+	if RunData.is_freeloader(player_index):
+		return NB_UPGRADE_OPTIONS_FREELOADER
+
+	return NB_UPGRADE_OPTIONS
+
+
 func get_player_shop_items(wave: int, player_index: int, args: ItemServiceGetShopItemsArgs) -> Array:
 	var new_items: = []
 	var nb_weapons_guaranteed = 0
@@ -348,6 +375,43 @@ func get_player_shop_items(wave: int, player_index: int, args: ItemServiceGetSho
 					if not has_mirror and new_items.size() > 0:
 						new_items[new_items.size() - 1] = [item, wave]
 					break
+
+	# Gourmet DLC - food characters: ONE roll per shop puts a guaranteed spawner in it. This
+	# is a FLOOR, not a bias - the normal spawner appearances are rolled above and untouched,
+	# so a shop that already offers one is left exactly as it came out. It only ever fires on
+	# a shop that rolled none, which is the case the food characters actually lose runs to.
+	var spawner_chance: int = RunData.get_player_effect(Keys.spawner_shop_chance_hash, player_index)
+	if spawner_chance > 0 and Utils.get_chance_success(spawner_chance / 100.0):
+		var has_spawner: = false
+		# `tags` lives on ItemData only - a weapon in the shop or on a lock has no such
+		# property, so every read of it is type-gated first.
+		for locked_item in args.locked_items:
+			if locked_item[0] is ItemData and locked_item[0].tags.has("spawner"):
+				has_spawner = true
+				break
+		if not has_spawner:
+			for shop_entry in new_items:
+				if shop_entry[0] is ItemData and shop_entry[0].tags.has("spawner"):
+					has_spawner = true
+					break
+		if not has_spawner:
+			var spawner_args: = GetRandItemForWaveArgs.new()
+			spawner_args.excluded_items = args.prev_items + new_items
+			spawner_args.owned_and_shop_items = args.owned_and_shop_items
+			spawner_args.increase_tier = args.increase_tier
+			spawner_args.forced_shop_tag = "spawner"
+			var spawner_item = _get_rand_item_for_wave(wave, player_index, TierData.ITEMS, spawner_args)
+			# The tier can hold no eligible spawner at all (all owned to their cap, or a tier
+			# with none registered). _get_rand_item_for_wave then falls back to its backup pool
+			# and hands back an ordinary item, so check what actually came out - forcing that
+			# into a slot would delete an offer to grant nothing.
+			if spawner_item is ItemData and spawner_item.tags.has("spawner"):
+				# Only ever overwrite an item slot. Waves 1-2 guarantee weapons, and eating one
+				# of those to honour a 30% nicety would break a stronger promise.
+				for i in range(new_items.size() - 1, - 1, - 1):
+					if not new_items[i][0] is WeaponData:
+						new_items[i] = [spawner_item, wave]
+						break
 	return new_items
 
 
@@ -485,6 +549,11 @@ func _get_rand_item_for_wave(wave: int, player_index: int, type: int, args: GetR
 				if not has_wanted_tag:
 					items_to_remove.push_back(item)
 
+		# Gourmet DLC - the food characters' spawner help is a per-SHOP floor, not a per-slot
+		# bias: see the spawner_shop_chance block at the end of get_player_shop_items. Rolling
+		# it here (once per slot, restricting that slot's pool) stacked with the shop's normal
+		# spawner rolls and skewed whole shops toward spawners.
+
 		if args.forced_shop_tag != null:
 			for item in pool:
 				if not items_to_remove.has(item) and not item.tags.has(args.forced_shop_tag):
@@ -526,7 +595,9 @@ func _get_rand_item_for_wave(wave: int, player_index: int, type: int, args: GetR
 	var limited_items = get_limited_items(args.owned_and_shop_items)
 
 	for key in limited_items:
-		if limited_items[key][1] >= limited_items[key][0].max_nb:
+		# Gourmet DLC - read the effective cap, not the raw one, so the Picky Eater's
+		# doubled spawner limit keeps his spawners in the pool past their printed max
+		if limited_items[key][1] >= RunData.get_item_max_nb(limited_items[key][0], player_index):
 			backup_pool = remove_element_by_id_with_item(backup_pool, limited_items[key][0])
 			items_to_remove.push_back(limited_items[key][0])
 
@@ -888,6 +959,11 @@ func change_inventory_element_stylebox_from_entity_type(stylebox: StyleBox, item
 	stylebox.bg_color = color
 
 func get_value(wave: int, base_value: int, player_index: int, affected_by_items_price_stat: bool, is_weapon: bool, item_id: int = Keys.empty_hash) -> int:
+	# Gourmet DLC - nothing has a price for the Freeloader. Returned at the root so every
+	# caller agrees on zero (shop card, coupon maths, item popups), not just the shop card.
+	if RunData.is_freeloader(player_index):
+		return 0
+
 	var value_after_weapon_price = base_value
 	var specific_item_price_factor = 0
 	var items_price_factor = 1.0
@@ -924,6 +1000,13 @@ func get_reroll_price(wave: int, reroll_count: int, player_index: int) -> Array:
 
 
 func get_recycling_value(wave: int, from_value: int, player_index: int, is_weapon: bool = false, affected_by_items_price_stat: bool = true) -> int:
+	# Gourmet DLC - the Freeloader receives no materials from recycling, so the Recycle
+	# button must not advertise any. Needs its own gate rather than riding on get_value
+	# returning 0, because both the max(1.0, ...) below and the from_value == 1 early
+	# return would resurrect a value of 1.
+	if RunData.is_freeloader(player_index):
+		return 0
+
 	var actually_affected = affected_by_items_price_stat and RunData.current_wave <= RunData.nb_of_waves
 	var recycling_gains = RunData.get_player_effect(Keys.recycling_gains_hash, player_index)
 	var shop_value = get_value(wave, from_value, player_index, affected_by_items_price_stat, is_weapon)

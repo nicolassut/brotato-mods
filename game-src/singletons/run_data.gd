@@ -71,20 +71,40 @@ var effect_keys_with_weapon_stats = [
 ]
 
 var init_tracked_items: = {
-	Keys.generate_hash("character_gourmet"): 0,
-	Keys.generate_hash("character_snail"): 0,
+	Keys.generate_hash("character_gourmet"): [0, 0],  # Gourmet DLC - Appetite gained, Speed lost to fat
+	Keys.generate_hash("character_snail"): [0, 0],  # Gourmet DLC - Escargot armor, slime damage dealt
 	Keys.generate_hash("character_girly"): 0,
 	Keys.generate_hash("weapon_frying_pan"): 0,
 	Keys.generate_hash("item_doggy_bag"): 0,
 	Keys.generate_hash("item_farmers_market"): 0,
 	Keys.generate_hash("item_compost_bin"): 0,
 	Keys.generate_hash("item_loyalty_card"): 0,
+	Keys.generate_hash("item_credit_card"): 0,  # Gourmet DLC - debt taken on via shop overspend
 	Keys.generate_hash("item_soul_food"): [0, 0],
 	Keys.generate_hash("item_overtime_pay"): 0,
 	Keys.generate_hash("item_second_mortgage"): 0,
 	Keys.generate_hash("item_snack_break"): 0,
-	Keys.generate_hash("character_butcher"): 0,
+	Keys.generate_hash("character_butcher"): [0, 0],  # Gourmet DLC - consumables eaten, permanent Appetite rendered
 	Keys.generate_hash("character_dishwasher"): 0,
+	Keys.generate_hash("character_zombie"): 0,
+	# Gourmet DLC - fed but previously unseeded, so add_tracked_value printed and dropped them:
+	# Food Fight on every projectile hit (main.gd -> hitbox.gd), Spyglass on every paid reroll.
+	Keys.generate_hash("item_food_fight"): 0,
+	Keys.generate_hash("item_spyglass"): 0,
+	# Gourmet DLC - run-long accumulators that had no card counter until now. Array seeds are
+	# characters that already tracked something else; index 1 is relabelled in item_parent_data.
+	Keys.generate_hash("character_minimalist"): 0,
+	Keys.generate_hash("character_comp_eater"): 0,
+	Keys.generate_hash("character_ruminant"): 0,
+	Keys.generate_hash("character_blacksmith"): 0,
+	Keys.generate_hash("character_mime"): 0,
+	Keys.generate_hash("item_vampire_fang"): 0,
+	Keys.generate_hash("item_buffet_insurance"): 0,
+	Keys.generate_hash("item_caltrops"): 0,
+	Keys.generate_hash("item_grease_fire"): 0,
+	Keys.generate_hash("item_static_cling"): 0,
+	Keys.generate_hash("item_echo_chamber"): 0,
+	Keys.generate_hash("item_second_helping"): 0,
 	Keys.generate_hash("item_nine_lives"): 0,
 	Keys.generate_hash("item_vigilante_ring"): 0,
 	Keys.generate_hash("item_alien_eyes"): 0, 
@@ -944,11 +964,40 @@ func level_up(player_index: int) -> void :
 		ChallengeService.complete_challenge(ChallengeService.chal_fast_learner_hash)
 
 
-func add_gold(value: int, player_index: int) -> void :
+func add_gold(value: int, player_index: int, ignore_debt: bool = false) -> void :
 	if value == 0:
 		return
 
+	# Gourmet DLC - The Freeloader: materials grant no currency, only XP. Gating the single
+	# add_gold entry point kills all 18 call sites at once (pickups, harvesting, recycling,
+	# item boxes, trees, cursed-enemy payouts) and takes overtime_pay_gold_this_wave with it,
+	# so Overtime Pay and Second Mortgage die for free without their own hooks. add_xp is a
+	# separate call at every pickup site and is deliberately left untouched, which is what
+	# keeps "materials only give XP" true.
+	if is_freeloader(player_index):
+		return
+
 	var player_data = players_data[player_index]
+
+	# Gourmet DLC - debt repayment: while in debt, ALL incoming materials go to the debt first
+	# and you gain nothing until it clears. Each debt point costs 2 materials; debt_progress is
+	# the half-material carry so 1-at-a-time gold pickups still repay at the true 2:1 rate.
+	# ignore_debt=true is the Bank Loan's 500-material grant, which must land in the wallet
+	# rather than instantly repaying the very debt the loan is about to create.
+	if value > 0 and not ignore_debt and player_data.debt > 0:
+		var owed_materials: int = player_data.debt * 2 - player_data.debt_progress
+		var to_debt: int = int(min(value, owed_materials))
+		value -= to_debt
+		player_data.debt_progress += to_debt
+		player_data.debt -= player_data.debt_progress / 2
+		player_data.debt_progress = player_data.debt_progress % 2
+		if player_data.debt <= 0:
+			player_data.debt = 0
+			player_data.debt_progress = 0
+		emit_signal("gold_changed", player_data.gold, player_index)
+		if value <= 0:
+			return
+
 	player_data.gold += value
 	if value > 0:
 		player_data.overtime_pay_gold_this_wave += value
@@ -961,6 +1010,28 @@ func remove_gold(value: int, player_index: int) -> void :
 	var player_data = players_data[player_index]
 	player_data.gold = max(0, player_data.gold - value) as int
 	emit_signal("gold_changed", player_data.gold, player_index)
+
+
+# Gourmet DLC - debt helpers.
+# Credit limit = total shop overspend allowed, in debt POINTS. It is the summed credit_limit
+# effect (100 per Credit Card), so no card = 0 = no overspend for anyone else.
+func get_credit_limit(player_index: int) -> int:
+	return int(get_player_effect(Keys.credit_limit_hash, player_index))
+
+# How much further into debt a shop overspend may go right now: the shared debt pool means a
+# Bank Loan's 300 debt eats into this ceiling until repaid below the limit.
+func get_available_credit(player_index: int) -> int:
+	return int(max(0, get_credit_limit(player_index) - players_data[player_index].debt))
+
+func get_player_debt(player_index: int) -> int:
+	return players_data[player_index].debt
+
+# Add debt directly (Bank Loan). Points, not materials; each point is 2 materials to repay.
+func add_debt(points: int, player_index: int) -> void :
+	if points <= 0:
+		return
+	players_data[player_index].debt += points
+	emit_signal("gold_changed", players_data[player_index].gold, player_index)
 
 
 
@@ -986,6 +1057,22 @@ func remove_character(character: CharacterData, player_index: int) -> void :
 func add_item(item: ItemData, player_index: int, is_selection: bool = false) -> void :
 	if is_selection:
 		players_data[player_index].selected_item = item.duplicate()
+
+	# Gourmet DLC - Bank Loan fires once, the moment it is acquired by ANY route (bought,
+	# starting item, mirror-duplicated): +500 materials, then +300 debt. The 500 uses
+	# ignore_debt so it lands in the wallet rather than instantly repaying the debt the loan
+	# is about to create. The action effect carries value 1 while fresh; flipping it to 0
+	# both prevents a re-fire and flips the card text to "Used" (effect.gd). Save-restore
+	# rebuilds items directly (not via add_item) AND an owned loan is always already value 0,
+	# so a reload can never re-trigger this.
+	if item.my_id == "item_bank_loan":
+		for loan_effect in item.effects:
+			if loan_effect.custom_key == "bank_loan" and int(loan_effect.value) > 0:
+				add_gold(500, player_index, true)
+				add_debt(300, player_index)
+				loan_effect.value = 0
+				GourmetTracker.ev("bank_loan_used", {"p": player_index})
+				break
 
 	players_data[player_index].items.push_back(item)
 
@@ -1516,6 +1603,110 @@ func any_player_is_blacksmith() -> bool:
 	return false
 
 
+func is_mime(player_index: int) -> bool:
+	var mirror_character = get_player_character(player_index)
+	return mirror_character != null and mirror_character.my_id == "character_mime"
+
+
+# Gourmet DLC - Mime: can a mirrored weapon purchase actually fit?
+# The shop gate cannot simply ask has_weapon_slot_available. Mirrors hand him 2+ copies at
+# once, copies merge with EACH OTHER, and the result can merge again up the line - so a buy
+# that looks impossible on a full inventory frequently is not. Vanilla's gate only allows a
+# full-inventory buy when an EXACT my_id match is already owned, which wrongly blocked
+# "3x Stick T2, buy Stick T1 with a mirror" even though the two new T1s merge into a T2 and
+# then pair with an owned T2 for a T3.
+# This simulates the same lowest-tier-first cascade base_shop._auto_merge_to_fit performs and
+# reports whether it lands back inside the slot limit. Keep the two in sync.
+func mime_purchase_fits(shop_weapon: WeaponData, player_index: int) -> bool:
+	return mime_max_copies_that_fit(shop_weapon, player_index) > 0
+
+
+# Largest number of total copies (purchase + mirrors) that the cascade can absorb, or 0 if
+# even the bare purchase cannot fit. Mirrors are capped to this, exactly as the ITEM path
+# already caps duplication with min(value, remaining_item_count - 1): taking every mirror is
+# not always better. Owning 1x Stick T1 on a full inventory, a normal character can buy a
+# Stick T1 and merge to T2, but forcing two mirrored copies leaves 1x T1 + 1x T2 and does not
+# fit - so the Mime would be unable to make a purchase anyone else could. He takes as many
+# mirrors as fit and no more.
+func mime_max_copies_that_fit(shop_weapon: WeaponData, player_index: int) -> int:
+	var mirrors: = 0
+	for dup_effect in get_player_effect(Keys.duplicate_item_hash, player_index):
+		mirrors += int(dup_effect[1])
+	for copies in range(mirrors + 1, 0, -1):
+		if _mime_copies_fit(shop_weapon, player_index, copies):
+			return copies
+	return 0
+
+
+func _mime_copies_fit(shop_weapon: WeaponData, player_index: int, copies: int) -> bool:
+	var effects: = get_player_effects(player_index)
+	var slot_max: int = int(effects[Keys.weapon_slot_hash])
+	var owned: = get_player_weapons_ref(player_index)
+
+	var total: int = owned.size() + copies
+
+	# only the bought weapon's own line can merge; everything else is immovable ballast
+	var line: = {}
+	for weapon in owned:
+		if weapon.weapon_id == shop_weapon.weapon_id:
+			line[weapon.tier] = int(line.get(weapon.tier, 0)) + 1
+	line[shop_weapon.tier] = int(line.get(shop_weapon.tier, 0)) + copies
+
+	# The real merge ceiling: a weapon can only combine while it HAS an upgrade to become.
+	# Walk the shop weapon's upgrades_into chain to find the top tier of this line, and cap
+	# that by the run's max_weapon_tier. WITHOUT this the loop ran to max_weapon_tier, which
+	# DEFAULTS TO 99 - so it merged T4 pairs into an imaginary T5, T6, ... concluded that any
+	# number of copies eventually fits, and offered "x62" on a full inventory. Buying that
+	# then added 62 weapons the real cascade could not absorb.
+	var chain_top: int = shop_weapon.tier
+	var chain_walk = shop_weapon
+	while chain_walk != null and chain_walk.upgrades_into != null:
+		chain_walk = chain_walk.upgrades_into
+		chain_top = chain_walk.tier
+	var merge_ceiling: int = int(min(chain_top, int(effects[Keys.max_weapon_tier_hash])))
+
+	var guard: = 0
+	while total > slot_max:
+		guard += 1
+		if guard > 64:
+			return false
+		var merged: = false
+		for tier in range(0, merge_ceiling):
+			if int(line.get(tier, 0)) >= 2:
+				line[tier] = int(line[tier]) - 2
+				line[tier + 1] = int(line.get(tier + 1, 0)) + 1
+				total -= 1
+				merged = true
+				break
+		if not merged:
+			return false
+	return true
+
+
+# Gourmet DLC - The Special (character #18): every wave rolls random modifiers.
+func is_special(player_index: int) -> bool:
+	var character = get_player_character(player_index)
+	return character != null and character.my_id == "character_special"
+
+
+# Gourmet DLC - The Freeloader (character #16). Single gate for his whole kit: 8 shop
+# items / 8 upgrades, everything free, one purchase per shop, no reroll, no lock, no
+# crate items, no gold economy, flat 25% curse roll. Every other rule checks this.
+func is_freeloader(player_index: int) -> bool:
+	var character = get_player_character(player_index)
+	return character != null and character.my_id == "character_freeloader"
+
+
+# True when ANY player in the run is the Freeloader. Needed by the few hooks that have
+# no player_index in scope (the gold gate runs per-player, but the shop-width helper is
+# asked for a layout before player context exists in coop).
+func has_freeloader() -> bool:
+	for i in get_player_count():
+		if is_freeloader(i):
+			return true
+	return false
+
+
 # The weapon currently armed as the first half of a forge. Self-heals if that weapon
 # has since left the inventory (recycled, forged away), so it can never dangle.
 func get_forge_pick(player_index: int) -> WeaponData:
@@ -1720,8 +1911,25 @@ func remove_currency(value: int, player_index: int) -> void :
 	var effects: = get_player_effects(player_index)
 	if effects[Keys.hp_shop_hash]:
 		remove_stat(Keys.stat_max_hp_hash, value, player_index)
-	else:
-		remove_gold(value, player_index)
+		return
+
+	# Gourmet DLC - Credit Card: a shop purchase may overspend the wallet, and the shortfall
+	# becomes debt (1 material overspent = 1 debt point = 2 materials to repay). The affordability
+	# gate (shop_items_container) already confirmed the overspend fits inside available credit, so
+	# this only ever runs for a card holder buying beyond their materials. The card tracks the
+	# debt it takes on. Rerolls and non-shop costs still use remove_gold and cannot go negative.
+	var player_data = players_data[player_index]
+	if value > player_data.gold and get_available_credit(player_index) > 0:
+		var overspend: int = value - player_data.gold
+		overspend = int(min(overspend, get_available_credit(player_index)))
+		remove_gold(player_data.gold, player_index)  # empty the wallet
+		if overspend > 0:
+			player_data.debt += overspend
+			add_tracked_value(player_index, Keys.generate_hash("item_credit_card"), overspend)
+			emit_signal("gold_changed", player_data.gold, player_index)
+		return
+
+	remove_gold(value, player_index)
 
 
 func get_nb_food_items(player_index: int) -> int:
@@ -1801,12 +2009,30 @@ func get_nb_item(item_id_hash: int, player_index: int, use_cache: bool = true) -
 	return nb
 
 
+# Gourmet DLC - the effective per-run cap on an item, and the single source of truth for
+# it: shop gating, the loot pool and the "LIMITED (n/max)" card label all go through here.
+# Picky Eater: only one food spawner TYPE ever fires for him, so he is allowed twice as
+# many copies of that type (a limit-3 spawner becomes limit 6). Keyed on the "spawner"
+# tag that build_food_system.py stamps on every spawner item, so non-spawner food items
+# (Soul Food, Set Menu, Wine Cellar and the other unique diamonds) keep their own cap.
+func get_item_max_nb(item_data, player_index: int) -> int:
+	if item_data.max_nb <= 0:
+		return item_data.max_nb
+
+	if item_data.tags.has("spawner"):
+		var picky_character = get_player_character(player_index)
+		if picky_character != null and picky_character.my_id == "character_picky_eater":
+			return item_data.max_nb * 2
+
+	return item_data.max_nb
+
+
 func get_remaining_max_nb_item(item_data: ItemData, player_index: int) -> int:
 	if item_data.max_nb == - 1:
 		return Utils.LARGE_NUMBER
 
 	var existing_item_count: = get_nb_item(item_data.my_id_hash, player_index)
-	return max(0, item_data.max_nb - existing_item_count) as int
+	return max(0, get_item_max_nb(item_data, player_index) - existing_item_count) as int
 
 
 func get_nb_different_items_of_tier(tier: int, player_index: int, use_cache: = true) -> int:

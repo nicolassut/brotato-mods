@@ -17,9 +17,13 @@ func get_movement() -> Vector2:
 func get_target_position():
 	if not is_instance_valid(_parent.current_target):
 		return global_position
-	# Gourmet DLC - Units expose get_follow_target_position() (Girly's panic-teleport
-	# freezes it). Non-Unit targets - lootworm chases gold piles, dead trees and
-	# neutrals, which are plain Node2Ds - do not, so fall back to vanilla behaviour.
+	# Gourmet DLC - get_follow_target_position is a Unit-only method this mod adds, so
+	# that chasers path to Sweet Potato's FROZEN position during her panic-teleport
+	# instead of snapping to where she reappeared. Vanilla, though, legitimately parks
+	# current_target on a TargetBehavior node as a "no valid target" sentinel - the
+	# Lootworm with no trees and no gold left (lootworm_target_behavior.gd), and
+	# PlayerOwner once its owner is dead. Those are plain Node2Ds with no such method,
+	# and calling it on them hard-crashes the run. Fall back to vanilla's global_position.
 	if _parent.current_target.has_method("get_follow_target_position"):
 		return _parent.current_target.get_follow_target_position()
 	return _parent.current_target.global_position

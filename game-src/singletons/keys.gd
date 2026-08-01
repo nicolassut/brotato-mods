@@ -65,6 +65,25 @@ var stat_fog_visibility_hash: = generate_hash("fog_visibility")
 var items_price_hash: = generate_hash("items_price")
 var food_items_price_hash: = generate_hash("food_items_price")
 var tourist_danger_done_hash: = generate_hash("tourist_danger_done")
+# Gourmet DLC - wave number in which the Freeloader last bought. Lives in the effects dict
+# because that IS serialized with the run; a plain RunData var reset on reload and let him
+# buy a second thing from the same shop.
+var freeloader_shop_wave_hash: = generate_hash("freeloader_shop_wave")
+# Gourmet DLC - The Special: ids of the modifiers currently applied, and the ones previewed
+# in the shop for the NEXT wave. Both live in the serialized effects dict so a reload keeps
+# the same roll instead of silently re-rolling or double-applying.
+# Gourmet DLC - per-shop-slot chance that the roll is restricted to food SPAWNER items.
+# The vanilla wanted_tags bias only fires 5% of the time and "food" also matches ~25 plain
+# food items, so spawners stayed rare for the characters built around them.
+var spawner_shop_chance_hash: = generate_hash("spawner_shop_chance")
+var special_active_mods_hash: = generate_hash("special_active_mods")
+var special_next_mods_hash: = generate_hash("special_next_mods")
+var special_shop_mods_hash: = generate_hash("special_shop_mods")
+# Gourmet DLC - Gourmet: fat stacks applied so far (1 per wave; -3% Speed, +1% size each)
+var gourmet_fat_hash: = generate_hash("gourmet_fat")
+# Gourmet DLC - Competitive Eater: Appetite modifications multiplier (run_data.get_stat_gain
+# looks up "gain_" + the stat name, so this key must exist for the lookup to find it)
+var gain_stat_appetite_hash: = generate_hash("gain_stat_appetite")
 var gourmet_foods_eaten_hash: = generate_hash("gourmet_foods_eaten")
 var wave_start_foods_hash: = generate_hash("wave_start_foods")
 var kill_foods_hash: = generate_hash("kill_foods")
@@ -436,6 +455,7 @@ var materials_per_living_enemy_hash: = generate_hash("materials_per_living_enemy
 var hp_start_next_wave_hash: = generate_hash("hp_start_next_wave")
 var hp_start_wave_hash: = generate_hash("hp_start_wave")
 var gain_pct_gold_start_wave_hash: = generate_hash("gain_pct_gold_start_wave")
+var credit_limit_hash: = generate_hash("credit_limit")  # Gourmet DLC - Credit Card shop overspend ceiling
 var dmg_when_heal_hash: = generate_hash("dmg_when_heal")
 var stats_below_half_health_hash: = generate_hash("stats_below_half_health")
 var convert_stats_half_wave_hash: = generate_hash("convert_stats_half_wave")

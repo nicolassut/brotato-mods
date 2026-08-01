@@ -1,0 +1,45 @@
+class_name UIGold
+extends HBoxContainer
+
+
+onready var gold_label = $GoldLabel
+onready var icon = $Icon
+
+# Gourmet DLC - Credit Card / Bank Loan debt readout. A red negative number that sits right
+# after the materials count whenever the player owes anything. Built in code (not in the
+# .tscn) so it inherits the exact gold font + outline and travels as a pure script change.
+var _debt_label: Label = null
+
+
+func _ready() -> void :
+	gold_label.set_message_translation(false)
+
+	_debt_label = Label.new()
+	_debt_label.set_message_translation(false)
+	# match the gold label's DynamicFont (size 50 + black outline) so the two read as one line
+	var gold_font = gold_label.get("custom_fonts/font")
+	if gold_font != null:
+		_debt_label.set("custom_fonts/font", gold_font)
+	if gold_label.theme != null:
+		_debt_label.theme = gold_label.theme
+	_debt_label.add_color_override("font_color", Color(1, 0.27, 0.27, 1))  # negative-materials red
+	_debt_label.grow_horizontal = 0
+	_debt_label.grow_vertical = 0
+	_debt_label.visible = false
+	add_child(_debt_label)
+
+
+func update_value(value: int) -> void :
+	gold_label.text = str(value)
+
+
+# Gourmet DLC - show "-<debt>" while in debt (points, not materials: each costs 2 to repay),
+# hide it at zero. Called every frame from player_ui_elements alongside update_value.
+func update_debt(debt: int) -> void :
+	if _debt_label == null:
+		return
+	if debt > 0:
+		_debt_label.text = " -" + str(debt)
+		_debt_label.visible = true
+	else:
+		_debt_label.visible = false

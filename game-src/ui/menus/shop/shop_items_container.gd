@@ -42,21 +42,42 @@ func _ready() -> void :
 
 func connect_shop_items() -> void :
 	for shop_item in _shop_items:
-		var _error_buy = shop_item.connect("buy_button_pressed", self, "on_shop_item_buy_button_pressed")
-		var _error_steal = shop_item.connect("steal_button_pressed", self, "on_shop_item_steal_button_pressed")
-		var _error_deactivate = shop_item.connect("shop_item_deactivated", self, "on_shop_item_deactivated")
-		var _error_focused = shop_item.connect("shop_item_focused", self, "on_shop_item_focused")
-		var _error_unfocused = shop_item.connect("shop_item_unfocused", self, "on_shop_item_unfocused")
-		var _error_category_hovered = shop_item.connect("mouse_hovered_category", self, "on_mouse_hovered_category")
-		var _error_category_exited = shop_item.connect("mouse_exited_category", self, "on_mouse_exited_category")
-		var _error_ban = shop_item.connect("ban_item_pressed", self, "on_shop_item_ban_button_pressed")
-		var _error_ban_update = shop_item.connect("ban_update_remaining_token", self, "on_ban_update_remaining_token")
+		_connect_shop_item(shop_item)
+
+
+# Gourmet DLC - split out of connect_shop_items so a single late-added card (the
+# Freeloader's extra 4 slots) can be wired without re-connecting the original 4.
+func _connect_shop_item(shop_item) -> void :
+	var _error_buy = shop_item.connect("buy_button_pressed", self, "on_shop_item_buy_button_pressed")
+	var _error_steal = shop_item.connect("steal_button_pressed", self, "on_shop_item_steal_button_pressed")
+	var _error_deactivate = shop_item.connect("shop_item_deactivated", self, "on_shop_item_deactivated")
+	var _error_focused = shop_item.connect("shop_item_focused", self, "on_shop_item_focused")
+	var _error_unfocused = shop_item.connect("shop_item_unfocused", self, "on_shop_item_unfocused")
+	var _error_category_hovered = shop_item.connect("mouse_hovered_category", self, "on_mouse_hovered_category")
+	var _error_category_exited = shop_item.connect("mouse_exited_category", self, "on_mouse_exited_category")
+	var _error_ban = shop_item.connect("ban_item_pressed", self, "on_shop_item_ban_button_pressed")
+	var _error_ban_update = shop_item.connect("ban_update_remaining_token", self, "on_ban_update_remaining_token")
 
 
 func on_shop_item_buy_button_pressed(shop_item: ShopItem) -> void :
 	if _is_delay_active:
 		return
-	if RunData.get_player_currency(player_index) < shop_item.value:
+	# Gourmet DLC - Credit Card: a purchase is affordable if the wallet plus available credit
+	# covers it. Credit is 0 without a card, so this is unchanged for everyone else. Overspend
+	# turns into debt in RunData.remove_currency. The HP shop cannot be paid on credit.
+	var effects = RunData.get_player_effects(player_index)
+	var spending_power: int = RunData.get_player_currency(player_index)
+	if not effects[Keys.hp_shop_hash]:
+		spending_power += RunData.get_available_credit(player_index)
+	if spending_power < shop_item.value:
+		emit_signal("shop_item_insufficient_currency", shop_item)
+		return
+
+	# Gourmet DLC - The Freeloader takes exactly ONE thing per shop, item or weapon. Gated
+	# here rather than per-category because this is the single entry point both routes
+	# through, and it blocks before anything is committed. Reuses the insufficient-currency
+	# shake, same as the Minimalist slot cap below.
+	if not _can_freeloader_still_buy():
 		emit_signal("shop_item_insufficient_currency", shop_item)
 		return
 
@@ -84,6 +105,10 @@ func on_shop_item_steal_button_pressed(shop_item: ShopItem) -> void :
 	if _is_delay_active:
 		return
 
+	if not _can_freeloader_still_buy():
+		emit_signal("shop_item_insufficient_currency", shop_item)
+		return
+
 	if shop_item.item_data.get_category() == Category.WEAPON:
 		if not _can_weapon_be_bought(shop_item):
 			return
@@ -96,6 +121,18 @@ func on_shop_item_steal_button_pressed(shop_item: ShopItem) -> void :
 
 	_is_delay_active = true
 	_buy_delay_timer.start()
+
+
+# Gourmet DLC - false once the Freeloader has already taken his one thing this shop.
+# Always true for every other character.
+func _can_freeloader_still_buy() -> bool:
+	if not RunData.is_freeloader(player_index):
+		return true
+
+	# Compare against the wave the purchase was made in, read from the SERIALIZED effects
+	# dict. A plain non-serialized flag reset on reload, which let him buy a second thing
+	# out of a shop he had already bought from.
+	return RunData.get_player_effect(Keys.freeloader_shop_wave_hash, player_index) != RunData.current_wave
 
 
 # Gourmet DLC - Minimalist: purchases are blocked while all 6 item slots are full
@@ -159,6 +196,16 @@ func _can_weapon_be_bought(shop_item: ShopItem) -> bool:
 	if no_duplicate_weapons and player_has_weapon_family:
 		return false
 
+	# Gourmet DLC - Mime: mirrors deliver 2+ copies at once and copies merge with each other,
+	# so a full inventory does not necessarily block the buy. The vanilla allowance above only
+	# fires on an EXACT my_id match, which wrongly blocked "own 3x Stick T2, buy Stick T1"
+	# even though the two mirrored T1s become a T2 that then pairs with an owned T2. Ask
+	# whether the cascade actually lands within the slot limit instead of assuming it cannot.
+	if not weapon_slot_available and RunData.is_mime(player_index) \
+			and weapon_data.upgrades_into != null and weapon_data.upgrades_into.tier <= max_weapon_tier \
+			and RunData.mime_purchase_fits(weapon_data, player_index):
+		return true
+
 	return weapon_slot_available
 
 
@@ -172,6 +219,8 @@ func on_shop_item_deactivated(shop_item: ShopItem) -> void :
 
 
 func on_shop_item_focused(shop_item: ShopItem) -> void :
+	# hover details are handled by the game's own ItemPopup via popup_manager, which is wired
+	# to this signal already. Nothing custom needed here.
 	enable_shop_lock_buttons_focus()
 	emit_signal("shop_item_focused", shop_item)
 
@@ -192,7 +241,7 @@ func get_focus_control(latest_focused_shop_item: ShopItem = null) -> Control:
 	var search_range: = range(search_index, _shop_items.size()) + range(search_index - 1, - 1, - 1)
 	for i in search_range:
 		var shop_item = _shop_items[i]
-		if shop_item.active and shop_item.value <= RunData.get_player_gold(player_index):
+		if shop_item.active and shop_item.value <= RunData.get_player_gold(player_index) + RunData.get_available_credit(player_index):
 			return shop_item._button
 	
 	for i in search_range:
@@ -216,7 +265,118 @@ func get_shop_item_node(index: int) -> ShopItem:
 	return _shop_items[index]
 
 
+# Widen the shop to `wanted` slots. A normal 4-item shop never enters here.
+func _ensure_shop_item_capacity(wanted: int) -> void :
+	if _shop_items.empty() or wanted <= _shop_items.size():
+		return
+
+	_rebuild_as_compact_grid(wanted)
+
+
+# The Freeloader's 8-slot shop reuses the game's OWN compact card, coop_shop_item.tscn, which
+# is the purpose-built banner co-op uses when space is tight: icon + name + category + price in
+# a single ~80px row. It carries the same shop_item.gd script and every node that script needs
+# (PanelContainer, %BuyButton, %ItemDescription, %StealButton, %LockButton, %BanButton,
+# %progress_ban, %LockIcon), so it is a drop-in replacement for the tall solo card.
+# Details on hover come from the game's existing ItemPopup: popup_manager._on_shop_item_focused
+# already calls display_item_data(item_data, attachment) and handles positioning, it was merely
+# gated to co-op. Do NOT hand-roll a banner or a detail overlay here; both already exist.
+const COMPACT_CARD: = "res://ui/menus/shop/coop_shop_item.tscn"
+const GRID_HSEPARATION: = 16
+# Modest per-card minimum: enough that the two columns cannot collapse onto each other, but
+# small enough that the grid never demands more width than the shop column actually gets.
+# Deriving this from a guessed 1890px made the container minimum 1890 and pushed the Stats
+# panel and Go button out of the layout entirely. Cards EXPAND_FILL into the real width.
+# Wide enough that icon + name + price fit INSIDE the drawn panel even before expansion. At
+# 320 the content minimum exceeded the card, so the price spilled outside the background box.
+const CARD_MIN_WIDTH: = 400
+var _grid: GridContainer
+
+
+# Rebuild the shop as a 2-column grid of compact cards, discarding the authored tall solo
+# cards entirely rather than trying to squash them.
+# A dark rounded panel behind each compact row. Built here rather than edited into
+# coop_shop_item.tscn so the real co-op shop, which supplies its own surrounding panel, is
+# untouched.
+func _compact_card_stylebox() -> StyleBoxFlat:
+	var sb: = StyleBoxFlat.new()
+	sb.bg_color = Color(0, 0, 0, 0.55)
+	sb.set_corner_radius_all(6)
+	sb.content_margin_left = 6
+	sb.content_margin_right = 6
+	sb.content_margin_top = 4
+	sb.content_margin_bottom = 4
+	return sb
+
+
+func _rebuild_as_compact_grid(wanted: int) -> void :
+	if _grid == null:
+		_grid = GridContainer.new()
+		_grid.name = "WideShopGrid"
+		_grid.columns = 2
+		_grid.add_constant_override("hseparation", GRID_HSEPARATION)
+		_grid.add_constant_override("vseparation", 4)
+		_grid.size_flags_horizontal = SIZE_EXPAND_FILL
+		_grid.size_flags_vertical = SIZE_SHRINK_CENTER
+		add_child(_grid)
+
+	# self is an HBoxContainer sitting at its own minimum width, so EXPAND_FILL on the grid had
+	# nothing to expand INTO and the cards stayed at CARD_MIN_WIDTH. Let self claim the shop
+	# column's full width; the stats panel lives in a different branch of the tree so it keeps
+	# its space, and the grid then splits the real width evenly between the two columns.
+	size_flags_horizontal = SIZE_EXPAND_FILL
+
+	for old in _shop_items:
+		old.queue_free()
+	_shop_items.clear()
+
+	# collapse the scene's spacer Controls so they stop eating the row
+	for child in get_children():
+		if child != _grid and child is Control and not (child is Timer):
+			child.visible = false
+
+	var packed = load(COMPACT_CARD)
+	for i in wanted:
+		var card = packed.instance()
+		card.name = "CompactShopItem" + str(i)
+		_grid.add_child(card)
+		card.player_index = player_index
+		card.size_flags_horizontal = SIZE_EXPAND_FILL
+		# full-Vector2 assignment: `rect_min_size.x = ...` silently no-ops in Godot 3
+		card.rect_min_size = Vector2(CARD_MIN_WIDTH, 0)
+		# NOTE on price alignment: nothing is needed here. The description MarginContainer
+		# already carries size_flags_horizontal = 3 in coop_shop_item.tscn, so it always
+		# absorbed the slack. What actually stranded the price mid-card was the transparent
+		# placeholder steal button vanilla shows when lock/steal/ban are all hidden; that is
+		# skipped for compact cards in shop_item.activate().
+
+		# tier is conveyed by tinting the icon panel, the way co-op does it
+		card.use_compact_style = true
+		# and the card needs a real background: both panels in coop_shop_item.tscn are
+		# StyleBoxEmpty because co-op's own container draws the surrounding panel, so in a
+		# solo shop the rows would otherwise float on the bare shop backdrop.
+		card.add_stylebox_override("panel", _compact_card_stylebox())
+		_shop_items.push_back(card)
+		_connect_shop_item(card)
+
+	# focus chain for a 2-wide grid so controller nav walks columns and rows
+	for i in _shop_items.size():
+		var button = _shop_items[i]._button
+		if button == null:
+			continue
+		button.focus_neighbour_left = button.get_path_to(_shop_items[i - 1]._button) if (i % 2) == 1 else NodePath("")
+		button.focus_neighbour_right = button.get_path_to(_shop_items[i + 1]._button) if (i % 2) == 0 and i + 1 < _shop_items.size() else NodePath("")
+		button.focus_neighbour_top = button.get_path_to(_shop_items[i - 2]._button) if i - 2 >= 0 else NodePath("")
+		button.focus_neighbour_bottom = button.get_path_to(_shop_items[i + 2]._button) if i + 2 < _shop_items.size() else NodePath("")
+
+
 func set_shop_items(items_data: Array) -> void :
+	# Gourmet DLC - The Freeloader's shop holds 8 offerings, but the scene only ships 4
+	# ShopItem nodes and the loop below would silently drop the extras. Grow to fit
+	# whatever the item service handed us. Deliberately self-sizing rather than gated on
+	# the character, so a normal 4-item shop never enters the branch.
+	_ensure_shop_item_capacity(items_data.size())
+
 	for i in _shop_items.size():
 		if i < items_data.size():
 			_shop_items[i].item_steals = item_steals

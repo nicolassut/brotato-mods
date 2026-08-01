@@ -45,6 +45,13 @@ var _current_cooldown: float = 0
 # Gourmet DLC - Juggler metronome: true while this weapon holds the juggle turn
 # (edge flag so the 0.3s interval is assigned exactly once per turn)
 var _juggler_turn_started: = false
+# Gourmet DLC - Juggler combo: +8% damage for every weapon that already fired this cycle,
+# so a 6-weapon loadout ends its cycle on a +40% hit and resets. Makes a wide loadout worth
+# more than the metronome's flat fire rate suggests. The boosted stats object and its
+# original damage are held so the next shoot() can put it back exactly.
+const JUGGLER_COMBO_PER_WEAPON: = 0.08
+var _juggler_boosted_stats = null
+var _juggler_base_damage: = - 1
 var _is_shooting: = false
 var _nb_shots_taken: = 0
 var _stats_every_x_shots: = {}
@@ -154,6 +161,11 @@ func init_stats(at_wave_begin: bool = true) -> void :
 	current_stats.burning_data.from = self
 
 	var hitbox_args: = Hitbox.HitboxArgs.new().set_from_weapon_stats(current_stats)
+
+	# Gourmet DLC - stats were just rebuilt, so any Juggler combo boost on the old object
+	# is void; drop the restore bookkeeping rather than writing damage back onto stale stats
+	_juggler_boosted_stats = null
+	_juggler_base_damage = - 1
 
 	_hitbox.effect_scale = current_stats.effect_scale
 	_hitbox.set_damage(current_stats.damage, hitbox_args)
@@ -316,11 +328,25 @@ func should_shoot() -> bool:
 
 
 func shoot() -> void :
+	# Gourmet DLC - Juggler combo: undo the previous shot's boost before anything reads
+	# damage again. Restoring here rather than at the end of shoot() is deliberate: a melee
+	# hitbox stays live for the whole swing, so an immediate restore would cancel the bonus
+	# mid-animation. The stats object is remembered alongside the value because
+	# _stats_every_x_shots can swap current_stats out from under us.
+	if _juggler_boosted_stats != null:
+		_juggler_boosted_stats.damage = _juggler_base_damage
+		_juggler_boosted_stats = null
+		_juggler_base_damage = - 1
+
 	# Gourmet DLC - Juggler: firing passes the act to the next weapon. The edge
 	# flag resets HERE (not just on the inactive branch) so a solo weapon that
 	# hands the turn back to itself still re-arms the 0.3s metronome.
+	var juggler_combo: = 0
 	if weapon_pos >= 0 and _parent != null and "player_index" in _parent and RunData.is_juggler_cycling(_parent.player_index) and RunData.get_juggler_active_pos(_parent.player_index) == weapon_pos:
 		_juggler_turn_started = false
+		# The cycle runs left to right from position 0, so the active position IS the number
+		# of weapons that already fired this cycle - the combo count needs no extra state.
+		juggler_combo = weapon_pos
 		RunData.advance_juggler(_parent.player_index)
 	_nb_shots_taken += 1
 	var original_stats: RangedWeaponStats
@@ -333,6 +359,16 @@ func shoot() -> void :
 	for effect in effects:
 		if effect.key_hash == Keys.reload_turrets_on_shoot_hash:
 			emit_signal("wanted_to_reset_turrets_cooldown")
+
+	# Gourmet DLC - Juggler combo: applied after the _stats_every_x_shots swap so it
+	# multiplies whichever stats this shot actually uses. Both paths need it - a projectile
+	# reads current_stats.damage, a melee swing reads the hitbox. Card mirror: effect.gd
+	# EFFECT_JUGGLER_COMBO. Cleared at the top of the next shoot().
+	if juggler_combo > 0:
+		_juggler_boosted_stats = current_stats
+		_juggler_base_damage = current_stats.damage
+		current_stats.damage = int(round(_juggler_base_damage * (1.0 + JUGGLER_COMBO_PER_WEAPON * juggler_combo)))
+		_hitbox.set_damage(current_stats.damage, Hitbox.HitboxArgs.new().set_from_weapon_stats(current_stats))
 
 	update_current_spread()
 	update_knockback()

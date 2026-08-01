@@ -97,7 +97,9 @@ live (butcher_skin.gd autoload); test character removed from the roster (2026-07
 ## #8 The Mime ⚓ (Abyssal owners only — bonus character)
 - **Every shop contains exactly one Magic Mirror** (Abyssal T2 duplicate-next-purchase item) [DEEP: shop injection]
 - **Mirrors work on weapons too**; auto-merge to make room as if buying repeatedly; can't buy if it can't fit [DEEP]
-- Magic Mirrors cost −50%; rerolls +50%; enemies +15% health and +15% attack speed [DATA-ish: reroll_price +50; enemy scaling keys exist (enemy_health/enemy_speed family); mirror pricing DEEP]
+- Magic Mirrors cost −66% (user change 2026-07-30, was −50%); **+15 Luck** (user addition
+  2026-07-30); rerolls +50%; enemies +15% health and +15% attack speed [DATA-ish: reroll_price
+  +50; enemy scaling keys exist (enemy_health/enemy_speed family); mirror pricing DEEP]
 - Mirror-on-mirror: 2→3→4 (each works once, not doubling)
 - Mirrors refuse ⋄ unique items
 
@@ -164,6 +166,46 @@ live (butcher_skin.gd autoload); test character removed from the roster (2026-07
 - Counter: GIRLY_PANICS "Panics: {0}" (per panic, seeded in init_tracked_items).
 - ext id 998 (base+i would collide with stat_appetite id=825; EXT_IDS override in
   build_characters.py). Placeholder art (icon + face piece) - needs an art pass.
+
+## #16 The Freeloader ⚓ (added 2026-07-29, user spec) [DEEP]
+Abyssal owners only, same as the Mime: the curse clause is entirely `dlcs/dlc_1` content.
+`ProgressData.get_dlc_data()` returns null for non-owners, so it degrades quietly.
+
+A draft character. He hijacks acquisition the way Mime hijacks the shop's contents,
+Minimalist the inventory, and Blacksmith weapon progression.
+- **Shop shows 8 items; level up offers 8 upgrades** (was NB_SHOP_ITEMS=4 and a bare
+  literal 4) [DEEP: ItemService.get_nb_shop_items / get_nb_upgrade_options, plus runtime
+  card cloning in shop_items_container + upgrades_ui_player_container]
+- **Everything in the shop is free** [DEEP: shop_item.set_shop_item forces value 0 last,
+  after every price modifier, all of which floor at 1]
+- **Exactly ONE purchase per shop**, item or weapon [DEEP: gated in
+  shop_items_container.on_shop_item_buy_button_pressed, the single entry point both
+  categories route through; flag on RunData.freeloader_bought_this_shop, reset by
+  base_shop.fill_shop_items on entry]
+- **Cannot reroll** (shop or level up) and **cannot lock** [DEEP]
+- **No items from crates**, suppressed at the drop site in main.gd so he never walks to an
+  empty box. Food and fruit are untouched: they are consumables, not item boxes [DEEP]
+- **Materials grant XP but no currency.** Permanently at 0 materials [DEEP: single
+  early-return in RunData.add_gold kills all 18 call sites and takes Overtime Pay and
+  Second Mortgage with it]. **Harvesting grants nothing either** (main.gd manage_harvesting
+  skips him entirely) - without that, the add_xp paired with the gold would have made
+  Harvesting his best stat by accident
+- **Weapons in his shop are minimum tier 2** (user wording; `tier >= 1` 0-indexed) [DATA:
+  min_weapon_tier = 1 as a REPLACE effect, the vanilla Knight pattern, clamped in
+  item_service._get_rand_item_for_wave]
+- **Every shop offering has a flat 25% chance to be cursed**, ignoring his own stat_curse
+  AND the game's `max_curse_item_chance` = 0.15 ceiling that no other character can pass
+  [DEEP: dlc_1_data.update_item_effects]. He still accumulates stat_curse from cursed items
+  he takes, which is the entire cost: cursed items are STRICTLY STRONGER (every effect
+  boosted by `40 + 2*min(20,wave-1) +/- 30` percent), so curse is opt-in power he can dodge,
+  paid for with a permanently more cursed enemy pool. Cursed enemies compensate in gold,
+  which he cannot use, so they are pure cost for him alone
+- **Luck modifications +50%** [DATA: gain_stat_luck +50]
+- Economy-only items should never appear in his shop. **NOT YET IMPLEMENTED** (see
+  issues/brotato-mods/freeloader-character/STATE.md). Until it lands he is occasionally
+  offered dead cards
+- ext id 1004. Placeholder art (icon + face piece), needs a PixelLab pass like Girly's
+- No tracking_text yet. "Cursed items taken" is the obvious counter and is unbuilt
 
 ---
 

@@ -30,8 +30,8 @@ func get_movement() -> Vector2:
 
 
 func get_target_position():
-	# Gourmet DLC - see follow_target_movement_behavior.gd: non-Unit targets have no
-	# get_follow_target_position(), so fall back to vanilla global_position.
+	# Gourmet DLC - same Unit-only guard as follow_target_movement_behavior: current_target
+	# can be a TargetBehavior sentinel node, which has no get_follow_target_position.
 	if _parent.current_target.has_method("get_follow_target_position"):
 		return _parent.current_target.get_follow_target_position() + _distance_from_player
 	return _parent.current_target.global_position + _distance_from_player

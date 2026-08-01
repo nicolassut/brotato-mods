@@ -34,7 +34,7 @@ ITEMS = [
    ("key", "consumables_no_heal", 1, "EFFECT_CONSUMABLES_NO_HEAL", 1)], ["stat_appetite"]),
  item("sous_vide_machine", "Sous-Vide Machine", 2, 80, [
    ("stat", "stat_appetite", 4),
-   ("key", "food_buff_duration", 1, "EFFECT_FOOD_BUFF_DURATION", 0)], ["stat_appetite"], max_nb=2),
+   ("key", "food_buff_duration", 2, "EFFECT_FOOD_BUFF_DURATION", 0)], ["stat_appetite"], max_nb=2),
  item("cast_iron_stomach", "Cast-Iron Stomach", 2, 75, [
    ("stat", "stat_appetite", 5),
    ("key", "mystery_meat_safe", 1, "EFFECT_MYSTERY_MEAT_SAFE", 0)], ["stat_appetite"]),
@@ -48,9 +48,9 @@ ITEMS = [
    ("stat", "stat_speed", -5)], ["stat_appetite"]),
  # --- 2b: system texture ---
  item("slow_cooker", "Slow Cooker", 1, 50, [
-   ("key", "food_buff_duration", 2, "EFFECT_FOOD_BUFF_DURATION", 0)], max_nb=3),
+   ("key", "food_buff_duration", 3, "EFFECT_FOOD_BUFF_DURATION", 0)], max_nb=3),
  item("preservatives", "Preservatives", 2, 70, [
-   ("key", "food_buff_duration", 4, "EFFECT_FOOD_BUFF_DURATION", 0),
+   ("key", "food_buff_duration", 6, "EFFECT_FOOD_BUFF_DURATION", 0),
    ("key", "food_heal_disabled", 1, "EFFECT_FOOD_HEAL_DISABLED", 1)], max_nb=2),
  item("msg", "MSG", 2, 85, [
    ("key", "food_buff_strength", 50, "EFFECT_FOOD_BUFF_STRENGTH", 0),
@@ -59,7 +59,8 @@ ITEMS = [
    ("key", "food_buff_strength", 100, "EFFECT_FOOD_BUFF_STRENGTH", 0),
    ("key", "food_spawns_halved", 1, "EFFECT_FOOD_SPAWNS_HALVED", 1)], (), 1),
  item("second_helping", "Second Helping", 2, 75, [
-   ("key", "second_helping", 25, "EFFECT_SECOND_HELPING", 0)], max_nb=2),
+   ("key", "second_helping", 25, "EFFECT_SECOND_HELPING", 0)], max_nb=2,
+   tracking="SECOND_HELPING_DOUBLED"),
  item("cooler_box", "Cooler Box", 1, 55, [
    ("key", "cooler_box", 1, "EFFECT_COOLER_BOX", 0)], (), 1),
  item("compost_bin", "Compost Bin", 1, 45, [
@@ -68,11 +69,13 @@ ITEMS = [
  item("chicken_soup", "Chicken Soup", 0, 20, [
    ("key", "food_bonus_heal", 1, "EFFECT_FOOD_BONUS_HEAL", 0)], max_nb=3),
  item("sugar_rush", "Sugar Rush", 0, 25, [
-   ("key", "food_speed_burst", 1, "EFFECT_FOOD_SPEED_BURST", 0)], ["stat_speed"], max_nb=4),
+   ("key", "food_speed_burst", 1, "EFFECT_FOOD_SPEED_BURST", 0)], ["stat_speed"], max_nb=3),
  item("food_fight", "Food Fight", 2, 80, [
-   ("proj", "EFFECT_FOOD_FIGHT")], ["stat_ranged_damage"], max_nb=3),
+   ("proj", "EFFECT_FOOD_FIGHT")], ["stat_ranged_damage"], max_nb=3,
+   tracking="DAMAGE_DEALT"),
  item("grease_fire", "Grease Fire", 2, 75, [
-   ("key", "grease_fire", 1, "EFFECT_GREASE_FIRE", 0)], ["stat_elemental_damage"]),
+   ("key", "grease_fire", 1, "EFFECT_GREASE_FIRE", 0)], ["stat_elemental_damage"],
+   tracking="GREASE_FIRE_IGNITES"),
  item("full_belly", "Full Belly", 1, 55, [
    ("key", "full_belly", 2, "EFFECT_FULL_BELLY", 0)], ["stat_armor"]),
  item("food_coma", "Food Coma", 3, 100, [
@@ -81,7 +84,8 @@ ITEMS = [
    ("key", "snack_break", 1, "EFFECT_SNACK_BREAK", 0)], ["stat_harvesting"], 3,
    tracking="SNACK_BREAK_GAINED"),
  item("buffet_insurance", "Buffet Insurance", 1, 60, [
-   ("key", "buffet_insurance", 5, "EFFECT_BUFFET_INSURANCE", 0)], max_nb=2),
+   ("key", "buffet_insurance", 5, "EFFECT_BUFFET_INSURANCE", 0)], max_nb=2,
+   tracking="HEALTH_RECOVERED"),
  # --- 3a: stat-clone replacements ---
  item("alarm_clock", "Alarm Clock", 0, 20, [
    ("stat", "stat_attack_speed", 10), ("stat", "stat_percent_damage", -2)], ["stat_attack_speed"]),
@@ -97,7 +101,8 @@ ITEMS = [
    ("key", "regen_per_burning_enemy", 1, "EFFECT_REGEN_PER_BURNING_ENEMY", 0)], ["stat_hp_regeneration"]),
  # --- 3c: new general items ---
  item("caltrops", "Caltrops", 0, 25, [
-   ("key", "caltrops", 1, "EFFECT_CALTROPS", 0)], ["stat_melee_damage"]),
+   ("key", "caltrops", 1, "EFFECT_CALTROPS", 0)], ["stat_melee_damage"],
+   tracking="DAMAGE_DEALT"),
  item("magnifying_glass", "Magnifying Glass", 1, 45, [
    ("key", "crit_vs_elites", 5, "EFFECT_CRIT_VS_ELITES", 0),
    ("key", "pickup_range", 15, "EFFECT_PICKUP_RANGE_BONUS", 0)], ["stat_crit_chance"]),
@@ -110,10 +115,12 @@ ITEMS = [
    ("key", "loyalty_card", 1, "EFFECT_LOYALTY_CARD", 0)], (), 1,
    tracking="MATERIALS_SAVED"),
  item("static_cling", "Static Cling", 2, 85, [
-   ("key", "static_cling", 1, "EFFECT_STATIC_CLING", 0)], ["stat_elemental_damage"]),
+   ("key", "static_cling", 1, "EFFECT_STATIC_CLING", 0)], ["stat_elemental_damage"],
+   tracking="DAMAGE_DEALT"),
  item("echo_chamber", "Echo Chamber", 3, 105, [
    ("key", "echo_chamber", 20, "EFFECT_ECHO_CHAMBER", 0),
-   ("stat", "stat_armor", -2)]),
+   ("stat", "stat_armor", -2)],
+   tracking="ECHO_CHAMBER_PROCS"),
  item("nine_lives", "Nine Lives", 3, 110, [
    ("key", "nine_lives", 1, "EFFECT_NINE_LIVES", 0),
    ("stat", "stat_percent_damage", -15)], (), 1, "NINE_LIVES_USED"),
@@ -136,6 +143,25 @@ ITEMS = [
  item("delivery_drone", "Delivery Drone", 2, 80, [
    ("key", "delivery_drone", 1, "EFFECT_DELIVERY_DRONE", 0)], ["food"], 2,
    tracking="DELIVERY_DRONE_DELIVERED", ext_id=997),
+ # --- debt items ---
+ # Credit Card: credit_limit SUMS across copies (100 each), so 2 cards -> 200 overspend
+ # ceiling (run_data.get_credit_limit). Overspending in the shop is handled in
+ # run_data.remove_currency, which also feeds this item's debt tracker. effect_1 is the
+ # shared debt explainer LINE (key "" -> renders the CSV text, applies nothing).
+ item("credit_card", "Credit Card", 1, 60, [
+   ("key", "credit_limit", 100, "EFFECT_CREDIT_CARD", 0),
+   ("key", "", 0, "EFFECT_DEBT_EXPLAIN", 2)], (), 2,
+   tracking="CREDIT_CARD_DEBT", ext_id=1006),
+ # Bank Loan: fires once the moment it is acquired (RunData.add_item): +500 materials, +300
+ # debt. effect_0 is the OFFER (always shown). effect_1 is the used-flag: custom_key
+ # "bank_loan" value 1 while fresh, which add_item finds and flips to 0 on firing; effect.gd
+ # renders it as an extra "Used" line only once fired (nothing while fresh). effect_2 is the
+ # shared debt explainer. So the card keeps its full description and just gains a "Used" line.
+ item("bank_loan", "Bank Loan", 2, 90, [
+   ("key", "", 0, "EFFECT_BANK_LOAN", 0),
+   ("custom", "", "bank_loan", 1, "EFFECT_BANK_LOAN_USED", 0),
+   ("key", "", 0, "EFFECT_DEBT_EXPLAIN", 2)], (), -1,
+   ext_id=1007),
 ]
 
 CSV_ROWS = [
@@ -177,23 +203,49 @@ CSV_ROWS = [
  ("GOURMET_SELECT_SPAWNER", "Set active"),
  ("GOURMET_SPAWNER_ACTIVE", "Active"),
  ("SPAWNER_ITEMS_PRICE", "% Food Spawner Price"),
- ("EFFECT_PICKY_ONE_SPAWNER", "Only one food spawner is active at a time. Press an owned spawner in the shop to choose it"),
- ("EFFECT_PICKY_STRONGER", "The active spawner's food is +100% stronger"),
+ ("EFFECT_PICKY_ONE_SPAWNER", "Only one food spawner type is active at a time. Press an owned spawner in the shop to choose it"),
+ ("EFFECT_PICKY_STRONGER", "The active spawner type's food is +100% stronger"),
+ ("EFFECT_PICKY_SPAWNER_LIMIT", "You can hold twice the limit of every food spawner"),
  ("EFFECT_PICKY_PENALTY", "-15% Damage while no food buff is active"),
  ("EFFECT_DISHWASHER_EXPIRY", "Food on the ground expires 50% faster"),
- ("EFFECT_RUMINANT_ECHO", "Every food buff triggers again at 50% strength 5 seconds later"),
+ ("EFFECT_RUMINANT_ECHO", "Every food buff triggers again at 50% strength 5 seconds later. Each echo has a 25% chance to chew again for half as much"),
  ("EFFECT_GOURMET_FRUIT", "All fruit becomes food"),
  ("EFFECT_DISHWASHER_LEFTOVERS", "Leftovers generation is doubled"),
  ("EFFECT_DISHWASHER_REFUND", "Expired food refunds 1 material"),
  ("EFFECT_BLACKSMITH_FORGE", "Combine two same-tier weapons sharing a class into a random next-tier weapon of that class"),
  ("EFFECT_MOLE_FOG", "Fog of war covers every wave"),
+ ("GREASE_FIRE_IGNITES", "Enemies ignited: {0}"),
+ ("ECHO_CHAMBER_PROCS", "Effects repeated: {0}"),
+ ("SECOND_HELPING_DOUBLED", "Servings doubled: {0}"),
+ ("COMP_EATER_MOMENTUM", "Momentum stacks: {0}"),
+ ("RUMINANT_CHEWS", "Extra chews: {0}"),
+ ("BLACKSMITH_FORGES", "Weapons forged: {0}"),
+ ("MIME_DUPLICATIONS", "Items duplicated: {0}"),
+ ("BUTCHER_APPETITE_RENDERED", "Appetite rendered: {0}"),
+ ("GOURMET_SPEED_LOST", "Speed lost to fat: {0}"),
+ ("GAIN_STAT_APPETITE", "% Appetite modifications"),
+ ("EFFECT_GOURMET_FIRST_FOOD", "The first food to spawn each wave is served twice"),
+ ("EFFECT_GOURMET_FAT", "He gets 3% slower and 2% bigger for every 50 consumables eaten, up to +80% size. A bigger body is a bigger target, but it also reaches further for pickups"),
+ ("EFFECT_TOURIST_XP", "-15% XP Gain, or +15% instead on Danger 0"),
+ ("EFFECT_BUTCHER_RENDER", "At the end of each wave, 20% of the Damage gained that wave becomes permanent Appetite"),
+ ("EFFECT_ZOMBIE_REANIMATE", "A hit that leaves him on 1 HP heals him back to full"),
+ ("EFFECT_ZOMBIE_NO_SUSTAIN", "Life Steal, HP Regeneration and consumable-healing items never appear in his shop"),
+ ("ZOMBIE_REANIMATIONS", "Reanimations: {0}"),
+ ("EFFECT_SLUG_SLIME", "Enemies in the slime take {0} ({1}) damage every 0.5 seconds. Slimed stacks with burning"),
+ ("EFFECT_JUGGLER_COMBO", "Each weapon that already fired this cycle makes the shot +8% stronger, up to +{0}% on the last one"),
  ("EFFECT_SLUG_TRAIL", "Leaves a slime trail (lasts 7.5s) that slows enemies 30% (+2% per Level, max 90%). Trail width (base 26) and slow radius (base 45) each grow +6% per Level"),
  ("ENEMY_ATTACK_SPEED", "% Enemy Attack Speed"),
  ("EFFECT_FOOD_STACK_CAP", "+{0} max stacks to every food buff"),
- ("EFFECT_WINE_CELLAR", "Food eaten at least 5 seconds after it appeared grants a +{0}% stronger buff"),
+ ("EFFECT_WINE_CELLAR", "Food eaten at least 6 seconds after it appeared grants a +{0}% stronger buff"),
  ("EFFECT_DELIVERY_DRONE", "Every food spawner you own serves {0} extra food at the start of each wave (Doggy Bag excluded)"),
  ("WINE_CELLAR_AGED", "Aged servings: {0}"),
  ("DELIVERY_DRONE_DELIVERED", "Foods delivered: {0}"),
+ # debt items. EFFECT_DEBT_EXPLAIN is the shared "how debt works" line on both cards.
+ ("EFFECT_DEBT_EXPLAIN", "While in debt you gain no Materials until it is repaid, and every point of debt costs 2 Materials to clear"),
+ ("EFFECT_CREDIT_CARD", "Lets you overspend in the shop, up to {0} into debt"),
+ ("CREDIT_CARD_DEBT", "Debt taken on: {0}"),
+ ("EFFECT_BANK_LOAN", "Instantly gain 500 Materials, then go 300 into debt"),
+ ("EFFECT_BANK_LOAN_USED", "Used"),
 ]
 
 
@@ -532,6 +584,22 @@ def _(d):
     d.line([30, 72, 20, 86], fill=OUTLINE, width=4)
     d.line([66, 72, 76, 86], fill=OUTLINE, width=4)
 
+@art("credit_card")
+def _(d):
+    _box(d, [12, 26, 84, 70], (72, 120, 180, 255), r=8)
+    d.rectangle([12, 36, 84, 48], fill=(40, 44, 58, 255))          # magnetic stripe
+    _box(d, [20, 54, 40, 64], (240, 196, 80, 255), r=3, w=2)       # gold chip
+    for x in (48, 60, 72):
+        d.line([x, 60, x + 6, 60], fill=(230, 230, 240, 255), width=3)
+
+@art("bank_loan")
+def _(d):
+    _box(d, [16, 30, 80, 74], (104, 160, 88, 255), r=6)            # banknote stack
+    d.rectangle([16, 40, 80, 64], fill=(84, 140, 72, 255))
+    d.ellipse([40, 44, 56, 60], fill=(60, 110, 56, 255), outline=OUTLINE, width=2)
+    d.text((44, 47), "$", fill=(238, 238, 210, 255))
+    _box(d, [22, 22, 74, 32], (150, 104, 66, 255), r=3, w=2)       # band
+
 @art("delivery_drone")
 def _(d):
     for x in (14, 62):
@@ -573,6 +641,25 @@ key = "{key}"
 text_key = "{text_key}"
 value = {value}
 custom_key = ""
+storage_method = 0
+effect_sign = {sign}
+custom_args = [  ]
+"""
+
+def custom_effect_tres(key, custom_key, value, text_key, sign):
+    # like key_effect_tres but with an explicit custom_key. Used by the Bank Loan action
+    # effect: key "" (applies no stat), custom_key "bank_loan" (buy_item finds it by this),
+    # value 1 = fresh / 0 = used (effect.gd flips the card text on this).
+    return f"""[gd_resource type="Resource" load_steps=2 format=2]
+
+[ext_resource path="res://items/global/effect.gd" type="Script" id=1]
+
+[resource]
+script = ExtResource( 1 )
+key = "{key}"
+text_key = "{text_key}"
+value = {value}
+custom_key = "{custom_key}"
 storage_method = 0
 effect_sign = {sign}
 custom_args = [  ]
@@ -752,6 +839,8 @@ def main():
                 open(path, "w").write(stat_effect_tres(entry[1], entry[2]))
             elif entry[0] == "key":
                 open(path, "w").write(key_effect_tres(entry[1], entry[2], entry[3], entry[4]))
+            elif entry[0] == "custom":
+                open(path, "w").write(custom_effect_tres(entry[1], entry[2], entry[3], entry[4], entry[5]))
             elif entry[0] == "proj":
                 open(f"{d}/{slug}_proj_stats.tres", "w").write(proj_stats_tres())
                 open(path, "w").write(proj_effect_tres(slug, entry[1]))

@@ -9,6 +9,13 @@ var current_level: int = 0
 
 var current_xp: float = 0.0
 var gold: int = 0
+# Gourmet DLC - debt (Credit Card / Bank Loan). `debt` is the displayed debt in POINTS (the
+# negative number shown next to materials); each point costs 2 materials to clear. `debt_progress`
+# is the 0-or-1 half-material carry so 1-at-a-time gold pickups still repay at the true 2:1 rate.
+# While debt > 0 all incoming materials go to repayment (run_data.add_gold) - you gain nothing
+# until it is clear. See run_data.add_gold / spend_currency / get_credit_limit.
+var debt: int = 0
+var debt_progress: int = 0
 var overtime_pay_gold_this_wave: int = 0
 var selected_weapon: WeaponData
 var selected_item: ItemData
@@ -54,6 +61,8 @@ func duplicate() -> PlayerRunData:
 	copy.current_level = current_level
 	copy.current_xp = current_xp
 	copy.gold = gold
+	copy.debt = debt
+	copy.debt_progress = debt_progress
 	copy.selected_weapon = selected_weapon
 	copy.selected_item = selected_item
 	copy.weapons = weapons.duplicate()
@@ -106,8 +115,10 @@ func serialize() -> Dictionary:
 		"current_character": current_character.my_id if current_character else null, 
 		"current_health": current_health, 
 		"current_level": current_level, 
-		"current_xp": current_xp, 
-		"gold": gold, 
+		"current_xp": current_xp,
+		"gold": gold,
+		"debt": debt,
+		"debt_progress": debt_progress,
 		"selected_weapon": selected_weapon.my_id if selected_weapon else null, 
 		"selected_item": selected_item.my_id if selected_item else null, 
 		"weapons": serialized_weapons, 
@@ -145,6 +156,8 @@ func deserialize(data: Dictionary) -> PlayerRunData:
 	current_level = int(data.current_level)
 	current_xp = data.current_xp
 	gold = int(data.gold)
+	debt = int(data.debt) if data.has("debt") else 0
+	debt_progress = int(data.debt_progress) if data.has("debt_progress") else 0
 
 	if data.selected_weapon != null:
 		var weapon_data = ItemService.get_element_safe(ItemService.weapons, data.selected_weapon)
@@ -355,7 +368,7 @@ func _deserialize_effects(p_effects: Dictionary, weapon_effect_hashes: Dictionar
 			# our runtime counters feed '%' arithmetic, which hard-crashes on
 			# float operands after a resume (loyalty card discount did exactly
 			# this). Values are only key-converted above, never re-typed.
-			if result[key_hash] is float and (key_hash == Keys.shop_purchases_hash or key_hash == Keys.gourmet_foods_eaten_hash or key_hash == Keys.banked_leftovers_hash or key_hash == Keys.selected_spawner_hash or key_hash == Keys.soul_food_streak_hash):
+			if result[key_hash] is float and (key_hash == Keys.shop_purchases_hash or key_hash == Keys.gourmet_foods_eaten_hash or key_hash == Keys.banked_leftovers_hash or key_hash == Keys.selected_spawner_hash or key_hash == Keys.soul_food_streak_hash or key_hash == Keys.freeloader_shop_wave_hash):
 				result[key_hash] = int(result[key_hash])
 
 	return result
@@ -456,6 +469,13 @@ static func init_stats(all_null_values: bool = false) -> Dictionary:
 		Keys.items_price_hash: 0,
 		Keys.food_items_price_hash: 0,
 		Keys.tourist_danger_done_hash: 0,
+		Keys.freeloader_shop_wave_hash: -1,
+		Keys.spawner_shop_chance_hash: 0,
+		Keys.special_active_mods_hash: [],
+		Keys.special_next_mods_hash: [],
+		Keys.special_shop_mods_hash: [],
+		Keys.gourmet_fat_hash: 0,
+		Keys.gain_stat_appetite_hash: 0,
 		Keys.gourmet_foods_eaten_hash: 0,
 		Keys.wave_start_foods_hash: [],
 		Keys.kill_foods_hash: [],
@@ -576,8 +596,9 @@ static func init_effects() -> Dictionary:
 		Keys.generate_hash("hp_start_next_wave"): 100, 
 		Keys.generate_hash("pacifist"): 0, 
 		Keys.generate_hash("cryptid"): 0, 
-		Keys.generate_hash("gain_pct_gold_start_wave"): 0, 
-		Keys.generate_hash("torture"): 0, 
+		Keys.generate_hash("gain_pct_gold_start_wave"): 0,
+		Keys.generate_hash("credit_limit"): 0,  # Gourmet DLC - Credit Card: 100 materials of shop overspend per card
+		Keys.generate_hash("torture"): 0,
 		Keys.generate_hash("recycling_gains"): 0, 
 		Keys.generate_hash("one_shot_trees"): 0, 
 		Keys.generate_hash("max_ranged_weapons"): 999, 

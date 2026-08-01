@@ -89,15 +89,26 @@ func activate() -> void :
 
 	
 	if not _lock_button.visible and not _steal_button.visible and not _ban_button.visible:
-		_steal_button.modulate = Color(1, 1, 1, 0)
-		_steal_button.show()
+		# Vanilla shows a fully TRANSPARENT steal button here purely to reserve layout space so
+		# cards keep a consistent shape. Gourmet DLC - on the Freeloader's compact cards that
+		# reserved width lands between the price and the card's right edge and reads as a bug,
+		# so skip the placeholder and let the expanding description push the price hard right.
+		if not use_compact_style:
+			_steal_button.modulate = Color(1, 1, 1, 0)
+			_steal_button.show()
 
 	_button.activate()
 	active = true
 
 
 func manage_lock_button_visibility() -> void :
-	if RunData.get_player_effect_bool(Keys.disable_item_locking_hash, player_index):
+	# Gourmet DLC - the Freeloader reaches this via the disable_item_locking effect on his
+	# character (locking is a soft reroll, and he may not reconsider anything). Using the
+	# vanilla key rather than a character check means change_lock_status() blocks the ACTION
+	# too, so hiding the button is not the only thing standing in the way.
+	# is_freeloader is checked alongside the effect for the same serialization reason as
+	# change_lock_status: an in-flight run carries the old kit without the effect.
+	if RunData.is_freeloader(player_index) or RunData.get_player_effect_bool(Keys.disable_item_locking_hash, player_index):
 		_lock_button.disable()
 		_lock_button.hide()
 	else:
@@ -151,6 +162,14 @@ func set_shop_item(p_item_data: ItemParentData, p_wave_value: int = RunData.curr
 		value = max(1, int(value * 0.7))
 		loyalty_saving = value_before_loyalty - value
 
+	# Gourmet DLC - The Freeloader takes everything for free, and free means 0, never 1.
+	# ItemService.get_value already returns 0 for him at the root, but the three price
+	# modifiers above are each wrapped in max(1, ...), so any of them that applies would
+	# turn that 0 back into 1. Re-zeroing here after all of them is what actually holds
+	# the price at nothing.
+	if RunData.is_freeloader(player_index):
+		value = 0
+
 	activate()
 
 	var item_count: = 1
@@ -187,13 +206,20 @@ func set_shop_item(p_item_data: ItemParentData, p_wave_value: int = RunData.curr
 				additional_icon = source_item.icon.get_data()
 
 		elif item_data.get_category() == Category.WEAPON:
-			# Gourmet DLC - Mime: mirrors duplicate weapons too, show the x2 + mirror icon
-			if current_character != null and current_character.my_id == "character_mime" and RunData.has_weapon_slot_available(item_data, player_index):
-				item_count = 2
-				var mirror_item_id = duplicate_item_effects[0][0]
-				assert (mirror_item_id is int)
-				var mirror_source_item: ItemData = ItemService.get_item_from_id(mirror_item_id)
-				additional_icon = mirror_source_item.icon.get_data()
+			# Gourmet DLC - Mime: mirrors duplicate weapons too, so show the count + mirror
+			# icon. The badge used to be hardcoded x2, which is only right with ONE mirror -
+			# three mirrors buy four copies. mime_max_copies_that_fit is the same number
+			# buy_weapon will actually deliver (mirrors capped to what the inventory can
+			# absorb), so the badge cannot promise copies the purchase then declines to make.
+			# A count of 1 means no duplication is possible, so no badge.
+			if RunData.is_mime(player_index):
+				var mime_copies: int = RunData.mime_max_copies_that_fit(item_data, player_index)
+				if mime_copies > 1:
+					item_count = mime_copies
+					var mirror_item_id = duplicate_item_effects[0][0]
+					assert (mirror_item_id is int)
+					var mirror_source_item: ItemData = ItemService.get_item_from_id(mirror_item_id)
+					additional_icon = mirror_source_item.icon.get_data()
 
 	_button.remove_additional_icon()
 
@@ -202,7 +228,9 @@ func set_shop_item(p_item_data: ItemParentData, p_wave_value: int = RunData.curr
 		texture.create_from_image(additional_icon)
 		_button.set_additional_icon(texture)
 
-	_button.set_value(value, RunData.get_player_currency(player_index))
+	# Gourmet DLC - Credit Card: the price colour reflects buyability, so it must count
+	# available credit, or a credit-affordable item would show a red price you can still afford.
+	_button.set_value(value, _spending_power(player_index))
 
 	var steal_spawn_elite_effect = RunData.get_player_effect(Keys.item_steals_spawns_random_elite_hash, player_index)
 	var steal_chance = ItemService.get_chance_getting_caught(self, RunData.current_wave, steal_spawn_elite_effect / 100.0)
@@ -239,7 +267,16 @@ func ban_item() -> void :
 	emit_signal("ban_update_remaining_token")
 
 func update_color() -> void :
-	_button.set_color_from_currency(RunData.get_player_currency(player_index))
+	_button.set_color_from_currency(_spending_power(player_index))
+
+
+# Gourmet DLC - materials plus available Credit Card overspend (0 without a card, and the HP
+# shop cannot be paid on credit). Mirrors the affordability gate in shop_items_container.
+func _spending_power(p_index: int) -> int:
+	var power: int = RunData.get_player_currency(p_index)
+	if not RunData.get_player_effects(p_index)[Keys.hp_shop_hash]:
+		power += RunData.get_available_credit(p_index)
+	return power
 
 
 func lock_visually() -> void :
@@ -269,6 +306,14 @@ func change_lock_status(button_pressed: bool) -> void :
 	if RunData.get_player_effect_bool(Keys.disable_item_locking_hash, player_index):
 		return
 
+	# Gourmet DLC - belt and braces for the Freeloader. The disable_item_locking effect above is
+	# the proper mechanism, but CHARACTER EFFECTS ARE SERIALIZED INTO THE RUN: a run started
+	# before that effect was added keeps the old kit, so the guard above silently misses and the
+	# lock still works mid-run. my_id survives serialization, so this closes the hole on
+	# in-flight runs too. This is the ACTION chokepoint; hiding the button is not enough.
+	if RunData.is_freeloader(player_index):
+		return
+
 	if button_pressed:
 		lock_visually()
 		RunData.lock_player_shop_item(item_data, wave_value, player_index)
@@ -281,10 +326,19 @@ func get_category_text_pos() -> Vector2:
 	return _item_description._category.rect_global_position
 
 
+# Gourmet DLC - set on the Freeloader's compact cards (coop_shop_item.tscn used in a solo
+# run). Those cards carry StyleBoxEmpty panels on purpose because co-op conveys tier by
+# tinting the ICON panel, so the solo branch below would try to tier-colour an empty stylebox
+# and draw nothing. Routing them down the co-op path gives the intended look.
+var use_compact_style: = false
+
+
 func _set_panel_lock_style() -> void :
-	var panel = _item_description.icon_panel if RunData.is_coop_run else _panel
+	# explicit bool: `var compact: = ...` cannot infer a type from untyped is_coop_run
+	var compact: bool = RunData.is_coop_run or use_compact_style
+	var panel = _item_description.icon_panel if compact else _panel
 	var stylebox = panel.get_stylebox("panel").duplicate()
-	if RunData.is_coop_run:
+	if compact:
 		var tier_color = ItemService.get_color_from_tier(item_data.tier)
 		tier_color.a = stylebox.bg_color.a
 		stylebox.bg_color = tier_color
