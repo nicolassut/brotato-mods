@@ -991,6 +991,15 @@ func add_gold(value: int, player_index: int, ignore_debt: bool = false) -> void 
 
 	var player_data = players_data[player_index]
 
+	# Gourmet DLC - The Debtor: no spendable money, ever. Incoming materials repay debt 1:1 and
+	# nothing lands in the wallet, even at 0 debt. XP is a separate add_xp call at each pickup
+	# site (untouched), so pickups still level him - the same split the Freeloader uses.
+	if is_debtor(player_index):
+		if value > 0 and player_data.debt > 0:
+			player_data.debt = int(max(0, player_data.debt - value))
+			emit_signal("gold_changed", player_data.gold, player_index)
+		return
+
 	# Gourmet DLC - debt repayment: while in debt, ALL incoming materials go to the debt first
 	# and you gain nothing until it clears. Each debt point costs 2 materials; debt_progress is
 	# the half-material carry so 1-at-a-time gold pickups still repay at the true 2:1 rate.
@@ -1033,6 +1042,10 @@ func get_credit_limit(player_index: int) -> int:
 # How much further into debt a shop overspend may go right now: the shared debt pool means a
 # Bank Loan's 300 debt eats into this ceiling until repaid below the limit.
 func get_available_credit(player_index: int) -> int:
+	# Gourmet DLC - The Debtor buys on unlimited credit: no ceiling, so every purchase can turn
+	# into debt no matter how deep he already is.
+	if is_debtor(player_index):
+		return 1000000000
 	return int(max(0, get_credit_limit(player_index) - players_data[player_index].debt))
 
 func get_player_debt(player_index: int) -> int:
@@ -1744,6 +1757,32 @@ func has_freeloader() -> bool:
 		if is_freeloader(i):
 			return true
 	return false
+
+
+# Gourmet DLC - The Debtor (character_test_debt). No money economy: pickups give only XP and
+# repay debt 1:1; buying goes on unlimited credit; debt takes +10% interest each wave. Enemy
+# scaling from debt is GLOBAL (see get_total_debt); every other rule is gated on this.
+func is_debtor(player_index: int) -> bool:
+	var character = get_player_character(player_index)
+	return character != null and character.my_id == "character_test_debt"
+
+
+# Total outstanding debt across all active players. Enemies scale off this (+1% HP & damage per
+# 20 debt) - a GLOBAL rule, so anyone carrying debt makes the arena harder, not just the Debtor.
+func get_total_debt() -> int:
+	var total: = 0
+	for i in get_player_count():
+		total += players_data[i].debt
+	return total
+
+
+# Gourmet DLC - Debtor: debt compounds +10% at the end of every cleared wave (called from
+# main.clean_up_room). Only the Debtor accrues interest.
+func apply_debt_interest() -> void :
+	for i in get_player_count():
+		if is_debtor(i) and players_data[i].debt > 0:
+			players_data[i].debt = int(ceil(players_data[i].debt * 1.1))
+			emit_signal("gold_changed", players_data[i].gold, i)
 
 
 # The weapon currently armed as the first half of a forge. Self-heals if that weapon

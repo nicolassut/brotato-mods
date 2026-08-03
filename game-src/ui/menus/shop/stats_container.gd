@@ -198,6 +198,14 @@ func _set_rules_mode(on: bool) -> void :
 	_wire_top_tab_focus()
 
 
+# Gourmet DLC - Wildcard: in coop the stat sheet is a per-wave, on-demand carousel page, so the
+# "default to Rules in the shop" set once in _ensure_rules_ui needs re-asserting each shop. The
+# coop shop container calls this from its _ready. No-op for non-Wildcard (they have no toggle).
+func open_rules_default() -> void :
+	if _top_tabs != null:
+		_set_rules_mode(true)
+
+
 func _refresh_rules_list(player_index: int) -> void :
 	if _rules_list == null:
 		return

@@ -230,6 +230,8 @@ func set_shop_item(p_item_data: ItemParentData, p_wave_value: int = RunData.curr
 
 	# Gourmet DLC - Credit Card: the price colour reflects buyability, so it must count
 	# available credit, or a credit-affordable item would show a red price you can still afford.
+	# The Debtor has no money and buys on debt, so his prices read as debt: "-50" in red.
+	_button.set_debt_mode(RunData.is_debtor(player_index))
 	_button.set_value(value, _spending_power(player_index))
 
 	var steal_spawn_elite_effect = RunData.get_player_effect(Keys.item_steals_spawns_random_elite_hash, player_index)

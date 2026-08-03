@@ -287,7 +287,7 @@ CHARS = [
  # Runtime lives in singletons/special_modifiers.gd (registry + roll + apply/unapply),
  # main.gd (wave-start apply, wave-end teardown + reroll) and base_shop.gd (briefing +
  # next-shop-scoped teardown).
- ("special","The Special","character_special",[],
+ ("special","Wildcard","character_special",[],
    [("LINE","EFFECT_SPECIAL_ROLL",2),
     ("LINE","EFFECT_SPECIAL_PREVIEW",0),
     ("LINE","EFFECT_SPECIAL_TEMPORARY",0),

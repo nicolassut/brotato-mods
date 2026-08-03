@@ -1012,10 +1012,14 @@ func spawn_food(food_data: ConsumableData, pos: Vector2, angle: float = - 1.0, p
 	consumable.already_picked_up = false
 	consumable.consumable_data = food_data
 	consumable.set_texture(food_data.icon)
-	# Gourmet DLC - Gumballs recolour a single white base texture to red/blue/green at
-	# random (black outline survives modulate: black x colour = black). Others reset white.
+	# Gourmet DLC - the Gumball ICON (food_data.icon) is red, so the shop/codex show red by
+	# default; the ARENA spawn swaps in the white base texture and recolours it red/blue/yellow
+	# at random (black outline survives modulate: black x colour = black). Others reset white.
 	if food_data.my_id == "consumable_food_gumball":
-		consumable.modulate = [Color(0.95, 0.30, 0.30, 1), Color(0.35, 0.55, 0.95, 1), Color(0.40, 0.80, 0.45, 1)][randi() % 3]
+		var _gb_base = load("res://items/foods/gumball/gumball_white.png")
+		if _gb_base != null:
+			consumable.set_texture(_gb_base)
+		consumable.modulate = [Color(0.95, 0.30, 0.30, 1), Color(0.35, 0.55, 0.95, 1), Color(0.95, 0.82, 0.30, 1)][randi() % 3]
 	else:
 		consumable.modulate = Color(1, 1, 1, 1)
 	consumable.set_meta("food_spawned_at", _food_wave_time)
@@ -1678,6 +1682,11 @@ func connect_visual_effects(unit: Unit) -> void :
 
 func clean_up_room() -> void :
 	_set_run_states()
+
+	# Gourmet DLC - Debtor: debt takes +10% interest at the end of each cleared wave (before the
+	# shop). Skipped on a lost run - no point compounding into a game over.
+	if not _is_run_lost:
+		RunData.apply_debt_interest()
 
 	_ui_dim_screen.dim()
 	_wave_timer.stop()
