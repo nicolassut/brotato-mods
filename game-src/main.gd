@@ -1677,6 +1677,11 @@ func connect_visual_effects(unit: Unit) -> void :
 func clean_up_room() -> void :
 	_set_run_states()
 
+	# Gourmet DLC - Debtor: debt takes +10% interest at the end of each cleared wave (before the
+	# shop). Skipped on a lost run - no point compounding into a game over.
+	if not _is_run_lost:
+		RunData.apply_debt_interest()
+
 	_ui_dim_screen.dim()
 	_wave_timer.stop()
 	for timer in _half_second_timers.get_children():
