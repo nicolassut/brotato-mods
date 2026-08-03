@@ -238,15 +238,32 @@ func _conflicts(mod: Dictionary, chosen: Array) -> bool:
 # Roll the set for `wave`. Returns an array of modifier ids.
 # `blocked_axes` lets the caller exclude anything the wave was ALREADY going to do (fog,
 # bullet hell, horde, elites), so the player never gets the same event twice.
+#
+# Wildcard balance law (user-specced): any wave that rolls AT ALL must carry at least one
+# clearly-good modifier AND one clearly-bad one - never all-good, never all-bad. A rolling
+# wave is therefore a minimum of two modifiers, so count-1 waves are bumped to two. A
+# zero-count wave (wave 1-2, or a deliberate breather) still rolls nothing - that is the
+# only way the Wildcard sees fewer than two.
 func roll_for_wave(wave: int, player_index: int, blocked_axes: Array = []) -> Array:
 	var count: int = get_count_for_wave(wave)
 	if count <= 0:
 		return []
 
+	# Room for one good AND one bad, so a rolling wave never drops below two.
+	var target: int = int(max(count, 2))
 	var chosen: = []
-	var tries: = 0
 
-	while chosen.size() < count and tries < MAX_ROLL_TRIES:
+	# Guarantee the good/bad pair FIRST so the random fillers can never crowd them out.
+	var forced_good: Dictionary = _pick_constrained(wave, player_index, blocked_axes, chosen, "good")
+	if not forced_good.empty():
+		chosen.push_back(forced_good)
+	var forced_bad: Dictionary = _pick_constrained(wave, player_index, blocked_axes, chosen, "bad")
+	if not forced_bad.empty():
+		chosen.push_back(forced_bad)
+
+	# Fill the remaining slots from the whole pool with the normal weighted drift.
+	var tries: = 0
+	while chosen.size() < target and tries < MAX_ROLL_TRIES:
 		tries += 1
 		var candidate: Dictionary = _pick_weighted(wave)
 		if candidate.empty():
@@ -255,13 +272,7 @@ func roll_for_wave(wave: int, player_index: int, blocked_axes: Array = []) -> Ar
 			continue
 		if not _eligible(candidate, player_index):
 			continue
-
-		var axis_blocked: = false
-		for axis in candidate.axes:
-			if axis in blocked_axes:
-				axis_blocked = true
-				break
-		if axis_blocked:
+		if _axis_blocked(candidate, blocked_axes):
 			continue
 
 		chosen.push_back(candidate)
@@ -270,6 +281,33 @@ func roll_for_wave(wave: int, player_index: int, blocked_axes: Array = []) -> Ar
 	for m in chosen:
 		ids.push_back(Keys.generate_hash(m.id))
 	return ids
+
+
+func _axis_blocked(mod: Dictionary, blocked_axes: Array) -> bool:
+	for axis in mod.axes:
+		if axis in blocked_axes:
+			return true
+	return false
+
+
+# Pick one modifier of a given kind ("good"/"bad") that clears every constraint (conflicts,
+# eligibility, blocked axes) against what is already chosen. Returns {} only when the pool
+# genuinely can't supply one this wave - the caller then does its best without it.
+func _pick_constrained(wave: int, player_index: int, blocked_axes: Array, chosen: Array, kind: String) -> Dictionary:
+	var tries: = 0
+	while tries < MAX_ROLL_TRIES:
+		tries += 1
+		var candidate: Dictionary = _pick_weighted_of_kind(wave, kind)
+		if candidate.empty():
+			return {}
+		if _conflicts(candidate, chosen):
+			continue
+		if not _eligible(candidate, player_index):
+			continue
+		if _axis_blocked(candidate, blocked_axes):
+			continue
+		return candidate
+	return {}
 
 
 func _pick_weighted(wave: int) -> Dictionary:
@@ -286,6 +324,27 @@ func _pick_weighted(wave: int) -> Dictionary:
 		if roll <= 0.0:
 			return m
 	return REGISTRY[REGISTRY.size() - 1]
+
+
+# Weighted pick restricted to one kind ("good"/"bad"), for the guaranteed pair. Uses the same
+# wave drift as _pick_weighted so late-wave good stays rarer. {} only if the kind is empty.
+func _pick_weighted_of_kind(wave: int, kind: String) -> Dictionary:
+	var total: = 0.0
+	for m in REGISTRY:
+		if m.kind == kind:
+			total += _weight_for(m, wave)
+
+	if total <= 0.0:
+		return {}
+
+	var roll: = rand_range(0.0, total)
+	for m in REGISTRY:
+		if m.kind != kind:
+			continue
+		roll -= _weight_for(m, wave)
+		if roll <= 0.0:
+			return m
+	return {}
 
 
 # Apply / unapply are strict inverses: every effect is a numeric delta on the effects dict.
