@@ -67,8 +67,26 @@ func show_upgrades_for_level(level: int) -> void :
 	_level = level
 	var upgrades = ItemService.get_upgrades(level, ItemService.get_nb_upgrade_options(player_index), _old_upgrades, player_index)
 	_old_upgrades = upgrades
+	_display_upgrades(upgrades)
 
-	# Gourmet DLC - the Freeloader drafts from 8, so make sure there are 8 cards to fill.
+
+# Gourmet DLC - the Freeloader keeps 2 upgrades from one draft. After his first pick, the
+# parent (UpgradesUI) calls this to re-show the same cards minus the one taken, so he chooses
+# a second from what is left. Returns false when nothing remains (he only gets the one).
+func reshow_remaining_after_pick(picked) -> bool:
+	var remaining: = []
+	for u in _old_upgrades:
+		if u != picked:
+			remaining.append(u)
+	if remaining.empty():
+		return false
+	_old_upgrades = remaining
+	_display_upgrades(remaining)
+	return true
+
+
+func _display_upgrades(upgrades: Array) -> void :
+	# Gourmet DLC - the Freeloader drafts from 8, so make sure there are enough cards to fill.
 	_ensure_upgrade_ui_capacity(upgrades.size())
 
 	var upgrade_uis: = _get_upgrade_uis()

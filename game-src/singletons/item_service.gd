@@ -27,6 +27,8 @@ const NB_SHOP_ITEMS_FREELOADER: = 8
 # get_upgrades() from upgrades_ui_player_container.
 const NB_UPGRADE_OPTIONS: = 4
 const NB_UPGRADE_OPTIONS_FREELOADER: = 8
+# Gourmet DLC - the Freeloader keeps TWO upgrades from each level-up draft.
+const NB_UPGRADE_PICKS_FREELOADER: = 2
 
 const CHANCE_WEAPON: = 0.35
 const CHANCE_SAME_WEAPON: = 0.2
@@ -242,7 +244,10 @@ func process_item_box(consumable_data: ConsumableData, wave: int, player_index: 
 # Gourmet DLC - how many offerings this player's shop holds. Character-aware replacement
 # for the old NB_SHOP_ITEMS const, which was read in three places.
 func get_nb_shop_items(player_index: int) -> int:
-	if RunData.is_freeloader(player_index):
+	# Gourmet DLC - the widened 8-slot menu + its grid reflow only fit the single-player
+	# layout. In coop the container is quarter-screen, so the reflow squished cards into
+	# thin rows; keep the Freeloader at the normal count there.
+	if RunData.is_freeloader(player_index) and not RunData.is_coop_run:
 		return NB_SHOP_ITEMS_FREELOADER
 
 	return NB_SHOP_ITEMS
@@ -250,10 +255,19 @@ func get_nb_shop_items(player_index: int) -> int:
 
 # Gourmet DLC - how many choices this player's level-up draft offers.
 func get_nb_upgrade_options(player_index: int) -> int:
-	if RunData.is_freeloader(player_index):
+	# Same coop guard as get_nb_shop_items: 8 cards only reflow cleanly in single-player.
+	if RunData.is_freeloader(player_index) and not RunData.is_coop_run:
 		return NB_UPGRADE_OPTIONS_FREELOADER
 
 	return NB_UPGRADE_OPTIONS
+
+
+# Gourmet DLC - how many upgrades this player keeps per level-up draft (Freeloader: 2).
+func get_nb_upgrade_picks(player_index: int) -> int:
+	if RunData.is_freeloader(player_index):
+		return NB_UPGRADE_PICKS_FREELOADER
+
+	return 1
 
 
 func get_player_shop_items(wave: int, player_index: int, args: ItemServiceGetShopItemsArgs) -> Array:
