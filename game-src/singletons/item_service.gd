@@ -29,6 +29,9 @@ const NB_UPGRADE_OPTIONS: = 4
 const NB_UPGRADE_OPTIONS_FREELOADER: = 8
 # Gourmet DLC - the Freeloader keeps TWO upgrades from each level-up draft.
 const NB_UPGRADE_PICKS_FREELOADER: = 2
+# Gourmet DLC - items whose purpose is to hand you debt (loans) are free to buy; you already
+# owe the debt, so a purchase price on top means paying extra. Add future loan ids here.
+const FREE_DEBT_ITEM_IDS: = ["item_bank_loan"]
 
 const CHANCE_WEAPON: = 0.35
 const CHANCE_SAME_WEAPON: = 0.2
@@ -844,6 +847,12 @@ func get_value(wave: int, base_value: int, player_index: int, affected_by_items_
 	# Gourmet DLC - nothing has a price for the Freeloader. Returned at the root so every
 	# caller agrees on zero (shop card, coupon maths, item popups), not just the shop card.
 	if RunData.is_freeloader(player_index):
+		return 0
+
+	# Gourmet DLC - a loan's whole job is to hand you debt; charging materials to take it means
+	# paying extra on top of what you already owe. Debt-granting items are free to buy, at the
+	# root so the shop card, coupon maths and popups all agree (like the Freeloader case above).
+	if item_id != Keys.empty_hash and FREE_DEBT_ITEM_IDS.has(Keys.hash_to_string.get(item_id, "")):
 		return 0
 
 	var value_after_weapon_price = base_value
