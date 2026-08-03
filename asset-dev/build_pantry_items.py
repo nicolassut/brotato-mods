@@ -212,7 +212,7 @@ CSV_ROWS = [
  ("EFFECT_GOURMET_FRUIT", "All fruit becomes food"),
  ("EFFECT_DISHWASHER_LEFTOVERS", "Leftovers generation is doubled"),
  ("EFFECT_DISHWASHER_REFUND", "Expired food refunds 1 material"),
- ("EFFECT_BLACKSMITH_FORGE", "Combine two same-tier weapons sharing a class into a random next-tier weapon of that class"),
+ ("EFFECT_BLACKSMITH_FORGE", "Combine two weapons of the same tier sharing a class into a random weapon of that class one tier higher. At max tier, combine into a different max-tier weapon instead"),
  ("EFFECT_MOLE_FOG", "Fog of war covers every wave"),
  ("GREASE_FIRE_IGNITES", "Enemies ignited: {0}"),
  ("ECHO_CHAMBER_PROCS", "Effects repeated: {0}"),
