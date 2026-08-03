@@ -968,16 +968,17 @@ def main():
         d = f"{DEC}/items/foods/{food_slug}"
         os.makedirs(d, exist_ok=True)
         food_png = f"{d}/{food_slug}.png"
-        if not os.path.exists(food_png):
-            # missing (fresh machine): install the committed final if we have one, else a
-            # PIL placeholder. Never clobbers an in-place vectorized icon - only fills a gap.
-            food_final = f"{os.path.dirname(os.path.abspath(__file__))}/foods/final/{food_slug}.png"
-            if os.path.exists(food_final):
-                shutil.copy(food_final, food_png)
-            else:
-                img, draw = canvas(80)
-                FOOD_ART[food_slug](draw)
-                img.save(food_png)
+        # The committed final/ sprite is the source of truth, so OVERWRITE the live png with it
+        # every build. The old "only if missing" guard is exactly why the egg / bloody mary /
+        # gumball never travelled: a stale in-place sprite on another machine was never replaced.
+        # A PIL placeholder is only drawn for a brand-new food that has no final/ yet.
+        food_final = f"{os.path.dirname(os.path.abspath(__file__))}/foods/final/{food_slug}.png"
+        if os.path.exists(food_final):
+            shutil.copy(food_final, food_png)
+        elif not os.path.exists(food_png):
+            img, draw = canvas(80)
+            FOOD_ART[food_slug](draw)
+            img.save(food_png)
         write_png_import(food_png, f"res://items/foods/{food_slug}/{food_slug}.png")
         with open(f"{d}/{food_slug}_text_effect.tres", "w") as fh:
             fh.write(effect_text_tres(f["text_key"], f["my_id"]))
