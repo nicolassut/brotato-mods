@@ -62,7 +62,7 @@ func init(zone_min_pos: Vector2, zone_max_pos: Vector2, p_players_ref: Array = [
 
 	# Gourmet DLC - global debt scaling: enemies gain +1% HP & damage per 20 debt carried by any
 	# player (RunData.get_total_debt). Applied after the base/loot stats so it composes with them.
-	var _debt_mult: = 1.0 + RunData.get_total_debt() / 2000.0
+	var _debt_mult = 1.0 + RunData.get_total_debt() / 2000.0
 	if _debt_mult > 1.0:
 		max_stats.health = int(round(max_stats.health * _debt_mult))
 		current_stats.health = int(round(current_stats.health * _debt_mult))
