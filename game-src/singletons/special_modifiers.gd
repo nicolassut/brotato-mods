@@ -5,8 +5,8 @@ extends Node
 #  - Wave 1 rolls NOTHING. From then on the shop previews the NEXT wave's modifiers, so the
 #    player shops knowing what is coming.
 #  - Jagged count curve, peaking at 4-6 around waves 13-20, never running away after.
-#  - More bad than good; good gets slightly rarer as the run climbs. A wave can roll all bad
-#    or all good.
+#  - More bad than good; good gets slightly rarer as the run climbs, but any wave that rolls
+#    anything is guaranteed at least one good AND one bad (min 2). See roll_for_wave.
 #  - Endless repeats the pool; it never exhausts.
 #  - EVERY wave-scoped modifier is temporary.
 #
@@ -243,7 +243,20 @@ func roll_for_wave(wave: int, player_index: int, blocked_axes: Array = []) -> Ar
 	if count <= 0:
 		return []
 
+	# Gourmet DLC - Wildcard guarantee: any wave he rolls modifiers he always gets at least one
+	# POSITIVE and one NEGATIVE, so a minimum of two. (A count of 0 still yields none - the only
+	# way he ends a wave with no modifiers.) Seed one good and one bad first, then fill the rest
+	# with the normal weighted roll.
+	count = int(max(count, 2))
+
 	var chosen: = []
+	var seed_good: Dictionary = _pick_of_kind("good", wave, player_index, blocked_axes, chosen)
+	if not seed_good.empty():
+		chosen.push_back(seed_good)
+	var seed_bad: Dictionary = _pick_of_kind("bad", wave, player_index, blocked_axes, chosen)
+	if not seed_bad.empty():
+		chosen.push_back(seed_bad)
+
 	var tries: = 0
 
 	while chosen.size() < count and tries < MAX_ROLL_TRIES:
@@ -270,6 +283,37 @@ func roll_for_wave(wave: int, player_index: int, blocked_axes: Array = []) -> Ar
 	for m in chosen:
 		ids.push_back(Keys.generate_hash(m.id))
 	return ids
+
+
+# Gourmet DLC - weighted pick restricted to one kind ("good"/"bad"), honouring the same
+# conflict / eligibility / blocked-axis rules as the main roll. Empty {} if none qualify.
+func _pick_of_kind(kind: String, wave: int, player_index: int, blocked_axes: Array, chosen: Array) -> Dictionary:
+	var pool: = []
+	var total: = 0.0
+	for m in REGISTRY:
+		if m.kind != kind:
+			continue
+		if _conflicts(m, chosen) or not _eligible(m, player_index):
+			continue
+		var axis_blocked: = false
+		for axis in m.axes:
+			if axis in blocked_axes:
+				axis_blocked = true
+				break
+		if axis_blocked:
+			continue
+		var w: float = _weight_for(m, wave)
+		if w > 0.0:
+			pool.push_back([m, w])
+			total += w
+	if total <= 0.0:
+		return {}
+	var roll: = rand_range(0.0, total)
+	for pair in pool:
+		roll -= pair[1]
+		if roll <= 0.0:
+			return pair[0]
+	return pool[pool.size() - 1][0]
 
 
 func _pick_weighted(wave: int) -> Dictionary:
