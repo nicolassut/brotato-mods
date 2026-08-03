@@ -302,9 +302,9 @@ CHARS = [
  # 100 - itself a live test of that rule). High HP/Speed/Luck so you survive to the shop and
  # can watch income repay the debt. Art reused from the Freeloader.
  ("test_debt","The Debtor","character_test_debt",[],
-   [("LINE","EFFECT_DEBT_EXPLAIN",2),
+   [("LINE","EFFECT_DEBTOR_RULES",2),
     ("stat_max_hp",60),("stat_speed",20),("stat_percent_damage",50),
-    ("stat_luck",50),("stat_hp_regeneration",5)],[CREDIT_CARD, BANK_LOAN]),
+    ("stat_luck",50),("stat_hp_regeneration",5)],[]),
 ]
 
 # explicit ext ids for characters added after the original 14 (base+i past 824
