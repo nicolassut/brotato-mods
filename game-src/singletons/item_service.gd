@@ -873,12 +873,12 @@ func get_tier_text(tier: int) -> String:
 	else: return "TIER_LEGENDARY"
 
 
-func get_tier_number(tier: int) -> String:
-	# Gourmet DLC - in a Blacksmith run the ladder is 8 steps long, so weapons are
-	# named I..VIII by ladder POSITION. Without this every tier above 2 fell through
-	# to "IV", which is why all four new rarities were named IV.
-	# Vanilla runs keep vanilla naming exactly: no numeral at T1, then II/III/IV.
-	if RunData.any_player_is_blacksmith():
+func get_tier_number(tier: int, player_index: int = - 1) -> String:
+	# Gourmet DLC - the 8-step ladder naming belongs to the Blacksmith ALONE, so it is
+	# keyed on the player whose card is being drawn. Using a run-level check renamed
+	# every other player's weapons in coop. player_index -1 means "no owner context"
+	# (upgrades, codex, anything non-weapon) and always gets vanilla naming.
+	if player_index >= 0 and RunData.is_blacksmith(player_index):
 		var pos: = BS_TIER_LADDER.find(tier)
 		if pos != - 1:
 			return ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][pos]

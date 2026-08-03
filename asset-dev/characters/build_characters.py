@@ -212,7 +212,9 @@ CHARS = [
     # weapons_price and the -50% elemental gain. Speed -5 kept as a plain stat nerf.
     # Weapons-only shop and doubled set bonuses are live engine code
     # (item_service.gd shop type selection, run_data.gd set-bonus loop).
+    ("LINE","EFFECT_BLACKSMITH_TIERS",2),
     ("LINE","EFFECT_BLACKSMITH_SHOP_WEAPONS",2),
+    ("LINE","EFFECT_BLACKSMITH_CLASS_TIERS",2),
     ("LINE","EFFECT_BLACKSMITH_CLASS_DOUBLE",2),
     ("weapon_slot",6),("stat_speed",-5)],[ANVIL]),
  ("juggler","Juggler","character_juggler",[],

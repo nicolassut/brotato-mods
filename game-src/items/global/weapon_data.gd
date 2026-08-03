@@ -87,8 +87,10 @@ func on_tracked_value_set(value := 1) -> void:
 	tracked_value_added_this_wave = value
 
 
-func get_name_text() -> String:
-	var tier_number = ItemService.get_tier_number(tier)
+func get_name_text(player_index: int = - 1) -> String:
+	# Gourmet DLC - pass the owner through so the 8-step ladder naming applies to the
+	# Blacksmith's own cards only, never to another player's in coop.
+	var tier_number = ItemService.get_tier_number(tier, player_index)
 	return tr(name) + (" " + tier_number if tier_number != "" else "")
 
 

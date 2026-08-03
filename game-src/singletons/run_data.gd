@@ -20,6 +20,18 @@ const BAN_MAX_TOKEN: = 8
 
 
 const DUMMY_PLAYER_INDEX: = 123
+
+# Gourmet DLC - Blacksmith class (weapon set) scaling. Class level comes from the SUM of
+# ladder tiers of the weapons carrying that class, not the weapon count: every 4 points is
+# one level, so 4/8/12/16/20/24 map to levels 1-6. The bonus itself is a flat 3x (it
+# replaces the earlier 3x rather than stacking with it). Drawbacks are NOT multiplied -
+# see update_sets: doubling a penalty would make the Blacksmith's classes worse, not better.
+const BS_SET_POINTS_PER_LEVEL: = 4
+const BS_SET_MAX_LEVEL: = 6
+const BS_SET_STRENGTH_MULT: = 2
+# Every other character keeps vanilla's five class levels, even though the sets now
+# define six. Only the Blacksmith's ladder reaches the sixth.
+const VANILLA_SET_MAX_LEVEL: = 5
 enum PlayMode{SOLO, COOP, STREAMPLAY_LOCAL, STREAMPLAY_INTERNET}
 
 var players_data: = []
@@ -1279,14 +1291,22 @@ func update_sets(player_index: int) -> void :
 	var player_data = players_data[player_index]
 	var active_set_effects = player_data.active_set_effects
 	var active_sets = player_data.active_sets
+	var active_set_points = player_data.active_set_points
 
 	for effect in active_set_effects:
 		effect[1].unapply(player_index)
 
 	active_sets.clear()
+	active_set_points.clear()
 	active_set_effects.clear()
 
 	var weapons: = get_player_weapons(player_index)
+	# Gourmet DLC - Blacksmith: class strength is driven by total weapon TIERS in a class,
+	# not by how many weapons carry it. Each weapon contributes its ladder step (1-8) and
+	# every BS_SET_POINTS_PER_LEVEL points buys a class level, so 4/8/12/16/20/24 -> levels
+	# 1-6. One tier-8 weapon alone is worth 8 points = level 2.
+	var bs_sets: = is_blacksmith(player_index)
+
 	for weapon in weapons:
 		for set in weapon.sets:
 			if get_player_effect_bool(Keys.all_weapons_count_for_sets_hash, player_index):
@@ -1296,21 +1316,40 @@ func update_sets(player_index: int) -> void :
 			else:
 				active_sets[set.my_id_hash] = 1
 
+			if bs_sets:
+				active_set_points[set.my_id_hash] = int(active_set_points.get(set.my_id_hash, 0)) + ItemService.get_tier_step(weapon.tier, player_index)
+
 	for key in active_sets:
 		assert (key is int)
-		if active_sets[key] >= 2:
-			var set = ItemService.get_set(key)
-			var set_effects = set.set_bonuses[min(active_sets[key] - 2, set.set_bonuses.size() - 1)]
+		var set = ItemService.get_set(key)
+		var bonus_index: int = - 1
+		# Gourmet DLC - flat 3x for the Blacksmith. This REPLACES the old 2x, it does not
+		# stack with it. Each effect is applied AND recorded once per multiple, because
+		# active_set_effects is unapplied one entry at a time above - an unbalanced apply
+		# would leave the extra copies stuck to the player permanently.
+		var set_mult: int = 1
 
-			# Gourmet DLC - Blacksmith: weapon-class (set) bonuses count double.
-			# Each effect is applied AND recorded twice: active_set_effects is
-			# unapplied one entry at a time above, so apply/record must stay 1:1
-			# or the doubled half would never be removed and leak permanently.
-			var bs_set_char = get_player_character(player_index)
-			var bs_set_mult: int = 2 if (bs_set_char != null and bs_set_char.my_id == "character_blacksmith") else 1
+		if bs_sets:
+			var level: int = int(active_set_points.get(key, 0)) / BS_SET_POINTS_PER_LEVEL
+			if level > BS_SET_MAX_LEVEL:
+				level = BS_SET_MAX_LEVEL
+			if level >= 1:
+				bonus_index = int(min(level - 1, set.set_bonuses.size() - 1))
+				set_mult = BS_SET_STRENGTH_MULT
+		elif active_sets[key] >= 2:
+			# Gourmet DLC - vanilla stays capped at FIVE levels. The sets now carry a sixth
+			# group for the Blacksmith's tier-based ladder, and without this cap any other
+			# character holding 7+ weapons of one class (reachable with slot items) would
+			# start drawing it - a silent buff to everyone.
+			bonus_index = int(min(active_sets[key] - 2, min(VANILLA_SET_MAX_LEVEL, set.set_bonuses.size()) - 1))
 
-			for effect in set_effects:
-				for _bs_i in bs_set_mult:
+		if bonus_index >= 0:
+			for effect in set.set_bonuses[bonus_index]:
+				# Gourmet DLC - upsides are multiplied, drawbacks are applied ONCE at face
+				# value (blunt's -10 Speed, ethereal's -5 Armor, legendary's -100 Max HP).
+				# Multiplying those would make the Blacksmith's own classes punish him.
+				var reps: int = set_mult if effect.value > 0 else 1
+				for _bs_i in reps:
 					effect.apply(player_index)
 					active_set_effects.push_back([key, effect])
 
@@ -1736,8 +1775,10 @@ func is_valid_forge_pair(weapon_a: WeaponData, weapon_b: WeaponData, player_inde
 		return false
 	if weapon_a.tier != weapon_b.tier:
 		return false
-	if weapon_a.tier >= get_player_effect(Keys.max_weapon_tier_hash, player_index):
-		return false
+	# Gourmet DLC - the old "tier >= max_weapon_tier" gate is gone. max_weapon_tier is the
+	# VANILLA ceiling (Tier.LEGENDARY), so it blocked every forge at ladder step 6 and made
+	# steps 7 and 8 reachable only via the Anvil. The ladder is the authority now, and
+	# get_forge_target_tier handles the top of it.
 	var shared_sets: = []
 	for set_a in weapon_a.sets:
 		for set_b in weapon_b.sets:
@@ -1745,7 +1786,16 @@ func is_valid_forge_pair(weapon_a: WeaponData, weapon_b: WeaponData, player_inde
 				shared_sets.push_back(set_a)
 	if shared_sets.empty():
 		return false
-	return not get_blacksmith_forge_pool(weapon_a.tier + 1, shared_sets).empty()
+	return not get_blacksmith_forge_pool(get_forge_target_tier(weapon_a.tier, player_index), shared_sets).empty()
+
+
+# Gourmet DLC - what a forge produces from two weapons of `tier`: one ladder step up,
+# or - once already at the top of the ladder - another weapon of the SAME tier. That
+# makes two max-tier weapons fuse into a single different max-tier one instead of being
+# unforgeable dead weight. Raw tier + 1 must never be used: it lands on DANGER_4.
+func get_forge_target_tier(tier: int, player_index: int) -> int:
+	var next_tier: int = ItemService.get_next_tier(tier, player_index)
+	return tier if next_tier == - 1 else next_tier
 
 
 # Does this weapon have at least one legal forge partner in the inventory?

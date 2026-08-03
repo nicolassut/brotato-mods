@@ -56,7 +56,7 @@ func set_item(item_data: ItemParentData, player_index: int, item_count: = 1) -> 
 
 	_category.show()
 
-	_name.text = item_data.get_name_text()
+	_name.text = item_data.get_name_text(player_index)
 	_icon.texture = item_data.get_icon()
 	_name.modulate = ItemService.get_color_from_tier(item_data.tier)
 

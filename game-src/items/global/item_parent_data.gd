@@ -191,7 +191,7 @@ func _get_icon(stat_id : int) -> String:
 	return l_icon
 
 
-func get_name_text() -> String:
+func get_name_text(player_index: int = - 1) -> String:
 	return tr(name)
 
 

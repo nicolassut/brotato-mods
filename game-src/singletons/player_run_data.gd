@@ -26,6 +26,10 @@ var effects: Dictionary
 
 
 var active_sets = {}
+# Gourmet DLC - Blacksmith: summed weapon ladder tiers per class, the number his class
+# levels are actually derived from. Stored alongside active_sets so the synergy panel
+# can show real progress instead of a weapon count.
+var active_set_points = {}
 
 var active_set_effects: = []
 
@@ -70,6 +74,7 @@ func duplicate() -> PlayerRunData:
 	copy.appearances = appearances.duplicate()
 	copy.effects = effects.duplicate(true)
 	copy.active_sets = active_sets.duplicate()
+	copy.active_set_points = active_set_points.duplicate()
 	copy.active_set_effects = active_set_effects.duplicate()
 	copy.unique_effects = unique_effects.duplicate()
 	copy.additional_weapon_effects = additional_weapon_effects.duplicate()
@@ -126,6 +131,7 @@ func serialize() -> Dictionary:
 		"appearances": serialized_appearances, 
 		"effects": _serialize_effects(effects), 
 		"active_sets": active_sets.duplicate(), 
+		"active_set_points": active_set_points.duplicate(), 
 		"active_set_effects": serialized_active_set_effects, 
 		"unique_effects": unique_effects.duplicate(), 
 		"additional_weapon_effects": additional_weapon_effects.duplicate(), 
@@ -222,6 +228,9 @@ func deserialize(data: Dictionary) -> PlayerRunData:
 	effects = Utils.convert_dictionary_to_hash(tmp_effects, true)
 
 	active_sets = data.active_sets.duplicate()
+	active_set_points = data.active_set_points.duplicate() if data.has("active_set_points") else {}
+	for k in active_set_points.keys():
+		active_set_points[int(k)] = int(active_set_points[k])
 	for k in active_sets.keys():
 		
 		active_sets[int(k)] = int(active_sets[k])

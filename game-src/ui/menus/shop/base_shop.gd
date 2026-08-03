@@ -833,8 +833,10 @@ func _forge_weapon(weapon_data: WeaponData, partner: WeaponData, player_index: i
 				shared_sets.push_back(weapon_set)
 	# Gourmet DLC - forge to the next LADDER step, not tier + 1. Raw +1 from vanilla
 	# T4 lands on DANGER_4 (empty pool) and from T1 skips green entirely.
+	# Gourmet DLC - same target rule the validity gate uses: one ladder step up, or the
+	# same tier when already at the top (two golds fuse into another gold).
 	var forge_pool = RunData.get_blacksmith_forge_pool(
-		ItemService.get_next_tier(weapon_data.tier, player_index), shared_sets)
+		RunData.get_forge_target_tier(weapon_data.tier, player_index), shared_sets)
 	if forge_pool.empty():
 		# nothing forged, so nothing rebuilds the container - hand focus back or the
 		# caller's reset_focus leaves this player with no focused control (see
@@ -848,7 +850,30 @@ func _forge_weapon(weapon_data: WeaponData, partner: WeaponData, player_index: i
 	weapons_container._elements.remove_element(partner, 1, true)
 	var _removed_b = RunData.remove_weapon(partner, player_index)
 
-	var forged: WeaponData = Utils.get_rand_element(forge_pool)
+	# Gourmet DLC - deliberately untyped: curse_item returns ItemParentData, and a
+	# WeaponData-typed local would fail to accept the cursed duplicate it hands back.
+	var forged = Utils.get_rand_element(forge_pool)
+
+	# Gourmet DLC - carry the curse THROUGH the forge, the same way vanilla's
+	# _combine_weapon does for an ordinary merge. Without this the forge silently
+	# laundered curses away, making it a free curse-removal service. The factor is the
+	# max across both ingredients and their effects, so when both are cursed the higher
+	# one wins and the other's is discarded - matching vanilla's merge behaviour.
+	var forge_curse_factor: = 0.0
+	var forge_is_cursed: = false
+	for ingredient in [weapon_data, partner]:
+		if ingredient != null and ingredient.is_cursed:
+			forge_is_cursed = true
+			forge_curse_factor = max(forge_curse_factor, ingredient.curse_factor)
+			for curse_effect in ingredient.effects:
+				forge_curse_factor = max(forge_curse_factor, curse_effect.curse_factor)
+
+	if forge_is_cursed:
+		for dlc_id in RunData.enabled_dlcs:
+			var dlc_data = ProgressData.get_dlc_data(dlc_id)
+			if dlc_data and dlc_data.has_method("curse_item"):
+				forged = dlc_data.curse_item(forged, player_index, false, forge_curse_factor)
+
 	var new_weapon = RunData.add_weapon(forged, player_index)
 	RunData.add_tracked_value(player_index, Keys.generate_hash("character_blacksmith"), 1)
 	GourmetTracker.ev("blacksmith_forge", {"p": player_index, "a": weapon_data.my_id, "b": partner.my_id, "out": forged.my_id})
