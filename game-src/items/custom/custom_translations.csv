@@ -7,6 +7,7 @@ VAMPIRE_FANG_DESC,Life Steal can heal up to 20% of your max HP past your max HP
 FOOD_ITEM,Food item
 ITEM_MYSTERY_SEASONING,Mystery Seasoning
 STAT_APPETITE,Appetite
+UPGRADE_APPETITE,Stomach
 INFO_POS_STAT_APPETITE,Boosts food buffs. +{0} Appetite
 INFO_NEG_STAT_APPETITE,Boosts food buffs. {0} Appetite
 FOOD_ITEMS_PRICE,% Food Items Price

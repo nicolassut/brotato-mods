@@ -980,6 +980,13 @@ def main():
             FOOD_ART[food_slug](draw)
             img.save(food_png)
         write_png_import(food_png, f"res://items/foods/{food_slug}/{food_slug}.png")
+        # Gourmet DLC - the Gumball ships TWO textures: gumball.png (red) is the static shop/codex
+        # icon, gumball_white.png is the white base main.gd recolours per spawn. Install the base.
+        if food_slug == "gumball":
+            base_final = f"{os.path.dirname(os.path.abspath(__file__))}/foods/final/gumball_white.png"
+            if os.path.exists(base_final):
+                shutil.copy(base_final, f"{d}/gumball_white.png")
+                write_png_import(f"{d}/gumball_white.png", "res://items/foods/gumball/gumball_white.png")
         with open(f"{d}/{food_slug}_text_effect.tres", "w") as fh:
             fh.write(effect_text_tres(f["text_key"], f["my_id"]))
         with open(f"{d}/{food_slug}_data.tres", "w") as fh:

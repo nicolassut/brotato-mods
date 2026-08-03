@@ -1010,10 +1010,13 @@ func spawn_food(food_data: ConsumableData, pos: Vector2, angle: float = - 1.0, p
 	consumable.already_picked_up = false
 	consumable.consumable_data = food_data
 	consumable.set_texture(food_data.icon)
-	# Gourmet DLC - Gumballs recolour a single white base texture to red/blue/yellow at
-	# random (black outline survives modulate: black x colour = black). Red is the default
-	# (shop/codex) tint; others reset white.
+	# Gourmet DLC - the Gumball ICON (food_data.icon) is red, so the shop/codex show red by
+	# default; the ARENA spawn swaps in the white base texture and recolours it red/blue/yellow
+	# at random (black outline survives modulate: black x colour = black). Others reset white.
 	if food_data.my_id == "consumable_food_gumball":
+		var _gb_base = load("res://items/foods/gumball/gumball_white.png")
+		if _gb_base != null:
+			consumable.set_texture(_gb_base)
 		consumable.modulate = [Color(0.95, 0.30, 0.30, 1), Color(0.35, 0.55, 0.95, 1), Color(0.95, 0.82, 0.30, 1)][randi() % 3]
 	else:
 		consumable.modulate = Color(1, 1, 1, 1)
