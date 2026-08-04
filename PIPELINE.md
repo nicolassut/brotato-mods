@@ -162,6 +162,9 @@ Files by type (recipes in §4). Tick every box:
 ## 6. VERIFICATION GATE (must ALL pass before "done" / commit)
 
 1. `cd asset-dev && python3 check_cards.py` → **exits clean** ("card contract OK").
+1b. `python3 asset-dev/check_sync.py` → **no HARD ORPHANS** (every live custom texture's art is
+    tracked in the repo). Ideally 0 MISPLACED too — an icon at its canonical `final/` so the builder
+    re-installs it on any machine. This is the "nothing gets missed cross-machine" guard.
 2. **Registry intact:** `item_service.tscn` still registers everything it should and a builder did
    NOT drop a deregistered entry or double-register. Diff it if a builder ran.
 3. **All `res://` refs resolve** to real files (icons, appearances, effect tres).

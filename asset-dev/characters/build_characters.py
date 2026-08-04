@@ -569,19 +569,20 @@ def main():
             continue
         d = f"{CUSTOM}/{slug}"
         os.makedirs(d, exist_ok=True)
-        # ART IS ONLY WRITTEN WHEN MISSING: the live pngs and appearance tres
-        # are owned by the art pipeline (vectorized icons + full-body overlay
-        # faces at depth 1.0, blanked legacy skins). Rerunning this builder
-        # must never regress them.
-        if not os.path.exists(f"{d}/{slug}_icon.png"):
+        # The tracked final/ art is the SOURCE OF TRUTH: overwrite the live pngs from it every
+        # build so reworked icons/bodies actually reach other machines. The old "only if missing"
+        # guard is exactly why entire icon reworks got missed cross-machine - a rebuilt machine
+        # kept its stale icon. A live png is only left alone when there is NO final to install
+        # (e.g. a character whose art was never saved to final/).
+        if os.path.exists(f"{FINAL}/{slug}_icon.png"):
             shutil.copy(f"{FINAL}/{slug}_icon.png", f"{d}/{slug}_icon.png")
-        if not os.path.exists(f"{d}/{slug}_face.png"):
+        if os.path.exists(f"{APPSRC}/{slug}_face.png"):
             shutil.copy(f"{APPSRC}/{slug}_face.png", f"{d}/{slug}_face.png")
         if not os.path.exists(f"{d}/{slug}_face_appearance.tres"):
             with open(f"{d}/{slug}_face_appearance.tres","w") as f:
                 f.write(appearance_tres(f"res://items/custom_characters/{slug}/{slug}_face.png", 0, "600.0", 0))
         if slug in SKINNED:
-            if not os.path.exists(f"{d}/{slug}_skin.png"):
+            if os.path.exists(f"{APPSRC}/{slug}_skin.png"):
                 shutil.copy(f"{APPSRC}/{slug}_skin.png", f"{d}/{slug}_skin.png")
             if not os.path.exists(f"{d}/{slug}_skin_appearance.tres"):
                 with open(f"{d}/{slug}_skin_appearance.tres","w") as f:
