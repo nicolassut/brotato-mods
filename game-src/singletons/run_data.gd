@@ -290,6 +290,12 @@ var menu_selection_back: = false
 var wave_timer: WaveTimer = null
 
 func _ready() -> void :
+	# Gourmet DLC - The Debtor's card trackers, refreshed off the signal instead of trusting a
+	# hand-placed call at every debt site. EVERY path that moves debt already emits this, so
+	# the tracker cannot go stale again: it shipped reading +0% at 1000 debt precisely because
+	# the buy-on-credit branch in remove_currency was the one site missing an explicit call.
+	var _debt_tracker_conn = connect("gold_changed", self, "_on_gold_changed_refresh_debt")
+
 	if DebugService.unlock_all_challenges:
 		ChallengeService._generate_hashes()
 		for chal in ChallengeService.challenges:
@@ -1816,6 +1822,12 @@ func get_debt_enemy_percent() -> int:
 # key is absent, and a run RESTORED FROM A SAVE carries the tracked-effects dict that was
 # serialised with it, so a key added to init_tracked_items later simply is not there. Without
 # this the card line silently never appears in any run started before the key existed.
+# Signal-driven safety net (see _ready). Deliberately ignores both arguments: the tracker is
+# derived from total debt, not from the gold value that happened to change.
+func _on_gold_changed_refresh_debt(_new_value, _player_index) -> void :
+	refresh_debt_tracker()
+
+
 func refresh_debt_tracker(repaid: int = 0) -> void :
 	var debtor_hash: int = Keys.generate_hash("character_test_debt")
 	var buff: int = get_debt_enemy_percent()
@@ -2070,6 +2082,7 @@ func remove_currency(value: int, player_index: int) -> void :
 		if overspend > 0:
 			player_data.debt += overspend
 			add_tracked_value(player_index, Keys.generate_hash("item_credit_card"), overspend)
+			refresh_debt_tracker()
 			emit_signal("gold_changed", player_data.gold, player_index)
 		return
 
