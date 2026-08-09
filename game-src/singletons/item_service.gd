@@ -289,6 +289,13 @@ func get_nb_shop_items(player_index: int) -> int:
 	if RunData.is_freeloader(player_index) and not RunData.is_coop_run:
 		return NB_SHOP_ITEMS_FREELOADER
 
+	# Gourmet DLC - Wildcard (Big Delivery): a shop-scoped slot delta. Clamped to the range
+	# the shop grid can actually lay out; the Freeloader's widened menu is handled above and
+	# deliberately not stacked with this.
+	var slot_delta: int = int(RunData.get_player_effect(Keys.special_shop_slots_hash, player_index))
+	if slot_delta != 0 and not RunData.is_coop_run:
+		return int(clamp(NB_SHOP_ITEMS + slot_delta, 1, 8))
+
 	return NB_SHOP_ITEMS
 
 

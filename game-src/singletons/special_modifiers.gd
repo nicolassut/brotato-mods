@@ -65,16 +65,10 @@ var REGISTRY: = [
 	# --- your weapons ------------------------------------------------------------------
 	{"id": "sharpened", "name": "Sharpened", "text": "+50% Damage",
 	 "kind": "good", "life": LIFE_WAVE, "axes": ["WEAPON_STATS"], "effects": [["stat_percent_damage", 50]]},
-	{"id": "dull_blades", "name": "Dull Blades", "text": "-30% Damage",
-	 "kind": "bad", "life": LIFE_WAVE, "axes": ["WEAPON_STATS"], "effects": [["stat_percent_damage", -30]]},
 	{"id": "rapid_service", "name": "Rapid Service", "text": "+50% Attack Speed",
 	 "kind": "good", "life": LIFE_WAVE, "axes": ["ATK_SPEED"], "effects": [["stat_attack_speed", 50]]},
 	{"id": "slow_service", "name": "Slow Service", "text": "-40% Attack Speed",
 	 "kind": "bad", "life": LIFE_WAVE, "axes": ["ATK_SPEED"], "effects": [["stat_attack_speed", -40]]},
-	{"id": "long_reach", "name": "Long Reach", "text": "+100 Range",
-	 "kind": "good", "life": LIFE_WAVE, "axes": ["RANGE"], "effects": [["stat_range", 100]]},
-	{"id": "cramped", "name": "Cramped", "text": "-50 Range",
-	 "kind": "bad", "life": LIFE_WAVE, "axes": ["RANGE"], "effects": [["stat_range", -50]]},
 	{"id": "skewered", "name": "Skewered", "text": "Projectiles pierce 1 extra target",
 	 "kind": "good", "life": LIFE_WAVE, "axes": ["PROJECTILE"], "effects": [["piercing", 1]]},
 	{"id": "double_portion", "name": "Double Portion", "text": "+1 Projectile",
@@ -84,12 +78,13 @@ var REGISTRY: = [
 	# expressed as a DAMAGE delta, never an object swap - see the safety law above
 	{"id": "blunt_instruments", "name": "Blunt Instruments", "text": "-60% Damage. Your gear feels cheap",
 	 "kind": "bad", "life": LIFE_WAVE, "axes": ["WEAPON_STATS"], "effects": [["stat_percent_damage", -60]]},
-	{"id": "front_of_house", "name": "Front of House", "text": "Melee weapons do nothing this wave",
+	# compensation law: losing a whole weapon type is paid back with damage on the survivors
+	{"id": "front_of_house", "name": "Front of House", "text": "Melee weapons do nothing this wave. +30% Damage",
 	 "kind": "bad", "life": LIFE_WAVE, "axes": ["WEAPON_BAN"], "needs": "has_ranged",
-	 "effects": [["no_melee_weapons", 1]]},
-	{"id": "back_of_house", "name": "Back of House", "text": "Ranged weapons do nothing this wave",
+	 "effects": [["no_melee_weapons", 1], ["stat_percent_damage", 30]]},
+	{"id": "back_of_house", "name": "Back of House", "text": "Ranged weapons do nothing this wave. +30% Damage",
 	 "kind": "bad", "life": LIFE_WAVE, "axes": ["WEAPON_BAN"], "needs": "has_melee",
-	 "effects": [["no_ranged_weapons", 1]]},
+	 "effects": [["no_ranged_weapons", 1], ["stat_percent_damage", 30]]},
 
 	# --- your body ---------------------------------------------------------------------
 	{"id": "caffeinated", "name": "Caffeinated", "text": "+40% Speed",
@@ -104,10 +99,9 @@ var REGISTRY: = [
 	 "effects": [["stat_speed", 50], ["stat_max_hp", -8]]},
 	{"id": "slippery", "name": "Slippery", "text": "+30% Dodge",
 	 "kind": "good", "life": LIFE_WAVE, "axes": ["DODGE"], "effects": [["stat_dodge", 30]]},
+	# -60 from the default cap of 60 lands exactly on 0, matching the card text
 	{"id": "butterfingered", "name": "Butterfingered", "text": "Dodge capped at 0%",
-	 "kind": "bad", "life": LIFE_WAVE, "axes": ["DODGE"], "effects": [["dodge_cap", -100]]},
-	{"id": "second_wind", "name": "Second Wind", "text": "+5 HP Regeneration",
-	 "kind": "good", "life": LIFE_WAVE, "axes": ["HEAL"], "effects": [["stat_hp_regeneration", 5]]},
+	 "kind": "bad", "life": LIFE_WAVE, "axes": ["DODGE"], "effects": [["dodge_cap", -60]]},
 	{"id": "nil_by_mouth", "name": "Nil By Mouth", "text": "You cannot heal this wave",
 	 "kind": "bad", "life": LIFE_WAVE, "axes": ["HEAL"], "effects": [["no_heal", 1]]},
 	{"id": "bleeding_out", "name": "Bleeding Out", "text": "Lose 1 HP per second",
@@ -127,8 +121,6 @@ var REGISTRY: = [
 	 "kind": "bad", "life": LIFE_WAVE, "axes": ["LOOT"], "effects": [["gold_drops", -75]]},
 	{"id": "study_hall", "name": "Study Hall", "text": "+50% XP Gain",
 	 "kind": "good", "life": LIFE_WAVE, "axes": ["XP"], "effects": [["xp_gain", 50]]},
-	{"id": "distracted", "name": "Distracted", "text": "-40% XP Gain",
-	 "kind": "bad", "life": LIFE_WAVE, "axes": ["XP"], "effects": [["xp_gain", -40]]},
 
 	# --- next shop (LIFE_SHOP: these survive the wave and die when the shop closes) -----
 	{"id": "surge_pricing", "name": "Surge Pricing", "text": "Next shop costs +50%",
@@ -139,8 +131,87 @@ var REGISTRY: = [
 	 "kind": "bad", "life": LIFE_SHOP, "axes": ["SHOP_REROLL"], "effects": [["reroll_price", 100]]},
 	{"id": "top_shelf", "name": "Top Shelf", "text": "Next shop's weapons are Tier II or better",
 	 "kind": "good", "life": LIFE_SHOP, "axes": ["SHOP_TIER"], "effects": [["min_weapon_tier", 1]]},
+	# -98 off the default ceiling of 99 lands on tier index 1 (Tier II). The old +1 pushed the
+	# ceiling to 100 and did nothing - this modifier shipped as a silent no-op.
 	{"id": "bargain_bin", "name": "Bargain Bin", "text": "Next shop's weapons are Tier II or worse",
-	 "kind": "bad", "life": LIFE_SHOP, "axes": ["SHOP_TIER"], "effects": [["max_weapon_tier", 1]]},
+	 "kind": "bad", "life": LIFE_SHOP, "axes": ["SHOP_TIER"], "effects": [["max_weapon_tier", -98]]},
+
+	# --- wave events (engine hooks in main.gd read the special_force_* keys) --------------
+	{"id": "blackout", "name": "Blackout", "text": "Fog of war covers the arena",
+	 "kind": "bad", "life": LIFE_WAVE, "axes": ["VISION"], "effects": [["special_force_fog", 1]]},
+	{"id": "meteor_shower", "name": "Meteor Shower", "text": "Projectiles rain in from the arena edges",
+	 "kind": "bad", "life": LIFE_WAVE, "axes": ["BULLET_HELL"], "effects": [["special_force_bullet_hell", 1]]},
+	{"id": "overtime", "name": "Overtime", "text": "+50% Wave length, +75% Materials dropped",
+	 "kind": "mixed", "life": LIFE_WAVE, "axes": ["WAVE_LENGTH", "LOOT"],
+	 "effects": [["special_wave_duration", 50], ["gold_drops", 75]]},
+	{"id": "blitz", "name": "Blitz", "text": "-30% Wave length",
+	 "kind": "good", "life": LIFE_WAVE, "axes": ["WAVE_LENGTH"], "effects": [["special_wave_duration", -30]]},
+	{"id": "guardian_grove", "name": "Guardian Grove", "text": "6 extra trees grow; trees fall in one hit and each leaves a turret behind",
+	 "kind": "good", "life": LIFE_WAVE, "axes": ["TREES"],
+	 "effects": [["trees", 6], ["one_shot_trees", 1], ["tree_turrets", 1]]},
+
+	# --- enemies --------------------------------------------------------------------------
+	{"id": "trigger_happy", "name": "Trigger Happy", "text": "+50% Enemy Attack Speed",
+	 "kind": "bad", "life": LIFE_WAVE, "axes": ["ENEMY_ATK"], "effects": [["enemy_attack_speed", 50]]},
+	{"id": "jammed_guns", "name": "Jammed Guns", "text": "-40% Enemy Attack Speed",
+	 "kind": "good", "life": LIFE_WAVE, "axes": ["ENEMY_ATK"], "effects": [["enemy_attack_speed", -40]]},
+	{"id": "swarm", "name": "Swarm", "text": "+60% Enemy Count, -40% Enemy Health",
+	 "kind": "mixed", "life": LIFE_WAVE, "axes": ["ENEMY_COUNT", "ENEMY_STATS"],
+	 "effects": [["number_of_enemies", 60], ["enemy_health", -40]]},
+	{"id": "heavyweights", "name": "Heavyweights", "text": "-40% Enemy Count, +80% Enemy Health, +40% Enemy Damage",
+	 "kind": "mixed", "life": LIFE_WAVE, "axes": ["ENEMY_COUNT", "ENEMY_STATS", "ENEMY_DMG"],
+	 "effects": [["number_of_enemies", -40], ["enemy_health", 80], ["enemy_damage", 40]]},
+	# Cap trick: speed_cap defaults to Utils.LARGE_NUMBER (99999999) and get_capped_stat returns
+	# min(stat, cap), so -99999949 lands the ceiling on exactly +50% and inverts exactly.
+	# (stat_curse was the original pick here and is NOT seeded by default - a delta on it is
+	# silently dropped by _shift_ids. Do not build modifiers on unseeded keys.)
+	{"id": "speed_limit", "name": "Speed Limit", "text": "Speed cannot go above +50% this wave",
+	 "kind": "bad", "life": LIFE_WAVE, "axes": ["SPEED"], "effects": [["speed_cap", -99999949]]},
+	{"id": "ceasefire_pay", "name": "Ceasefire Pay", "text": "Every enemy alive at the end of the wave pays you 2 materials",
+	 "kind": "good", "life": LIFE_WAVE, "axes": ["LOOT"], "effects": [["materials_per_living_enemy", 2]]},
+	{"id": "treasure_hunters", "name": "Treasure Hunters", "text": "Loot goblins flood the wave",
+	 "kind": "good", "life": LIFE_WAVE, "axes": ["LOOT"], "effects": [["loot_alien_chance", 400]]},
+
+	# --- your weapons ---------------------------------------------------------------------
+	{"id": "stand_your_ground", "name": "Stand Your Ground", "text": "You cannot attack while moving. +75% Damage, +50 Range",
+	 "kind": "mixed", "life": LIFE_WAVE, "axes": ["STANCE", "WEAPON_STATS", "RANGE"],
+	 "effects": [["can_attack_while_moving", -1], ["stat_percent_damage", 75], ["stat_range", 50]]},
+	{"id": "magnet", "name": "Magnet", "text": "Your attacks drag enemies toward you",
+	 "kind": "mixed", "life": LIFE_WAVE, "axes": ["KNOCKBACK"],
+	 "effects": [["negative_knockback", 1], ["knockback", 10]]},
+	{"id": "ricochet", "name": "Ricochet", "text": "Projectiles bounce to an extra target",
+	 "kind": "good", "life": LIFE_WAVE, "axes": ["PROJECTILE"], "needs": "has_ranged",
+	 "effects": [["bounce", 1]]},
+	{"id": "frenzy", "name": "Frenzy", "text": "+80% Attack Speed, -25% Damage",
+	 "kind": "mixed", "life": LIFE_WAVE, "axes": ["ATK_SPEED", "WEAPON_STATS"],
+	 "effects": [["stat_attack_speed", 80], ["stat_percent_damage", -25]]},
+	{"id": "overloaded", "name": "Overloaded", "text": "+2 Projectiles, -30% Accuracy",
+	 "kind": "mixed", "life": LIFE_WAVE, "axes": ["PROJECTILE"], "needs": "has_ranged",
+	 "effects": [["projectiles", 2], ["accuracy", -30]]},
+
+	# --- your body ------------------------------------------------------------------------
+	{"id": "battle_scars", "name": "Battle Scars", "text": "Start the wave at half health",
+	 "kind": "bad", "life": LIFE_WAVE, "axes": ["HP"], "effects": [["hp_start_wave", -50]]},
+	{"id": "force_field", "name": "Force Field", "text": "The first 6 hits against you deal no damage",
+	 "kind": "good", "life": LIFE_WAVE, "axes": ["SHIELD"], "effects": [["hit_protection", 6]]},
+	# torture overrides regen with a flat drip AND blocks every other heal source (player.gd)
+	{"id": "life_support", "name": "Life Support", "text": "+8 HP per second - but nothing else can heal you",
+	 "kind": "mixed", "life": LIFE_WAVE, "axes": ["HEAL"], "effects": [["torture", 8]]},
+	{"id": "spoiled_food", "name": "Spoiled Food", "text": "All fruit is poisoned and hurts to eat",
+	 "kind": "bad", "life": LIFE_WAVE, "axes": ["FOOD"], "effects": [["poisoned_fruit", 100]]},
+
+	# --- loot -----------------------------------------------------------------------------
+	{"id": "magnetized", "name": "Magnetized", "text": "Materials fly straight to you",
+	 "kind": "good", "life": LIFE_WAVE, "axes": ["LOOT"], "effects": [["instant_gold_attracting", 100]]},
+	{"id": "pinata", "name": "Pinata", "text": "+100% Crate drops, crates hold +100% materials",
+	 "kind": "good", "life": LIFE_WAVE, "axes": ["LOOT"],
+	 "effects": [["crate_chance", 100], ["item_box_gold", 100]]},
+
+	# --- next shop ------------------------------------------------------------------------
+	{"id": "blood_market", "name": "Blood Market", "text": "Next shop charges Health instead of materials",
+	 "kind": "bad", "life": LIFE_SHOP, "axes": ["SHOP_PRICE"], "effects": [["hp_shop", 1]]},
+	{"id": "big_delivery", "name": "Big Delivery", "text": "Next shop offers 2 extra items",
+	 "kind": "good", "life": LIFE_SHOP, "axes": ["SHOP_SIZE"], "effects": [["special_shop_slots", 2]]},
 ]
 
 # hard-forbidden pairs, beyond the axis exclusion (see MODIFIER_POOL.md audit)
@@ -149,6 +220,8 @@ const FORBIDDEN_PAIRS: = [
 	["glass", "nil_by_mouth"],
 	["blunt_instruments", "sharpened"],
 	["front_of_house", "back_of_house"],
+	["blackout", "meteor_shower"],  # fog suppresses bullet hell in-engine; together = a no-op roll
+	["glass", "magnet"],            # dragging enemies into a one-hit-death player is a loss screen
 ]
 
 
@@ -278,8 +351,12 @@ func roll_for_wave(wave: int, player_index: int, blocked_axes: Array = []) -> Ar
 		chosen.push_back(candidate)
 
 	var ids: = []
+	var roll_names: = []
 	for m in chosen:
 		ids.push_back(Keys.generate_hash(m.id))
+		roll_names.push_back(m.id)
+	if not roll_names.empty():
+		GourmetTracker.ev("wildcard_roll", {"wave": wave, "mods": roll_names})
 	return ids
 
 

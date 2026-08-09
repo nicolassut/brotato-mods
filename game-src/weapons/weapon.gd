@@ -304,6 +304,16 @@ func should_shoot() -> bool:
 	if _is_shooting:
 		return false
 
+	# Gourmet DLC - Wildcard (Front of House / Back of House): a banned weapon type does not
+	# fire at all this wave. These keys previously only filtered the SHOP pool, so the two
+	# modifiers shipped as no-ops; this is the read that makes their card text true. The
+	# eligibility roll guarantees the player still owns the other type.
+	if current_stats is MeleeWeaponStats:
+		if RunData.get_player_effect(Keys.no_melee_weapons_hash, player_index) > 0:
+			return false
+	elif RunData.get_player_effect(Keys.no_ranged_weapons_hash, player_index) > 0:
+		return false
+
 	return (_current_cooldown <= 0
 		and not _parent._panic_frozen  # Gourmet DLC - Girly can't shoot mid panic-teleport
 		and (

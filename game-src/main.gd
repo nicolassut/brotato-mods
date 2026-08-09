@@ -232,6 +232,27 @@ func _ready() -> void :
 
 	TempStats.reset()
 
+	# Gourmet DLC - The Special: apply this wave's modifiers FIRST, before anything samples the
+	# effects dict. Everything below reads it: the zone sizing (map_size), the wave timer
+	# (special_wave_duration), the fog / bullet-hell gates (special_force_*), and the entity
+	# spawner (player max_stats, enemy factors). Applying at the old, later position silently
+	# no-opped every modifier consumed before it - map_size was read ~90 lines earlier, which
+	# is exactly how Walk-In Freezer and Banquet Hall shipped dead. The ids were rolled and
+	# stored at the END of the previous wave, so what the shop previewed is exactly what lands,
+	# and a mid-wave reload re-applies rather than re-rolls. Applying before the players spawn
+	# also keeps current health under a reduced max and avoids the stats_manager Nil flush
+	# crash documented on the original block.
+	for special_index in RunData.get_player_count():
+		if not RunData.is_special(special_index):
+			continue
+		var sp_pending: Array = SpecialModifiers.stored_ids(Keys.special_next_mods_hash, special_index)
+		if sp_pending.empty():
+			continue
+		var sp_effects: Dictionary = RunData.get_player_effects(special_index)
+		sp_effects[Keys.special_active_mods_hash] = sp_pending.duplicate()
+		sp_effects[Keys.special_next_mods_hash] = []
+		SpecialModifiers.apply_ids(SpecialModifiers.ids_of_life(sp_pending, SpecialModifiers.LIFE_WAVE), special_index)
+
 	var _stats = RunData.connect("stats_updated", self, "on_stats_updated")
 
 	_gold_bag = Utils.instance_scene_on_main(gold_bag_scene, get_gold_bag_pos())
@@ -249,6 +270,13 @@ func _ready() -> void :
 	_current_wave_label.text = Text.text("WAVE", [str(RunData.current_wave)]).to_upper()
 
 	_wave_timer.wait_time = 1 if RunData.instant_waves else current_wave_data.wave_duration
+
+	# Gourmet DLC - Wildcard (Overtime / Blitz): stretch or shrink the wave by a percent.
+	# Skipped for instant waves; the debug override below still wins. Floored so a stacked
+	# negative can never produce a zero/negative timer.
+	var special_wave_duration: = RunData.sum_all_player_effects(Keys.special_wave_duration_hash)
+	if special_wave_duration != 0 and not RunData.instant_waves:
+		_wave_timer.wait_time = max(10.0, _wave_timer.wait_time * (1.0 + special_wave_duration / 100.0))
 
 	if DebugService.custom_wave_duration != - 1:
 		_wave_timer.wait_time = DebugService.custom_wave_duration
@@ -322,26 +350,8 @@ func _ready() -> void :
 		var effect_behavior: SceneEffectBehavior = effect_behavior_data.scene.instance()
 		_effect_behaviors.add_child(effect_behavior.init(_entity_spawner, _wave_manager))
 
-	# Gourmet DLC - The Special: apply this wave's modifiers BEFORE the entity spawner creates
-	# the players, so their max_stats are computed WITH the modifiers already in the effects
-	# dict. The ids were rolled and stored at the END of the previous wave, so what the shop
-	# previewed is exactly what lands, and a mid-wave reload re-applies rather than re-rolls.
-	# This position matters twice over: applying after the players spawn left current health
-	# above a reduced max, and forcing a synchronous stats flush there crashed, because
-	# stats_updated reaches stats_manager while _entity_spawner is still mid-init and Nil.
-	# RunData defers that flush for exactly this reason; applying early sidesteps it entirely.
-	for special_index in RunData.get_player_count():
-		if not RunData.is_special(special_index):
-			continue
-		var sp_pending: Array = SpecialModifiers.stored_ids(Keys.special_next_mods_hash, special_index)
-		if sp_pending.empty():
-			continue
-		var sp_effects: Dictionary = RunData.get_player_effects(special_index)
-		sp_effects[Keys.special_active_mods_hash] = sp_pending.duplicate()
-		sp_effects[Keys.special_next_mods_hash] = []
-		SpecialModifiers.apply_ids(SpecialModifiers.ids_of_life(sp_pending, SpecialModifiers.LIFE_WAVE), special_index)
-
-	
+	# Gourmet DLC - The Special: modifiers were applied at the very top of _ready (before the
+	# zone sizing) so every consumer below - including this spawner init - sees them.
 	_entity_spawner.init(
 		ZoneService.current_zone_min_position, 
 		ZoneService.current_zone_max_position, 
@@ -385,10 +395,25 @@ func _ready() -> void :
 			GourmetTracker.ev("mole_fog", {})
 			break
 
+	# Gourmet DLC - Wildcard (Blackout): the modifier forces fog on, same path as the Mole.
+	# The roll blocks the VISION axis on natural fog waves, so this never doubles one up.
+	if RunData.sum_all_player_effects(Keys.special_force_fog_hash) > 0:
+		_is_fog_wave = true
+		GourmetTracker.ev("wildcard_fog", {})
+
 	_fog_viewport._initialize()
 
 	var events_bullet_hell = RunData.events_bullet_hell
-	if (RunData.constant_projectile == 2 or (_wave in events_bullet_hell)) and could_be_bullet_hell and _is_fog_wave == false:
+	# Gourmet DLC - Wildcard (Meteor Shower): the modifier forces a bullet hell. Natural
+	# bullet-hell waves block the BULLET_HELL axis, so the two can never stack. The fog guard
+	# stays: fog + bullet hell together is unreadable, and fog wins (vanilla's own rule).
+	var special_forced_bullet_hell: bool = RunData.sum_all_player_effects(Keys.special_force_bullet_hell_hash) > 0
+	if ((RunData.constant_projectile == 2 or (_wave in events_bullet_hell)) and could_be_bullet_hell or special_forced_bullet_hell) and _is_fog_wave == false:
+		# Track it so the Wildcard roll's BULLET_HELL axis block (main.gd wave-end) sees
+		# natural bullet-hell waves - this flag was declared but never set before.
+		_is_bullet_hell_wave = true
+		if special_forced_bullet_hell:
+			GourmetTracker.ev("wildcard_bullet_hell", {})
 		if (_wave > 20):
 			_wave = 20
 		var rand_bullet_hell: BulletHell = ZoneService.bullets_hell.pick_random().instance()
@@ -2045,14 +2070,28 @@ func _on_WaveTimer_timeout() -> void :
 		# Never hand the player an event the wave was already going to run: two fog of wars, or
 		# a "horde" roll on a wave that is already a horde, reads as broken.
 		var blocked: = []
-		if _is_fog_wave:
+		var next_wave: int = RunData.current_wave + 1
+		# The roll is for the NEXT wave, and the event schedules are fixed at run start - so
+		# block against what the NEXT wave will actually run, not what this one did. (Current-
+		# wave flags still matter for ENEMY_COUNT, whose elite/horde schedule lives in
+		# RunData.elites_spawn keyed by wave.)
+		# Fog and bullet hell are mutually exclusive in-engine (fog wins), so a natural wave
+		# of EITHER kind blocks BOTH axes: forcing fog onto a bullet-hell wave would cancel
+		# the bullet hell, and forcing a bullet hell onto a fog wave would silently no-op.
+		var next_is_fog: bool = next_wave in RunData.events_fog_of_war and bool(RunData.get_player_effect(Keys.fog_of_war_event_hash, 0))
+		var next_is_bullet_hell: bool = (RunData.constant_projectile == 2 or next_wave in RunData.events_bullet_hell)\
+			 and bool(RunData.get_player_effect(Keys.bullet_hell_event_hash, 0)) and RunData.constant_projectile != 0
+		# A Mole in the lobby means EVERY wave is fog - both event axes are dead all run.
+		for mole_index in RunData.get_player_count():
+			var mole_character = RunData.get_player_character(mole_index)
+			if mole_character != null and mole_character.my_id == "character_mole":
+				next_is_fog = true
+				break
+		if next_is_fog or next_is_bullet_hell:
 			blocked.push_back("VISION")
-		if _is_bullet_hell_wave:
 			blocked.push_back("BULLET_HELL")
 		if _is_elite_wave or _is_horde_wave:
 			blocked.push_back("ENEMY_COUNT")
-
-		var next_wave: int = RunData.current_wave + 1
 		var rolled: Array = SpecialModifiers.roll_for_wave(next_wave, special_index, blocked)
 		sp_effects[Keys.special_next_mods_hash] = rolled
 

@@ -79,6 +79,12 @@ var spawner_shop_chance_hash: = generate_hash("spawner_shop_chance")
 var special_active_mods_hash: = generate_hash("special_active_mods")
 var special_next_mods_hash: = generate_hash("special_next_mods")
 var special_shop_mods_hash: = generate_hash("special_shop_mods")
+# Gourmet DLC - Wildcard modifier hooks: force a wave event / stretch the wave / resize the
+# next shop. Plain int deltas so SpecialModifiers can apply and subtract them exactly.
+var special_force_fog_hash: = generate_hash("special_force_fog")
+var special_force_bullet_hell_hash: = generate_hash("special_force_bullet_hell")
+var special_wave_duration_hash: = generate_hash("special_wave_duration")
+var special_shop_slots_hash: = generate_hash("special_shop_slots")
 # Gourmet DLC - Gourmet: fat stacks applied so far (1 per wave; -3% Speed, +1% size each)
 var gourmet_fat_hash: = generate_hash("gourmet_fat")
 # Gourmet DLC - Competitive Eater: Appetite modifications multiplier (run_data.get_stat_gain
