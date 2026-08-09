@@ -1803,7 +1803,7 @@ func get_total_debt() -> int:
 # is the ONLY place every enemy stat path goes through - it used to live in enemy.init, where
 # reset_health_stat / reset_damage_stat (elites, bosses, respawns, the lungs) recomputed from
 # base stats and silently threw the scaling away.
-const DEBT_PER_PERCENT: = 10
+const DEBT_PER_PERCENT: = 5
 
 
 func get_debt_enemy_factor() -> float:
@@ -1847,7 +1847,7 @@ func refresh_debt_tracker(repaid: int = 0) -> void :
 func apply_debt_interest() -> void :
 	for i in get_player_count():
 		if is_debtor(i) and players_data[i].debt > 0:
-			players_data[i].debt = int(ceil(players_data[i].debt * 1.1))
+			players_data[i].debt = int(ceil(players_data[i].debt * 1.05))
 			refresh_debt_tracker()
 			emit_signal("gold_changed", players_data[i].gold, i)
 

@@ -587,19 +587,21 @@ def main():
             continue
         d = f"{CUSTOM}/{slug}"
         os.makedirs(d, exist_ok=True)
-        # ART IS ONLY WRITTEN WHEN MISSING: the live pngs and appearance tres
-        # are owned by the art pipeline (vectorized icons + full-body overlay
-        # faces at depth 1.0, blanked legacy skins). Rerunning this builder
-        # must never regress them.
-        if not os.path.exists(f"{d}/{slug}_icon.png"):
+        # ART TRAVELS: final/ is the source of truth, so redrawn art installs on the next
+        # build. This used to be "only write when missing", which is why the Freeloader,
+        # Wildcard and Debtor all shipped sharing one placeholder icon after a machine sync -
+        # their real art existed in final/ the whole time and the builder refused to copy it.
+        # The appearance TRES are still write-once (below): those carry hand-tuned depth and
+        # offset values that the art pipeline owns, and regenerating them would regress it.
+        if os.path.exists(f"{FINAL}/{slug}_icon.png"):
             shutil.copy(f"{FINAL}/{slug}_icon.png", f"{d}/{slug}_icon.png")
-        if not os.path.exists(f"{d}/{slug}_face.png"):
+        if os.path.exists(f"{APPSRC}/{slug}_face.png"):
             shutil.copy(f"{APPSRC}/{slug}_face.png", f"{d}/{slug}_face.png")
         if not os.path.exists(f"{d}/{slug}_face_appearance.tres"):
             with open(f"{d}/{slug}_face_appearance.tres","w") as f:
                 f.write(appearance_tres(f"res://items/custom_characters/{slug}/{slug}_face.png", 0, "600.0", 0))
         if slug in SKINNED:
-            if not os.path.exists(f"{d}/{slug}_skin.png"):
+            if os.path.exists(f"{APPSRC}/{slug}_skin.png"):
                 shutil.copy(f"{APPSRC}/{slug}_skin.png", f"{d}/{slug}_skin.png")
             if not os.path.exists(f"{d}/{slug}_skin_appearance.tres"):
                 with open(f"{d}/{slug}_skin_appearance.tres","w") as f:

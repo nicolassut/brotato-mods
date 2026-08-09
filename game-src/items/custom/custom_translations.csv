@@ -272,10 +272,10 @@ EFFECT_DEBT_EXPLAIN,"While in debt you gain no Materials until it is repaid, and
 EFFECT_DEBTOR_MATERIALS,Materials repay your debt and grant XP but no money
 EFFECT_DEBTOR_CREDIT,Everything in the shop is bought on unlimited credit
 EFFECT_DEBTOR_PRICES,"Prices are shown as the debt they add, in red"
-EFFECT_DEBTOR_ENEMIES,Enemies gain +1% Health and Damage for every 10 debt you carry
+EFFECT_DEBTOR_ENEMIES,Enemies gain +1% Health and Damage for every 5 debt you carry
 DEBTOR_ENEMY_BUFF,Enemies currently buffed: +{0}%
 DEBTOR_DEBT_REPAID,Debt repaid: {0}
-EFFECT_DEBTOR_INTEREST,Your debt gains 10% interest at the end of every wave
+EFFECT_DEBTOR_INTEREST,Your debt gains 5% interest at the end of every wave
 EFFECT_CREDIT_CARD,"Lets you overspend in the shop, up to {0} into debt"
 CREDIT_CARD_DEBT,Debt taken on: {0}
 EFFECT_BANK_LOAN,"Instantly gain 500 Materials, then go 300 into debt"
