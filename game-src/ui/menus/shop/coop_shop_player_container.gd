@@ -60,7 +60,7 @@ func _ready():
 	# other characters). In coop the sheet is a per-wave, on-demand carousel page, so the
 	# one-time default in StatsContainer._ensure_rules_ui is not enough by itself.
 	for stats_container in [primary_stats_container, secondary_stats_container]:
-		stats_container.open_rules_default()
+		stats_container.open_rules_default(player_index)
 
 
 func update_stats() -> void :

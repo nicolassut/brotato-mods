@@ -83,6 +83,12 @@ func _input(event: InputEvent) -> void :
 func _notification(what):
 	if what == NOTIFICATION_VISIBILITY_CHANGED:
 		set_process_input(is_visible_in_tree())
+		# Gourmet DLC - Wildcard / Debtor: their sheet opens on Rules every time it is shown
+		# for a new shop. In coop the sheet is an on-demand carousel page that can be built
+		# after the shop's own init call, so keying off "became visible" is the only point
+		# guaranteed to happen on every screen, in both single-player and coop.
+		if is_visible_in_tree():
+			_maybe_default_rules()
 
 
 # Gourmet DLC - The Special: a TOP-LEVEL [Stats] [Rules] toggle that replaces the panel title,
@@ -97,6 +103,11 @@ var _rules_top_tab: Button
 var _rules_list: VBoxContainer
 var _showing_rules: = false
 var _rules_player_index: = 0
+# Wave stamp for the once-per-shop default. Re-asserting on every visibility change would
+# fight the player: opening an item popup hides and re-shows the sheet, and the view would
+# snap back to Rules mid-shop. Stamping the wave means the default lands once each shop and
+# a manual switch to Stats then sticks for the rest of that visit.
+var _rules_defaulted_wave: = - 1
 
 
 func _ensure_rules_ui(player_index: int) -> void :
@@ -202,9 +213,34 @@ func _set_rules_mode(on: bool) -> void :
 # Gourmet DLC - Wildcard: in coop the stat sheet is a per-wave, on-demand carousel page, so the
 # "default to Rules in the shop" set once in _ensure_rules_ui needs re-asserting each shop. The
 # coop shop container calls this from its _ready. No-op for non-Wildcard (they have no toggle).
-func open_rules_default() -> void :
-	if _top_tabs != null:
-		_set_rules_mode(true)
+#
+# player_index MUST be passed in coop: this used to run before the sheet's own
+# update_player_stats had ever set _rules_player_index, so it built (or skipped) the toggle
+# against player 0 - player 2's Wildcard sheet then never got tabs at all. It also used to
+# bail whenever the tabs did not exist yet, which is exactly the case when the shop calls it
+# during init, making the whole call a no-op.
+func open_rules_default(player_index: int = - 1) -> void :
+	if player_index >= 0:
+		_rules_player_index = player_index
+	_ensure_rules_ui(_rules_player_index)
+	if _top_tabs == null:
+		return
+	_rules_defaulted_wave = RunData.current_wave
+	_set_rules_mode(true)
+
+
+# Assert the Rules-first default at most once per shop visit. Skipped on the level-up screen,
+# where you are picking a stat and want the stats in front of you.
+func _maybe_default_rules() -> void :
+	if _top_tabs == null:
+		return
+	var owner_scene: String = owner.filename if owner != null else ""
+	if "upgrades_ui" in owner_scene:
+		return
+	if _rules_defaulted_wave == RunData.current_wave:
+		return
+	_rules_defaulted_wave = RunData.current_wave
+	_set_rules_mode(true)
 
 
 func _refresh_rules_list(player_index: int) -> void :
@@ -299,6 +335,11 @@ func _populate_debt_rules(player_index: int) -> void :
 func update_player_stats(player_index: int) -> void :
 	_rules_player_index = player_index
 	_ensure_rules_ui(player_index)
+	# The toggle is built lazily here, so a sheet that was ALREADY visible when this ran never
+	# saw a visibility change to trigger the default. Assert it here too - the wave stamp makes
+	# whichever fires first the only one that acts.
+	if is_visible_in_tree():
+		_maybe_default_rules()
 	if _showing_rules:
 		_refresh_rules_list(player_index)
 

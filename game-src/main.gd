@@ -274,7 +274,9 @@ func _ready() -> void :
 	# Gourmet DLC - Wildcard (Overtime / Blitz): stretch or shrink the wave by a percent.
 	# Skipped for instant waves; the debug override below still wins. Floored so a stacked
 	# negative can never produce a zero/negative timer.
-	var special_wave_duration: = RunData.sum_all_player_effects(Keys.special_wave_duration_hash)
+	# Plain `var x =`, never `var x: =` - sum_all_player_effects has no declared return type,
+	# so the inferring form is a PARSE error in Godot 3 and takes all of main.gd down with it.
+	var special_wave_duration = RunData.sum_all_player_effects(Keys.special_wave_duration_hash)
 	if special_wave_duration != 0 and not RunData.instant_waves:
 		_wave_timer.wait_time = max(10.0, _wave_timer.wait_time * (1.0 + special_wave_duration / 100.0))
 
