@@ -123,7 +123,10 @@ TRACKING = {"gourmet": "GOURMET_APPETITE_GAINED",
             "ruminant": "RUMINANT_CHEWS",            # extra chews from the echo chain
             "blacksmith": "BLACKSMITH_FORGES",       # weapons forged
             "mime": "MIME_DUPLICATIONS",             # magic-mirror duplications
-            "girly": "GIRLY_PANICS"}                 # panic-teleport count
+            "girly": "GIRLY_PANICS",                 # panic-teleport count
+            # live reading, not a running total: RunData.refresh_debt_tracker SETS this to the
+            # enemy buff his current debt is producing right now (run_data.gd)
+            "test_debt": "DEBTOR_ENEMY_BUFF"}
 
 # banned shop items per character (balance law: Dishwasher bans Cooler Box)
 BANNED = {"dishwasher": ["item_cooler_box"]}

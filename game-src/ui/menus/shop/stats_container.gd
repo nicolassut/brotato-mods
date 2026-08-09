@@ -83,7 +83,7 @@ func _input(event: InputEvent) -> void :
 func _notification(what):
 	if what == NOTIFICATION_VISIBILITY_CHANGED:
 		set_process_input(is_visible_in_tree())
-		# Gourmet DLC - Wildcard / Debtor: their sheet opens on Rules every time it is shown
+		# Gourmet DLC - Wildcard: his sheet opens on Rules every time it is shown
 		# for a new shop. In coop the sheet is an on-demand carousel page that can be built
 		# after the shop's own init call, so keying off "became visible" is the only point
 		# guaranteed to happen on every screen, in both single-player and coop.
@@ -111,8 +111,10 @@ var _rules_defaulted_wave: = - 1
 
 
 func _ensure_rules_ui(player_index: int) -> void :
-	# Built for The Special (wave modifiers) and The Debtor (his debt readout + rules).
-	if _top_tabs != null or not (RunData.is_special(player_index) or RunData.is_debtor(player_index)):
+	# ONLY The Special. His rules are rerolled every wave, so they cannot live on a static
+	# character card and need a live panel. Every other character's rules are fixed and belong
+	# on the selection card - do not add tabs here for them.
+	if _top_tabs != null or not RunData.is_special(player_index):
 		return
 
 	_top_tabs = HBoxContainer.new()
@@ -127,7 +129,7 @@ func _ensure_rules_ui(player_index: int) -> void :
 
 	_rules_top_tab = _secondary_tab.duplicate(DUPLICATE_SCRIPTS)
 	_rules_top_tab.name = "RulesTop"
-	_rules_top_tab.text = "Debt" if RunData.is_debtor(player_index) else "Rules"
+	_rules_top_tab.text = "Rules"
 	_top_tabs.add_child(_rules_top_tab)
 
 	# slot the toggle in where the "STATS" title sits, and retire the title itself
@@ -250,11 +252,6 @@ func _refresh_rules_list(player_index: int) -> void :
 	for child in _rules_list.get_children():
 		child.queue_free()
 
-	# The Debtor's tab is his debt readout + standing rules, not wave modifiers.
-	if RunData.is_debtor(player_index):
-		_populate_debt_rules(player_index)
-		return
-
 	# Which set to show is derived, not passed in: during a wave the roll has been moved into
 	# special_active_mods (so the pause menu shows what is happening RIGHT NOW), and between
 	# waves only special_next_mods is populated (so the shop previews what is coming). The
@@ -299,37 +296,6 @@ func _refresh_rules_list(player_index: int) -> void :
 		text_label.autowrap = true
 		text_label.add_color_override("font_color", Color(0.85, 0.85, 0.85))
 		_rules_list.add_child(text_label)
-
-
-# Gourmet DLC - The Debtor's tab: his live outstanding debt, then the standing rules of his
-# no-wallet economy. Refreshed on every update_player_stats, so the number tracks purchases.
-func _populate_debt_rules(player_index: int) -> void :
-	var debt: int = RunData.get_player_debt(player_index)
-
-	var heading: = Label.new()
-	heading.text = "DEBT"
-	heading.add_color_override("font_color", Color(0.72, 0.72, 0.72))
-	_rules_list.add_child(heading)
-
-	var amount: = Label.new()
-	amount.autowrap = true
-	if debt > 0:
-		amount.text = "-" + str(debt) + "   (" + str(debt * 2) + " Materials to clear)"
-		amount.add_color_override("font_color", Color(1, 0.27, 0.27, 1))
-	else:
-		amount.text = "Debt-free"
-		amount.add_color_override("font_color", Color(ProgressData.settings.color_positive))
-	_rules_list.add_child(amount)
-
-	for rule_text in ["No wallet - materials repay debt 1:1 and give XP only; you never bank money.",
-			"Unlimited credit - every shop purchase adds debt (prices shown negative, in red).",
-			"The deeper your debt, the stronger every enemy grows.",
-			"Debt gains +10% interest at the end of each wave."]:
-		var lbl: = Label.new()
-		lbl.text = rule_text
-		lbl.autowrap = true
-		lbl.add_color_override("font_color", Color(0.85, 0.85, 0.85))
-		_rules_list.add_child(lbl)
 
 
 func update_player_stats(player_index: int) -> void :

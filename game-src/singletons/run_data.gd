@@ -92,6 +92,7 @@ var init_tracked_items: = {
 	Keys.generate_hash("item_compost_bin"): 0,
 	Keys.generate_hash("item_loyalty_card"): 0,
 	Keys.generate_hash("item_credit_card"): 0,  # Gourmet DLC - debt taken on via shop overspend
+	Keys.generate_hash("character_test_debt"): 0,  # Gourmet DLC - The Debtor: live enemy buff %
 	Keys.generate_hash("item_soul_food"): [0, 0],
 	Keys.generate_hash("item_overtime_pay"): 0,
 	Keys.generate_hash("item_second_mortgage"): 0,
@@ -997,6 +998,7 @@ func add_gold(value: int, player_index: int, ignore_debt: bool = false) -> void 
 	if is_debtor(player_index):
 		if value > 0 and player_data.debt > 0:
 			player_data.debt = int(max(0, player_data.debt - value))
+			refresh_debt_tracker()
 			emit_signal("gold_changed", player_data.gold, player_index)
 		return
 
@@ -1015,6 +1017,7 @@ func add_gold(value: int, player_index: int, ignore_debt: bool = false) -> void 
 		if player_data.debt <= 0:
 			player_data.debt = 0
 			player_data.debt_progress = 0
+		refresh_debt_tracker()
 		emit_signal("gold_changed", player_data.gold, player_index)
 		if value <= 0:
 			return
@@ -1056,6 +1059,7 @@ func add_debt(points: int, player_index: int) -> void :
 	if points <= 0:
 		return
 	players_data[player_index].debt += points
+	refresh_debt_tracker()
 	emit_signal("gold_changed", players_data[player_index].gold, player_index)
 
 
@@ -1072,6 +1076,14 @@ func apply_common_gold_pickup_effects(value: int, player_index: int) -> int:
 func add_character(character: CharacterData, player_index: int) -> void :
 	players_data[player_index].current_character = character
 	add_item(character, player_index)
+
+	# Gourmet DLC - The Debtor never holds spendable materials, so he must not keep the
+	# starting wallet either. set_player_count hands out DebugService.starting_gold before a
+	# character is even chosen, which is why this has to be zeroed here, once he is known -
+	# add_gold's debtor gate only stops materials arriving, it cannot undo a pre-set balance.
+	if is_debtor(player_index):
+		players_data[player_index].gold = 0
+		emit_signal("gold_changed", 0, player_index)
 
 func remove_character(character: CharacterData, player_index: int) -> void :
 	players_data[player_index].current_character = null
@@ -1776,12 +1788,25 @@ func get_total_debt() -> int:
 	return total
 
 
+# Gourmet DLC - The Debtor's card tracker. Enemies scale by total_debt / 2000 (enemy.gd), i.e.
+# +1% per 20 debt, so the percentage the card shows is total_debt / 20. SET, never added: this
+# is a live reading of what the debt is doing right now, not a running total like every other
+# tracker. Called from every site that moves debt.
+func refresh_debt_tracker() -> void :
+	var buff: int = int(get_total_debt() / 20)
+	var debtor_hash: int = Keys.generate_hash("character_test_debt")
+	for i in get_player_count():
+		if is_debtor(i):
+			set_tracked_value(i, debtor_hash, buff)
+
+
 # Gourmet DLC - Debtor: debt compounds +10% at the end of every cleared wave (called from
 # main.clean_up_room). Only the Debtor accrues interest.
 func apply_debt_interest() -> void :
 	for i in get_player_count():
 		if is_debtor(i) and players_data[i].debt > 0:
 			players_data[i].debt = int(ceil(players_data[i].debt * 1.1))
+			refresh_debt_tracker()
 			emit_signal("gold_changed", players_data[i].gold, i)
 
 

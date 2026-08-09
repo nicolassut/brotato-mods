@@ -423,11 +423,17 @@ func _on_RerollButton_pressed(player_index: int) -> void :
 
 	if player_locked_items.size() >= ItemService.get_nb_shop_items(player_index):
 		return
-	if RunData.get_player_gold(player_index) < _reroll_price[player_index]:
+	# Gourmet DLC - The Debtor buys EVERYTHING on credit, rerolls included. He can never bank
+	# materials, so a wallet check would lock him out of rerolling for the whole run.
+	# remove_currency turns the shortfall into debt (it is the same path shop purchases use).
+	if not RunData.is_debtor(player_index) and RunData.get_player_gold(player_index) < _reroll_price[player_index]:
 		UIService._reached_max_shake(_get_gold_label(player_index).get_parent())
 		return
 
-	RunData.remove_gold(_reroll_price[player_index], player_index)
+	if RunData.is_debtor(player_index):
+		RunData.remove_currency(_reroll_price[player_index], player_index)
+	else:
+		RunData.remove_gold(_reroll_price[player_index], player_index)
 	LinkedStats.reset_player(player_index)
 
 	# Gourmet DLC - Farmers' Market banks every reroll for next wave's Fruit Salads,
@@ -493,7 +499,9 @@ func _on_RerollButton_pressed(player_index: int) -> void :
 	shop_items_container.update_buttons_color()
 
 	
-	if RunData.get_player_gold(player_index) < _reroll_price[player_index]:
+	# The Debtor can always afford another reroll (it goes on credit), so focus must not jump
+	# away from the reroll button for him.
+	if not RunData.is_debtor(player_index) and RunData.get_player_gold(player_index) < _reroll_price[player_index]:
 		var available_shop_item = shop_items_container.get_focus_control()
 		if available_shop_item == null:
 			Utils.focus_player_control(_get_go_button(player_index), player_index)
