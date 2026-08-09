@@ -290,7 +290,16 @@ const GRID_HSEPARATION: = 16
 # Wide enough that icon + name + price fit INSIDE the drawn panel even before expansion. At
 # 320 the content minimum exceeded the card, so the price spilled outside the background box.
 const CARD_MIN_WIDTH: = 400
+# In coop the shop column is roughly a quarter of the screen, so the solo minimum is wider
+# than the space that exists and the two columns fight over it - which is what used to squash
+# the cards into unreadable strips and got coop excluded from the 8-slot menu entirely. The
+# compact card is icon + name + price on one line and stays legible well below that.
+const CARD_MIN_WIDTH_COOP: = 190
 var _grid: GridContainer
+
+
+func _card_min_width() -> int:
+	return CARD_MIN_WIDTH_COOP if RunData.is_coop_run else CARD_MIN_WIDTH
 
 
 # Rebuild the shop as a 2-column grid of compact cards, discarding the authored tall solo
@@ -343,7 +352,7 @@ func _rebuild_as_compact_grid(wanted: int) -> void :
 		card.player_index = player_index
 		card.size_flags_horizontal = SIZE_EXPAND_FILL
 		# full-Vector2 assignment: `rect_min_size.x = ...` silently no-ops in Godot 3
-		card.rect_min_size = Vector2(CARD_MIN_WIDTH, 0)
+		card.rect_min_size = Vector2(_card_min_width(), 0)
 		# NOTE on price alignment: nothing is needed here. The description MarginContainer
 		# already carries size_flags_horizontal = 3 in coop_shop_item.tscn, so it always
 		# absorbed the slack. What actually stranded the price mid-card was the transparent

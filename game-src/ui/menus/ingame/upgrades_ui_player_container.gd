@@ -232,21 +232,32 @@ func _ensure_upgrade_ui_capacity(wanted: int) -> void :
 # 2 rows of 4. Each card is compressed to fit the fixed ~512px-tall row area. Mirrors the shop
 # widening in shop_items_container.gd. Only runs when the Freeloader forces 8 upgrades.
 const UPGRADE_GRID_COLUMNS: = 4
+# Coop gives each player's draft about a quarter of the screen, so 4 columns there produce
+# unreadable slivers. 2 columns x 4 rows keeps all 8 cards on screen with nothing to scroll.
+const UPGRADE_GRID_COLUMNS_COOP: = 2
 var _upgrade_grid: GridContainer
 
+
+func _upgrade_grid_columns() -> int:
+	return UPGRADE_GRID_COLUMNS_COOP if RunData.is_coop_run else UPGRADE_GRID_COLUMNS
+
+
 func _reflow_upgrades_into_grid(parent) -> void :
+	var columns: int = _upgrade_grid_columns()
 	if _upgrade_grid == null:
 		_upgrade_grid = GridContainer.new()
 		_upgrade_grid.name = "WideUpgradeGrid"
-		_upgrade_grid.columns = UPGRADE_GRID_COLUMNS
 		_upgrade_grid.size_flags_horizontal = SIZE_EXPAND_FILL
 		_upgrade_grid.size_flags_vertical = SIZE_EXPAND_FILL
 		_upgrade_grid.add_constant_override("hseparation", 8)
 		_upgrade_grid.add_constant_override("vseparation", 8)
 		parent.add_child(_upgrade_grid)
+	# set every time, not just on creation: the container is reused across screens and the
+	# column count depends on the run being coop
+	_upgrade_grid.columns = columns
 
 	var area_h: float = parent.rect_size.y if parent.rect_size.y > 1.0 else 512.0
-	var rows: int = int(ceil(_get_upgrade_uis().size() / float(UPGRADE_GRID_COLUMNS)))
+	var rows: int = int(ceil(_get_upgrade_uis().size() / float(columns)))
 	var row_h: int = int((area_h - (rows - 1) * 8) / rows)
 
 	for upgrade_ui in _get_upgrade_uis():
@@ -261,7 +272,7 @@ func _reflow_upgrades_into_grid(parent) -> void :
 	# carry left/right neighbours; without this, WASD and controller input can move sideways
 	# but never between the two rows. Columns are UPGRADE_GRID_COLUMNS wide.
 	var uis: = _get_upgrade_uis()
-	var cols: int = UPGRADE_GRID_COLUMNS
+	var cols: int = columns
 	for i in uis.size():
 		var button = uis[i].button
 		if button == null:

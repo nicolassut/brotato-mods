@@ -283,10 +283,11 @@ func process_item_box(consumable_data: ConsumableData, wave: int, player_index: 
 # Gourmet DLC - how many offerings this player's shop holds. Character-aware replacement
 # for the old NB_SHOP_ITEMS const, which was read in three places.
 func get_nb_shop_items(player_index: int) -> int:
-	# Gourmet DLC - the widened 8-slot menu + its grid reflow only fit the single-player
-	# layout. In coop the container is quarter-screen, so the reflow squished cards into
-	# thin rows; keep the Freeloader at the normal count there.
-	if RunData.is_freeloader(player_index) and not RunData.is_coop_run:
+	# Gourmet DLC - the Freeloader's 8-slot menu, in coop too. Coop used to be excluded
+	# because the reflow squished cards; it now lays out as 2 wide x 4 tall there (the shop
+	# grid narrows its per-card minimum for the quarter-screen container), so all 8 fit on
+	# screen with no scrolling.
+	if RunData.is_freeloader(player_index):
 		return NB_SHOP_ITEMS_FREELOADER
 
 	# Gourmet DLC - Wildcard (Big Delivery): a shop-scoped slot delta. Clamped to the range
@@ -301,8 +302,8 @@ func get_nb_shop_items(player_index: int) -> int:
 
 # Gourmet DLC - how many choices this player's level-up draft offers.
 func get_nb_upgrade_options(player_index: int) -> int:
-	# Same coop guard as get_nb_shop_items: 8 cards only reflow cleanly in single-player.
-	if RunData.is_freeloader(player_index) and not RunData.is_coop_run:
+	# 8 in coop as well: the draft grid drops to 2 columns there, giving 2 wide x 4 tall.
+	if RunData.is_freeloader(player_index):
 		return NB_UPGRADE_OPTIONS_FREELOADER
 
 	return NB_UPGRADE_OPTIONS
