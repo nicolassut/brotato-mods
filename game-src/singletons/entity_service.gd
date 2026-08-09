@@ -32,7 +32,12 @@ func get_final_enemy_damage(from_value: float, percent_modifier: int = 0) -> int
 		factor_cache[cache_key] = factor
 
 	var boost_factor = max(0.01, 1.0 + percent_modifier / 100.0)
-	return round(from_value * factor * boost_factor) as int
+	# Gourmet DLC - debt scaling. Applied OUTSIDE the cached factor deliberately: debt moves
+	# constantly (pickups repay it, purchases add it, interest compounds at wave end) while the
+	# cache only clears between waves, so folding it in would freeze the buff at its wave-start
+	# value. Placing it here also means it survives every reset_damage_stat caller - elites,
+	# bosses and respawns recompute from base stats and used to wipe it.
+	return round(from_value * factor * boost_factor * RunData.get_debt_enemy_factor()) as int
 
 
 func get_final_enemy_health(from_value: int, percent_modifier: int = 0) -> int:
@@ -58,7 +63,8 @@ func get_final_enemy_health(from_value: int, percent_modifier: int = 0) -> int:
 		factor_cache[cache_key] = factor
 
 	var boost_factor = max(0.01, 1.0 + percent_modifier / 100.0)
-	return round(from_value * factor * boost_factor) as int
+	# Gourmet DLC - debt scaling, same placement and reasoning as the damage side above.
+	return round(from_value * factor * boost_factor * RunData.get_debt_enemy_factor()) as int
 
 
 func get_final_enemy_speed(from_value: int, effects_factor: float, percent_modifier: int = 0) -> int:

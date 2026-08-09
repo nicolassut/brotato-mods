@@ -273,11 +273,18 @@ func _reflow_upgrades_into_grid(parent) -> void :
 
 
 func _on_RerollButton_pressed() -> void :
-	if RunData.get_player_gold(player_index) < _reroll_price or _button_pressed:
+	# Gourmet DLC - The Debtor buys everything on credit, level-up rerolls included. He can
+	# never hold materials, so a wallet check would lock him out of rerolling for the whole
+	# run; remove_currency turns the price into debt, exactly as the shop does.
+	var debtor_credit: bool = RunData.is_debtor(player_index)
+	if (not debtor_credit and RunData.get_player_gold(player_index) < _reroll_price) or _button_pressed:
 		return
 	_button_pressed = true
 	_button_delay_timer.start()
-	RunData.remove_gold(_reroll_price, player_index)
+	if debtor_credit:
+		RunData.remove_currency(_reroll_price, player_index)
+	else:
+		RunData.remove_gold(_reroll_price, player_index)
 	_update_gold_label()
 
 	var spyglass_count: int = RunData.get_nb_item(Keys.item_spyglass_hash, player_index)

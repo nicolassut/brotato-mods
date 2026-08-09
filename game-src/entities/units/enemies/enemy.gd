@@ -60,14 +60,12 @@ func init(zone_min_pos: Vector2, zone_max_pos: Vector2, p_players_ref: Array = [
 		stats.speed = - 1000
 		current_stats.speed = - 1000
 
-	# Gourmet DLC - global debt scaling: enemies gain +1% HP & damage per 20 debt carried by any
-	# player (RunData.get_total_debt). Applied after the base/loot stats so it composes with them.
-	var _debt_mult = 1.0 + RunData.get_total_debt() / 2000.0
-	if _debt_mult > 1.0:
-		max_stats.health = int(round(max_stats.health * _debt_mult))
-		current_stats.health = int(round(current_stats.health * _debt_mult))
-		max_stats.damage = int(round(max_stats.damage * _debt_mult))
-		current_stats.damage = int(round(current_stats.damage * _debt_mult))
+	# Gourmet DLC - debt scaling used to be applied here, multiplying max_stats/current_stats
+	# after init. That was wrong: reset_health_stat / reset_damage_stat recompute from
+	# stats.get_base_health(), and elites (boost_args), bosses, respawns and the DLC lungs all
+	# call them AFTER this point - so the scaling was thrown away on exactly the enemies it
+	# mattered most on. It now lives in EntityService.get_final_enemy_health / _damage, which
+	# every one of those paths goes through.
 
 	_hitbox.connect("hit_something", self, "_on_hit_something")
 	_hitbox.damage = current_stats.damage

@@ -92,7 +92,8 @@ var init_tracked_items: = {
 	Keys.generate_hash("item_compost_bin"): 0,
 	Keys.generate_hash("item_loyalty_card"): 0,
 	Keys.generate_hash("item_credit_card"): 0,  # Gourmet DLC - debt taken on via shop overspend
-	Keys.generate_hash("character_test_debt"): 0,  # Gourmet DLC - The Debtor: live enemy buff %
+	# Gourmet DLC - The Debtor: [0] live enemy buff % from debt, [1] total debt repaid this run
+	Keys.generate_hash("character_test_debt"): [0, 0],
 	Keys.generate_hash("item_soul_food"): [0, 0],
 	Keys.generate_hash("item_overtime_pay"): 0,
 	Keys.generate_hash("item_second_mortgage"): 0,
@@ -997,8 +998,9 @@ func add_gold(value: int, player_index: int, ignore_debt: bool = false) -> void 
 	# site (untouched), so pickups still level him - the same split the Freeloader uses.
 	if is_debtor(player_index):
 		if value > 0 and player_data.debt > 0:
+			var repaid: int = int(min(value, player_data.debt))
 			player_data.debt = int(max(0, player_data.debt - value))
-			refresh_debt_tracker()
+			refresh_debt_tracker(repaid)
 			emit_signal("gold_changed", player_data.gold, player_index)
 		return
 
@@ -1084,6 +1086,8 @@ func add_character(character: CharacterData, player_index: int) -> void :
 	if is_debtor(player_index):
 		players_data[player_index].gold = 0
 		emit_signal("gold_changed", 0, player_index)
+		# seed the card trackers now so both lines are on the card from wave 1, at +0%
+		refresh_debt_tracker()
 
 func remove_character(character: CharacterData, player_index: int) -> void :
 	players_data[player_index].current_character = null
@@ -1788,16 +1792,42 @@ func get_total_debt() -> int:
 	return total
 
 
-# Gourmet DLC - The Debtor's card tracker. Enemies scale by total_debt / 2000 (enemy.gd), i.e.
-# +1% per 20 debt, so the percentage the card shows is total_debt / 20. SET, never added: this
-# is a live reading of what the debt is doing right now, not a running total like every other
-# tracker. Called from every site that moves debt.
-func refresh_debt_tracker() -> void :
-	var buff: int = int(get_total_debt() / 20)
+# Gourmet DLC - debt makes every enemy tougher: +1% Health and Damage per DEBT_PER_PERCENT
+# debt carried by any player. Consumed in EntityService.get_final_enemy_health / _damage, which
+# is the ONLY place every enemy stat path goes through - it used to live in enemy.init, where
+# reset_health_stat / reset_damage_stat (elites, bosses, respawns, the lungs) recomputed from
+# base stats and silently threw the scaling away.
+const DEBT_PER_PERCENT: = 10
+
+
+func get_debt_enemy_factor() -> float:
+	return 1.0 + (get_total_debt() / (DEBT_PER_PERCENT * 100.0))
+
+
+func get_debt_enemy_percent() -> int:
+	return int(get_total_debt() / DEBT_PER_PERCENT)
+
+
+# Gourmet DLC - The Debtor's card trackers.
+#   [0] the enemy buff his debt is producing RIGHT NOW - SET, not accumulated, because it is a
+#       live reading of the current debt rather than a running total like every other tracker.
+#   [1] total debt repaid this run - a normal accumulator, added in add_gold.
+# Writes straight into the dict instead of using set_tracked_value: that helper bails when the
+# key is absent, and a run RESTORED FROM A SAVE carries the tracked-effects dict that was
+# serialised with it, so a key added to init_tracked_items later simply is not there. Without
+# this the card line silently never appears in any run started before the key existed.
+func refresh_debt_tracker(repaid: int = 0) -> void :
 	var debtor_hash: int = Keys.generate_hash("character_test_debt")
+	var buff: int = get_debt_enemy_percent()
 	for i in get_player_count():
-		if is_debtor(i):
-			set_tracked_value(i, debtor_hash, buff)
+		if not is_debtor(i):
+			continue
+		var tracked: Dictionary = tracked_item_effects[i]
+		if not (tracked.get(debtor_hash) is Array):
+			tracked[debtor_hash] = [0, 0]
+		tracked[debtor_hash][0] = buff
+		if repaid > 0:
+			tracked[debtor_hash][1] += repaid
 
 
 # Gourmet DLC - Debtor: debt compounds +10% at the end of every cleared wave (called from
