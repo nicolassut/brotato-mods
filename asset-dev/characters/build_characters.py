@@ -301,10 +301,16 @@ CHARS = [
  # with 100 of overspend credit (which the shared debt pool holds back until debt drops below
  # 100 - itself a live test of that rule). High HP/Speed/Luck so you survive to the shop and
  # can watch income repay the debt. Art reused from the Freeloader.
+ # One rule per card line, the same shape as the Freeloader above - his whole kit IS the debt
+ # economy, so it reads as a list of rules rather than one paragraph. No stat bonuses: the
+ # earlier +60 HP / +20 Speed / +50 Damage / +50 Luck / +5 Regen were debug leftovers from
+ # when this was the test_debt character and had nothing to do with the design.
  ("test_debt","The Debtor","character_test_debt",[],
-   [("LINE","EFFECT_DEBTOR_RULES",2),
-    ("stat_max_hp",60),("stat_speed",20),("stat_percent_damage",50),
-    ("stat_luck",50),("stat_hp_regeneration",5)],[]),
+   [("LINE","EFFECT_DEBTOR_MATERIALS",1),
+    ("LINE","EFFECT_DEBTOR_CREDIT",0),
+    ("LINE","EFFECT_DEBTOR_PRICES",2),
+    ("LINE","EFFECT_DEBTOR_ENEMIES",1),
+    ("LINE","EFFECT_DEBTOR_INTEREST",1)],[]),
 ]
 
 # explicit ext ids for characters added after the original 14 (base+i past 824
