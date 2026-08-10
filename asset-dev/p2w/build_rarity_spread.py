@@ -82,9 +82,13 @@ def registered_item_paths():
 
 
 def load_items():
+    import glob as _glob
     items = []
-    for res in registered_item_paths():
-        path = os.path.join(DEC, res.replace("res://", ""))
+    # base+mod items from the registry, plus Abyssal items which register at boot
+    # via dlc_1_data rather than item_service.tscn (same source set the codex uses)
+    paths = [os.path.join(DEC, r.replace("res://", "")) for r in registered_item_paths()]
+    paths += sorted(_glob.glob(f"{DEC}/dlcs/dlc_1/items/*/*_data.tres"))
+    for path in paths:
         d = props(path)
         if d.get("can_be_looted", "true") != "true":
             continue
@@ -158,11 +162,12 @@ def build_html(items):
                 d = "&#8593;" if it["rung"] > HOME_RUNG[it["tier"]] else "&#8595;"
                 arrow = f'<span class="mv">{d} T{it["tier"] + 1}</span>'
             uniq = '<span class="uq">&#9670;</span>' if it["max_nb"] == 1 else ""
+            sent = (f'<span class="sb">[{it["sent"]}]</span>' if it.get("sent") else "")
             cells.append(
                 f'<div class="it" style="border-color:{col};background:{dark}">'
                 f'<img src="{b64(it["icon"])}" alt="">'
                 f'<div class="nm">{it["name"]}{uniq}</div>'
-                f'<div class="sub">{it["value"]}g {arrow}</div></div>'
+                f'<div class="sub">{it["value"]}g {arrow}{sent}</div></div>'
             )
         secs.append(
             f'<h2 style="color:{col}">{rung}. {label} <small>({len(rows)} items)</small></h2>'
@@ -195,6 +200,7 @@ h2{{margin:2rem 0 .6rem;font-size:1.05rem}} h2 small{{color:#888;font-weight:400
 .nm{{font-size:.8rem;margin-top:4px;text-wrap:balance}}
 .sub{{font-size:.72rem;color:#999;font-variant-numeric:tabular-nums}}
 .mv{{color:#ffcd3c;font-weight:600}} .uq{{color:#ff69c7;margin-left:3px}}
+.sb{{color:#5abeff;margin-left:4px;font-weight:600}}
 .note{{background:#1e1e1e;border:1px solid #2c2c2c;border-radius:8px;
      padding:10px 14px;font-size:.85rem;color:#aaa;line-height:1.45}}
 </style>
@@ -210,6 +216,19 @@ the table locks only after your approval.</div>
 
 
 def main():
+    if "--html-only" in sys.argv:
+        # rebuild the page from the JSON as-is (e.g. after apply_sentiment --write);
+        # never re-drafts, so sentiment moves and hand edits survive
+        data = json.load(open(OUT_JSON))
+        items = load_items()
+        items = [it for it in items if it["my_id"] in data["items"]]
+        for it in items:
+            rec = data["items"][it["my_id"]]
+            it["rung"] = rec["rung"]
+            it["sent"] = rec.get("sentiment")
+        open(os.path.join(HERE, "rarity_spread.html"), "w").write(build_html(items))
+        print(f"page rebuilt from JSON ({len(items)} items)")
+        return
     items = draft_rungs(load_items())
     data = {
         "locked": False,

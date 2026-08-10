@@ -1,0 +1,174 @@
+Lure | S | universal instapick; regen plus two free item choices
+Fairy | S | must-pick regen amplifier, near-universal
+Ugly Tooth | S | universally strong enemy slow, works on bosses
+Hunting Trophy | S | elite for crit builds; crit-econ meta staple
+Coffee | A | cheap attack speed, crucial for almost every character
+Crown | A | harvesting compounds if bought early; falls off late
+Piggy Bank | A | strong economy when banking materials with discipline
+Alien Tongue | A | universally taken pickup-range boost
+Recycling Machine | A | strong economy from recycling
+Celery Tea | A | cheap XP gain, DLC standout
+Tentacle | A | crit-triggered healing, cheap sustain
+Bloody Hand | A | top damage item for lifesteal builds
+Greek Fire | A | elite for burn/elemental builds
+Grind's Magical Leaf | A | pure-upside per-wave HP/regen/lifesteal scaling
+Fish Hook | A | curse builds; cheap locked-item curse control
+Bag | A | early economy pick, harvesting start
+Wheelbarrow | A | early economy pick
+Potato | A | well-rounded stats, always usable
+Baby Elephant | A | top-rated general pick
+Campfire | A | top-rated general pick
+Shackles | A | top-rated general pick
+Gummy Berserker | A | top-rated DLC pick
+Riposte | A | strong melee sustain; avoid with crit-kill trackers
+Wisdom | B | unique ramping in-wave damage
+Coupon | B | cheap shop discount, compounds over run
+Glasses | B | cheap crit chance, crit builds
+Ghost Outfit | B | elite for dodge builds
+Cyberball | B | engineering builds
+Blood Donation | B | lifesteal builds, HP trade
+Improved Tools | B | engineering/structure builds, DLC
+Ball and Chain | B | top-rated DLC pick, melee lean
+Sifd's Relic | B | god-tier with high luck only
+Triangle of Power | B | strong only if rarely hit
+Snake | B | elite for DoT-spread/elemental builds only
+Scared Sausage | B | elite for burn builds only
+Gentle Alien | B | saver/interest economy builds
+Mouse | B | saver/interest economy builds
+Power Generator | B | speed-to-damage scaling; reviews split
+Ricochet | B | ranged bounce builds; reviews split
+Stone Skin | B | HP-stacking tank builds
+Regeneration Potion | B | regen builds, doubles below half HP
+Tardigrade | B | negates one hit; anti-burst insurance
+Coil | B | knockback-to-damage niche
+Jet Pack | B | dodge plus speed hybrid builds
+Metal Detector | B | economy, stacks well in endless
+Garden | B | stackable healing economy, no stack cap
+Pocket Factory | B | engineering builds, tree synergy
+Lucky Coin | B | luck/crit economy builds
+Retromation's Hoodie | B | dodge-to-attack-speed conversion builds
+Whistle | B | loot alien chance, general value
+Dangerous Bunny | B | free reroll economy
+Vigilante Ring | B | keeps scaling into late shop prices
+Dynamite | B | explosive builds
+Explosive Shells | B | explosive builds
+Plastic Explosive | B | explosive builds, DLC
+Night Goggles | B | crit builds
+Scope | B | ranged crit-damage builds
+Silver Bullet | B | ranged damage builds
+Heavy Bullets | B | slow high-damage ranged weapons
+Small Magazine | B | ranged niche
+Bean Teacher | B | strong general stat pick
+Little Frog | B | strong general pick
+Scar | B | damage with manageable downside
+Black Belt | B | melee builds
+Nail | B | melee attack-speed builds
+Diploma | B | strong late stat package
+Fertilizer | B | harvesting builds
+Tractor | B | harvesting builds
+Pumpkin | B | economy builds
+Clover | B | luck builds
+Lucky Charm | B | luck builds
+Gambling Token | B | luck/reroll niche
+Banner | B | range/damage support
+Shady Potion | B | good stats for the price
+Peaceful Bee | B | pacifist/economy niche
+Bowler Hat | B | solid defensive pick
+Panda | B | strong pet pick
+Clockwork Wasp | B | DLC engineering/summon niche
+Handcuffs | B | solid with downside management
+Propeller Hat | B | solid utility pick
+Poisonous Tonic | B | attack-speed/crit DLC pick
+Bait | B | curse economy, DLC
+Pearl | B | luck DLC pick
+Eyepatch | B | crit ranged DLC pick
+Glass Cannon | B | big damage; risky on squishy characters
+Wolf Helmet | B | dependable with support
+Cute Monkey | B | dependable with support
+Lost Duck | B | dependable with support
+Candle | B | dependable niche
+Injection | B | damage with HP downside
+Candy Bag | B | dependable with support
+Sunglasses | B | crit filler
+Insanity | B | damage filler with downside
+Adrenaline | B | low-HP damage niche
+Exoskeleton | B | armor filler
+Alloy | B | multi-stat filler
+Alien Eyes | B | HP-scaling area damage; tanky builds
+Charcoal | B | burn niche
+Spicy Sauce | B | damage aura niche
+Ice Cube | B | freeze niche
+Leather Vest | B | dodge filler
+Defective Steroids | B | damage with downside
+Fin | B | speed DLC filler
+Focus | C | attack-speed penalty usually nets damage loss
+Spider | C | needs many distinct weapons; rarely worth
+Alien Worm | C | consumable-healing penalty outweighs gain
+Chameleon | C | speed/dodge penalties outweigh benefits
+Statue | C | speed penalty hurts most builds
+Torture | C | expensive; regen insufficient late
+Baby Gecko | C | material attraction negligible; lifesteal penalty
+Alien Baby | C | conflicting reviews; often skipped
+Snail | C | enemy-slow niche, weak value
+Jelly | C | small HP filler, DLC
+Compass | C | weak DLC utility
+Decomposing Flesh | C | weak DLC lifesteal
+Community Support | C | weak DLC attack speed
+Landmines | C | explosive filler
+Lemonade | C | weak filler
+Lumberjack Shirt | C | tree-build niche only
+Tree | C | economy niche only
+Turret | C | engineering filler
+Mastery | C | melee filler
+Goat Skull | C | weak per tier lists
+Mushroom | C | weak filler
+Alien Magic | C | weak filler
+Fuel Tank | C | burn niche filler
+Cyclops Worm | C | weak filler
+Robot Arm | C | weak filler
+Reinforced Steel | C | armor/knockback niche
+Cog | C | engineering filler
+Warrior Helmet | C | weak filler
+Fresh Meat | C | heal filler
+Medikit | C | heal filler
+Boiling Water | C | weak filler
+Butterfly | C | weak filler
+Whetstone | C | melee filler
+Blood Leech | C | weak lifesteal filler
+Incendiary Turret | C | burn engineering filler
+Medical Turret | C | engineering filler
+Laser Turret | C | engineering filler
+Explosive Turret | C | engineering filler
+White Flag | C | weak per tier lists
+Snowball | C | freeze filler
+Bat | C | weak filler
+Duct Tape | C | weak filler
+Toxic Sludge | C | poison niche filler
+Anvil | C | legendary; appears too late to matter
+Extra Stomach | C | legendary; rarely appears before endgame
+Fried Rice | C | weak filler
+Wandering Bot | C | engineering filler
+Tyler | C | weak per tier lists
+Terrified Onion | C | weak filler
+Toolbox | C | engineering filler
+Strange Book | C | weak per tier lists
+Metal Plate | C | weak per tier lists
+Head Injury | C | weak per tier lists
+Mutation | C | XP-for-stats trade rarely worth
+Fruit Basket | C | weak per tier lists
+Helmet | C | minor stats, poor value
+Beanie | C | speed trade, poor value
+Blindfold | C | niche dodge builds only
+Rip and Tear | C | weak per tier lists
+Little Muscley Dude | C | weak per tier lists
+Esty's Couch | C | weak per tier lists
+Bandana | C | piercing niche only
+Gnome | C | weak per tier lists
+Lens | C | weak per tier lists
+Frozen Heart | C | lifesteal conversion niche
+Sad Tomato | C | weak per tier lists
+Hourglass | C | wave-length trade rarely worth
+Sharp Bullet | C | weak per tier lists
+Baby with a Beard | C | weak per tier lists
+Weird Ghost | D | trap after early waves; HP loss scales badly
+Padding | D | long-time community trap pick, still weak

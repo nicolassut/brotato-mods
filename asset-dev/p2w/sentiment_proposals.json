@@ -1,0 +1,980 @@
+{
+ "proposals": [
+  {
+   "my_id": "item_fish_hook",
+   "name": "Fish Hook",
+   "tier": 1,
+   "from": 2,
+   "to": 3,
+   "rating": "A",
+   "votes": [
+    "S(reddit): always a hook, strongest item in the game (+77)",
+    "A(steam_guides): FantasyWarden best items (AT DLC)",
+    "A(wiki_meta): curse builds; cheap locked-item curse control"
+   ]
+  },
+  {
+   "my_id": "item_black_flag",
+   "name": "Black Flag",
+   "tier": 2,
+   "from": 4,
+   "to": 5,
+   "rating": "S",
+   "votes": [
+    "S(reddit): cursed Black Flag top start pick, pure joy"
+   ]
+  },
+  {
+   "my_id": "item_hunting_trophy",
+   "name": "Hunting Trophy",
+   "tier": 2,
+   "from": 4,
+   "to": 5,
+   "rating": "S",
+   "votes": [
+    "S(reddit): definite must buy everytime (contested: one overrated dissent)",
+    "A(steam_guides): Fextralife + Steam guide",
+    "S(wiki_meta): elite for crit builds; crit-econ meta staple"
+   ]
+  },
+  {
+   "my_id": "item_barnacle",
+   "name": "Barnacle",
+   "tier": 2,
+   "from": 5,
+   "to": 6,
+   "rating": "S",
+   "votes": [
+    "S(reddit): extra ~5 levels by wave 20, Curse is broken"
+   ]
+  },
+  {
+   "my_id": "item_potato",
+   "name": "Potato",
+   "tier": 3,
+   "from": 6,
+   "to": 7,
+   "rating": "A",
+   "votes": [
+    "A(reddit): always take, favorite all-stat pick",
+    "A(steam_guides): Fextralife item tier list",
+    "A(wiki_meta): well-rounded stats, always usable"
+   ]
+  },
+  {
+   "my_id": "item_bag",
+   "name": "Bag",
+   "tier": 0,
+   "from": 1,
+   "to": 2,
+   "rating": "A",
+   "votes": [
+    "A(reddit): so cheap, so many benefits (+80)",
+    "S(steam_guides): Fextralife item tier list",
+    "A(wiki_meta): early economy pick, harvesting start"
+   ]
+  },
+  {
+   "my_id": "item_alarm_clock",
+   "name": "Alarm Clock",
+   "tier": 0,
+   "from": 1,
+   "to": 2,
+   "rating": "A",
+   "votes": [
+    "A(reddit): coffee is very good, 6x helmet value",
+    "A(steam_guides): Fextralife + FantasyWarden",
+    "A(wiki_meta): cheap attack speed, crucial for almost every character"
+   ]
+  },
+  {
+   "my_id": "item_glasses",
+   "name": "Glasses",
+   "tier": 0,
+   "from": 1,
+   "to": 2,
+   "rating": "A",
+   "votes": [
+    "A(reddit): +20 range dirt cheap, range is a bank",
+    "S(steam_guides): Fextralife + Steam guide",
+    "B(wiki_meta): cheap crit chance, crit builds"
+   ]
+  },
+  {
+   "my_id": "item_spyglass",
+   "name": "Spyglass",
+   "tier": 1,
+   "from": 2,
+   "to": 3,
+   "rating": "A",
+   "votes": [
+    "A(reddit): hundreds of coins it has saved you (+18)"
+   ]
+  },
+  {
+   "my_id": "item_celery_tea",
+   "name": "Celery Tea",
+   "tier": 1,
+   "from": 2,
+   "to": 3,
+   "rating": "A",
+   "votes": [
+    "A(reddit): just straight up good, greedy deaths noted",
+    "S(steam_guides): Fextralife item tier list",
+    "A(wiki_meta): cheap XP gain, DLC standout"
+   ]
+  },
+  {
+   "my_id": "item_baby_gecko",
+   "name": "Baby Gecko",
+   "tier": 0,
+   "from": 1,
+   "to": 2,
+   "rating": "A",
+   "votes": [
+    "A(reddit): put some respect on my goat baby gecko (+55)",
+    "S(steam_guides): Fextralife + FantasyWarden",
+    "C(wiki_meta): material attraction negligible; lifesteal penalty"
+   ]
+  },
+  {
+   "my_id": "item_starfish",
+   "name": "Starfish",
+   "tier": 2,
+   "from": 5,
+   "to": 6,
+   "rating": "A",
+   "votes": [
+    "A(reddit): amazing S tier item at any stage (+16)"
+   ]
+  },
+  {
+   "my_id": "item_mirror",
+   "name": "Mirror",
+   "tier": 2,
+   "from": 4,
+   "to": 5,
+   "rating": "A",
+   "votes": [
+    "A(reddit): best item in the game, no item feels this rewarding"
+   ]
+  },
+  {
+   "my_id": "item_tentacle",
+   "name": "Tentacle",
+   "tier": 1,
+   "from": 2,
+   "to": 3,
+   "rating": "A",
+   "votes": [
+    "A(reddit): love making crits even better",
+    "A(steam_guides): Fextralife + FantasyWarden",
+    "A(wiki_meta): crit-triggered healing, cheap sustain"
+   ]
+  },
+  {
+   "my_id": "item_jerky",
+   "name": "Jerky",
+   "tier": 1,
+   "from": 3,
+   "to": 4,
+   "rating": "A",
+   "votes": [
+    "A(reddit): straight up busted (contested: ends runs minority)"
+   ]
+  },
+  {
+   "my_id": "item_recycling_machine",
+   "name": "Recycling Machine",
+   "tier": 1,
+   "from": 2,
+   "to": 3,
+   "rating": "A",
+   "votes": [
+    "B(reddit): vastly undervalued, additive 25 to 60 pct",
+    "S(steam_guides): Fextralife + FantasyWarden + BrotatoBuilds",
+    "A(wiki_meta): strong economy from recycling"
+   ]
+  },
+  {
+   "my_id": "item_riposte",
+   "name": "Riposte",
+   "tier": 1,
+   "from": 3,
+   "to": 4,
+   "rating": "A",
+   "votes": [
+    "B(reddit): love riposte (contested: expert almost never worth)",
+    "S(steam_guides): Fextralife item tier list",
+    "A(wiki_meta): strong melee sustain; avoid with crit-kill trackers"
+   ]
+  },
+  {
+   "my_id": "item_greek_fire",
+   "name": "Greek Fire",
+   "tier": 3,
+   "from": 6,
+   "to": 7,
+   "rating": "A",
+   "votes": [
+    "B(reddit): favorite alongside Giant Belt",
+    "S(steam_guides): Fextralife + BrotatoBuilds",
+    "A(wiki_meta): elite for burn/elemental builds"
+   ]
+  },
+  {
+   "my_id": "item_piggy_bank",
+   "name": "Piggy Bank",
+   "tier": 1,
+   "from": 3,
+   "to": 4,
+   "rating": "A",
+   "votes": [
+    "B(reddit): underrated free money (heavily contested)",
+    "A(steam_guides): Fextralife + FantasyWarden + BrotatoBuilds",
+    "A(wiki_meta): strong economy when banking materials with discipline"
+   ]
+  },
+  {
+   "my_id": "item_baby_elephant",
+   "name": "Baby Elephant",
+   "tier": 0,
+   "from": 1,
+   "to": 2,
+   "rating": "A",
+   "votes": [
+    "C(reddit): grossly overrated on this sub",
+    "S(steam_guides): Fextralife item tier list",
+    "A(wiki_meta): top-rated general pick"
+   ]
+  },
+  {
+   "my_id": "item_campfire",
+   "name": "Campfire",
+   "tier": 1,
+   "from": 3,
+   "to": 4,
+   "rating": "A",
+   "votes": [
+    "S(steam_guides): Fextralife item tier list",
+    "A(wiki_meta): top-rated general pick"
+   ]
+  },
+  {
+   "my_id": "item_wheelbarrow",
+   "name": "Wheelbarrow",
+   "tier": 1,
+   "from": 3,
+   "to": 4,
+   "rating": "A",
+   "votes": [
+    "A(steam_guides): Fextralife item tier list",
+    "A(wiki_meta): early economy pick"
+   ]
+  },
+  {
+   "my_id": "item_anvil",
+   "name": "Anvil",
+   "tier": 3,
+   "from": 8,
+   "to": 7,
+   "rating": "C",
+   "votes": [
+    "S(reddit): cursed Anvil is busted (start-item thread, +141)",
+    "C(steam_guides): Fextralife + Steam guide",
+    "C(wiki_meta): legendary; appears too late to matter"
+   ]
+  },
+  {
+   "my_id": "item_extra_stomach",
+   "name": "Extra Stomach",
+   "tier": 3,
+   "from": 6,
+   "to": 5,
+   "rating": "C",
+   "votes": [
+    "A(reddit): +8 hp a wave good even into endless (+25)",
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): legendary; rarely appears before endgame"
+   ]
+  },
+  {
+   "my_id": "item_bandana",
+   "name": "Bandana",
+   "tier": 2,
+   "from": 5,
+   "to": 4,
+   "rating": "C",
+   "votes": [
+    "A(reddit): pierce staple, why is it below sharp bullet",
+    "D(steam_guides): Fextralife D vs Steam useful (contested)",
+    "C(wiki_meta): piercing niche only"
+   ]
+  },
+  {
+   "my_id": "item_baby_with_a_beard",
+   "name": "Baby with a Beard",
+   "tier": 2,
+   "from": 6,
+   "to": 5,
+   "rating": "C",
+   "votes": [
+    "A(reddit): praying for it the entire run, ranged builds",
+    "D(steam_guides): Fextralife D vs Steam One-Armed-win (contested)",
+    "C(wiki_meta): weak per tier lists"
+   ]
+  },
+  {
+   "my_id": "item_medikit",
+   "name": "Medikit",
+   "tier": 3,
+   "from": 6,
+   "to": 5,
+   "rating": "C",
+   "votes": [
+    "B(reddit): Medikit hands down favorite",
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): heal filler"
+   ]
+  },
+  {
+   "my_id": "item_strange_book",
+   "name": "Strange Book",
+   "tier": 2,
+   "from": 5,
+   "to": 4,
+   "rating": "C",
+   "votes": [
+    "B(reddit): converting burning deaths into engineering combo staple",
+    "D(steam_guides): Fextralife + Steam guide (bait)",
+    "C(wiki_meta): weak per tier lists"
+   ]
+  },
+  {
+   "my_id": "item_frozen_heart",
+   "name": "Frozen Heart",
+   "tier": 2,
+   "from": 6,
+   "to": 5,
+   "rating": "C",
+   "votes": [
+    "B(reddit): nail + frozen heart + book for crazy dps",
+    "D(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): lifesteal conversion niche"
+   ]
+  },
+  {
+   "my_id": "item_community_support",
+   "name": "Community Support",
+   "tier": 2,
+   "from": 5,
+   "to": 4,
+   "rating": "C",
+   "votes": [
+    "B(reddit): do not think I have ever skipped it",
+    "D(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): weak DLC attack speed"
+   ]
+  },
+  {
+   "my_id": "item_blindfold",
+   "name": "Blindfold",
+   "tier": 1,
+   "from": 3,
+   "to": 2,
+   "rating": "C",
+   "votes": [
+    "B(reddit): deserves way higher spots (+14)",
+    "D(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): niche dodge builds only"
+   ]
+  },
+  {
+   "my_id": "item_rip_and_tear",
+   "name": "Rip and Tear",
+   "tier": 2,
+   "from": 5,
+   "to": 4,
+   "rating": "C",
+   "votes": [
+    "B(reddit): deserve way higher, cursed can make the game",
+    "C(steam_guides): Fextralife D vs Steam excellent (contested)",
+    "C(wiki_meta): weak per tier lists"
+   ]
+  },
+  {
+   "my_id": "item_mastery",
+   "name": "Mastery",
+   "tier": 1,
+   "from": 4,
+   "to": 3,
+   "rating": "C",
+   "votes": [
+    "B(reddit): cited as fair cost-efficiency benchmark",
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): melee filler"
+   ]
+  },
+  {
+   "my_id": "item_sharp_bullet",
+   "name": "Sharp Bullet",
+   "tier": 0,
+   "from": 2,
+   "to": 1,
+   "rating": "C",
+   "votes": [
+    "B(reddit): necessary for machine-gun builds (contested)",
+    "D(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): weak per tier lists"
+   ]
+  },
+  {
+   "my_id": "item_knot",
+   "name": "Knot",
+   "tier": 2,
+   "from": 6,
+   "to": 5,
+   "rating": "C",
+   "votes": [
+    "C(reddit): locks your weapons hated (contested: underrated for 20-wave)"
+   ]
+  },
+  {
+   "my_id": "item_hedgehog",
+   "name": "Hedgehog",
+   "tier": 0,
+   "from": 2,
+   "to": 1,
+   "rating": "C",
+   "votes": [
+    "C(reddit): used as benchmark for a bad tier",
+    "B(steam_guides): Fextralife item tier list"
+   ]
+  },
+  {
+   "my_id": "item_wisdom",
+   "name": "Wisdom",
+   "tier": 2,
+   "from": 6,
+   "to": 5,
+   "rating": "C",
+   "votes": [
+    "C(reddit): uncursed very underwhelming (contested)",
+    "D(steam_guides): Fextralife item tier list",
+    "B(wiki_meta): unique ramping in-wave damage"
+   ]
+  },
+  {
+   "my_id": "item_snail",
+   "name": "Snail",
+   "tier": 1,
+   "from": 3,
+   "to": 2,
+   "rating": "C",
+   "votes": [
+    "C(reddit): much better than snail, used as bad benchmark",
+    "D(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): enemy-slow niche, weak value"
+   ]
+  },
+  {
+   "my_id": "item_eyepatch",
+   "name": "Eyepatch",
+   "tier": 1,
+   "from": 4,
+   "to": 3,
+   "rating": "C",
+   "votes": [
+    "C(reddit): no item counteracts the accuracy loss, super niche",
+    "B(wiki_meta): crit ranged DLC pick"
+   ]
+  },
+  {
+   "my_id": "item_hourglass",
+   "name": "Hourglass",
+   "tier": 3,
+   "from": 6,
+   "to": 5,
+   "rating": "C",
+   "votes": [
+    "C(reddit): big oops with self-damage items",
+    "D(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): wave-length trade rarely worth"
+   ]
+  },
+  {
+   "my_id": "item_torture",
+   "name": "Torture",
+   "tier": 3,
+   "from": 7,
+   "to": 6,
+   "rating": "C",
+   "votes": [
+    "C(reddit): worst item votes (heavily contested: endless fruit builds)",
+    "B(steam_guides): Fextralife + Steam guide",
+    "C(wiki_meta): expensive; regen insufficient late"
+   ]
+  },
+  {
+   "my_id": "item_alien_baby",
+   "name": "Alien Baby",
+   "tier": 2,
+   "from": 5,
+   "to": 4,
+   "rating": "C",
+   "votes": [
+    "D(reddit): permanently buffs enemies, gives barely anything",
+    "A(steam_guides): Fextralife + Steam guide",
+    "C(wiki_meta): conflicting reviews; often skipped"
+   ]
+  },
+  {
+   "my_id": "item_white_flag",
+   "name": "White Flag",
+   "tier": 1,
+   "from": 3,
+   "to": 2,
+   "rating": "C",
+   "votes": [
+    "D(reddit): picking it implies you are playing the game wrong (+50)",
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): weak per tier lists"
+   ]
+  },
+  {
+   "my_id": "item_estys_couch",
+   "name": "Esty\u2019s Couch",
+   "tier": 3,
+   "from": 6,
+   "to": 5,
+   "rating": "D",
+   "votes": [
+    "D(reddit): never take except to remove from pool, instant ban (+18)",
+    "D(steam_guides): Fextralife + Steam guide",
+    "C(wiki_meta): weak per tier lists"
+   ]
+  },
+  {
+   "my_id": "item_chameleon",
+   "name": "Chameleon",
+   "tier": 2,
+   "from": 5,
+   "to": 4,
+   "rating": "C",
+   "votes": [
+    "D(reddit): only item never worth buying, needs a rework",
+    "B(steam_guides): Fextralife B vs Steam godlike (contested)",
+    "C(wiki_meta): speed/dodge penalties outweigh benefits"
+   ]
+  },
+  {
+   "my_id": "item_sunken_bell",
+   "name": "Sunken Bell",
+   "tier": 2,
+   "from": 5,
+   "to": 4,
+   "rating": "D",
+   "votes": [
+    "D(reddit): among weakest DLC picks, almost never worth buying"
+   ]
+  },
+  {
+   "my_id": "item_vigilante_ring",
+   "name": "Vigilante Ring",
+   "tier": 2,
+   "from": 6,
+   "to": 5,
+   "rating": "C",
+   "votes": [
+    "D(reddit): is terrible, way too expensive",
+    "C(steam_guides): Fextralife item tier list",
+    "B(wiki_meta): keeps scaling into late shop prices"
+   ]
+  },
+  {
+   "my_id": "item_tyler",
+   "name": "Tyler",
+   "tier": 1,
+   "from": 4,
+   "to": 3,
+   "rating": "C",
+   "votes": [
+    "D(reddit): almost never worth buying list",
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): weak per tier lists"
+   ]
+  },
+  {
+   "my_id": "item_coral",
+   "name": "Coral",
+   "tier": 1,
+   "from": 3,
+   "to": 2,
+   "rating": "D",
+   "votes": [
+    "D(reddit): never found them helpful (contested: soldier niche)"
+   ]
+  },
+  {
+   "my_id": "item_barricade",
+   "name": "Barricade",
+   "tier": 2,
+   "from": 5,
+   "to": 4,
+   "rating": "D",
+   "votes": [
+    "D(reddit): better to recycle for money (contested: soldier niche)",
+    "B(steam_guides): Fextralife + Steam guide"
+   ]
+  },
+  {
+   "my_id": "item_focus",
+   "name": "Focus",
+   "tier": 3,
+   "from": 7,
+   "to": 6,
+   "rating": "C",
+   "votes": [
+    "B(steam_guides): Fextralife B vs BrotatoBuilds best (contested)",
+    "C(wiki_meta): attack-speed penalty usually nets damage loss"
+   ]
+  },
+  {
+   "my_id": "item_compass",
+   "name": "Compass",
+   "tier": 1,
+   "from": 3,
+   "to": 2,
+   "rating": "C",
+   "votes": [
+    "B(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): weak DLC utility"
+   ]
+  },
+  {
+   "my_id": "item_spider",
+   "name": "Spider",
+   "tier": 3,
+   "from": 8,
+   "to": 7,
+   "rating": "C",
+   "votes": [
+    "B(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): needs many distinct weapons; rarely worth"
+   ]
+  },
+  {
+   "my_id": "item_goat_skull",
+   "name": "Goat Skull",
+   "tier": 0,
+   "from": 2,
+   "to": 1,
+   "rating": "C",
+   "votes": [
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): weak per tier lists"
+   ]
+  },
+  {
+   "my_id": "item_mushroom",
+   "name": "Mushroom",
+   "tier": 0,
+   "from": 2,
+   "to": 1,
+   "rating": "C",
+   "votes": [
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): weak filler"
+   ]
+  },
+  {
+   "my_id": "item_alien_magic",
+   "name": "Alien Magic",
+   "tier": 2,
+   "from": 6,
+   "to": 5,
+   "rating": "C",
+   "votes": [
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): weak filler"
+   ]
+  },
+  {
+   "my_id": "item_fuel_tank",
+   "name": "Fuel Tank",
+   "tier": 1,
+   "from": 3,
+   "to": 2,
+   "rating": "C",
+   "votes": [
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): burn niche filler"
+   ]
+  },
+  {
+   "my_id": "item_cyclops_worm",
+   "name": "Cyclops Worm",
+   "tier": 1,
+   "from": 3,
+   "to": 2,
+   "rating": "C",
+   "votes": [
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): weak filler"
+   ]
+  },
+  {
+   "my_id": "item_robot_arm",
+   "name": "Robot Arm",
+   "tier": 3,
+   "from": 7,
+   "to": 6,
+   "rating": "C",
+   "votes": [
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): weak filler"
+   ]
+  },
+  {
+   "my_id": "item_reinforced_steel",
+   "name": "Reinforced Steel",
+   "tier": 1,
+   "from": 3,
+   "to": 2,
+   "rating": "C",
+   "votes": [
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): armor/knockback niche"
+   ]
+  },
+  {
+   "my_id": "item_warrior_helmet",
+   "name": "Warrior Helmet",
+   "tier": 2,
+   "from": 6,
+   "to": 5,
+   "rating": "C",
+   "votes": [
+    "C(steam_guides): Fextralife C vs BrotatoBuilds solid (contested)",
+    "C(wiki_meta): weak filler"
+   ]
+  },
+  {
+   "my_id": "item_mosquito_jar",
+   "name": "Mosquito Jar",
+   "tier": 0,
+   "from": 2,
+   "to": 1,
+   "rating": "C",
+   "votes": [
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): heal filler"
+   ]
+  },
+  {
+   "my_id": "item_potion",
+   "name": "Regeneration Potion",
+   "tier": 3,
+   "from": 6,
+   "to": 5,
+   "rating": "C",
+   "votes": [
+    "C(steam_guides): Fextralife C vs BrotatoBuilds best-defense (contested)",
+    "B(wiki_meta): regen builds, doubles below half HP"
+   ]
+  },
+  {
+   "my_id": "item_boiling_water",
+   "name": "Boiling Water",
+   "tier": 0,
+   "from": 2,
+   "to": 1,
+   "rating": "C",
+   "votes": [
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): weak filler"
+   ]
+  },
+  {
+   "my_id": "item_butterfly",
+   "name": "Butterfly",
+   "tier": 0,
+   "from": 2,
+   "to": 1,
+   "rating": "C",
+   "votes": [
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): weak filler"
+   ]
+  },
+  {
+   "my_id": "item_whetstone",
+   "name": "Whetstone",
+   "tier": 1,
+   "from": 3,
+   "to": 2,
+   "rating": "C",
+   "votes": [
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): melee filler"
+   ]
+  },
+  {
+   "my_id": "item_blood_leech",
+   "name": "Blood Leech",
+   "tier": 1,
+   "from": 3,
+   "to": 2,
+   "rating": "C",
+   "votes": [
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): weak lifesteal filler"
+   ]
+  },
+  {
+   "my_id": "item_turret_flame",
+   "name": "Incendiary Turret",
+   "tier": 1,
+   "from": 3,
+   "to": 2,
+   "rating": "C",
+   "votes": [
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): burn engineering filler"
+   ]
+  },
+  {
+   "my_id": "item_turret_healing",
+   "name": "Medical Turret",
+   "tier": 1,
+   "from": 3,
+   "to": 2,
+   "rating": "C",
+   "votes": [
+    "C(steam_guides): Fextralife C vs Steam very-nice (contested)",
+    "C(wiki_meta): engineering filler"
+   ]
+  },
+  {
+   "my_id": "item_snowball",
+   "name": "Snowball",
+   "tier": 1,
+   "from": 4,
+   "to": 3,
+   "rating": "C",
+   "votes": [
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): freeze filler"
+   ]
+  },
+  {
+   "my_id": "item_turret_laser",
+   "name": "Laser Turret",
+   "tier": 2,
+   "from": 5,
+   "to": 4,
+   "rating": "C",
+   "votes": [
+    "C(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): engineering filler"
+   ]
+  },
+  {
+   "my_id": "item_turret_rocket",
+   "name": "Explosive Turret",
+   "tier": 3,
+   "from": 6,
+   "to": 5,
+   "rating": "C",
+   "votes": [
+    "C(steam_guides): Fextralife C vs BrotatoBuilds strong (contested)",
+    "C(wiki_meta): engineering filler"
+   ]
+  },
+  {
+   "my_id": "item_metal_plate",
+   "name": "Metal Plate",
+   "tier": 1,
+   "from": 3,
+   "to": 2,
+   "rating": "D",
+   "votes": [
+    "D(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): weak per tier lists"
+   ]
+  },
+  {
+   "my_id": "item_head_injury",
+   "name": "Head Injury",
+   "tier": 0,
+   "from": 2,
+   "to": 1,
+   "rating": "D",
+   "votes": [
+    "D(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): weak per tier lists"
+   ]
+  },
+  {
+   "my_id": "item_mutation",
+   "name": "Mutation",
+   "tier": 0,
+   "from": 2,
+   "to": 1,
+   "rating": "D",
+   "votes": [
+    "D(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): XP-for-stats trade rarely worth"
+   ]
+  },
+  {
+   "my_id": "item_fruit_basket",
+   "name": "Fruit Basket",
+   "tier": 1,
+   "from": 3,
+   "to": 2,
+   "rating": "D",
+   "votes": [
+    "D(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): weak per tier lists"
+   ]
+  },
+  {
+   "my_id": "item_little_muscley_dude",
+   "name": "Little Muscley Dude",
+   "tier": 1,
+   "from": 3,
+   "to": 2,
+   "rating": "D",
+   "votes": [
+    "D(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): weak per tier lists"
+   ]
+  },
+  {
+   "my_id": "item_gnome",
+   "name": "Gnome",
+   "tier": 3,
+   "from": 6,
+   "to": 5,
+   "rating": "D",
+   "votes": [
+    "D(steam_guides): Fextralife item tier list",
+    "C(wiki_meta): weak per tier lists"
+   ]
+  }
+ ],
+ "unmatched": [
+  "Fried Rice",
+  "Hot Sauce",
+  "Rubber Ducky",
+  "Corrupted Shards",
+  "Tomato",
+  "Baby Alligator",
+  "Sceptre",
+  "Bricks",
+  "Tiny Spinning Robot",
+  "Baby with a Bullet",
+  "Broken Hourglass"
+ ]
+}
