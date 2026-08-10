@@ -780,7 +780,9 @@ func _on_enemy_took_damage(
 		# Chili Pepper buff: your hits ignite enemies; flat part scales with
 		# Appetite (computed at eat time) and the burn itself carries 0.3x
 		# Elemental through the vanilla burning scaling stats
-		if not args.is_burning and not enemy.dead and args.from_player_index < _players.size():
+		# Gourmet DLC - from_player_index is -1 for unowned damage (enemy-on-enemy,
+		# environmental) and -1 < size() passes, so the lower bound is needed too.
+		if not args.is_burning and not enemy.dead and args.from_player_index >= 0 and args.from_player_index < _players.size():
 			var chili_player: Player = _players[args.from_player_index]
 			if chili_player._food_buffs.has("consumable_food_chili_pepper"):
 				if _chili_burning_data[args.from_player_index] == null:

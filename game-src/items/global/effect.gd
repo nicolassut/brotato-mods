@@ -365,10 +365,13 @@ func get_arg_value(custom_arg: CustomArg, p_base_value: String, player_index: in
 				var nb = RunData.get_player_weapons_ref(player_index).size()
 				final_value = str(value * nb)
 			ArgValue.TIER:
-				var val = "TIER_I"
-				if value == 1: val = "TIER_II"
-				elif value == 2: val = "TIER_III"
-				elif value == 3: val = "TIER_IV"
+				# Gourmet DLC - name the tier by its position on the player's ladder,
+				# not the raw tier number. The Blacksmith's extra rarities are stored
+				# as 7-10, which would otherwise all fall through to "TIER_I".
+				var romans = ["TIER_I", "TIER_II", "TIER_III", "TIER_IV",
+							  "TIER_V", "TIER_VI", "TIER_VII", "TIER_VIII"]
+				var step: int = ItemService.get_tier_step(value, player_index)
+				var val = romans[clamp(step - 1, 0, romans.size() - 1)]
 				final_value = tr(val)
 			ArgValue.SCALING_STAT:
 

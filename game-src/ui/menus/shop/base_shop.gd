@@ -65,7 +65,10 @@ func _ready() -> void :
 				var possible_upgrades = []
 				var weapons = RunData.get_player_weapons(player_index)
 				for weapon in weapons:
-					if weapon.upgrades_into != null and weapon.tier < effects[Keys.max_weapon_tier_hash]:
+					# Gourmet DLC - Anvil steps the player's tier ladder, so for the
+					# Blacksmith it walks 1 -> 8 in order rather than following the
+					# resource's own upgrades_into (which skips the new tiers).
+					if ItemService.can_upgrade_further(weapon, player_index):
 						possible_upgrades.push_back(weapon)
 
 				if possible_upgrades.size() > 0 and not RunData.get_player_effect(Keys.lock_current_weapons_hash, player_index):
@@ -828,7 +831,10 @@ func _forge_weapon(weapon_data: WeaponData, partner: WeaponData, player_index: i
 		for partner_set in partner.sets:
 			if weapon_set.my_id == partner_set.my_id:
 				shared_sets.push_back(weapon_set)
-	var forge_pool = RunData.get_blacksmith_forge_pool(weapon_data.tier + 1, shared_sets)
+	# Gourmet DLC - forge to the next LADDER step, not tier + 1. Raw +1 from vanilla
+	# T4 lands on DANGER_4 (empty pool) and from T1 skips green entirely.
+	var forge_pool = RunData.get_blacksmith_forge_pool(
+		ItemService.get_next_tier(weapon_data.tier, player_index), shared_sets)
 	if forge_pool.empty():
 		# nothing forged, so nothing rebuilds the container - hand focus back or the
 		# caller's reset_focus leaves this player with no focused control (see
@@ -977,7 +983,9 @@ func _combine_weapon(weapon_data: WeaponData, player_index: int, is_upgrade: boo
 		for effect in existing_weapon_to_remove.effects:
 			new_cursed_weapon_min_factor = max(new_cursed_weapon_min_factor, effect.curse_factor)
 
-	var weapon_to_upgrade_into = weapon_data.upgrades_into
+	# Gourmet DLC - one ladder step for this player. Drives BOTH the Anvil and the
+	# shop's auto-merge, since both funnel through _combine_weapon.
+	var weapon_to_upgrade_into = ItemService.get_upgrade_target(weapon_data, player_index)
 
 	if curse_new_weapon:
 		for dlc_id in RunData.enabled_dlcs:

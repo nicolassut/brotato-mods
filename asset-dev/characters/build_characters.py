@@ -207,7 +207,14 @@ CHARS = [
     ("TXT","speed_cap",-100000019,"EFFECT_SLUG_SPEED_CAP")],[FONDUE_SET]),
  ("blacksmith","Blacksmith","character_blacksmith",[],
    [("LINE","EFFECT_BLACKSMITH_FORGE",0),
-    ("NEG","weapons_price",25),("gain_stat_elemental_damage",-50),("stat_speed",-5)],[ANVIL]),
+    # 2026-07-29 rework: 12 weapon slots, shop offers weapons only, weapon-class
+    # (set) bonuses doubled, and the two "modification" nerfs dropped - the +25%
+    # weapons_price and the -50% elemental gain. Speed -5 kept as a plain stat nerf.
+    # Weapons-only shop and doubled set bonuses are live engine code
+    # (item_service.gd shop type selection, run_data.gd set-bonus loop).
+    ("LINE","EFFECT_BLACKSMITH_SHOP_WEAPONS",2),
+    ("LINE","EFFECT_BLACKSMITH_CLASS_DOUBLE",2),
+    ("weapon_slot",6),("stat_speed",-5)],[ANVIL]),
  ("juggler","Juggler","character_juggler",[],
    [("LINE","EFFECT_JUGGLER_CYCLE",2),
     ("LINE","EFFECT_JUGGLER_TEMPO",0),  # 0.3s metronome (user redesign 2026-07-24), live formula case in effect.gd

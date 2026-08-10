@@ -267,3 +267,9 @@ EFFECT_CREDIT_CARD,"Lets you overspend in the shop, up to {0} into debt"
 CREDIT_CARD_DEBT,Debt taken on: {0}
 EFFECT_BANK_LOAN,"Instantly gain 500 Materials, then go 300 into debt"
 EFFECT_BANK_LOAN_USED,Used
+EFFECT_BLACKSMITH_SHOP_WEAPONS,The shop only offers weapons
+EFFECT_BLACKSMITH_CLASS_DOUBLE,Weapon class bonuses are twice as effective
+TIER_V,V
+TIER_VI,VI
+TIER_VII,VII
+TIER_VIII,VIII
