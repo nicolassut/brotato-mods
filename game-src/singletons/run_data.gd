@@ -74,6 +74,7 @@ var init_tracked_items: = {
 	Keys.generate_hash("character_gourmet"): [0, 0],  # Gourmet DLC - Appetite gained, Speed lost to fat
 	Keys.generate_hash("character_snail"): [0, 0],  # Gourmet DLC - Escargot armor, slime damage dealt
 	Keys.generate_hash("character_girly"): 0,
+	Keys.generate_hash("character_p2w"): 0,  # Gourmet DLC - chests opened
 	Keys.generate_hash("weapon_frying_pan"): 0,
 	Keys.generate_hash("item_doggy_bag"): 0,
 	Keys.generate_hash("item_farmers_market"): 0,
@@ -1708,6 +1709,85 @@ func has_freeloader() -> bool:
 		if is_freeloader(i):
 			return true
 	return false
+
+
+# Gourmet DLC - The P2W (chest/lootbox character). Single gate for the whole kit.
+func is_p2w(player_index: int) -> bool:
+	var character = get_player_character(player_index)
+	return character != null and character.my_id == "character_p2w"
+
+
+# Session-local uid so armed shop cards can name their pending entry without
+# index-shift bugs when another chest opens first. NOT serialized: a reload
+# flushes all pending chests at shop entry, so uids never need to survive one.
+var _p2w_next_uid: int = 0
+
+
+# Buying a chest: roll the curse AND the contents NOW (CSGO decides at purchase,
+# reveals at open), store serialized so a save/quit can never eat a paid chest.
+# Returns the pending entry (uid/cursed) for the shop UI to arm its card with.
+func p2w_arm_chest(player_index: int, rung: int) -> Dictionary:
+	var chest_cursed: bool = enabled_dlcs.has("dlc_1") and Utils.get_chance_success(ItemService.P2WData.CURSED_CHEST_CHANCE / 100.0)
+	var drop: Dictionary = ItemService.p2w_roll_chest_drop(rung, player_index, chest_cursed)
+	drop["rung"] = rung
+	drop["cursed"] = chest_cursed
+	drop["uid"] = _p2w_next_uid
+	_p2w_next_uid += 1
+	players_data[player_index].p2w_pending.push_back(drop)
+	return drop
+
+
+func p2w_open_chest_uid(player_index: int, uid: int) -> ItemParentData:
+	var pending: Array = players_data[player_index].p2w_pending
+	for i in pending.size():
+		if int(pending[i].get("uid", - 1)) == uid:
+			return p2w_open_chest(player_index, i)
+	return null
+
+
+# Opening a pending chest: resolve the pre-rolled drop, curse it if the roll said
+# so (Abyssal machinery; quietly does nothing without the DLC), grant it, count it.
+func p2w_open_chest(player_index: int, pending_index: int) -> ItemParentData:
+	var pending: Array = players_data[player_index].p2w_pending
+	if pending_index < 0 or pending_index >= pending.size():
+		return null
+	var entry: Dictionary = pending[pending_index]
+	pending.remove(pending_index)
+	var granted: ItemParentData = null
+	if entry.kind == "weapon":
+		var weapon_data = ItemService.get_element_safe(ItemService.weapons, entry.id)
+		if weapon_data != null:
+			granted = _p2w_curse_drop(weapon_data, entry, player_index)
+			# a full inventory converts the weapon into its shop value in materials
+			# rather than dropping nothing (chest can roll while slots are full)
+			if get_player_weapons_ref(player_index).size() < int(get_player_effect(Keys.weapon_slot_hash, player_index)):
+				add_weapon(granted, player_index)
+			else:
+				add_gold(granted.value, player_index)
+	else:
+		var item_data = ItemService.get_element_safe(ItemService.items, entry.id)
+		if item_data != null:
+			granted = _p2w_curse_drop(item_data, entry, player_index)
+			add_item(granted, player_index)
+	add_tracked_value(player_index, Keys.generate_hash("character_p2w"), 1)
+	return granted
+
+
+func _p2w_curse_drop(data: ItemParentData, entry: Dictionary, player_index: int) -> ItemParentData:
+	if not entry.get("item_cursed", false):
+		return data
+	for dlc_id in enabled_dlcs:
+		var dlc_data = ProgressData.get_dlc_data(dlc_id)
+		if dlc_data != null and dlc_data.has_method("curse_item"):
+			return dlc_data.curse_item(data, player_index)
+	return data
+
+
+# Safety net: any chest still unopened when the shop closes (or a run resumes
+# outside a shop) grants silently - paid content is never lost.
+func p2w_flush_pending(player_index: int) -> void :
+	while players_data[player_index].p2w_pending.size() > 0:
+		p2w_open_chest(player_index, 0)
 
 
 # Gourmet DLC - run-level check for UI that has no player_index to work with

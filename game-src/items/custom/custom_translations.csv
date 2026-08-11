@@ -290,3 +290,6 @@ CHEST_P2W_7,Pink Chest
 EFFECT_P2W_CHEST_ODDS_7,"Contains one item (70%) or weapon (30%): 70% Pink, 30% Gold"
 CHEST_P2W_8,Gold Chest
 EFFECT_P2W_CHEST_ODDS_8,Contains one item (70%) or weapon (30%): 100% Gold
+P2W_OPEN,OPEN
+P2W_CHESTS,Chests opened: {0}
+EFFECT_P2W_SHOP,The shop sells Chests instead of items and weapons

@@ -33,6 +33,81 @@ const BS_TIER_LADDER = [Tier.COMMON, TIER_BS_GREEN, Tier.UNCOMMON, TIER_BS_ORANG
 						Tier.RARE, Tier.LEGENDARY, TIER_BS_PINK, TIER_BS_GOLD]
 const VANILLA_TIER_LADDER = [Tier.COMMON, Tier.UNCOMMON, Tier.RARE, Tier.LEGENDARY]
 
+# Gourmet DLC - The P2W chest system. Chests are deliberately absent from every
+# registry (items/weapons/consumables arrays), so nothing but his own shop can
+# ever roll one; they load on demand from the generated data file.
+const P2WData = preload("res://items/custom/p2w/p2w_data.gd")
+var _p2w_chests = {}
+
+
+func get_p2w_chest(rung: int) -> ItemData:
+	if not _p2w_chests.has(rung):
+		_p2w_chests[rung] = load(P2WData.CHEST_PATHS[rung])
+	return _p2w_chests[rung]
+
+
+# The chest rarity roll rides the same wave-gated ladder walk the Blacksmith's
+# weapons use (get_tier_from_wave with the ladder flag), then maps the rolled
+# tier int back to its chest rung.
+func get_p2w_chest_for_wave(wave: int, player_index: int, increase_tier: int = 0) -> ItemData:
+	var chest_tier = get_tier_from_wave(wave, player_index, increase_tier, true)
+	var rung: int = 1
+	for r in P2WData.RUNG_TIERS:
+		if P2WData.RUNG_TIERS[r] == chest_tier:
+			rung = r
+	return get_p2w_chest(rung)
+
+
+# What comes out of a chest. Rolled at PURCHASE (the ceremony later only reveals).
+# The odds table is the honest one printed on the chest card. Item buckets come
+# from the locked rarity spread (P2WData.RUNG_BY_ID); weapon pools are the real
+# ladder tiers. An empty bucket walks DOWN one rung until something exists, so a
+# chest can never come up empty.
+func p2w_roll_chest_drop(rung: int, player_index: int, chest_cursed: bool) -> Dictionary:
+	var total: = 0
+	for entry in P2WData.CHEST_ODDS[rung]:
+		total += entry[1]
+	var pick: int = Utils.randi_range(0, total - 1)
+	var out_rung: int = rung
+	for entry in P2WData.CHEST_ODDS[rung]:
+		pick -= entry[1]
+		if pick < 0:
+			out_rung = entry[0]
+			break
+
+	var want_weapon: bool = Utils.randi_range(0, 99) < P2WData.WEAPON_CHANCE
+	var item_cursed: bool = chest_cursed and Utils.randi_range(0, 99) < P2WData.CURSED_ITEM_CHANCE
+
+	var probe: int = out_rung
+	while probe >= 1:
+		var ladder_tier: int = P2WData.RUNG_TIERS[probe]
+		if want_weapon:
+			var weapon_pool: = []
+			for weapon in weapons:
+				if weapon.tier == ladder_tier and ProgressData.weapons_unlocked.has(weapon.weapon_id_hash):
+					weapon_pool.push_back(weapon)
+			if not weapon_pool.empty():
+				var rolled_weapon = Utils.get_rand_element(weapon_pool)
+				return {"kind": "weapon", "id": rolled_weapon.my_id, "item_cursed": item_cursed}
+		var item_pool: = []
+		for item in items:
+			if not item.can_be_looted:
+				continue
+			if int(P2WData.RUNG_BY_ID.get(item.my_id, 0)) != probe:
+				continue
+			if item.max_nb != - 1 and RunData.get_nb_item(item.my_id_hash, player_index) >= item.max_nb:
+				continue
+			item_pool.push_back(item)
+		if not item_pool.empty():
+			var rolled_item = Utils.get_rand_element(item_pool)
+			return {"kind": "item", "id": rolled_item.my_id, "item_cursed": item_cursed}
+		# nothing at this rung for this roll: a weapon-roll falls back to items at
+		# the same rung first (loop above), then the whole probe steps down
+		want_weapon = false
+		probe -= 1
+	# unreachable in practice (rung 1 always has uncapped items), but never crash a shop
+	return {"kind": "item", "id": "item_potato", "item_cursed": false}
+
 const TIER_BS_GREEN_COLOR = Color(122.0 / 255, 219.0 / 255, 88.0 / 255, 1)
 const TIER_BS_ORANGE_COLOR = Color(0.0 / 255, 210.0 / 255, 190.0 / 255, 1)  # teal (was orange - too close to gold, user 2026-08-10)
 const TIER_BS_PINK_COLOR = Color(255.0 / 255, 105.0 / 255, 199.0 / 255, 1)
@@ -310,6 +385,15 @@ func get_nb_upgrade_picks(player_index: int) -> int:
 
 
 func get_player_shop_items(wave: int, player_index: int, args: ItemServiceGetShopItemsArgs) -> Array:
+	# Gourmet DLC - The P2W: his shop sells ONLY Chests. Every slot rolls a chest
+	# rarity on the extended ladder and returns early, so guaranteed items, the
+	# weapon quota, the Mime mirror and the spawner floor never apply to him.
+	if RunData.is_p2w(player_index):
+		var chest_offers = []
+		for i in args.count:
+			chest_offers.push_back([get_p2w_chest_for_wave(wave, player_index, args.increase_tier), wave])
+		return chest_offers
+
 	var new_items: = []
 	var nb_weapons_guaranteed = 0
 	var nb_weapons_added = 0
@@ -700,7 +784,9 @@ func get_tier_from_wave(wave: int, player_index: int, increase_tier: = 0, use_bs
 	# so letting level-up upgrades roll them returns null from get_rand_element and
 	# the card renders the scene's placeholder labels before crashing on null.
 	var bs_tier_char = RunData.get_player_character(player_index)
-	var ladder: Array = BS_TIER_LADDER if (use_bs_ladder and bs_tier_char != null and bs_tier_char.my_id == "character_blacksmith") else VANILLA_TIER_LADDER
+	# P2W rides the same ladder for his CHEST rarity roll (his shop never rolls
+	# weapons or items directly, so this cannot leak tier-7..10 into other pools).
+	var ladder: Array = BS_TIER_LADDER if (use_bs_ladder and bs_tier_char != null and (bs_tier_char.my_id == "character_blacksmith" or bs_tier_char.my_id == "character_p2w")) else VANILLA_TIER_LADDER
 
 	var tier: int = Tier.COMMON
 	for pos in range(ladder.size() - 1, - 1, - 1):

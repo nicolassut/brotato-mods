@@ -154,7 +154,10 @@ detect_3d=false
 svg/scale=1.0
 """)
 
-    csv_rows = [("EFFECT_P2W_CHEST_CURSE",
+    csv_rows = [("P2W_OPEN", "OPEN"),
+                ("P2W_CHESTS", "Chests opened: {0}"),
+                ("EFFECT_P2W_SHOP", "The shop sells Chests instead of items and weapons"),
+                ("EFFECT_P2W_CHEST_CURSE",
                  f"{CURSED_CHEST_CHANCE}% chance to be cursed when bought - "
                  f"each item inside is then {CURSED_ITEM_CHANCE}% likely to come out cursed")]
     for rung in range(1, 9):

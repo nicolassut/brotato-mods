@@ -83,6 +83,8 @@ POOLS = {
  "special":     ["knife","stick","plank","rock","fist","hand","screwdriver","scissors",
                  "spear","torch","hatchet","dagger","fighting_stick","pistol","slingshot",
                  "smg","wand","taser","crossbow","revolver"],
+ "p2w":         ["pistol","smg","knife","stick","slingshot","wand","taser","scissors",
+                 "pizza_cutter","champagne_popper"],
  "freeloader":  ["knife","stick","plank","rock","fist","hand","screwdriver","scissors",
                  "spear","torch","hatchet","dagger","fighting_stick","pistol","slingshot",
                  "smg","wand","taser","crossbow","revolver"],
@@ -123,6 +125,7 @@ TRACKING = {"gourmet": "GOURMET_APPETITE_GAINED",
             "ruminant": "RUMINANT_CHEWS",            # extra chews from the echo chain
             "blacksmith": "BLACKSMITH_FORGES",       # weapons forged
             "mime": "MIME_DUPLICATIONS",             # magic-mirror duplications
+            "p2w": "P2W_CHESTS",                     # chests opened (run_data.p2w_open_chest)
             "girly": "GIRLY_PANICS"}                 # panic-teleport count
 
 # banned shop items per character (balance law: Dishwasher bans Cooler Box)
@@ -303,11 +306,16 @@ CHARS = [
    [("LINE","EFFECT_DEBT_EXPLAIN",2),
     ("stat_max_hp",60),("stat_speed",20),("stat_percent_damage",50),
     ("stat_luck",50),("stat_hp_regeneration",5)],[CREDIT_CARD, BANK_LOAN]),
+ # Phase 2 MINIMAL entry (chest engine testing) - full kit/card/art comes in Phase 4
+ # of issues/brotato-mods/p2w-character. Art is the Freeloader placeholder.
+ ("p2w","The P2W","character_p2w",[],
+   [("LINE","EFFECT_P2W_SHOP",0),
+    ("stat_luck",10)],[]),
 ]
 
 # explicit ext ids for characters added after the original 14 (base+i past 824
 # collides with stat resources - stat_appetite is id=825)
-EXT_IDS = {"girly": 998, "freeloader": 1004, "special": 1005, "test_debt": 1008}  # test_debt is DEBUG
+EXT_IDS = {"girly": 998, "freeloader": 1004, "special": 1005, "test_debt": 1008, "p2w": 1293}  # 1013-1292 = blacksmith ladder weapons  # test_debt is DEBUG
 
 SKINNED = {"zombie","snail","mole"}
 LEGS_MOD = {
