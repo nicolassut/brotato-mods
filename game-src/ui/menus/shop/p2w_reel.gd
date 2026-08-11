@@ -429,8 +429,11 @@ func _on_landed() -> void :
 	# free space so it never covers other UI; taller cards scroll
 	if drop_data != null:
 		var view_now: Vector2 = get_viewport_rect().size
-		var avail_h: float = _window.rect_position.y - 40.0
-		var card_w: float = 520.0
+		# top margin keeps the card clear of the wave counter; it bottom-aligns
+		# against the strip after shrinking, so short cards hug the reel
+		var card_top: float = 200.0
+		var avail_h: float = _window.rect_position.y - card_top - 16.0
+		var card_w: float = 560.0
 		_drop_card = Panel.new()
 		var card_style: = StyleBoxFlat.new()
 		card_style.bg_color = Color(0.055, 0.055, 0.055, 0.97)
@@ -439,7 +442,7 @@ func _on_landed() -> void :
 		card_style.set_border_width_all(3)
 		card_style.set_corner_radius_all(8)
 		_drop_card.add_stylebox_override("panel", card_style)
-		_drop_card.rect_position = Vector2((view_now.x - card_w) / 2.0, 20.0)
+		_drop_card.rect_position = Vector2((view_now.x - card_w) / 2.0, card_top)
 		_drop_card.rect_size = Vector2(card_w, avail_h)
 		add_child(_drop_card)
 		_drop_card_scroll = ScrollContainer.new()
@@ -449,7 +452,12 @@ func _on_landed() -> void :
 		_drop_card_desc = preload("res://ui/menus/shop/item_description.tscn").instance()
 		_drop_card_desc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_drop_card_scroll.add_child(_drop_card_desc)
-		_drop_card_desc.set_item(drop_data, _player_index, 1)
+		# the P2W sees the ASSIGNED rarity on the card (retiered display copy);
+		# everyone else keeps the vanilla name color, per the coop rules
+		var card_data = drop_data
+		if RunData.is_p2w(_player_index):
+			card_data = ItemService.p2w_retier_item(drop_data)
+		_drop_card_desc.set_item(card_data, _player_index, 1)
 		call_deferred("_shrink_drop_card")
 
 	# the vanilla crate choice: Take, or Recycle for materials
@@ -484,15 +492,18 @@ func _on_landed() -> void :
 		_recycle_button.call_deferred("grab_focus")
 
 
-# once the description has laid itself out, shrink the panel down to the
-# content height when it is shorter than the cap - no dead space, no overlap
+# once the description has laid itself out, shrink the panel to its REAL
+# content height (rect_size lies inside a ScrollContainer - it reports the
+# expanded scroll height, which is why the card used to sit half empty) and
+# bottom-align it just above the strip, far from the wave counter
 func _shrink_drop_card() -> void :
 	if _drop_card == null or _drop_card_desc == null:
 		return
-	var content_h: float = _drop_card_desc.rect_size.y + 24.0
+	var content_h: float = _drop_card_desc.get_combined_minimum_size().y + 24.0
 	if content_h < _drop_card.rect_size.y:
 		_drop_card.rect_size.y = content_h
 		_drop_card_scroll.rect_size.y = content_h - 24.0
+	_drop_card.rect_position.y = _window.rect_position.y - 16.0 - _drop_card.rect_size.y
 
 
 # ---- outcomes -----------------------------------------------------------------
