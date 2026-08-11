@@ -146,7 +146,14 @@ func _show_p2w_lootbox(consumable_data: ConsumableData, p2w_rung: int) -> void :
 		return
 	if not RunData.is_coop_run:
 		var reel = preload("res://ui/menus/shop/p2w_reel.gd").new()
-		get_tree().current_scene.add_child(reel)
+		# host the reel inside the upgrades UI's own Control tree: the scene root
+		# is the game WORLD, where the reel rendered under the stats sheet, off
+		# the UI coordinate space, and without the game theme (gray buttons)
+		var reel_host: Control = self
+		while reel_host.get_parent() != null and reel_host.get_parent() is Control:
+			reel_host = reel_host.get_parent()
+		reel_host.add_child(reel)
+		reel.raise()
 		reel.setup(entry, player_index, true)
 		yield(reel, "reel_done")
 		reel.queue_free()
