@@ -35,6 +35,9 @@ const ACCEL_TIME: = 0.4
 # cards CREEP past the ticker for seconds - the near-miss agony is the point
 const DECEL_TIME: = 6.5
 const ACCEL_FRACTION: = 0.45
+# vertical headroom inside the clip window: without it the winner's pop-scale
+# grew past the clip rect and its top/bottom borders were sliced off
+const STRIP_PAD: = 26.0
 
 var _entry: Dictionary
 var _player_index: int = 0
@@ -73,8 +76,8 @@ func setup(entry: Dictionary, player_index: int) -> void :
 	var window_w: float = min(view_size.x * 0.86, 1240.0)
 
 	_window = Control.new()
-	_window.rect_size = Vector2(window_w, CARD)
-	_window.rect_position = Vector2((view_size.x - window_w) / 2.0, (view_size.y - CARD) / 2.0 - 30)
+	_window.rect_size = Vector2(window_w, CARD + 2.0 * STRIP_PAD)
+	_window.rect_position = Vector2((view_size.x - window_w) / 2.0, (view_size.y - CARD) / 2.0 - 30 - STRIP_PAD)
 	_window.rect_clip_content = true
 	_window.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_window)
@@ -86,14 +89,14 @@ func setup(entry: Dictionary, player_index: int) -> void :
 
 	var ticker: = ColorRect.new()
 	ticker.color = Color(1, 1, 1, 0.9)
-	ticker.rect_size = Vector2(3, CARD + 18)
-	ticker.rect_position = Vector2((view_size.x - 3) / 2.0, _window.rect_position.y - 9)
+	ticker.rect_size = Vector2(3, CARD + 2.0 * STRIP_PAD)
+	ticker.rect_position = Vector2((view_size.x - 3) / 2.0, _window.rect_position.y)
 	ticker.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(ticker)
 
 	_reveal_label = Label.new()
 	_reveal_label.align = Label.ALIGN_CENTER
-	_reveal_label.rect_position = Vector2(0, _window.rect_position.y + CARD + 34)
+	_reveal_label.rect_position = Vector2(0, _window.rect_position.y + CARD + 2.0 * STRIP_PAD + 14)
 	_reveal_label.rect_size = Vector2(view_size.x, 40)
 	_reveal_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_reveal_label)
@@ -102,7 +105,7 @@ func setup(entry: Dictionary, player_index: int) -> void :
 	_open_button = Button.new()
 	_open_button.text = tr("P2W_OPEN")
 	_open_button.rect_min_size = Vector2(220, 56)
-	_open_button.rect_position = Vector2((view_size.x - 220) / 2.0, _window.rect_position.y + CARD + 104)
+	_open_button.rect_position = Vector2((view_size.x - 220) / 2.0, _window.rect_position.y + CARD + 2.0 * STRIP_PAD + 84)
 	var _e1 = _open_button.connect("pressed", self, "_on_open_pressed")
 	add_child(_open_button)
 
@@ -193,7 +196,7 @@ func _fill_strip() -> void :
 			var filler: Dictionary = ItemService.p2w_roll_chest_drop(chest_rung, _player_index, false)
 			var resolved_f: Array = _rung_of_drop(filler)
 			card = _make_card(resolved_f[0], resolved_f[1], false)
-		card.rect_position = Vector2(i * (CARD + CARD_GAP), 0)
+		card.rect_position = Vector2(i * (CARD + CARD_GAP), STRIP_PAD)
 		_strip.add_child(card)
 
 
@@ -238,6 +241,11 @@ func _process(_delta: float) -> void :
 	var ticker_in_window: float = _window.rect_size.x / 2.0
 	var card_under: int = int(floor((ticker_in_window - _strip.rect_position.x) / (CARD + CARD_GAP)))
 	if card_under != _last_tick_card:
+		# the card under the ticker glows while everything else sits at neutral
+		if _last_tick_card >= 0 and _last_tick_card < _strip.get_child_count():
+			_strip.get_child(_last_tick_card).modulate = Color(1, 1, 1)
+		if card_under >= 0 and card_under < _strip.get_child_count():
+			_strip.get_child(card_under).modulate = Color(1.35, 1.35, 1.35)
 		_last_tick_card = card_under
 		_tick_sound.pitch_scale = rand_range(0.92, 1.08)
 		_tick_sound.play()
@@ -249,6 +257,7 @@ func _on_landed() -> void :
 	_land_sound.play()
 
 	for card in _strip.get_children():
+		card.modulate = Color(1, 1, 1)
 		if card != _winner_panel:
 			card.modulate = Color(0.45, 0.45, 0.45)
 	# the winner gets a thick, unmissable frame: cursed purple, or its rung color
@@ -285,7 +294,7 @@ func _on_landed() -> void :
 		refund = ItemService.get_recycling_value(RunData.current_wave, drop_data.value, _player_index, drop_data is WeaponData)
 	_recycle_button.text = tr("MENU_RECYCLE") + " (+" + str(refund) + ")"
 	var view_size: Vector2 = get_viewport_rect().size
-	var buttons_y: float = _window.rect_position.y + CARD + 104
+	var buttons_y: float = _window.rect_position.y + CARD + 2.0 * STRIP_PAD + 84
 	_take_button.rect_position = Vector2(view_size.x / 2.0 - 232, buttons_y)
 	_recycle_button.rect_position = Vector2(view_size.x / 2.0 + 12, buttons_y)
 	_take_button.visible = true
