@@ -27,6 +27,9 @@ OUT = f"{DEC}/items/custom/p2w"
 RUNG_TIERS = {1: 0, 2: 7, 3: 1, 4: 8, 5: 2, 6: 3, 7: 9, 8: 10}
 RUNG_NAMES = {1: "White", 2: "Green", 3: "Blue", 4: "Teal",
               5: "Purple", 6: "Red", 7: "Pink", 8: "Gold"}
+# engine ladder colors (item_service.gd) - crates tint toward these
+RUNG_COLORS = {1: (230, 230, 230), 2: (122, 219, 88), 3: (90, 190, 255), 4: (0, 210, 190),
+               5: (173, 90, 255), 6: (255, 59, 59), 7: (255, 105, 199), 8: (255, 205, 60)}
 VALUES = {1: 12, 2: 20, 3: 32, 4: 45, 5: 60, 6: 80, 7: 105, 8: 135}
 WEAPON_CHANCE = 30       # % of drops that are weapons
 CURSED_CHEST_CHANCE = 10  # % rolled at purchase (Abyssal owners only)
@@ -60,9 +63,29 @@ custom_args = [  ]
 """
 
 
+def tint_crate(src_png, dst_png, rgb):
+    """Rarity-tint the crate: luminance x rung color, dark outline pixels stay
+    dark, alpha preserved. White rung keeps the crate nearly untouched."""
+    from PIL import Image
+    img = Image.open(src_png).convert("RGBA")
+    px = img.load()
+    w, h = img.size
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            if a == 0:
+                continue
+            lum = (r * 299 + g * 587 + b * 114) // 1000
+            if lum < 40:  # outline stays black
+                continue
+            f = lum / 255.0
+            px[x, y] = (int(rgb[0] * f), int(rgb[1] * f), int(rgb[2] * f), a)
+    img.save(dst_png)
+
+
 def chest_tres(rung, n_effects):
     ext = ['[ext_resource path="res://items/global/item_data.gd" type="Script" id=1]',
-           '[ext_resource path="res://items/custom/p2w/chest.png" type="Texture" id=2]']
+           f'[ext_resource path="res://items/custom/p2w/chest_{rung}/chest_{rung}.png" type="Texture" id=2]']
     for i in range(n_effects):
         ext.append(f'[ext_resource path="res://items/custom/p2w/chest_{rung}/chest_{rung}_effect_{i}.tres" type="Resource" id={3 + i}]')
     effects = ", ".join(f"ExtResource( {3 + i} )" for i in range(n_effects))
@@ -106,18 +129,12 @@ def csv_update(rows):
         csv.writer(f).writerows(existing)
 
 
-def main():
-    spread = json.load(open(os.path.join(HERE, "rarity_spread.json")))
-    assert spread.get("locked"), "rarity spread must be locked before building chests"
-
-    os.makedirs(OUT, exist_ok=True)
-    shutil.copy(f"{DEC}/items/consumables/item_box/item_box.png", f"{OUT}/chest.png")
-    # .png.import sidecar (same template build_food_system.write_png_import uses)
-    res_path = "res://items/custom/p2w/chest.png"
-    sidecar = f"{OUT}/chest.png.import"
-    if not os.path.exists(sidecar):
-        stex = f"res://.import/chest.png-{hashlib.md5(res_path.encode()).hexdigest()}.stex"
-        open(sidecar, "w").write(f"""[remap]
+def write_import_sidecar(dest_png, res_path):
+    sidecar = dest_png + ".import"
+    if os.path.exists(sidecar):
+        return
+    stex = f"res://.import/{os.path.basename(dest_png)}-{hashlib.md5(res_path.encode()).hexdigest()}.stex"
+    open(sidecar, "w").write(f"""[remap]
 
 importer="texture"
 type="StreamTexture"
@@ -154,7 +171,22 @@ detect_3d=false
 svg/scale=1.0
 """)
 
+
+def main():
+    spread = json.load(open(os.path.join(HERE, "rarity_spread.json")))
+    assert spread.get("locked"), "rarity spread must be locked before building chests"
+
+    os.makedirs(OUT, exist_ok=True)
+    shutil.copy(f"{DEC}/items/consumables/item_box/item_box.png", f"{OUT}/chest.png")
+    write_import_sidecar(f"{OUT}/chest.png", "res://items/custom/p2w/chest.png")
+    for rung in range(1, 9):
+        os.makedirs(f"{OUT}/chest_{rung}", exist_ok=True)
+        tint_crate(f"{OUT}/chest.png", f"{OUT}/chest_{rung}/chest_{rung}.png", RUNG_COLORS[rung])
+        write_import_sidecar(f"{OUT}/chest_{rung}/chest_{rung}.png",
+                             f"res://items/custom/p2w/chest_{rung}/chest_{rung}.png")
+
     csv_rows = [("P2W_OPEN", "OPEN"),
+                ("P2W_CURSED", "CURSED"),
                 ("P2W_CHESTS", "Chests opened: {0}"),
                 ("EFFECT_P2W_SHOP", "The shop sells Chests instead of items and weapons"),
                 ("EFFECT_P2W_CHEST_CURSE",

@@ -1,6 +1,9 @@
 class_name BaseShop
 extends Control
 
+# Gourmet DLC - P2W chest-opening ceremony overlay
+const P2WReel = preload("res://ui/menus/shop/p2w_reel.gd")
+
 export (Array, Resource) var combine_sounds
 export (Array, Resource) var recycle_sounds
 export var go_text: = "MENU_GO"
@@ -521,6 +524,29 @@ func set_reroll_button_price(player_index: int) -> void :
 		break
 
 
+# Gourmet DLC - P2W: play the case-opening reel, then grant the pre-rolled drop.
+# Coroutine: the shop stays alive underneath; if it is freed mid-reel (player left)
+# the yield never resumes and the pending entry is granted by the next fill's flush.
+# Coop skips the ceremony - a fullscreen solo reel would block the other players.
+func _p2w_run_reel_and_open(shop_item: ShopItem, player_index: int) -> void :
+	var p2w_uid: int = shop_item.p2w_pending_uid
+	var p2w_entry: Dictionary = RunData.p2w_peek_pending(player_index, p2w_uid)
+	if not p2w_entry.empty() and not RunData.is_coop_run:
+		var reel = P2WReel.new()
+		add_child(reel)
+		reel.setup(p2w_entry, player_index)
+		yield(reel, "reel_finished")
+		reel.queue_free()
+	var p2w_granted = RunData.p2w_open_chest_uid(player_index, p2w_uid)
+	for p2w_offer in _shop_items[player_index]:
+		if p2w_offer[0].my_id == shop_item.item_data.my_id:
+			_shop_items[player_index].erase(p2w_offer)
+			break
+	GourmetTracker.ev("p2w_chest_open", {"p": player_index, "got": p2w_granted.my_id if p2w_granted else "null", "cursed_chest": p2w_entry.get("cursed", false)})
+	_update_stats(player_index)
+	_get_shop_items_container(player_index).reload_shop_items()
+
+
 func on_shop_item_bought(shop_item: ShopItem, player_index: int) -> void :
 	# Gourmet DLC - P2W: chests buy in two stages. Press 1 pays and ARMS the card in
 	# place (contents + curse already rolled and serialized by p2w_arm_chest, so a
@@ -528,14 +554,7 @@ func on_shop_item_bought(shop_item: ShopItem, player_index: int) -> void :
 	# a chest is not a real inventory item.
 	if RunData.is_p2w(player_index) and shop_item.item_data.my_id.begins_with("item_p2w_chest_"):
 		if shop_item.p2w_pending_uid >= 0:
-			var p2w_granted = RunData.p2w_open_chest_uid(player_index, shop_item.p2w_pending_uid)
-			for p2w_offer in _shop_items[player_index]:
-				if p2w_offer[0].my_id == shop_item.item_data.my_id:
-					_shop_items[player_index].erase(p2w_offer)
-					break
-			GourmetTracker.ev("p2w_chest_open", {"p": player_index, "got": p2w_granted.my_id if p2w_granted else "null"})
-			_update_stats(player_index)
-			_get_shop_items_container(player_index).reload_shop_items()
+			_p2w_run_reel_and_open(shop_item, player_index)
 		else:
 			RunData.remove_currency(shop_item.value, player_index)
 			RunData.get_player_effects(player_index)[Keys.shop_purchases_hash] += 1
@@ -545,7 +564,7 @@ func on_shop_item_bought(shop_item: ShopItem, player_index: int) -> void :
 			GourmetTracker.ev("p2w_chest_buy", {"p": player_index, "rung": p2w_rung, "cursed": p2w_entry.cursed, "paid": shop_item.value})
 		return
 
-	# Gourmet DLC - Minimalist: can hold a maximum of 6 items
+	# Gourmet DLC - Minimalist: can hold a maximum of 6 items (P2W branch above)
 	var minimalist_char = RunData.get_player_character(player_index)
 	if minimalist_char != null and minimalist_char.my_id == "character_minimalist" and shop_item.item_data.get_category() == Category.ITEM:
 		var nb_items_held: = 0

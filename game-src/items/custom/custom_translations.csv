@@ -293,3 +293,4 @@ EFFECT_P2W_CHEST_ODDS_8,Contains one item (70%) or weapon (30%): 100% Gold
 P2W_OPEN,OPEN
 P2W_CHESTS,Chests opened: {0}
 EFFECT_P2W_SHOP,The shop sells Chests instead of items and weapons
+P2W_CURSED,CURSED

@@ -1737,6 +1737,15 @@ func p2w_arm_chest(player_index: int, rung: int) -> Dictionary:
 	return drop
 
 
+# Read-only look at a pending chest (the reel needs rung/drop/curse to stage the
+# ceremony BEFORE the grant happens).
+func p2w_peek_pending(player_index: int, uid: int) -> Dictionary:
+	for entry in players_data[player_index].p2w_pending:
+		if int(entry.get("uid", - 1)) == uid:
+			return entry
+	return {}
+
+
 func p2w_open_chest_uid(player_index: int, uid: int) -> ItemParentData:
 	var pending: Array = players_data[player_index].p2w_pending
 	for i in pending.size():
