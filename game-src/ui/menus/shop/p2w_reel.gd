@@ -21,18 +21,20 @@ signal reel_done(outcome)
 const CARD: = 150.0
 const CARD_GAP: = 10.0
 const ICON: = 104.0
-const N_CARDS: = 44
-const WINNER_INDEX: = 36
+const N_CARDS: = 80
+const WINNER_INDEX: = 70
 # park deep enough that the idle window is full of cards on BOTH sides of the
 # ticker (2 left the strip's real edge visible on wide screens)
 const IDLE_INDEX: = 6
 # two-phase spin (user tuning 2026-08-11): a quick quadratic ramp-up, then a
 # long cubic coast-down - reads as "accelerates, whirls, slowly lands"
-const ACCEL_TIME: = 0.6
+# the OPEN press YANKS the strip: almost half the whole run blurs past in the
+# first 0.4s, then the quartic coast-down takes over
+const ACCEL_TIME: = 0.4
 # quartic coast-down: most of the distance flies by early, then the last 2-3
 # cards CREEP past the ticker for seconds - the near-miss agony is the point
 const DECEL_TIME: = 6.5
-const ACCEL_FRACTION: = 0.16
+const ACCEL_FRACTION: = 0.45
 
 var _entry: Dictionary
 var _player_index: int = 0
