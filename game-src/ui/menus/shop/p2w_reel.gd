@@ -29,7 +29,9 @@ const IDLE_INDEX: = 6
 # two-phase spin (user tuning 2026-08-11): a quick quadratic ramp-up, then a
 # long cubic coast-down - reads as "accelerates, whirls, slowly lands"
 const ACCEL_TIME: = 0.6
-const DECEL_TIME: = 5.1
+# quartic coast-down: most of the distance flies by early, then the last 2-3
+# cards CREEP past the ticker for seconds - the near-miss agony is the point
+const DECEL_TIME: = 6.5
 const ACCEL_FRACTION: = 0.16
 
 var _entry: Dictionary
@@ -223,7 +225,7 @@ func _on_open_pressed() -> void :
 func _on_accel_done() -> void :
 	_tween.disconnect("tween_all_completed", self, "_on_accel_done")
 	_tween.interpolate_property(_strip, "rect_position:x", _strip.rect_position.x, _spin_end_x, DECEL_TIME,
-			Tween.TRANS_CUBIC, Tween.EASE_OUT)
+			Tween.TRANS_QUART, Tween.EASE_OUT)
 	_tween.start()
 	var _err = _tween.connect("tween_all_completed", self, "_on_landed")
 
