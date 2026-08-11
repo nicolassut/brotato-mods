@@ -30,7 +30,8 @@ RUNG_NAMES = {1: "White", 2: "Green", 3: "Blue", 4: "Teal",
 # engine ladder colors (item_service.gd) - crates tint toward these
 RUNG_COLORS = {1: (230, 230, 230), 2: (122, 219, 88), 3: (90, 190, 255), 4: (0, 210, 190),
                5: (173, 90, 255), 6: (255, 59, 59), 7: (255, 105, 199), 8: (255, 205, 60)}
-VALUES = {1: 12, 2: 20, 3: 32, 4: 45, 5: 60, 6: 80, 7: 105, 8: 135}
+# +20% balance pass (user 2026-08-11): chests were a little too valuable
+VALUES = {1: 14, 2: 24, 3: 38, 4: 54, 5: 72, 6: 96, 7: 126, 8: 162}
 WEAPON_CHANCE = 30       # % of drops that are weapons
 CURSED_ITEM_CHANCE = 33   # % per item out of a cursed chest
 
