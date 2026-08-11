@@ -65,6 +65,9 @@ var _ceremony_only: bool = false
 # glow up the ladder, radiant rays at gold
 var _glow_cache: = {}
 const GLOW_STRENGTH = {1: 0.0, 2: 0.22, 3: 0.32, 4: 0.42, 5: 0.55, 6: 0.7, 7: 0.85, 8: 1.0}
+# the animated aura around the WON card: appears on landing, spins and breathes
+var _outer_glow: TextureRect
+var _glow_phase: float = 0.0
 
 
 func setup(entry: Dictionary, player_index: int, ceremony_only: bool = false) -> void :
@@ -339,6 +342,14 @@ func _on_accel_done() -> void :
 func _process(_delta: float) -> void :
 	if _strip == null:
 		return
+	if _landed:
+		# post-landing: the outer aura slowly spins and breathes
+		if _outer_glow != null:
+			_glow_phase += _delta
+			_outer_glow.rect_rotation = _glow_phase * 10.0
+			var glow_pulse: float = 1.0 + 0.07 * sin(_glow_phase * 2.2)
+			_outer_glow.rect_scale = Vector2(glow_pulse, glow_pulse)
+		return
 	var ticker_in_window: float = _window.rect_size.x / 2.0
 	var card_under: int = int(floor((ticker_in_window - _strip.rect_position.x) / (CARD + CARD_GAP)))
 	if card_under != _last_tick_card:
@@ -353,7 +364,6 @@ func _process(_delta: float) -> void :
 
 
 func _on_landed() -> void :
-	set_process(false)
 	_landed = true
 	_land_sound.play()
 
@@ -380,6 +390,24 @@ func _on_landed() -> void :
 
 	var resolved: Array = _rung_of_drop(_entry)
 	var drop_data = resolved[0]
+
+	# animated OUTER aura around the winning box (cursed drops glow curse-purple,
+	# via the purple rung's texture). Lives on the root, tucked under the strip
+	# window, so it halos past the clip edges instead of being sliced by them.
+	var aura_rung: int = 5 if bool(_entry.get("item_cursed", false)) else int(resolved[1])
+	var aura_tex: Texture = _get_glow_texture(aura_rung)
+	if aura_tex != null:
+		_outer_glow = TextureRect.new()
+		_outer_glow.texture = aura_tex
+		_outer_glow.expand = true
+		var aura_size: float = CARD * 2.1
+		_outer_glow.rect_size = Vector2(aura_size, aura_size)
+		_outer_glow.rect_pivot_offset = Vector2(aura_size / 2.0, aura_size / 2.0)
+		_outer_glow.rect_position = _window.rect_position + _strip.rect_position + _winner_panel.rect_position + Vector2(CARD / 2.0 - aura_size / 2.0, CARD / 2.0 - aura_size / 2.0)
+		_outer_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_outer_glow)
+		move_child(_outer_glow, _window.get_index())
+
 	var got_name: String = tr(drop_data.name) if drop_data != null else "???"
 	if bool(_entry.get("item_cursed", false)):
 		_reveal_label.add_color_override("font_color", Color(0.68, 0.35, 1.0))
