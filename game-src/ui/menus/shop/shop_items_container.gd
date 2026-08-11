@@ -89,12 +89,13 @@ func on_shop_item_buy_button_pressed(shop_item: ShopItem) -> void :
 		if not _can_item_be_bought(shop_item):
 			return
 
-	# Gourmet DLC - P2W: the first press on a chest ARMS it in place (base_shop
-	# handles payment + roll); deactivating here would kill the OPEN press.
-	var arming_p2w_chest: bool = RunData.is_p2w(player_index) and shop_item.item_data.my_id.begins_with("item_p2w_chest_") and shop_item.p2w_pending_uid < 0
+	# Gourmet DLC - P2W: chest cards are never deactivated here - base_shop owns
+	# their lifecycle (armed cards must survive a cancelled ceremony; they die
+	# only when the drop is taken or recycled).
+	var p2w_chest_press: bool = RunData.is_p2w(player_index) and shop_item.item_data.my_id.begins_with("item_p2w_chest_")
 
 	emit_signal("shop_item_bought", shop_item)
-	if not arming_p2w_chest:
+	if not p2w_chest_press:
 		shop_item.deactivate()
 
 	update_buttons_color()

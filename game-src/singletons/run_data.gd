@@ -1746,6 +1746,27 @@ func p2w_peek_pending(player_index: int, uid: int) -> Dictionary:
 	return {}
 
 
+# Claim a pending drop for the SHOP path: remove + resolve + curse + count, but
+# do NOT grant - base_shop routes the grant through its own buy pipeline so the
+# gear-container UI updates (granting from here left the item invisible in-shop).
+func p2w_claim_drop(player_index: int, uid: int) -> ItemParentData:
+	var pending: Array = players_data[player_index].p2w_pending
+	for i in pending.size():
+		if int(pending[i].get("uid", - 1)) == uid:
+			var entry: Dictionary = pending[i]
+			pending.remove(i)
+			var claim_data: ItemParentData = null
+			if entry.kind == "weapon":
+				claim_data = ItemService.get_element_safe(ItemService.weapons, entry.id)
+			else:
+				claim_data = ItemService.get_element_safe(ItemService.items, entry.id)
+			if claim_data != null:
+				claim_data = _p2w_curse_drop(claim_data, entry, player_index)
+			add_tracked_value(player_index, Keys.generate_hash("character_p2w"), 1)
+			return claim_data
+	return null
+
+
 func p2w_open_chest_uid(player_index: int, uid: int) -> ItemParentData:
 	var pending: Array = players_data[player_index].p2w_pending
 	for i in pending.size():

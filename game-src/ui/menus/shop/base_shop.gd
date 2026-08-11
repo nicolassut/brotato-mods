@@ -524,25 +524,54 @@ func set_reroll_button_price(player_index: int) -> void :
 		break
 
 
-# Gourmet DLC - P2W: play the case-opening reel, then grant the pre-rolled drop.
+# Gourmet DLC - P2W: run the case-opening ceremony, then resolve its outcome.
 # Coroutine: the shop stays alive underneath; if it is freed mid-reel (player left)
 # the yield never resumes and the pending entry is granted by the next fill's flush.
-# Coop skips the ceremony - a fullscreen solo reel would block the other players.
+# Coop skips the ceremony (a fullscreen solo reel would block the other players)
+# and takes the drop directly. "cancel" (ESC before the spin) leaves the chest
+# armed on its card for another go.
 func _p2w_run_reel_and_open(shop_item: ShopItem, player_index: int) -> void :
 	var p2w_uid: int = shop_item.p2w_pending_uid
 	var p2w_entry: Dictionary = RunData.p2w_peek_pending(player_index, p2w_uid)
-	if not p2w_entry.empty() and not RunData.is_coop_run:
+	if p2w_entry.empty():
+		return
+	var outcome: String = "take"
+	if not RunData.is_coop_run:
 		var reel = P2WReel.new()
 		add_child(reel)
 		reel.setup(p2w_entry, player_index)
-		yield(reel, "reel_finished")
+		outcome = yield(reel, "reel_done")
 		reel.queue_free()
-	var p2w_granted = RunData.p2w_open_chest_uid(player_index, p2w_uid)
+	if outcome == "cancel":
+		return
+
+	var drop_data = RunData.p2w_claim_drop(player_index, p2w_uid)
+	if drop_data == null:
+		return
+	if outcome == "recycle":
+		var p2w_refund: int = ItemService.get_recycling_value(RunData.current_wave, drop_data.value, player_index, drop_data is WeaponData)
+		RunData.add_gold(p2w_refund, player_index)
+	elif drop_data is WeaponData:
+		# route through the shop's own pipeline so the gear container updates; a
+		# weapon that can neither fit nor merge converts to its shop value instead
+		var p2w_slot_max: int = int(RunData.get_player_effect(Keys.weapon_slot_hash, player_index))
+		var p2w_can_merge: bool = false
+		for owned_weapon in RunData.get_player_weapons_ref(player_index):
+			if owned_weapon.my_id == drop_data.my_id and drop_data.upgrades_into != null:
+				p2w_can_merge = true
+		if RunData.get_player_weapons_ref(player_index).size() < p2w_slot_max or p2w_can_merge:
+			buy_weapon(drop_data, player_index)
+		else:
+			RunData.add_gold(drop_data.value, player_index)
+	else:
+		buy_item(drop_data, player_index)
+
+	shop_item.deactivate()
 	for p2w_offer in _shop_items[player_index]:
 		if p2w_offer[0].my_id == shop_item.item_data.my_id:
 			_shop_items[player_index].erase(p2w_offer)
 			break
-	GourmetTracker.ev("p2w_chest_open", {"p": player_index, "got": p2w_granted.my_id if p2w_granted else "null", "cursed_chest": p2w_entry.get("cursed", false)})
+	GourmetTracker.ev("p2w_chest_open", {"p": player_index, "outcome": outcome, "got": drop_data.my_id, "cursed_chest": p2w_entry.get("cursed", false)})
 	_update_stats(player_index)
 	_get_shop_items_container(player_index).reload_shop_items()
 
@@ -562,6 +591,9 @@ func on_shop_item_bought(shop_item: ShopItem, player_index: int) -> void :
 			var p2w_entry: Dictionary = RunData.p2w_arm_chest(player_index, p2w_rung)
 			shop_item.p2w_arm(int(p2w_entry.uid), bool(p2w_entry.cursed))
 			GourmetTracker.ev("p2w_chest_buy", {"p": player_index, "rung": p2w_rung, "cursed": p2w_entry.cursed, "paid": shop_item.value})
+			# the ceremony opens immediately (user spec); cancelling it leaves the
+			# armed card behind, whose next press re-enters the ceremony above
+			_p2w_run_reel_and_open(shop_item, player_index)
 		return
 
 	# Gourmet DLC - Minimalist: can hold a maximum of 6 items (P2W branch above)
