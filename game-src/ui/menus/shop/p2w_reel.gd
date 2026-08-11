@@ -58,9 +58,9 @@ var _spin_end_x: float = 0.0
 var _drop_card: Panel
 var _drop_card_scroll: ScrollContainer
 var _drop_card_desc: Control
-# ceremony-only mode (wave-end lootboxes): no Take/Recycle here - the vanilla
-# item-box choice screen follows; a Continue button closes the reel instead
-var _ceremony_only: bool = false
+# must-resolve mode (wave-end lootboxes): full Take/Recycle UI, but backing out
+# is blocked - a picked-up box has no shop card to stay armed on
+var _block_cancel: bool = false
 # per-rung radial glow textures (built once, cached): nothing at white, growing
 # glow up the ladder, radiant rays at gold
 var _glow_cache: = {}
@@ -70,10 +70,10 @@ var _outer_glow: TextureRect
 var _glow_phase: float = 0.0
 
 
-func setup(entry: Dictionary, player_index: int, ceremony_only: bool = false) -> void :
+func setup(entry: Dictionary, player_index: int, block_cancel: bool = false) -> void :
 	_entry = entry
 	_player_index = player_index
-	_ceremony_only = ceremony_only
+	_block_cancel = block_cancel
 
 	set_anchors_and_margins_preset(Control.PRESET_WIDE)
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -321,9 +321,6 @@ func _fill_strip() -> void :
 # ---- motion -------------------------------------------------------------------
 
 func _on_open_pressed() -> void :
-	if _landed and _ceremony_only:
-		emit_signal("reel_done", "shown")
-		return
 	if _spinning:
 		return
 	_spinning = true
@@ -434,13 +431,6 @@ func _on_landed() -> void :
 		_reveal_label.add_color_override("font_color", ItemService.get_color_from_tier(tier_int))
 		_reveal_label.text = got_name
 
-	if _ceremony_only:
-		# the wave-end choice screen follows with the full card - just a Continue
-		_open_button.text = tr("P2W_CONTINUE")
-		_open_button.visible = true
-		_open_button.call_deferred("grab_focus")
-		return
-
 	# the full item card above the strip (user request), height-capped to the
 	# free space so it never covers other UI; taller cards scroll
 	if drop_data != null:
@@ -525,6 +515,6 @@ func _on_recycle_pressed() -> void :
 
 func _unhandled_input(event: InputEvent) -> void :
 	# before the spin, backing out is allowed: the chest stays armed on its card
-	if event.is_action_pressed("ui_cancel") and not _spinning:
+	if event.is_action_pressed("ui_cancel") and not _spinning and not _block_cancel:
 		get_tree().set_input_as_handled()
-		emit_signal("reel_done", "shown" if _ceremony_only else "cancel")
+		emit_signal("reel_done", "cancel")

@@ -154,13 +154,24 @@ func _show_p2w_lootbox(consumable_data: ConsumableData, p2w_rung: int) -> void :
 			reel_host = reel_host.get_parent()
 		reel_host.add_child(reel)
 		reel.raise()
+		# full reel UI: its own Take/Recycle (user: wave-end must allow recycling);
+		# cancel blocked - a picked-up box has no shop card to fall back to
 		reel.setup(entry, player_index, true)
-		yield(reel, "reel_done")
+		var reel_outcome = yield(reel, "reel_done")
 		reel.queue_free()
+		# route the outcome through the vanilla item-box signals so granting,
+		# recycling value and queue advancement all use the official plumbing
+		_item_data = item_data
+		_consumable_data = consumable_data
+		if reel_outcome == "recycle":
+			emit_signal("item_discard_button_pressed", item_data)
+		else:
+			emit_signal("item_take_button_pressed", item_data)
+		return
+	# coop: no fullscreen reel - the vanilla choice screen with the pre-rolled
+	# drop, rung-colored frame for items, and the weapon slot gate
 	_consumable_data = consumable_data
 	show_item(item_data)
-	# rung-colored frame while still on the lootbox screen: items show their
-	# custom rarity here and ONLY here; weapons keep whatever tier they truly are
 	var frame_tier: int = item_data.tier
 	if not item_data is WeaponData:
 		frame_tier = int(ItemService.P2WData.RUNG_TIERS[int(ItemService.P2WData.RUNG_BY_ID.get(item_data.my_id, 1))])
