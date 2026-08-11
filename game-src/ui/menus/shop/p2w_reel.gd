@@ -515,6 +515,13 @@ func _on_recycle_pressed() -> void :
 
 func _unhandled_input(event: InputEvent) -> void :
 	# before the spin, backing out is allowed: the chest stays armed on its card
-	if event.is_action_pressed("ui_cancel") and not _spinning and not _block_cancel:
-		get_tree().set_input_as_handled()
-		emit_signal("reel_done", "cancel")
+	if event.is_action_pressed("ui_cancel"):
+		if _block_cancel:
+			# wave-end boxes MUST resolve: swallow ESC entirely so nothing behind
+			# the reel (pause, wave-end UI) can react to it either
+			get_tree().set_input_as_handled()
+			return
+		if not _spinning:
+			# shop: backing out is allowed - the chest stays armed on its card
+			get_tree().set_input_as_handled()
+			emit_signal("reel_done", "cancel")
