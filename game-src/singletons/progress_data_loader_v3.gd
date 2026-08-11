@@ -419,6 +419,12 @@ func deserialize_run_state(state: Dictionary) -> Dictionary:
 			var item_data = ItemService.get_element_safe(ItemService.items, shop_item[0].my_id)
 			var weapon_data = ItemService.get_element_safe(ItemService.weapons, shop_item[0].my_id)
 
+			# Gourmet DLC - P2W chests live outside the item registry; without this
+			# fallback a resumed mid-shop save came back with 0 offers (reroll fixed
+			# it because a fresh fill re-rolls chests)
+			if item_data == null and weapon_data == null and str(shop_item[0].my_id).begins_with("item_p2w_chest_"):
+				item_data = ItemService.get_p2w_chest(int(str(shop_item[0].my_id).replace("item_p2w_chest_", "")))
+
 			if item_data != null:
 				item_data = item_data.duplicate()
 				item_data.deserialize_and_merge(shop_item[0])
