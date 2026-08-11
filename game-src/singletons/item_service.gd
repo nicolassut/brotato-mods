@@ -34,12 +34,12 @@ const BS_TIER_LADDER = [Tier.COMMON, TIER_BS_GREEN, Tier.UNCOMMON, TIER_BS_ORANG
 const VANILLA_TIER_LADDER = [Tier.COMMON, Tier.UNCOMMON, Tier.RARE, Tier.LEGENDARY]
 
 const TIER_BS_GREEN_COLOR = Color(122.0 / 255, 219.0 / 255, 88.0 / 255, 1)
-const TIER_BS_ORANGE_COLOR = Color(255.0 / 255, 158.0 / 255, 42.0 / 255, 1)
+const TIER_BS_ORANGE_COLOR = Color(0.0 / 255, 210.0 / 255, 190.0 / 255, 1)  # teal (was orange - too close to gold, user 2026-08-10)
 const TIER_BS_PINK_COLOR = Color(255.0 / 255, 105.0 / 255, 199.0 / 255, 1)
 const TIER_BS_GOLD_COLOR = Color(255.0 / 255, 205.0 / 255, 60.0 / 255, 1)
 
 const TIER_BS_GREEN_COLOR_DARK = Color(12.0 / 255, 26.0 / 255, 9.0 / 255, 1)
-const TIER_BS_ORANGE_COLOR_DARK = Color(33.0 / 255, 20.0 / 255, 5.0 / 255, 1)
+const TIER_BS_ORANGE_COLOR_DARK = Color(4.0 / 255, 26.0 / 255, 24.0 / 255, 1)
 const TIER_BS_PINK_COLOR_DARK = Color(33.0 / 255, 13.0 / 255, 26.0 / 255, 1)
 const TIER_BS_GOLD_COLOR_DARK = Color(33.0 / 255, 26.0 / 255, 7.0 / 255, 1)
 

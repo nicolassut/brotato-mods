@@ -22,7 +22,7 @@ SPREAD = os.path.join(HERE, "rarity_spread.json")
 HOME_RUNG = {0: 1, 1: 3, 2: 5, 3: 6}
 OFFSET = {"S": 2, "A": 1, "B": 0, "C": -1, "D": -2}
 RANK = {"S": 4, "A": 3, "B": 2, "C": 1, "D": 0}
-RUNG_NAME = {1: "White", 2: "Green", 3: "Blue", 4: "Orange",
+RUNG_NAME = {1: "White", 2: "Green", 3: "Blue", 4: "Teal",
              5: "Purple", 6: "Red", 7: "Pink", 8: "Gold"}
 
 
