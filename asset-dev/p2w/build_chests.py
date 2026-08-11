@@ -64,8 +64,9 @@ custom_args = [  ]
 
 
 def tint_crate(src_png, dst_png, rgb):
-    """Rarity-tint the crate: luminance x rung color, dark outline pixels stay
-    dark, alpha preserved. White rung keeps the crate nearly untouched."""
+    """Selective rarity tint (user 2026-08-11: full tint was far too strong).
+    The bright green GEM goes fully to the rung color; the dark green slat
+    interior takes a 45% wash; the wood frame only 25%; outlines untouched."""
     from PIL import Image
     img = Image.open(src_png).convert("RGBA")
     px = img.load()
@@ -79,7 +80,16 @@ def tint_crate(src_png, dst_png, rgb):
             if lum < 40:  # outline stays black
                 continue
             f = lum / 255.0
-            px[x, y] = (int(rgb[0] * f), int(rgb[1] * f), int(rgb[2] * f), a)
+            full = (int(rgb[0] * f), int(rgb[1] * f), int(rgb[2] * f))
+            greenish = g > r * 1.15 and g > b * 1.15
+            if greenish and lum >= 100:      # the gem: hard recolor
+                t = 1.0
+            elif greenish:                   # slat interior: colored glow
+                t = 0.45
+            else:                            # wood frame: subtle wash
+                t = 0.25
+            px[x, y] = (int(r + (full[0] - r) * t), int(g + (full[1] - g) * t),
+                        int(b + (full[2] - b) * t), a)
     img.save(dst_png)
 
 

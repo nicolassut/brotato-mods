@@ -146,6 +146,13 @@ func manage_ban_button_visibility() -> void :
 
 
 func set_shop_item(p_item_data: ItemParentData, p_wave_value: int = RunData.current_wave) -> void :
+	# Gourmet DLC - P2W: shop cards are REUSED nodes. A refill must clear any
+	# armed-chest state, or the stale uid points at an already-flushed entry and
+	# the buy press silently does nothing (the cant-buy-after-reload bug).
+	p2w_pending_uid = - 1
+	p2w_cursed = false
+	if _panel != null:
+		_panel.add_stylebox_override("panel", null)
 	item_data = p_item_data
 	wave_value = p_wave_value
 	value = ItemService.get_value(wave_value, p_item_data.value, player_index, true, p_item_data is WeaponData, p_item_data.my_id_hash)

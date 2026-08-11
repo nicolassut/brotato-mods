@@ -1823,6 +1823,15 @@ func p2w_flush_pending(player_index: int) -> void :
 # Gourmet DLC - run-level check for UI that has no player_index to work with
 # (weapon name suffixes in particular). The extended tier ladder is a property of
 # the run's weapon pool, so if any player is the Blacksmith the 8-step naming applies.
+# The 8-step ladder is a property of any run whose content uses it: the
+# Blacksmith (forging) or the P2W (chest weapon drops).
+func any_player_uses_tier_ladder() -> bool:
+	for i in get_player_count():
+		if is_blacksmith(i) or is_p2w(i):
+			return true
+	return false
+
+
 func any_player_is_blacksmith() -> bool:
 	for i in get_player_count():
 		if is_blacksmith(i):

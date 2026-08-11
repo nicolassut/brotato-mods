@@ -534,6 +534,7 @@ func _p2w_run_reel_and_open(shop_item: ShopItem, player_index: int) -> void :
 	var p2w_uid: int = shop_item.p2w_pending_uid
 	var p2w_entry: Dictionary = RunData.p2w_peek_pending(player_index, p2w_uid)
 	if p2w_entry.empty():
+		shop_item.p2w_pending_uid = - 1  # stale uid self-heal: next press buys normally
 		return
 	var outcome: String = "take"
 	if not RunData.is_coop_run:

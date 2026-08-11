@@ -55,6 +55,9 @@ var _recycle_button: Button
 var _spinning: bool = false
 var _landed: bool = false
 var _spin_end_x: float = 0.0
+var _drop_card: Panel
+var _drop_card_scroll: ScrollContainer
+var _drop_card_desc: Control
 
 
 func setup(entry: Dictionary, player_index: int) -> void :
@@ -288,6 +291,33 @@ func _on_landed() -> void :
 		_reveal_label.add_color_override("font_color", ItemService.get_color_from_tier(tier_int))
 		_reveal_label.text = got_name
 
+	# the full item card above the strip (user request), height-capped to the
+	# free space so it never covers other UI; taller cards scroll
+	if drop_data != null:
+		var view_now: Vector2 = get_viewport_rect().size
+		var avail_h: float = _window.rect_position.y - 40.0
+		var card_w: float = 520.0
+		_drop_card = Panel.new()
+		var card_style: = StyleBoxFlat.new()
+		card_style.bg_color = Color(0.055, 0.055, 0.055, 0.97)
+		var winner_box = _winner_panel.get_stylebox("panel")
+		card_style.border_color = winner_box.border_color if winner_box is StyleBoxFlat else Color(0.75, 0.75, 0.75)
+		card_style.set_border_width_all(3)
+		card_style.set_corner_radius_all(8)
+		_drop_card.add_stylebox_override("panel", card_style)
+		_drop_card.rect_position = Vector2((view_now.x - card_w) / 2.0, 20.0)
+		_drop_card.rect_size = Vector2(card_w, avail_h)
+		add_child(_drop_card)
+		_drop_card_scroll = ScrollContainer.new()
+		_drop_card_scroll.rect_position = Vector2(12, 12)
+		_drop_card_scroll.rect_size = Vector2(card_w - 24, avail_h - 24)
+		_drop_card.add_child(_drop_card_scroll)
+		_drop_card_desc = preload("res://ui/menus/shop/item_description.tscn").instance()
+		_drop_card_desc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_drop_card_scroll.add_child(_drop_card_desc)
+		_drop_card_desc.set_item(drop_data, _player_index, 1)
+		call_deferred("_shrink_drop_card")
+
 	# the vanilla crate choice: Take, or Recycle for materials
 	var refund: int = 0
 	if drop_data != null:
@@ -300,6 +330,17 @@ func _on_landed() -> void :
 	_take_button.visible = true
 	_recycle_button.visible = true
 	_take_button.call_deferred("grab_focus")
+
+
+# once the description has laid itself out, shrink the panel down to the
+# content height when it is shorter than the cap - no dead space, no overlap
+func _shrink_drop_card() -> void :
+	if _drop_card == null or _drop_card_desc == null:
+		return
+	var content_h: float = _drop_card_desc.rect_size.y + 24.0
+	if content_h < _drop_card.rect_size.y:
+		_drop_card.rect_size.y = content_h
+		_drop_card_scroll.rect_size.y = content_h - 24.0
 
 
 # ---- outcomes -----------------------------------------------------------------

@@ -889,8 +889,10 @@ func get_upgrade_data(level: int, player_index: int) -> UpgradeData:
 # ladder is 0,7,1,8,2,3,9,10, so tier + 1 from vanilla T4 lands on 4 (DANGER_4, an
 # empty pool) instead of pink, and from T1 it skips green entirely.
 func get_tier_ladder(player_index: int) -> Array:
+	# Blacksmith (forging) and P2W (chest drops) both live on the 8-step ladder:
+	# their weapon naming, merging and tier-stepping all walk it.
 	var c = RunData.get_player_character(player_index)
-	return BS_TIER_LADDER if (c != null and c.my_id == "character_blacksmith") else VANILLA_TIER_LADDER
+	return BS_TIER_LADDER if (c != null and (c.my_id == "character_blacksmith" or c.my_id == "character_p2w")) else VANILLA_TIER_LADDER
 
 
 func get_next_tier(tier: int, player_index: int) -> int:
@@ -981,7 +983,7 @@ func get_tier_number(tier: int) -> String:
 	# named I..VIII by ladder POSITION. Without this every tier above 2 fell through
 	# to "IV", which is why all four new rarities were named IV.
 	# Vanilla runs keep vanilla naming exactly: no numeral at T1, then II/III/IV.
-	if RunData.any_player_is_blacksmith():
+	if RunData.any_player_uses_tier_ladder():
 		var pos: = BS_TIER_LADDER.find(tier)
 		if pos != - 1:
 			return ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][pos]
