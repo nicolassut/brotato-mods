@@ -87,6 +87,19 @@ func p2w_roll_chest_drop(rung: int, player_index: int, chest_cursed: bool, vanil
 	var want_weapon: bool = Utils.randi_range(0, 99) < P2WData.WEAPON_CHANCE
 	var item_cursed: bool = chest_cursed and Utils.randi_range(0, 99) < P2WData.CURSED_ITEM_CHANCE
 
+	# Build-awareness (user 2026-08-11), strictly WITHIN the rolled rarity so the
+	# printed rung odds stay exactly true:
+	# - items: tag-weighted pick. Every candidate keeps base weight 1 (nothing
+	#   can ever be excluded), +0.25 per tag shared with the opener's owned
+	#   items, hard-capped at 2.0 - at most twice as likely as an unrelated item.
+	# - weapons: the vanilla same-class chance (35%) restricts to owned classes,
+	#   falling back to the full pool when nothing matches.
+	var owned_tags: = {}
+	for owned_item in RunData.get_player_items_ref(player_index):
+		if owned_item is ItemData and not owned_item is WeaponData and not owned_item is CharacterData:
+			for owned_tag in owned_item.tags:
+				owned_tags[owned_tag] = true
+
 	var probe: int = out_rung
 	while probe >= 1:
 		var ladder_tier: int = P2W_VANILLA_TIER_OF_RUNG[probe] if vanilla_weapons else P2WData.RUNG_TIERS[probe]
@@ -96,6 +109,20 @@ func p2w_roll_chest_drop(rung: int, player_index: int, chest_cursed: bool, vanil
 				if weapon.tier == ladder_tier and ProgressData.weapons_unlocked.has(weapon.weapon_id_hash):
 					weapon_pool.push_back(weapon)
 			if not weapon_pool.empty():
+				if Utils.get_chance_success(CHANCE_SAME_WEAPON_SET):
+					var owned_sets: = {}
+					for owned_weapon in RunData.get_player_weapons_ref(player_index):
+						for owned_set in owned_weapon.sets:
+							owned_sets[owned_set.my_id] = true
+					if not owned_sets.empty():
+						var class_pool: = []
+						for weapon_cand in weapon_pool:
+							for cand_set in weapon_cand.sets:
+								if owned_sets.has(cand_set.my_id):
+									class_pool.push_back(weapon_cand)
+									break
+						if not class_pool.empty():
+							weapon_pool = class_pool
 				var rolled_weapon = Utils.get_rand_element(weapon_pool)
 				return {"kind": "weapon", "id": rolled_weapon.my_id, "item_cursed": item_cursed}
 		var item_pool: = []
@@ -108,7 +135,23 @@ func p2w_roll_chest_drop(rung: int, player_index: int, chest_cursed: bool, vanil
 				continue
 			item_pool.push_back(item)
 		if not item_pool.empty():
-			var rolled_item = Utils.get_rand_element(item_pool)
+			var total_weight: float = 0.0
+			var pool_weights: = []
+			for item_cand in item_pool:
+				var cand_weight: float = 1.0
+				for cand_tag in item_cand.tags:
+					if owned_tags.has(cand_tag):
+						cand_weight += 0.25
+				cand_weight = min(cand_weight, 2.0)
+				pool_weights.push_back(cand_weight)
+				total_weight += cand_weight
+			var pick_roll: float = rand_range(0.0, total_weight)
+			var rolled_item = item_pool[item_pool.size() - 1]
+			for pool_i in item_pool.size():
+				pick_roll -= pool_weights[pool_i]
+				if pick_roll <= 0.0:
+					rolled_item = item_pool[pool_i]
+					break
 			return {"kind": "item", "id": rolled_item.my_id, "item_cursed": item_cursed}
 		# nothing at this rung for this roll: a weapon-roll falls back to items at
 		# the same rung first (loop above), then the whole probe steps down
