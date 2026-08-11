@@ -274,21 +274,21 @@ TIER_VI,VI
 TIER_VII,VII
 TIER_VIII,VIII
 EFFECT_P2W_CHEST_CURSE,10% chance to be cursed when bought - each item inside is then 33% likely to come out cursed
-CHEST_P2W_1,White Chest
+CHEST_P2W_1,Chest I
 EFFECT_P2W_CHEST_ODDS_1,"Contains one item (70%) or weapon (30%): 70% White, 20% Green, 7% Blue, 3% Teal"
-CHEST_P2W_2,Green Chest
+CHEST_P2W_2,Chest II
 EFFECT_P2W_CHEST_ODDS_2,"Contains one item (70%) or weapon (30%): 70% Green, 20% Blue, 7% Teal, 3% Purple"
-CHEST_P2W_3,Blue Chest
+CHEST_P2W_3,Chest III
 EFFECT_P2W_CHEST_ODDS_3,"Contains one item (70%) or weapon (30%): 70% Blue, 20% Teal, 7% Purple, 3% Red"
-CHEST_P2W_4,Teal Chest
+CHEST_P2W_4,Chest IV
 EFFECT_P2W_CHEST_ODDS_4,"Contains one item (70%) or weapon (30%): 70% Teal, 20% Purple, 7% Red, 3% Pink"
-CHEST_P2W_5,Purple Chest
+CHEST_P2W_5,Chest V
 EFFECT_P2W_CHEST_ODDS_5,"Contains one item (70%) or weapon (30%): 70% Purple, 20% Red, 7% Pink, 3% Gold"
-CHEST_P2W_6,Red Chest
+CHEST_P2W_6,Chest VI
 EFFECT_P2W_CHEST_ODDS_6,"Contains one item (70%) or weapon (30%): 70% Red, 20% Pink, 10% Gold"
-CHEST_P2W_7,Pink Chest
+CHEST_P2W_7,Chest VII
 EFFECT_P2W_CHEST_ODDS_7,"Contains one item (70%) or weapon (30%): 70% Pink, 30% Gold"
-CHEST_P2W_8,Gold Chest
+CHEST_P2W_8,Chest VIII
 EFFECT_P2W_CHEST_ODDS_8,Contains one item (70%) or weapon (30%): 100% Gold
 P2W_OPEN,OPEN
 P2W_CHESTS,Chests opened: {0}

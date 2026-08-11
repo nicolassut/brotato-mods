@@ -207,7 +207,8 @@ def main():
         os.makedirs(d, exist_ok=True)
         odds = odds_for(rung)
         odds_text = ", ".join(f"{w}% {RUNG_NAMES[r]}" for r, w in odds)
-        csv_rows.append((f"CHEST_P2W_{rung}", f"{RUNG_NAMES[rung]} Chest"))
+        roman = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][rung - 1]
+        csv_rows.append((f"CHEST_P2W_{rung}", f"Chest {roman}"))
         csv_rows.append((f"EFFECT_P2W_CHEST_ODDS_{rung}",
                          f"Contains one item ({100 - WEAPON_CHANCE}%) or weapon ({WEAPON_CHANCE}%): {odds_text}"))
         with open(f"{d}/chest_{rung}_effect_0.tres", "w") as f:

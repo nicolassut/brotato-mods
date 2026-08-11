@@ -88,7 +88,7 @@ func on_tracked_value_set(value := 1) -> void:
 
 
 func get_name_text() -> String:
-	var tier_number = ItemService.get_tier_number(tier)
+	var tier_number = ItemService.get_tier_number(tier, true)
 	return tr(name) + (" " + tier_number if tier_number != "" else "")
 
 
