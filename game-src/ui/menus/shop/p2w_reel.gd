@@ -268,10 +268,22 @@ func _make_card(data, rung: int, is_winner_cursed: bool) -> Panel:
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var style: = StyleBoxFlat.new()
 	style.bg_color = back_color
-	style.border_color = Color(0.68, 0.35, 1.0) if is_winner_cursed else edge_color
+	# the border is ALWAYS the rarity color - curse shows as the vanilla purple
+	# swirl cloud behind the icon (curse_border_light, same as icon_panel.gd)
+	style.border_color = edge_color
 	style.set_border_width_all(4)
 	style.set_corner_radius_all(6)
 	card.add_stylebox_override("panel", style)
+
+	if is_winner_cursed:
+		var curse_cloud: = TextureRect.new()
+		curse_cloud.texture = load("res://items/global/curse_border_light.png")
+		curse_cloud.expand = true
+		curse_cloud.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		curse_cloud.rect_position = Vector2(8, 8)
+		curse_cloud.rect_size = Vector2(CARD - 16, CARD - 16)
+		curse_cloud.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card.add_child(curse_cloud)
 
 	var glow_tex: Texture = _get_glow_texture(rung)
 	if glow_tex != null:
@@ -398,9 +410,7 @@ func _on_landed() -> void :
 	# lifted to full white for the white rung (the pale gray vanished on the dim)
 	var winner_style = _winner_panel.get_stylebox("panel")
 	if winner_style is StyleBoxFlat:
-		if bool(_entry.get("item_cursed", false)):
-			winner_style.border_color = Color(0.68, 0.35, 1.0)
-		elif winner_style.border_color.is_equal_approx(Color(0.75, 0.75, 0.75)):
+		if winner_style.border_color.is_equal_approx(Color(0.75, 0.75, 0.75)):
 			winner_style.border_color = Color(1, 1, 1)
 		winner_style.set_border_width_all(7)
 		winner_style.bg_color = winner_style.bg_color.lightened(0.08)
