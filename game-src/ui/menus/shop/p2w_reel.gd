@@ -139,9 +139,9 @@ func setup(entry: Dictionary, player_index: int, block_cancel: bool = false) -> 
 	# the chest's honest odds: crate icon + colored rows, centered as one group
 	# below the OPEN button (top-right collided with the pickup HUD - user)
 	var odds_rows: Array = ItemService.P2WData.CHEST_ODDS[int(_entry.rung)]
-	var odds_panel_w: float = 400.0
-	var odds_panel_h: float = 34.0 + odds_rows.size() * 40.0
-	var odds_icon_size: float = 116.0
+	var odds_panel_w: float = 440.0
+	var odds_panel_h: float = 34.0 + odds_rows.size() * 44.0
+	var odds_icon_size: float = 120.0
 	var odds_group_w: float = odds_icon_size + 20.0 + odds_panel_w
 	var odds_group_x: float = (view_size.x - odds_group_w) / 2.0
 	var odds_group_y: float = _window.rect_position.y + CARD + 2.0 * STRIP_PAD + 84 + 56 + 24
@@ -166,27 +166,21 @@ func setup(entry: Dictionary, player_index: int, block_cancel: bool = false) -> 
 	odds_panel.rect_position = Vector2(odds_group_x + odds_icon_size + 20.0, odds_group_y)
 	odds_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(odds_panel)
-	# rarity order, lowest rung first; own font size or the theme font overflows
-	var odds_font: Font = null
+	# rarity order, lowest rung first. NO font override: the game theme styles
+	# these rows, so they match the stat-sheet text exactly (overriding with a
+	# pre-tree get_font() was what forced Godot's tiny builtin font before)
 	var odds_sorted: Array = odds_rows.duplicate()
 	for oi in odds_sorted.size():
 		var od: Array = odds_sorted[oi]
 		var od_label: = Label.new()
-		if odds_font == null:
-			odds_font = od_label.get_font("font")
-			if odds_font is DynamicFont:
-				odds_font = odds_font.duplicate()
-				odds_font.size = 25
-		if odds_font != null:
-			od_label.add_font_override("font", odds_font)
 		var od_tier: int = ItemService.P2WData.RUNG_TIERS[int(od[0])]
 		var od_color: Color = ItemService.get_color_from_tier(od_tier)
 		if od_color == Color.white:
 			od_color = Color(0.85, 0.85, 0.85)
 		od_label.text = str(ItemService.P2WData.RUNG_NAMES[int(od[0])]) + " chance: " + str(od[1]) + "%"
 		od_label.add_color_override("font_color", od_color)
-		od_label.rect_position = Vector2(22, 18 + oi * 40)
-		od_label.rect_size = Vector2(odds_panel_w - 44, 34)
+		od_label.rect_position = Vector2(22, 16 + oi * 44)
+		od_label.rect_size = Vector2(odds_panel_w - 44, 40)
 		od_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		odds_panel.add_child(od_label)
 
