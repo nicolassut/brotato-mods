@@ -136,7 +136,25 @@ func setup(entry: Dictionary, player_index: int, ceremony_only: bool = false) ->
 	var _e3 = _recycle_button.connect("pressed", self, "_on_recycle_pressed")
 	add_child(_recycle_button)
 
-	# the chest's honest odds, top-right, one colored row per rarity
+	# the chest's honest odds: crate icon + colored rows, centered as one group
+	# below the OPEN button (top-right collided with the pickup HUD - user)
+	var odds_rows: Array = ItemService.P2WData.CHEST_ODDS[int(_entry.rung)]
+	var odds_panel_w: float = 310.0
+	var odds_panel_h: float = 26.0 + odds_rows.size() * 30.0
+	var odds_icon_size: float = 88.0
+	var odds_group_w: float = odds_icon_size + 20.0 + odds_panel_w
+	var odds_group_x: float = (view_size.x - odds_group_w) / 2.0
+	var odds_group_y: float = _window.rect_position.y + CARD + 2.0 * STRIP_PAD + 84 + 56 + 24
+
+	var odds_icon: = TextureRect.new()
+	odds_icon.texture = load("res://items/custom/p2w/chest_%d/chest_%d.png" % [int(_entry.rung), int(_entry.rung)])
+	odds_icon.expand = true
+	odds_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	odds_icon.rect_size = Vector2(odds_icon_size, odds_icon_size)
+	odds_icon.rect_position = Vector2(odds_group_x, odds_group_y + (odds_panel_h - odds_icon_size) / 2.0)
+	odds_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(odds_icon)
+
 	var odds_panel: = Panel.new()
 	var odds_style: = StyleBoxFlat.new()
 	odds_style.bg_color = Color(0.05, 0.05, 0.05, 0.92)
@@ -144,12 +162,11 @@ func setup(entry: Dictionary, player_index: int, ceremony_only: bool = false) ->
 	odds_style.set_border_width_all(2)
 	odds_style.set_corner_radius_all(6)
 	odds_panel.add_stylebox_override("panel", odds_style)
-	var odds_rows: Array = ItemService.P2WData.CHEST_ODDS[int(_entry.rung)]
-	odds_panel.rect_size = Vector2(320, 24 + odds_rows.size() * 27)
-	odds_panel.rect_position = Vector2(view_size.x - 340, 20)
+	odds_panel.rect_size = Vector2(odds_panel_w, odds_panel_h)
+	odds_panel.rect_position = Vector2(odds_group_x + odds_icon_size + 20.0, odds_group_y)
+	odds_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(odds_panel)
-	# rarity order, lowest rung first (matches the card rows); the theme font is
-	# huge, so give these rows their own smaller size or they overflow the panel
+	# rarity order, lowest rung first; own font size or the theme font overflows
 	var odds_font: Font = null
 	var odds_sorted: Array = odds_rows.duplicate()
 	for oi in odds_sorted.size():
@@ -159,7 +176,7 @@ func setup(entry: Dictionary, player_index: int, ceremony_only: bool = false) ->
 			odds_font = od_label.get_font("font")
 			if odds_font is DynamicFont:
 				odds_font = odds_font.duplicate()
-				odds_font.size = 16
+				odds_font.size = 18
 		if odds_font != null:
 			od_label.add_font_override("font", odds_font)
 		var od_tier: int = ItemService.P2WData.RUNG_TIERS[int(od[0])]
@@ -168,8 +185,8 @@ func setup(entry: Dictionary, player_index: int, ceremony_only: bool = false) ->
 			od_color = Color(0.85, 0.85, 0.85)
 		od_label.text = str(ItemService.P2WData.RUNG_NAMES[int(od[0])]) + " chance: " + str(od[1]) + "%"
 		od_label.add_color_override("font_color", od_color)
-		od_label.rect_position = Vector2(16, 12 + oi * 27)
-		od_label.rect_size = Vector2(290, 24)
+		od_label.rect_position = Vector2(18, 14 + oi * 30)
+		od_label.rect_size = Vector2(odds_panel_w - 36, 26)
 		od_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		odds_panel.add_child(od_label)
 

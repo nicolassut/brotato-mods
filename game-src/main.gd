@@ -1405,11 +1405,17 @@ func on_consumable_picked_up(consumable: Node, player_index: int) -> void :
 					player_index_to_add_to = i
 
 		consumable_to_process.player_index = player_index_to_add_to
-		# Gourmet DLC - P2W lootboxes carry their rolled rarity into the wave-end queue
-		if consumable.has_meta("p2w_rung"):
+		# Gourmet DLC - P2W lootboxes carry their rolled rarity into the wave-end
+		# queue, and the pickup HUD shows the rung-colored crate rather than the
+		# vanilla green box (display duplicate; the data is otherwise identical)
+		var display_consumable = consumable_data
+		if consumable.has_meta("p2w_rung") and int(consumable.get_meta("p2w_rung")) > 0:
 			consumable_to_process.p2w_rung = int(consumable.get_meta("p2w_rung"))
+			display_consumable = consumable_data.duplicate()
+			display_consumable.icon = load("res://items/custom/p2w/chest_%d/chest_%d.png" % [consumable_to_process.p2w_rung, consumable_to_process.p2w_rung])
+			consumable_to_process.consumable_data = display_consumable
 		_consumables_to_process[player_index_to_add_to].push_back(consumable_to_process)
-		_things_to_process_player_containers[player_index_to_add_to].consumables.add_element(consumable_data)
+		_things_to_process_player_containers[player_index_to_add_to].consumables.add_element(display_consumable)
 
 	# Gourmet DLC - After-Dinner Mints count FOOD and fruit only. Item crates are consumables
 	# too, and counting those meant the Mints ticked on shop loot rather than on eating.
