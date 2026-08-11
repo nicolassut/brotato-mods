@@ -142,21 +142,31 @@ func setup(entry: Dictionary, player_index: int, ceremony_only: bool = false) ->
 	odds_style.set_corner_radius_all(6)
 	odds_panel.add_stylebox_override("panel", odds_style)
 	var odds_rows: Array = ItemService.P2WData.CHEST_ODDS[int(_entry.rung)]
-	odds_panel.rect_size = Vector2(230, 16 + odds_rows.size() * 26)
-	odds_panel.rect_position = Vector2(view_size.x - 250, 20)
+	odds_panel.rect_size = Vector2(320, 24 + odds_rows.size() * 27)
+	odds_panel.rect_position = Vector2(view_size.x - 340, 20)
 	add_child(odds_panel)
-	# rarity order, lowest rung first (matches the card rows)
+	# rarity order, lowest rung first (matches the card rows); the theme font is
+	# huge, so give these rows their own smaller size or they overflow the panel
+	var odds_font: Font = null
 	var odds_sorted: Array = odds_rows.duplicate()
 	for oi in odds_sorted.size():
 		var od: Array = odds_sorted[oi]
 		var od_label: = Label.new()
+		if odds_font == null:
+			odds_font = od_label.get_font("font")
+			if odds_font is DynamicFont:
+				odds_font = odds_font.duplicate()
+				odds_font.size = 16
+		if odds_font != null:
+			od_label.add_font_override("font", odds_font)
 		var od_tier: int = ItemService.P2WData.RUNG_TIERS[int(od[0])]
 		var od_color: Color = ItemService.get_color_from_tier(od_tier)
 		if od_color == Color.white:
 			od_color = Color(0.85, 0.85, 0.85)
 		od_label.text = str(ItemService.P2WData.RUNG_NAMES[int(od[0])]) + " chance: " + str(od[1]) + "%"
 		od_label.add_color_override("font_color", od_color)
-		od_label.rect_position = Vector2(14, 8 + oi * 26)
+		od_label.rect_position = Vector2(16, 12 + oi * 27)
+		od_label.rect_size = Vector2(290, 24)
 		od_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		odds_panel.add_child(od_label)
 
