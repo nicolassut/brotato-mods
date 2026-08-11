@@ -1735,10 +1735,9 @@ func first_p2w_index() -> int:
 	return - 1
 
 
-# Resolve a rolled drop to its (possibly cursed) data WITHOUT touching the
-# pending queue - the wave-end lootbox path rolls at display time. Only the
-# P2W himself ticks the chests-opened counter.
-func p2w_resolve_entry(entry: Dictionary, player_index: int) -> ItemParentData:
+# Pure resolve: id -> data, curse applied (random boost rolled HERE, once),
+# P2W retier applied. No queue changes, no counters.
+func _p2w_resolve_pure(entry: Dictionary, player_index: int) -> ItemParentData:
 	var data: ItemParentData = null
 	if entry.kind == "weapon":
 		data = ItemService.get_element_safe(ItemService.weapons, entry.id)
@@ -1748,7 +1747,32 @@ func p2w_resolve_entry(entry: Dictionary, player_index: int) -> ItemParentData:
 		data = _p2w_curse_drop(data, entry, player_index)
 		if is_p2w(player_index):
 			data = ItemService.p2w_retier_item(data)
-			add_tracked_value(player_index, Keys.generate_hash("character_p2w"), 1)
+	return data
+
+
+# One instance per pending chest: the reel DISPLAYS this exact object and the
+# claim GRANTS it, so the card can never disagree with the inventory (the curse
+# boost is random - resolving twice showed base stats on the card while the
+# granted item was boosted). Session-local; a reload just re-resolves.
+var _p2w_drop_cache: = {}
+
+
+func p2w_resolve_uid(player_index: int, uid: int) -> ItemParentData:
+	if _p2w_drop_cache.has(uid):
+		return _p2w_drop_cache[uid]
+	var entry: Dictionary = p2w_peek_pending(player_index, uid)
+	if entry.empty():
+		return null
+	var data: ItemParentData = _p2w_resolve_pure(entry, player_index)
+	_p2w_drop_cache[uid] = data
+	return data
+
+
+# Wave-end path (no pending queue): resolve once at display time and count.
+func p2w_resolve_entry(entry: Dictionary, player_index: int) -> ItemParentData:
+	var data: ItemParentData = _p2w_resolve_pure(entry, player_index)
+	if data != null and is_p2w(player_index):
+		add_tracked_value(player_index, Keys.generate_hash("character_p2w"), 1)
 	return data
 
 
@@ -1784,16 +1808,13 @@ func p2w_claim_drop(player_index: int, uid: int) -> ItemParentData:
 	for i in pending.size():
 		if int(pending[i].get("uid", - 1)) == uid:
 			var entry: Dictionary = pending[i]
+			# grant the SAME instance the reel displayed (cache), resolving
+			# fresh only when no display happened (flush, coop)
+			var claim_data: ItemParentData = _p2w_drop_cache.get(uid)
+			if claim_data == null:
+				claim_data = _p2w_resolve_pure(entry, player_index)
+			var _erased = _p2w_drop_cache.erase(uid)
 			pending.remove(i)
-			var claim_data: ItemParentData = null
-			if entry.kind == "weapon":
-				claim_data = ItemService.get_element_safe(ItemService.weapons, entry.id)
-			else:
-				claim_data = ItemService.get_element_safe(ItemService.items, entry.id)
-			if claim_data != null:
-				claim_data = _p2w_curse_drop(claim_data, entry, player_index)
-				if is_p2w(player_index):
-					claim_data = ItemService.p2w_retier_item(claim_data)
 			add_tracked_value(player_index, Keys.generate_hash("character_p2w"), 1)
 			return claim_data
 	return null
@@ -1815,6 +1836,7 @@ func p2w_open_chest(player_index: int, pending_index: int) -> ItemParentData:
 		return null
 	var entry: Dictionary = pending[pending_index]
 	pending.remove(pending_index)
+	var _stale = _p2w_drop_cache.erase(int(entry.get("uid", - 1)))
 	var granted: ItemParentData = null
 	if entry.kind == "weapon":
 		var weapon_data = ItemService.get_element_safe(ItemService.weapons, entry.id)

@@ -540,7 +540,7 @@ func _p2w_run_reel_and_open(shop_item: ShopItem, player_index: int) -> void :
 	if not RunData.is_coop_run:
 		var reel = P2WReel.new()
 		add_child(reel)
-		reel.setup(p2w_entry, player_index)
+		reel.setup(p2w_entry, player_index, false, RunData.p2w_resolve_uid(player_index, p2w_uid))
 		outcome = yield(reel, "reel_done")
 		reel.queue_free()
 	if outcome == "cancel":

@@ -157,8 +157,9 @@ func _show_p2w_lootbox(consumable_data: ConsumableData, p2w_rung: int) -> void :
 		reel_host.add_child(reel)
 		reel.raise()
 		# full reel UI: its own Take/Recycle (user: wave-end must allow recycling);
-		# cancel blocked - a picked-up box has no shop card to fall back to
-		reel.setup(entry, player_index, true)
+		# cancel blocked - a picked-up box has no shop card to fall back to.
+		# item_data is the instance that will be granted - display exactly it
+		reel.setup(entry, player_index, true, item_data)
 		var reel_outcome = yield(reel, "reel_done")
 		reel.queue_free()
 		# route the outcome through the vanilla item-box signals so granting,

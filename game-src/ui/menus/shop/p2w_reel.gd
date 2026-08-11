@@ -70,10 +70,16 @@ var _outer_glow: TextureRect
 var _glow_phase: float = 0.0
 
 
-func setup(entry: Dictionary, player_index: int, block_cancel: bool = false) -> void :
+# the exact resolved (cursed/retiered) instance the claim will grant; the drop
+# card displays THIS so stats can never disagree with the inventory
+var _resolved_drop: ItemParentData = null
+
+
+func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, resolved_drop: ItemParentData = null) -> void :
 	_entry = entry
 	_player_index = player_index
 	_block_cancel = block_cancel
+	_resolved_drop = resolved_drop
 
 	set_anchors_and_margins_preset(Control.PRESET_WIDE)
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -477,11 +483,13 @@ func _on_landed() -> void :
 		_drop_card_desc = preload("res://ui/menus/shop/item_description.tscn").instance()
 		_drop_card_desc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_drop_card_scroll.add_child(_drop_card_desc)
-		# the P2W sees the ASSIGNED rarity on the card (retiered display copy);
-		# everyone else keeps the vanilla name color, per the coop rules
-		var card_data = drop_data
-		if RunData.is_p2w(_player_index):
-			card_data = ItemService.p2w_retier_item(drop_data)
+		# show the EXACT instance the claim will grant (cursed boosts, curse
+		# line, retier all included); fallback keeps the old display-copy path
+		var card_data = _resolved_drop
+		if card_data == null:
+			card_data = drop_data
+			if RunData.is_p2w(_player_index):
+				card_data = ItemService.p2w_retier_item(drop_data)
 		_drop_card_desc.set_item(card_data, _player_index, 1)
 		call_deferred("_shrink_drop_card")
 
