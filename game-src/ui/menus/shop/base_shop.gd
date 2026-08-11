@@ -567,12 +567,19 @@ func _p2w_run_reel_and_open(shop_item: ShopItem, player_index: int) -> void :
 	else:
 		buy_item(drop_data, player_index)
 
+	GourmetTracker.ev("p2w_chest_open", {"p": player_index, "outcome": outcome, "got": drop_data.my_id, "cursed_chest": p2w_entry.get("cursed", false)})
+	# a mirror-duplicated purchase has more chests queued: the next ceremony
+	# opens immediately on the same card
+	if not shop_item.p2w_extra_uids.empty():
+		shop_item.p2w_pending_uid = int(shop_item.p2w_extra_uids.pop_front())
+		_update_stats(player_index)
+		_p2w_run_reel_and_open(shop_item, player_index)
+		return
 	shop_item.deactivate()
 	for p2w_offer in _shop_items[player_index]:
 		if p2w_offer[0].my_id == shop_item.item_data.my_id:
 			_shop_items[player_index].erase(p2w_offer)
 			break
-	GourmetTracker.ev("p2w_chest_open", {"p": player_index, "outcome": outcome, "got": drop_data.my_id, "cursed_chest": p2w_entry.get("cursed", false)})
 	_update_stats(player_index)
 	_get_shop_items_container(player_index).reload_shop_items()
 
@@ -591,7 +598,23 @@ func on_shop_item_bought(shop_item: ShopItem, player_index: int) -> void :
 			var p2w_rung: int = int(shop_item.item_data.my_id.replace("item_p2w_chest_", ""))
 			var p2w_entry: Dictionary = RunData.p2w_arm_chest(player_index, p2w_rung, bool(shop_item.item_data.is_cursed))
 			shop_item.p2w_arm(int(p2w_entry.uid), bool(p2w_entry.cursed))
-			GourmetTracker.ev("p2w_chest_buy", {"p": player_index, "rung": p2w_rung, "cursed": p2w_entry.cursed, "paid": shop_item.value})
+			# Magic Mirrors duplicate chest purchases too (the card already showed
+			# x2): each consumed mirror arms one EXTRA chest with its OWN roll,
+			# and the ceremonies then run back-to-back
+			shop_item.p2w_extra_uids = []
+			var p2w_mirrors_used: = 0
+			for p2w_dup_effect in RunData.get_player_effect(Keys.duplicate_item_hash, player_index).duplicate():
+				for _p2w_nb in range(int(p2w_dup_effect[1])):
+					var p2w_mirror = RunData.get_player_item(p2w_dup_effect[0], player_index)
+					if p2w_mirror == null:
+						break
+					RunData.remove_item(p2w_mirror, player_index)
+					p2w_mirrors_used += 1
+					var p2w_extra: Dictionary = RunData.p2w_arm_chest(player_index, p2w_rung, bool(shop_item.item_data.is_cursed))
+					shop_item.p2w_extra_uids.push_back(int(p2w_extra.uid))
+			if p2w_mirrors_used > 0:
+				_get_gear_container(player_index).set_items_data(RunData.get_player_items(player_index))
+			GourmetTracker.ev("p2w_chest_buy", {"p": player_index, "rung": p2w_rung, "cursed": p2w_entry.cursed, "paid": shop_item.value, "mirrored": p2w_mirrors_used})
 			# the ceremony opens immediately (user spec); cancelling it leaves the
 			# armed card behind, whose next press re-enters the ceremony above
 			_p2w_run_reel_and_open(shop_item, player_index)

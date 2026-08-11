@@ -29,6 +29,8 @@ var wave_value: = 1
 # the serialized pending entry this card opens on its next press.
 var p2w_pending_uid: int = - 1
 var p2w_cursed: bool = false
+# extra chests armed by Magic Mirrors on the same purchase, opened back-to-back
+var p2w_extra_uids: = []
 
 onready var _panel = $PanelContainer
 onready var _button = $"%BuyButton"
@@ -151,6 +153,7 @@ func set_shop_item(p_item_data: ItemParentData, p_wave_value: int = RunData.curr
 	# the buy press silently does nothing (the cant-buy-after-reload bug).
 	p2w_pending_uid = - 1
 	p2w_cursed = false
+	p2w_extra_uids = []
 	if _panel != null:
 		_panel.add_stylebox_override("panel", null)
 	item_data = p_item_data
