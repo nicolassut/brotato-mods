@@ -79,6 +79,8 @@ def main():
             continue
         my_id = by_norm[n]
         it = items[my_id]
+        if it.get("hand"):
+            continue  # user hand-placement always wins over sentiment
         rating = consensus(votes)
         if rating == "B":
             continue  # "it's fine" is not a reason to fight the price draft

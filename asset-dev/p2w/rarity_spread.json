@@ -988,11 +988,12 @@
    "sentiment": "C"
   },
   "item_anvil": {
-   "rung": 7,
+   "rung": 8,
    "name": "Anvil",
    "tier": 3,
    "value": 120,
-   "sentiment": "C"
+   "sentiment": "C",
+   "hand": true
   },
   "item_community_support": {
    "rung": 4,
@@ -1295,10 +1296,11 @@
    "value": 30
   },
   "item_vampire_fang": {
-   "rung": 8,
+   "rung": 7,
    "name": "Vampire Fang",
    "tier": 3,
-   "value": 110
+   "value": 110,
+   "hand": true
   },
   "item_iron_lung": {
    "rung": 6,
