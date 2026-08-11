@@ -323,13 +323,31 @@ func _on_landed() -> void :
 	if drop_data != null:
 		refund = ItemService.get_recycling_value(RunData.current_wave, drop_data.value, _player_index, drop_data is WeaponData)
 	_recycle_button.text = tr("MENU_RECYCLE") + " (+" + str(refund) + ")"
+
+	# a weapon that can neither fit a slot nor merge with an owned copy cannot be
+	# taken - offering Take and vanishing the weapon was wrong (user): the only
+	# choice left is recycling it
+	var can_take: bool = true
+	if drop_data is WeaponData:
+		var slot_max: int = int(RunData.get_player_effect(Keys.weapon_slot_hash, _player_index))
+		if RunData.get_player_weapons_ref(_player_index).size() >= slot_max:
+			can_take = false
+			for owned_weapon in RunData.get_player_weapons_ref(_player_index):
+				if owned_weapon.my_id == drop_data.my_id and drop_data.upgrades_into != null:
+					can_take = true
+
 	var view_size: Vector2 = get_viewport_rect().size
 	var buttons_y: float = _window.rect_position.y + CARD + 2.0 * STRIP_PAD + 84
-	_take_button.rect_position = Vector2(view_size.x / 2.0 - 232, buttons_y)
-	_recycle_button.rect_position = Vector2(view_size.x / 2.0 + 12, buttons_y)
-	_take_button.visible = true
-	_recycle_button.visible = true
-	_take_button.call_deferred("grab_focus")
+	if can_take:
+		_take_button.rect_position = Vector2(view_size.x / 2.0 - 232, buttons_y)
+		_recycle_button.rect_position = Vector2(view_size.x / 2.0 + 12, buttons_y)
+		_take_button.visible = true
+		_recycle_button.visible = true
+		_take_button.call_deferred("grab_focus")
+	else:
+		_recycle_button.rect_position = Vector2(view_size.x / 2.0 - 110, buttons_y)
+		_recycle_button.visible = true
+		_recycle_button.call_deferred("grab_focus")
 
 
 # once the description has laid itself out, shrink the panel down to the
