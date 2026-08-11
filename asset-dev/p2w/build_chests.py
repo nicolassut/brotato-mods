@@ -230,7 +230,7 @@ def main():
         csv_rows.append((f"EFFECT_P2W_CHEST_ODDS_{rung}",
                          f"Contains one item ({100 - WEAPON_CHANCE}%) or weapon ({WEAPON_CHANCE}%):"))
         effect_keys = [f"EFFECT_P2W_CHEST_ODDS_{rung}"]
-        for r, w in sorted(odds, key=lambda x: -x[1]):
+        for r, w in sorted(odds):  # rarity order, lowest rung first (user 2026-08-11)
             hexc = "#%02x%02x%02x" % RUNG_COLORS[r]
             row_key = f"EFFECT_P2W_ODDSROW_{rung}_{r}"
             csv_rows.append((row_key, f"[color={hexc}]{RUNG_NAMES[r]} chance: {w}%[/color]"))

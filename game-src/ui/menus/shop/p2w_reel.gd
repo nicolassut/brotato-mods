@@ -145,8 +145,8 @@ func setup(entry: Dictionary, player_index: int, ceremony_only: bool = false) ->
 	odds_panel.rect_size = Vector2(230, 16 + odds_rows.size() * 26)
 	odds_panel.rect_position = Vector2(view_size.x - 250, 20)
 	add_child(odds_panel)
+	# rarity order, lowest rung first (matches the card rows)
 	var odds_sorted: Array = odds_rows.duplicate()
-	odds_sorted.sort_custom(self, "_sort_odds_desc")
 	for oi in odds_sorted.size():
 		var od: Array = odds_sorted[oi]
 		var od_label: = Label.new()
@@ -173,10 +173,6 @@ func setup(entry: Dictionary, player_index: int, ceremony_only: bool = false) ->
 
 	set_process(false)
 	_open_button.call_deferred("grab_focus")
-
-
-func _sort_odds_desc(a, b) -> bool:
-	return a[1] > b[1]
 
 
 # ---- strip construction -------------------------------------------------------
