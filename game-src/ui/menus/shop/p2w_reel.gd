@@ -139,9 +139,9 @@ func setup(entry: Dictionary, player_index: int, ceremony_only: bool = false) ->
 	# the chest's honest odds: crate icon + colored rows, centered as one group
 	# below the OPEN button (top-right collided with the pickup HUD - user)
 	var odds_rows: Array = ItemService.P2WData.CHEST_ODDS[int(_entry.rung)]
-	var odds_panel_w: float = 310.0
-	var odds_panel_h: float = 26.0 + odds_rows.size() * 30.0
-	var odds_icon_size: float = 88.0
+	var odds_panel_w: float = 400.0
+	var odds_panel_h: float = 34.0 + odds_rows.size() * 40.0
+	var odds_icon_size: float = 116.0
 	var odds_group_w: float = odds_icon_size + 20.0 + odds_panel_w
 	var odds_group_x: float = (view_size.x - odds_group_w) / 2.0
 	var odds_group_y: float = _window.rect_position.y + CARD + 2.0 * STRIP_PAD + 84 + 56 + 24
@@ -176,7 +176,7 @@ func setup(entry: Dictionary, player_index: int, ceremony_only: bool = false) ->
 			odds_font = od_label.get_font("font")
 			if odds_font is DynamicFont:
 				odds_font = odds_font.duplicate()
-				odds_font.size = 18
+				odds_font.size = 25
 		if odds_font != null:
 			od_label.add_font_override("font", odds_font)
 		var od_tier: int = ItemService.P2WData.RUNG_TIERS[int(od[0])]
@@ -185,8 +185,8 @@ func setup(entry: Dictionary, player_index: int, ceremony_only: bool = false) ->
 			od_color = Color(0.85, 0.85, 0.85)
 		od_label.text = str(ItemService.P2WData.RUNG_NAMES[int(od[0])]) + " chance: " + str(od[1]) + "%"
 		od_label.add_color_override("font_color", od_color)
-		od_label.rect_position = Vector2(18, 14 + oi * 30)
-		od_label.rect_size = Vector2(odds_panel_w - 36, 26)
+		od_label.rect_position = Vector2(22, 18 + oi * 40)
+		od_label.rect_size = Vector2(odds_panel_w - 44, 34)
 		od_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		odds_panel.add_child(od_label)
 
