@@ -37,12 +37,15 @@ CURSED_ITEM_CHANCE = 33   # % per item out of a cursed chest
 
 
 def odds_for(rung):
-    """Honest odds centered on the chest's rung, spilling upward; weight past
-    rung 8 folds into 8 so a Gold chest is a guaranteed Gold."""
-    raw = [(rung, 70), (rung + 1, 20), (rung + 2, 7), (rung + 3, 3)]
+    """Honest odds, spread out (user 2026-08-11): 40% same tier, 22% one below,
+    20% one above, 10% two above, 6% three above, 2% four above. Weight past
+    the ladder ends folds into the end rungs."""
+    raw = [(rung, 40), (rung - 1, 22), (rung + 1, 20),
+           (rung + 2, 10), (rung + 3, 6), (rung + 4, 2)]
     folded = {}
     for r, w in raw:
-        folded[min(r, 8)] = folded.get(min(r, 8), 0) + w
+        rr = max(1, min(r, 8))
+        folded[rr] = folded.get(rr, 0) + w
     return sorted(folded.items())
 
 
@@ -63,10 +66,11 @@ custom_args = [  ]
 """
 
 
-def tint_crate(src_png, dst_png, rgb):
+def tint_crate(src_png, dst_png, rgb, gem_channel="g"):
     """Selective rarity tint (user 2026-08-11: full tint was far too strong).
-    The bright green GEM goes fully to the rung color; the dark green slat
-    interior takes a 45% wash; the wood frame only 25%; outlines untouched."""
+    The bright GEM (dominant source hue: green on the normal crate, red on the
+    boss crate) goes fully to the rung color; the slat interior takes a 45%
+    wash; the wood frame only 25%; outlines untouched."""
     from PIL import Image
     img = Image.open(src_png).convert("RGBA")
     px = img.load()
@@ -81,10 +85,13 @@ def tint_crate(src_png, dst_png, rgb):
                 continue
             f = lum / 255.0
             full = (int(rgb[0] * f), int(rgb[1] * f), int(rgb[2] * f))
-            greenish = g > r * 1.15 and g > b * 1.15
-            if greenish and lum >= 100:      # the gem: hard recolor
+            if gem_channel == "g":
+                gemish = g > r * 1.15 and g > b * 1.15
+            else:
+                gemish = r > g * 1.15 and r > b * 1.15
+            if gemish and lum >= 100:        # the gem: hard recolor
                 t = 1.0
-            elif greenish:                   # slat interior: colored glow
+            elif gemish:                     # slat interior: colored glow
                 t = 0.45
             else:                            # wood frame: subtle wash
                 t = 0.25
@@ -191,12 +198,24 @@ def main():
     write_import_sidecar(f"{OUT}/chest.png", "res://items/custom/p2w/chest.png")
     for rung in range(1, 9):
         os.makedirs(f"{OUT}/chest_{rung}", exist_ok=True)
-        tint_crate(f"{OUT}/chest.png", f"{OUT}/chest_{rung}/chest_{rung}.png", RUNG_COLORS[rung])
+        # rungs 6-8 wear the BOSS crate (legendary box) silhouette (user 2026-08-11)
+        if rung >= 6:
+            src_png = f"{DEC}/items/consumables/legendary_item_box/legendary_item_box.png"
+            gem = "r"
+        else:
+            src_png = f"{OUT}/chest.png"
+            gem = "g"
+        tint_crate(src_png, f"{OUT}/chest_{rung}/chest_{rung}.png", RUNG_COLORS[rung], gem)
         write_import_sidecar(f"{OUT}/chest_{rung}/chest_{rung}.png",
                              f"res://items/custom/p2w/chest_{rung}/chest_{rung}.png")
 
     csv_rows = [("P2W_OPEN", "OPEN"),
                 ("P2W_CURSED", "CURSED"),
+                ("P2W_CONTINUE", "Continue"),
+                ("P2W_TIER_GREEN", "Green"),
+                ("P2W_TIER_TEAL", "Teal"),
+                ("P2W_TIER_PINK", "Pink"),
+                ("P2W_TIER_GOLD", "Gold"),
                 ("P2W_CHESTS", "Chests opened: {0}"),
                 ("EFFECT_P2W_SHOP", "The shop sells Chests instead of items and weapons"),
                 ("EFFECT_P2W_CHEST_CURSE",
@@ -206,17 +225,22 @@ def main():
         d = f"{OUT}/chest_{rung}"
         os.makedirs(d, exist_ok=True)
         odds = odds_for(rung)
-        odds_text = ", ".join(f"{w}% {RUNG_NAMES[r]}" for r, w in odds)
         roman = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][rung - 1]
         csv_rows.append((f"CHEST_P2W_{rung}", f"Chest {roman}"))
         csv_rows.append((f"EFFECT_P2W_CHEST_ODDS_{rung}",
-                         f"Contains one item ({100 - WEAPON_CHANCE}%) or weapon ({WEAPON_CHANCE}%): {odds_text}"))
-        with open(f"{d}/chest_{rung}_effect_0.tres", "w") as f:
-            f.write(effect_tres(f"EFFECT_P2W_CHEST_ODDS_{rung}"))
-        with open(f"{d}/chest_{rung}_effect_1.tres", "w") as f:
-            f.write(effect_tres("EFFECT_P2W_CHEST_CURSE"))
+                         f"Contains one item ({100 - WEAPON_CHANCE}%) or weapon ({WEAPON_CHANCE}%):"))
+        effect_keys = [f"EFFECT_P2W_CHEST_ODDS_{rung}"]
+        for r, w in sorted(odds, key=lambda x: -x[1]):
+            hexc = "#%02x%02x%02x" % RUNG_COLORS[r]
+            row_key = f"EFFECT_P2W_ODDSROW_{rung}_{r}"
+            csv_rows.append((row_key, f"[color={hexc}]{RUNG_NAMES[r]} chance: {w}%[/color]"))
+            effect_keys.append(row_key)
+        effect_keys.append("EFFECT_P2W_CHEST_CURSE")
+        for i, key in enumerate(effect_keys):
+            with open(f"{d}/chest_{rung}_effect_{i}.tres", "w") as f:
+                f.write(effect_tres(key))
         with open(f"{d}/chest_{rung}_data.tres", "w") as f:
-            f.write(chest_tres(rung, 2))
+            f.write(chest_tres(rung, len(effect_keys)))
     csv_update(csv_rows)
 
     # boot-safe engine data: plain const dicts, preloaded by item_service
@@ -231,6 +255,7 @@ def main():
 # Do not hand-edit; rerun the builder. Loaded via preload() in item_service.gd.
 
 const RUNG_TIERS = {gd_dict(RUNG_TIERS, False)}
+const RUNG_NAMES = {gd_dict({k: chr(34) + v + chr(34) for k, v in RUNG_NAMES.items()}, False)}
 const CHEST_PATHS = {gd_dict(chest_paths, False)}
 const CHEST_ODDS = {gd_dict(chest_odds, False)}
 const WEAPON_CHANCE = {WEAPON_CHANCE}

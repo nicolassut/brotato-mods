@@ -1723,6 +1723,35 @@ func is_p2w(player_index: int) -> bool:
 var _p2w_next_uid: int = 0
 
 
+# True when ANY player in the run is the P2W (crates become lootboxes run-wide).
+func has_p2w() -> bool:
+	return first_p2w_index() != - 1
+
+
+func first_p2w_index() -> int:
+	for i in get_player_count():
+		if is_p2w(i):
+			return i
+	return - 1
+
+
+# Resolve a rolled drop to its (possibly cursed) data WITHOUT touching the
+# pending queue - the wave-end lootbox path rolls at display time. Only the
+# P2W himself ticks the chests-opened counter.
+func p2w_resolve_entry(entry: Dictionary, player_index: int) -> ItemParentData:
+	var data: ItemParentData = null
+	if entry.kind == "weapon":
+		data = ItemService.get_element_safe(ItemService.weapons, entry.id)
+	else:
+		data = ItemService.get_element_safe(ItemService.items, entry.id)
+	if data != null:
+		data = _p2w_curse_drop(data, entry, player_index)
+		if is_p2w(player_index):
+			data = ItemService.p2w_retier_item(data)
+			add_tracked_value(player_index, Keys.generate_hash("character_p2w"), 1)
+	return data
+
+
 # Buying a chest: roll the curse AND the contents NOW (CSGO decides at purchase,
 # reveals at open), store serialized so a save/quit can never eat a paid chest.
 # Returns the pending entry (uid/cursed) for the shop UI to arm its card with.
@@ -1762,6 +1791,8 @@ func p2w_claim_drop(player_index: int, uid: int) -> ItemParentData:
 				claim_data = ItemService.get_element_safe(ItemService.items, entry.id)
 			if claim_data != null:
 				claim_data = _p2w_curse_drop(claim_data, entry, player_index)
+				if is_p2w(player_index):
+					claim_data = ItemService.p2w_retier_item(claim_data)
 			add_tracked_value(player_index, Keys.generate_hash("character_p2w"), 1)
 			return claim_data
 	return null
@@ -1798,6 +1829,8 @@ func p2w_open_chest(player_index: int, pending_index: int) -> ItemParentData:
 		var item_data = ItemService.get_element_safe(ItemService.items, entry.id)
 		if item_data != null:
 			granted = _p2w_curse_drop(item_data, entry, player_index)
+			if is_p2w(player_index):
+				granted = ItemService.p2w_retier_item(granted)
 			add_item(granted, player_index)
 	add_tracked_value(player_index, Keys.generate_hash("character_p2w"), 1)
 	return granted

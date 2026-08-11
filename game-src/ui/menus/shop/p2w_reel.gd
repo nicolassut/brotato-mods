@@ -58,11 +58,19 @@ var _spin_end_x: float = 0.0
 var _drop_card: Panel
 var _drop_card_scroll: ScrollContainer
 var _drop_card_desc: Control
+# ceremony-only mode (wave-end lootboxes): no Take/Recycle here - the vanilla
+# item-box choice screen follows; a Continue button closes the reel instead
+var _ceremony_only: bool = false
+# per-rung radial glow textures (built once, cached): nothing at white, growing
+# glow up the ladder, radiant rays at gold
+var _glow_cache: = {}
+const GLOW_STRENGTH = {1: 0.0, 2: 0.22, 3: 0.32, 4: 0.42, 5: 0.55, 6: 0.7, 7: 0.85, 8: 1.0}
 
 
-func setup(entry: Dictionary, player_index: int) -> void :
+func setup(entry: Dictionary, player_index: int, ceremony_only: bool = false) -> void :
 	_entry = entry
 	_player_index = player_index
+	_ceremony_only = ceremony_only
 
 	set_anchors_and_margins_preset(Control.PRESET_WIDE)
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -125,6 +133,33 @@ func setup(entry: Dictionary, player_index: int) -> void :
 	var _e3 = _recycle_button.connect("pressed", self, "_on_recycle_pressed")
 	add_child(_recycle_button)
 
+	# the chest's honest odds, top-right, one colored row per rarity
+	var odds_panel: = Panel.new()
+	var odds_style: = StyleBoxFlat.new()
+	odds_style.bg_color = Color(0.05, 0.05, 0.05, 0.92)
+	odds_style.border_color = Color(0.35, 0.35, 0.35)
+	odds_style.set_border_width_all(2)
+	odds_style.set_corner_radius_all(6)
+	odds_panel.add_stylebox_override("panel", odds_style)
+	var odds_rows: Array = ItemService.P2WData.CHEST_ODDS[int(_entry.rung)]
+	odds_panel.rect_size = Vector2(230, 16 + odds_rows.size() * 26)
+	odds_panel.rect_position = Vector2(view_size.x - 250, 20)
+	add_child(odds_panel)
+	var odds_sorted: Array = odds_rows.duplicate()
+	odds_sorted.sort_custom(self, "_sort_odds_desc")
+	for oi in odds_sorted.size():
+		var od: Array = odds_sorted[oi]
+		var od_label: = Label.new()
+		var od_tier: int = ItemService.P2WData.RUNG_TIERS[int(od[0])]
+		var od_color: Color = ItemService.get_color_from_tier(od_tier)
+		if od_color == Color.white:
+			od_color = Color(0.85, 0.85, 0.85)
+		od_label.text = str(ItemService.P2WData.RUNG_NAMES[int(od[0])]) + " chance: " + str(od[1]) + "%"
+		od_label.add_color_override("font_color", od_color)
+		od_label.rect_position = Vector2(14, 8 + oi * 26)
+		od_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		odds_panel.add_child(od_label)
+
 	_tick_sound = AudioStreamPlayer.new()
 	_tick_sound.stream = load("res://ui/sounds/clock_tick_01.wav")
 	add_child(_tick_sound)
@@ -140,6 +175,10 @@ func setup(entry: Dictionary, player_index: int) -> void :
 	_open_button.call_deferred("grab_focus")
 
 
+func _sort_odds_desc(a, b) -> bool:
+	return a[1] > b[1]
+
+
 # ---- strip construction -------------------------------------------------------
 
 func _rung_of_drop(drop: Dictionary):
@@ -153,6 +192,45 @@ func _rung_of_drop(drop: Dictionary):
 		return [weapon_data, 1]
 	var item_data = ItemService.get_element_safe(ItemService.items, drop.id)
 	return [item_data, int(ItemService.P2WData.RUNG_BY_ID.get(drop.id, 1))]
+
+
+func _get_glow_texture(rung: int) -> Texture:
+	if _glow_cache.has(rung):
+		return _glow_cache[rung]
+	var strength: float = GLOW_STRENGTH[rung]
+	if strength <= 0.0:
+		_glow_cache[rung] = null
+		return null
+	var tier_int: int = ItemService.P2WData.RUNG_TIERS[rung]
+	var glow_color: Color = ItemService.get_color_from_tier(tier_int)
+	if glow_color == Color.white:
+		glow_color = Color(0.85, 0.85, 0.85)
+	var size: = 128
+	var half: float = size / 2.0
+	var img: = Image.new()
+	img.create(size, size, false, Image.FORMAT_RGBA8)
+	img.lock()
+	var with_rays: bool = rung >= 8
+	for y in size:
+		for x in size:
+			var dx: float = x - half
+			var dy: float = y - half
+			var dist: float = sqrt(dx * dx + dy * dy) / half
+			if dist >= 1.0:
+				continue
+			var falloff: float = pow(max(0.0, 1.0 - dist), 2.2)
+			var alpha: float = falloff * 0.55 * strength
+			if with_rays and dist > 0.05:
+				# baked shining rays: 8 wedges around the ring
+				var ray: float = pow(abs(cos(atan2(dy, dx) * 4.0)), 14.0)
+				alpha += ray * max(0.0, 1.0 - dist) * 0.5
+			if alpha > 0.003:
+				img.set_pixel(x, y, Color(glow_color.r, glow_color.g, glow_color.b, min(alpha, 0.9)))
+	img.unlock()
+	var tex: = ImageTexture.new()
+	tex.create_from_image(img, Texture.FLAG_FILTER)
+	_glow_cache[rung] = tex
+	return tex
 
 
 func _make_card(data, rung: int, is_winner_cursed: bool) -> Panel:
@@ -174,6 +252,17 @@ func _make_card(data, rung: int, is_winner_cursed: bool) -> Panel:
 	style.set_border_width_all(4)
 	style.set_corner_radius_all(6)
 	card.add_stylebox_override("panel", style)
+
+	var glow_tex: Texture = _get_glow_texture(rung)
+	if glow_tex != null:
+		var glow: = TextureRect.new()
+		glow.texture = glow_tex
+		glow.expand = true
+		var glow_size: float = CARD * (0.9 + 0.35 * GLOW_STRENGTH[rung])
+		glow.rect_size = Vector2(glow_size, glow_size)
+		glow.rect_position = Vector2((CARD - glow_size) / 2.0, (CARD - glow_size) / 2.0)
+		glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card.add_child(glow)
 
 	if data != null:
 		var icon: = TextureRect.new()
@@ -206,6 +295,9 @@ func _fill_strip() -> void :
 # ---- motion -------------------------------------------------------------------
 
 func _on_open_pressed() -> void :
+	if _landed and _ceremony_only:
+		emit_signal("reel_done", "shown")
+		return
 	if _spinning:
 		return
 	_spinning = true
@@ -290,6 +382,13 @@ func _on_landed() -> void :
 		var tier_int: int = ItemService.P2WData.RUNG_TIERS[int(resolved[1])]
 		_reveal_label.add_color_override("font_color", ItemService.get_color_from_tier(tier_int))
 		_reveal_label.text = got_name
+
+	if _ceremony_only:
+		# the wave-end choice screen follows with the full card - just a Continue
+		_open_button.text = tr("P2W_CONTINUE")
+		_open_button.visible = true
+		_open_button.call_deferred("grab_focus")
+		return
 
 	# the full item card above the strip (user request), height-capped to the
 	# free space so it never covers other UI; taller cards scroll
@@ -377,4 +476,4 @@ func _unhandled_input(event: InputEvent) -> void :
 	# before the spin, backing out is allowed: the chest stays armed on its card
 	if event.is_action_pressed("ui_cancel") and not _spinning:
 		get_tree().set_input_as_handled()
-		emit_signal("reel_done", "cancel")
+		emit_signal("reel_done", "shown" if _ceremony_only else "cancel")

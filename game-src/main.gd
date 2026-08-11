@@ -926,6 +926,19 @@ func spawn_consumables(unit: Unit) -> void :
 		consumable.already_picked_up = false
 		consumable.consumable_data = consumable_to_spawn
 		consumable.set_texture(consumable_to_spawn.icon)
+		# Gourmet DLC - P2W: in his runs, item crates ARE lootboxes. Roll the rarity
+		# at spawn (boss crates roll the top band) and dress the ground drop in it.
+		# Pooled nodes: always reset the meta so stale rungs never leak.
+		consumable.set_meta("p2w_rung", - 1)
+		if RunData.has_p2w() and (consumable_to_spawn.my_id_hash == Keys.consumable_item_box_hash or consumable_to_spawn.my_id_hash == Keys.consumable_legendary_item_box_hash):
+			var p2w_crate_rung: int
+			if consumable_to_spawn.my_id_hash == Keys.consumable_legendary_item_box_hash:
+				var p2w_leg_roll: int = Utils.randi_range(0, 99)
+				p2w_crate_rung = 6 if p2w_leg_roll < 70 else (7 if p2w_leg_roll < 90 else 8)
+			else:
+				p2w_crate_rung = ItemService.get_p2w_rung_for_wave(RunData.current_wave, RunData.first_p2w_index(), 0)
+			consumable.set_meta("p2w_rung", p2w_crate_rung)
+			consumable.set_texture(load("res://items/custom/p2w/chest_%d/chest_%d.png" % [p2w_crate_rung, p2w_crate_rung]))
 		if consumable_to_spawn.my_id.begins_with("consumable_food_"):
 			consumable.modulate.a = 1.0
 			consumable.set_meta("food_spawned_at", _food_wave_time)
@@ -1392,6 +1405,9 @@ func on_consumable_picked_up(consumable: Node, player_index: int) -> void :
 					player_index_to_add_to = i
 
 		consumable_to_process.player_index = player_index_to_add_to
+		# Gourmet DLC - P2W lootboxes carry their rolled rarity into the wave-end queue
+		if consumable.has_meta("p2w_rung"):
+			consumable_to_process.p2w_rung = int(consumable.get_meta("p2w_rung"))
 		_consumables_to_process[player_index_to_add_to].push_back(consumable_to_process)
 		_things_to_process_player_containers[player_index_to_add_to].consumables.add_element(consumable_data)
 
@@ -1943,6 +1959,16 @@ func on_upgrade_selected(upgrade_data: UpgradeData, upgrade: UpgradesUI.UpgradeT
 
 
 func on_item_box_take_button_pressed(item_data: ItemParentData, consumable: UpgradesUI.ConsumableToProcess) -> void :
+	# Gourmet DLC - P2W lootboxes can hold weapons; vanilla crates never did. The
+	# choice screen hides Take when no slot is free, so this is the happy path;
+	# the gold fallback is belt-and-braces only.
+	if item_data is WeaponData:
+		var p2w_wpi: int = consumable.player_index
+		if RunData.get_player_weapons_ref(p2w_wpi).size() < int(RunData.get_player_effect(Keys.weapon_slot_hash, p2w_wpi)):
+			var _p2w_w = RunData.add_weapon(item_data, p2w_wpi)
+		else:
+			RunData.add_gold(item_data.value, p2w_wpi)
+		return
 	RunData.add_item(item_data, consumable.player_index)
 
 

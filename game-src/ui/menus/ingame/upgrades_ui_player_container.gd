@@ -121,14 +121,54 @@ func _input(event):
 					_on_BanButton_button_up()
 
 
-func show_consumable_data(consumable_data: ConsumableData):
+func show_consumable_data(consumable_data: ConsumableData, p2w_rung: int = - 1):
+	# Gourmet DLC - a P2W lootbox: ceremony first (solo), then the vanilla choice
+	# screen with the pre-rolled drop. Non-P2W players get vanilla-tier weapons
+	# and display-only rarity colors on items (nothing custom leaves this screen).
+	if p2w_rung > 0:
+		_show_p2w_lootbox(consumable_data, p2w_rung)
+		return
 	var item_data = ItemService.process_item_box(consumable_data, RunData.current_wave, player_index)
 	_consumable_data = consumable_data
 	show_item(item_data)
 
 
+func _show_p2w_lootbox(consumable_data: ConsumableData, p2w_rung: int) -> void :
+	var chest_cursed: bool = RunData.enabled_dlcs.has("dlc_1") and Utils.get_chance_success(ItemService.P2WData.CURSED_CHEST_CHANCE / 100.0)
+	var entry: Dictionary = ItemService.p2w_roll_chest_drop(p2w_rung, player_index, chest_cursed, not RunData.is_p2w(player_index))
+	entry["rung"] = p2w_rung
+	entry["cursed"] = chest_cursed
+	var item_data: ItemParentData = RunData.p2w_resolve_entry(entry, player_index)
+	if item_data == null:
+		item_data = ItemService.process_item_box(consumable_data, RunData.current_wave, player_index)
+		_consumable_data = consumable_data
+		show_item(item_data)
+		return
+	if not RunData.is_coop_run:
+		var reel = preload("res://ui/menus/shop/p2w_reel.gd").new()
+		get_tree().current_scene.add_child(reel)
+		reel.setup(entry, player_index, true)
+		yield(reel, "reel_done")
+		reel.queue_free()
+	_consumable_data = consumable_data
+	show_item(item_data)
+	# rung-colored frame while still on the lootbox screen: items show their
+	# custom rarity here and ONLY here; weapons keep whatever tier they truly are
+	var frame_tier: int = item_data.tier
+	if not item_data is WeaponData:
+		frame_tier = int(ItemService.P2WData.RUNG_TIERS[int(ItemService.P2WData.RUNG_BY_ID.get(item_data.my_id, 1))])
+	var lb_style = _item_panel_container.get_stylebox("panel").duplicate()
+	ItemService.change_panel_stylebox_from_tier(lb_style, frame_tier, false, get_node_or_null("%frame"))
+	_item_panel_container.add_stylebox_override("panel", lb_style)
+	# a weapon with no free slot cannot be taken at wave end - recycle only
+	if item_data is WeaponData and RunData.get_player_weapons_ref(player_index).size() >= int(RunData.get_player_effect(Keys.weapon_slot_hash, player_index)):
+		_take_button.visible = false
+		_discard_button.call_deferred("grab_focus")
+
+
 func show_item(item_data: ItemParentData) -> void :
 	_item_data = item_data
+	_take_button.visible = true  # Gourmet DLC - P2W: may have been hidden for an unfittable weapon
 
 	_item_description.set_item(item_data, player_index)
 	_discard_button.text = tr("MENU_RECYCLE") + " (+" + str(ItemService.get_recycling_value(RunData.current_wave, item_data.value, player_index, item_data is WeaponData)) + ")"

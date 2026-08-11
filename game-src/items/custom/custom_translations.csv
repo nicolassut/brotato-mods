@@ -275,22 +275,64 @@ TIER_VII,VII
 TIER_VIII,VIII
 EFFECT_P2W_CHEST_CURSE,10% chance to be cursed when bought - each item inside is then 33% likely to come out cursed
 CHEST_P2W_1,Chest I
-EFFECT_P2W_CHEST_ODDS_1,"Contains one item (70%) or weapon (30%): 70% White, 20% Green, 7% Blue, 3% Teal"
+EFFECT_P2W_CHEST_ODDS_1,Contains one item (70%) or weapon (30%):
 CHEST_P2W_2,Chest II
-EFFECT_P2W_CHEST_ODDS_2,"Contains one item (70%) or weapon (30%): 70% Green, 20% Blue, 7% Teal, 3% Purple"
+EFFECT_P2W_CHEST_ODDS_2,Contains one item (70%) or weapon (30%):
 CHEST_P2W_3,Chest III
-EFFECT_P2W_CHEST_ODDS_3,"Contains one item (70%) or weapon (30%): 70% Blue, 20% Teal, 7% Purple, 3% Red"
+EFFECT_P2W_CHEST_ODDS_3,Contains one item (70%) or weapon (30%):
 CHEST_P2W_4,Chest IV
-EFFECT_P2W_CHEST_ODDS_4,"Contains one item (70%) or weapon (30%): 70% Teal, 20% Purple, 7% Red, 3% Pink"
+EFFECT_P2W_CHEST_ODDS_4,Contains one item (70%) or weapon (30%):
 CHEST_P2W_5,Chest V
-EFFECT_P2W_CHEST_ODDS_5,"Contains one item (70%) or weapon (30%): 70% Purple, 20% Red, 7% Pink, 3% Gold"
+EFFECT_P2W_CHEST_ODDS_5,Contains one item (70%) or weapon (30%):
 CHEST_P2W_6,Chest VI
-EFFECT_P2W_CHEST_ODDS_6,"Contains one item (70%) or weapon (30%): 70% Red, 20% Pink, 10% Gold"
+EFFECT_P2W_CHEST_ODDS_6,Contains one item (70%) or weapon (30%):
 CHEST_P2W_7,Chest VII
-EFFECT_P2W_CHEST_ODDS_7,"Contains one item (70%) or weapon (30%): 70% Pink, 30% Gold"
+EFFECT_P2W_CHEST_ODDS_7,Contains one item (70%) or weapon (30%):
 CHEST_P2W_8,Chest VIII
-EFFECT_P2W_CHEST_ODDS_8,Contains one item (70%) or weapon (30%): 100% Gold
+EFFECT_P2W_CHEST_ODDS_8,Contains one item (70%) or weapon (30%):
 P2W_OPEN,OPEN
 P2W_CHESTS,Chests opened: {0}
 EFFECT_P2W_SHOP,The shop sells Chests instead of items and weapons
 P2W_CURSED,CURSED
+P2W_CONTINUE,Continue
+EFFECT_P2W_ODDSROW_1_1,[color=#e6e6e6]White chance: 62%[/color]
+EFFECT_P2W_ODDSROW_1_2,[color=#7adb58]Green chance: 20%[/color]
+EFFECT_P2W_ODDSROW_1_3,[color=#5abeff]Blue chance: 10%[/color]
+EFFECT_P2W_ODDSROW_1_4,[color=#00d2be]Teal chance: 6%[/color]
+EFFECT_P2W_ODDSROW_1_5,[color=#ad5aff]Purple chance: 2%[/color]
+EFFECT_P2W_ODDSROW_2_2,[color=#7adb58]Green chance: 40%[/color]
+EFFECT_P2W_ODDSROW_2_1,[color=#e6e6e6]White chance: 22%[/color]
+EFFECT_P2W_ODDSROW_2_3,[color=#5abeff]Blue chance: 20%[/color]
+EFFECT_P2W_ODDSROW_2_4,[color=#00d2be]Teal chance: 10%[/color]
+EFFECT_P2W_ODDSROW_2_5,[color=#ad5aff]Purple chance: 6%[/color]
+EFFECT_P2W_ODDSROW_2_6,[color=#ff3b3b]Red chance: 2%[/color]
+EFFECT_P2W_ODDSROW_3_3,[color=#5abeff]Blue chance: 40%[/color]
+EFFECT_P2W_ODDSROW_3_2,[color=#7adb58]Green chance: 22%[/color]
+EFFECT_P2W_ODDSROW_3_4,[color=#00d2be]Teal chance: 20%[/color]
+EFFECT_P2W_ODDSROW_3_5,[color=#ad5aff]Purple chance: 10%[/color]
+EFFECT_P2W_ODDSROW_3_6,[color=#ff3b3b]Red chance: 6%[/color]
+EFFECT_P2W_ODDSROW_3_7,[color=#ff69c7]Pink chance: 2%[/color]
+EFFECT_P2W_ODDSROW_4_4,[color=#00d2be]Teal chance: 40%[/color]
+EFFECT_P2W_ODDSROW_4_3,[color=#5abeff]Blue chance: 22%[/color]
+EFFECT_P2W_ODDSROW_4_5,[color=#ad5aff]Purple chance: 20%[/color]
+EFFECT_P2W_ODDSROW_4_6,[color=#ff3b3b]Red chance: 10%[/color]
+EFFECT_P2W_ODDSROW_4_7,[color=#ff69c7]Pink chance: 6%[/color]
+EFFECT_P2W_ODDSROW_4_8,[color=#ffcd3c]Gold chance: 2%[/color]
+EFFECT_P2W_ODDSROW_5_5,[color=#ad5aff]Purple chance: 40%[/color]
+EFFECT_P2W_ODDSROW_5_4,[color=#00d2be]Teal chance: 22%[/color]
+EFFECT_P2W_ODDSROW_5_6,[color=#ff3b3b]Red chance: 20%[/color]
+EFFECT_P2W_ODDSROW_5_7,[color=#ff69c7]Pink chance: 10%[/color]
+EFFECT_P2W_ODDSROW_5_8,[color=#ffcd3c]Gold chance: 8%[/color]
+EFFECT_P2W_ODDSROW_6_6,[color=#ff3b3b]Red chance: 40%[/color]
+EFFECT_P2W_ODDSROW_6_5,[color=#ad5aff]Purple chance: 22%[/color]
+EFFECT_P2W_ODDSROW_6_7,[color=#ff69c7]Pink chance: 20%[/color]
+EFFECT_P2W_ODDSROW_6_8,[color=#ffcd3c]Gold chance: 18%[/color]
+EFFECT_P2W_ODDSROW_7_7,[color=#ff69c7]Pink chance: 40%[/color]
+EFFECT_P2W_ODDSROW_7_8,[color=#ffcd3c]Gold chance: 38%[/color]
+EFFECT_P2W_ODDSROW_7_6,[color=#ff3b3b]Red chance: 22%[/color]
+EFFECT_P2W_ODDSROW_8_8,[color=#ffcd3c]Gold chance: 78%[/color]
+EFFECT_P2W_ODDSROW_8_7,[color=#ff69c7]Pink chance: 22%[/color]
+P2W_TIER_GREEN,Green
+P2W_TIER_TEAL,Teal
+P2W_TIER_PINK,Pink
+P2W_TIER_GOLD,Gold

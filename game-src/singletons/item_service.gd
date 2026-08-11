@@ -49,13 +49,17 @@ func get_p2w_chest(rung: int) -> ItemData:
 # The chest rarity roll rides the same wave-gated ladder walk the Blacksmith's
 # weapons use (get_tier_from_wave with the ladder flag), then maps the rolled
 # tier int back to its chest rung.
-func get_p2w_chest_for_wave(wave: int, player_index: int, increase_tier: int = 0) -> ItemData:
+func get_p2w_rung_for_wave(wave: int, player_index: int, increase_tier: int = 0) -> int:
 	var chest_tier = get_tier_from_wave(wave, player_index, increase_tier, true)
 	var rung: int = 1
 	for r in P2WData.RUNG_TIERS:
 		if P2WData.RUNG_TIERS[r] == chest_tier:
 			rung = r
-	return get_p2w_chest(rung)
+	return rung
+
+
+func get_p2w_chest_for_wave(wave: int, player_index: int, increase_tier: int = 0) -> ItemData:
+	return get_p2w_chest(get_p2w_rung_for_wave(wave, player_index, increase_tier))
 
 
 # What comes out of a chest. Rolled at PURCHASE (the ceremony later only reveals).
@@ -63,7 +67,12 @@ func get_p2w_chest_for_wave(wave: int, player_index: int, increase_tier: int = 0
 # from the locked rarity spread (P2WData.RUNG_BY_ID); weapon pools are the real
 # ladder tiers. An empty bucket walks DOWN one rung until something exists, so a
 # chest can never come up empty.
-func p2w_roll_chest_drop(rung: int, player_index: int, chest_cursed: bool) -> Dictionary:
+# vanilla tier a rung maps to, for non-P2W players opening picked-up lootboxes:
+# their weapon drops are plain vanilla-tier weapons with vanilla names
+const P2W_VANILLA_TIER_OF_RUNG = {1: 0, 2: 0, 3: 1, 4: 1, 5: 2, 6: 3, 7: 3, 8: 3}
+
+
+func p2w_roll_chest_drop(rung: int, player_index: int, chest_cursed: bool, vanilla_weapons: bool = false) -> Dictionary:
 	var total: = 0
 	for entry in P2WData.CHEST_ODDS[rung]:
 		total += entry[1]
@@ -80,7 +89,7 @@ func p2w_roll_chest_drop(rung: int, player_index: int, chest_cursed: bool) -> Di
 
 	var probe: int = out_rung
 	while probe >= 1:
-		var ladder_tier: int = P2WData.RUNG_TIERS[probe]
+		var ladder_tier: int = P2W_VANILLA_TIER_OF_RUNG[probe] if vanilla_weapons else P2WData.RUNG_TIERS[probe]
 		if want_weapon:
 			var weapon_pool: = []
 			for weapon in weapons:
@@ -971,7 +980,29 @@ func get_color_from_entity_type(item: ItemEntity) -> Color:
 	return color
 
 
+# Gourmet DLC - P2W: his item copies carry their LADDER tier so the custom
+# rarity shows everywhere (name color, inventory frame, popups) and survives
+# saves (per-item tier serializes). Weapons already carry real ladder tiers.
+func p2w_retier_item(item_data: ItemParentData) -> ItemParentData:
+	if item_data == null or item_data is WeaponData:
+		return item_data
+	var rung: int = int(P2WData.RUNG_BY_ID.get(item_data.my_id, 0))
+	if rung <= 0:
+		return item_data
+	var ladder_tier: int = P2WData.RUNG_TIERS[rung]
+	if item_data.tier == ladder_tier:
+		return item_data
+	var retiered = item_data.duplicate()
+	retiered.tier = ladder_tier
+	return retiered
+
+
 func get_tier_text(tier: int) -> String:
+	# Gourmet DLC - the four ladder rarities carry their own names
+	if tier == TIER_BS_GREEN: return "P2W_TIER_GREEN"
+	if tier == TIER_BS_ORANGE: return "P2W_TIER_TEAL"
+	if tier == TIER_BS_PINK: return "P2W_TIER_PINK"
+	if tier == TIER_BS_GOLD: return "P2W_TIER_GOLD"
 	if tier == 0: return "TIER_COMMON"
 	elif tier == 1: return "TIER_UNCOMMON"
 	elif tier == 2: return "TIER_RARE"
