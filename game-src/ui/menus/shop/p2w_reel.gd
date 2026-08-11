@@ -23,7 +23,14 @@ const CARD_GAP: = 10.0
 const ICON: = 104.0
 const N_CARDS: = 44
 const WINNER_INDEX: = 36
-const SPIN_TIME: = 3.8
+# park deep enough that the idle window is full of cards on BOTH sides of the
+# ticker (2 left the strip's real edge visible on wide screens)
+const IDLE_INDEX: = 6
+# two-phase spin (user tuning 2026-08-11): a quick quadratic ramp-up, then a
+# long cubic coast-down - reads as "accelerates, whirls, slowly lands"
+const ACCEL_TIME: = 0.6
+const DECEL_TIME: = 5.1
+const ACCEL_FRACTION: = 0.16
 
 var _entry: Dictionary
 var _player_index: int = 0
@@ -40,6 +47,7 @@ var _take_button: Button
 var _recycle_button: Button
 var _spinning: bool = false
 var _landed: bool = false
+var _spin_end_x: float = 0.0
 
 
 func setup(entry: Dictionary, player_index: int) -> void :
@@ -81,7 +89,7 @@ func setup(entry: Dictionary, player_index: int) -> void :
 
 	_reveal_label = Label.new()
 	_reveal_label.align = Label.ALIGN_CENTER
-	_reveal_label.rect_position = Vector2(0, _window.rect_position.y + CARD + 24)
+	_reveal_label.rect_position = Vector2(0, _window.rect_position.y + CARD + 34)
 	_reveal_label.rect_size = Vector2(view_size.x, 40)
 	_reveal_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_reveal_label)
@@ -90,7 +98,7 @@ func setup(entry: Dictionary, player_index: int) -> void :
 	_open_button = Button.new()
 	_open_button.text = tr("P2W_OPEN")
 	_open_button.rect_min_size = Vector2(220, 56)
-	_open_button.rect_position = Vector2((view_size.x - 220) / 2.0, _window.rect_position.y + CARD + 64)
+	_open_button.rect_position = Vector2((view_size.x - 220) / 2.0, _window.rect_position.y + CARD + 104)
 	var _e1 = _open_button.connect("pressed", self, "_on_open_pressed")
 	add_child(_open_button)
 
@@ -116,7 +124,7 @@ func setup(entry: Dictionary, player_index: int) -> void :
 
 	# park the strip so real cards already fill the window in the idle state
 	var ticker_in_window: float = _window.rect_size.x / 2.0
-	_strip.rect_position = Vector2(ticker_in_window - (2 * (CARD + CARD_GAP) + CARD / 2.0), 0)
+	_strip.rect_position = Vector2(ticker_in_window - (IDLE_INDEX * (CARD + CARD_GAP) + CARD / 2.0), 0)
 
 	set_process(false)
 	_open_button.call_deferred("grab_focus")
@@ -193,19 +201,31 @@ func _on_open_pressed() -> void :
 	_spinning = true
 	_open_button.visible = false
 
-	# ease IN-OUT: the strip accelerates away, spins, then slowly settles on the
-	# winner, offset a random amount INSIDE the card so every landing differs
+	# phase 1 ramps up hard (quad ease-in over the first stretch), phase 2 coasts
+	# down long (cubic ease-out to the winner), offset a random amount INSIDE the
+	# card so every landing differs
 	var ticker_in_window: float = _window.rect_size.x / 2.0
 	var land_offset: float = rand_range(- CARD * 0.34, CARD * 0.34)
 	var end_x: float = ticker_in_window - (WINNER_INDEX * (CARD + CARD_GAP) + CARD / 2.0 + land_offset)
+	var start_x: float = _strip.rect_position.x
+	var mid_x: float = start_x + (end_x - start_x) * ACCEL_FRACTION
+	_spin_end_x = end_x
 
 	_tween = Tween.new()
 	add_child(_tween)
-	_tween.interpolate_property(_strip, "rect_position:x", _strip.rect_position.x, end_x, SPIN_TIME,
-			Tween.TRANS_CUBIC, Tween.EASE_IN_OUT)
+	_tween.interpolate_property(_strip, "rect_position:x", start_x, mid_x, ACCEL_TIME,
+			Tween.TRANS_QUAD, Tween.EASE_IN)
+	_tween.start()
+	var _err = _tween.connect("tween_all_completed", self, "_on_accel_done")
+	set_process(true)
+
+
+func _on_accel_done() -> void :
+	_tween.disconnect("tween_all_completed", self, "_on_accel_done")
+	_tween.interpolate_property(_strip, "rect_position:x", _strip.rect_position.x, _spin_end_x, DECEL_TIME,
+			Tween.TRANS_CUBIC, Tween.EASE_OUT)
 	_tween.start()
 	var _err = _tween.connect("tween_all_completed", self, "_on_landed")
-	set_process(true)
 
 
 func _process(_delta: float) -> void :
@@ -227,6 +247,16 @@ func _on_landed() -> void :
 	for card in _strip.get_children():
 		if card != _winner_panel:
 			card.modulate = Color(0.45, 0.45, 0.45)
+	# the winner gets a thick, unmissable frame: cursed purple, or its rung color
+	# lifted to full white for the white rung (the pale gray vanished on the dim)
+	var winner_style = _winner_panel.get_stylebox("panel")
+	if winner_style is StyleBoxFlat:
+		if bool(_entry.get("item_cursed", false)):
+			winner_style.border_color = Color(0.68, 0.35, 1.0)
+		elif winner_style.border_color.is_equal_approx(Color(0.75, 0.75, 0.75)):
+			winner_style.border_color = Color(1, 1, 1)
+		winner_style.set_border_width_all(7)
+		winner_style.bg_color = winner_style.bg_color.lightened(0.08)
 	_winner_panel.rect_pivot_offset = Vector2(CARD / 2.0, CARD / 2.0)
 	var pop: = Tween.new()
 	add_child(pop)
@@ -251,7 +281,7 @@ func _on_landed() -> void :
 		refund = ItemService.get_recycling_value(RunData.current_wave, drop_data.value, _player_index, drop_data is WeaponData)
 	_recycle_button.text = tr("MENU_RECYCLE") + " (+" + str(refund) + ")"
 	var view_size: Vector2 = get_viewport_rect().size
-	var buttons_y: float = _window.rect_position.y + CARD + 64
+	var buttons_y: float = _window.rect_position.y + CARD + 104
 	_take_button.rect_position = Vector2(view_size.x / 2.0 - 232, buttons_y)
 	_recycle_button.rect_position = Vector2(view_size.x / 2.0 + 12, buttons_y)
 	_take_button.visible = true
