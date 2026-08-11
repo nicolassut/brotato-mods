@@ -134,7 +134,10 @@ func show_consumable_data(consumable_data: ConsumableData, p2w_rung: int = - 1):
 
 
 func _show_p2w_lootbox(consumable_data: ConsumableData, p2w_rung: int) -> void :
-	var chest_cursed: bool = RunData.enabled_dlcs.has("dlc_1") and Utils.get_chance_success(ItemService.P2WData.CURSED_CHEST_CHANCE / 100.0)
+	# the same vanilla stat_curse-based roll shop items use (quietly no-ops
+	# without the Abyssal DLC); probing a chest copy keeps one curse path only
+	var curse_probe = ItemService.apply_item_effect_modifications(ItemService.get_p2w_chest(p2w_rung), player_index)
+	var chest_cursed: bool = bool(curse_probe.is_cursed)
 	var entry: Dictionary = ItemService.p2w_roll_chest_drop(p2w_rung, player_index, chest_cursed, not RunData.is_p2w(player_index))
 	entry["rung"] = p2w_rung
 	entry["cursed"] = chest_cursed

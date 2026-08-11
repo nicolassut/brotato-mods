@@ -273,7 +273,7 @@ TIER_V,V
 TIER_VI,VI
 TIER_VII,VII
 TIER_VIII,VIII
-EFFECT_P2W_CHEST_CURSE,10% chance to be cursed when bought - each item inside is then 33% likely to come out cursed
+EFFECT_P2W_CHEST_CURSE,A cursed chest's item is 33% likely to come out cursed
 CHEST_P2W_1,Chest I
 EFFECT_P2W_CHEST_ODDS_1,Contains one item (70%) or weapon (30%):
 CHEST_P2W_2,Chest II

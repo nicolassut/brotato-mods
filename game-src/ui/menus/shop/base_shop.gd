@@ -589,7 +589,7 @@ func on_shop_item_bought(shop_item: ShopItem, player_index: int) -> void :
 			RunData.remove_currency(shop_item.value, player_index)
 			RunData.get_player_effects(player_index)[Keys.shop_purchases_hash] += 1
 			var p2w_rung: int = int(shop_item.item_data.my_id.replace("item_p2w_chest_", ""))
-			var p2w_entry: Dictionary = RunData.p2w_arm_chest(player_index, p2w_rung)
+			var p2w_entry: Dictionary = RunData.p2w_arm_chest(player_index, p2w_rung, bool(shop_item.item_data.is_cursed))
 			shop_item.p2w_arm(int(p2w_entry.uid), bool(p2w_entry.cursed))
 			GourmetTracker.ev("p2w_chest_buy", {"p": player_index, "rung": p2w_rung, "cursed": p2w_entry.cursed, "paid": shop_item.value})
 			# the ceremony opens immediately (user spec); cancelling it leaves the

@@ -276,6 +276,8 @@ func p2w_arm(uid: int, cursed: bool) -> void :
 	p2w_pending_uid = uid
 	p2w_cursed = cursed
 	value = 0
+	_lock_button.disable()
+	_lock_button.hide()
 	_button.set_value(0, _spending_power(player_index))
 	_button.set_text(tr("P2W_OPEN"))
 	if cursed:

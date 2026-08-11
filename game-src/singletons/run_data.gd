@@ -1755,8 +1755,9 @@ func p2w_resolve_entry(entry: Dictionary, player_index: int) -> ItemParentData:
 # Buying a chest: roll the curse AND the contents NOW (CSGO decides at purchase,
 # reveals at open), store serialized so a save/quit can never eat a paid chest.
 # Returns the pending entry (uid/cursed) for the shop UI to arm its card with.
-func p2w_arm_chest(player_index: int, rung: int) -> Dictionary:
-	var chest_cursed: bool = enabled_dlcs.has("dlc_1") and Utils.get_chance_success(ItemService.P2WData.CURSED_CHEST_CHANCE / 100.0)
+func p2w_arm_chest(player_index: int, rung: int, chest_cursed: bool = false) -> Dictionary:
+	# cursed state comes from the CARD (chests curse via the vanilla shop roll,
+	# lock-curse pity included); this only records it into the pending entry
 	var drop: Dictionary = ItemService.p2w_roll_chest_drop(rung, player_index, chest_cursed)
 	drop["rung"] = rung
 	drop["cursed"] = chest_cursed

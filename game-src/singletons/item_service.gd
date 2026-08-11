@@ -400,7 +400,10 @@ func get_player_shop_items(wave: int, player_index: int, args: ItemServiceGetSho
 	if RunData.is_p2w(player_index):
 		var chest_offers = []
 		for i in args.count:
-			chest_offers.push_back([get_p2w_chest_for_wave(wave, player_index, args.increase_tier), wave])
+			# chests curse exactly like items: the vanilla stat_curse-based shop
+			# roll (apply_item_effect_modifications), no flat rate (user 2026-08-11)
+			var chest_offer = apply_item_effect_modifications(get_p2w_chest_for_wave(wave, player_index, args.increase_tier), player_index)
+			chest_offers.push_back([chest_offer, wave])
 		return chest_offers
 
 	var new_items: = []

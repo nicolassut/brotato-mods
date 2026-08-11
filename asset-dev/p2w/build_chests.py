@@ -32,7 +32,6 @@ RUNG_COLORS = {1: (230, 230, 230), 2: (122, 219, 88), 3: (90, 190, 255), 4: (0, 
                5: (173, 90, 255), 6: (255, 59, 59), 7: (255, 105, 199), 8: (255, 205, 60)}
 VALUES = {1: 12, 2: 20, 3: 32, 4: 45, 5: 60, 6: 80, 7: 105, 8: 135}
 WEAPON_CHANCE = 30       # % of drops that are weapons
-CURSED_CHEST_CHANCE = 10  # % rolled at purchase (Abyssal owners only)
 CURSED_ITEM_CHANCE = 33   # % per item out of a cursed chest
 
 
@@ -121,7 +120,7 @@ tier = {RUNG_TIERS[rung]}
 value = {VALUES[rung]}
 effects = [ {effects} ]
 tracking_text = ""
-is_lockable = false
+is_lockable = true
 unlock_codex_descr_after_get_it = 1
 is_cursed = false
 curse_factor = 0.0
@@ -219,8 +218,7 @@ def main():
                 ("P2W_CHESTS", "Chests opened: {0}"),
                 ("EFFECT_P2W_SHOP", "The shop sells Chests instead of items and weapons"),
                 ("EFFECT_P2W_CHEST_CURSE",
-                 f"{CURSED_CHEST_CHANCE}% chance to be cursed when bought - "
-                 f"each item inside is then {CURSED_ITEM_CHANCE}% likely to come out cursed")]
+                 f"A cursed chest's item is {CURSED_ITEM_CHANCE}% likely to come out cursed")]
     for rung in range(1, 9):
         d = f"{OUT}/chest_{rung}"
         os.makedirs(d, exist_ok=True)
@@ -259,7 +257,6 @@ const RUNG_NAMES = {gd_dict({k: chr(34) + v + chr(34) for k, v in RUNG_NAMES.ite
 const CHEST_PATHS = {gd_dict(chest_paths, False)}
 const CHEST_ODDS = {gd_dict(chest_odds, False)}
 const WEAPON_CHANCE = {WEAPON_CHANCE}
-const CURSED_CHEST_CHANCE = {CURSED_CHEST_CHANCE}
 const CURSED_ITEM_CHANCE = {CURSED_ITEM_CHANCE}
 const RUNG_BY_ID = {gd_dict(rung_by_id)}
 """
