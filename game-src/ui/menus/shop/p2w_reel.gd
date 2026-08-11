@@ -309,16 +309,19 @@ func _fill_strip() -> void :
 			prev_id = winner_id
 		else:
 			# no identical neighbors on the carousel: reroll while this filler
-			# matches the previous card (or the winner it will sit next to)
-			var filler: Dictionary = ItemService.p2w_roll_chest_drop(chest_rung, _player_index, false)
+			# matches the previous card (or the winner it will sit next to).
+			# Fillers inherit the chest's cursed state, so a cursed chest's reel
+			# honestly shows ~1 in 3 cards cursed (was hard-coded uncursed).
+			var chest_cursed: bool = bool(_entry.get("cursed", false))
+			var filler: Dictionary = ItemService.p2w_roll_chest_drop(chest_rung, _player_index, chest_cursed)
 			for _retry in 8:
 				var clashes_prev: bool = str(filler.id) == prev_id
 				var clashes_winner: bool = i == WINNER_INDEX - 1 and str(filler.id) == winner_id
 				if not clashes_prev and not clashes_winner:
 					break
-				filler = ItemService.p2w_roll_chest_drop(chest_rung, _player_index, false)
+				filler = ItemService.p2w_roll_chest_drop(chest_rung, _player_index, chest_cursed)
 			var resolved_f: Array = _rung_of_drop(filler)
-			card = _make_card(resolved_f[0], resolved_f[1], false)
+			card = _make_card(resolved_f[0], resolved_f[1], bool(filler.get("item_cursed", false)))
 			prev_id = str(filler.id)
 		card.rect_position = Vector2(i * (CARD + CARD_GAP), STRIP_PAD)
 		_strip.add_child(card)
