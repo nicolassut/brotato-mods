@@ -201,7 +201,22 @@ func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, res
 	var ticker_in_window: float = _window.rect_size.x / 2.0
 	_strip.rect_position = Vector2(ticker_in_window - (IDLE_INDEX * (CARD + CARD_GAP) + CARD / 2.0), 0)
 
-	set_process(false)
+	# FOCUS TRAP: the overlay owns focus for its whole lifetime. Buttons only
+	# navigate between themselves (self-looped neighbours), and _process
+	# re-grabs focus if anything behind the overlay steals it (the wave-end
+	# upgrades UI does, which broke press-interact-to-spin there).
+	for trap_button in [_open_button, _take_button, _recycle_button]:
+		var self_path: NodePath = trap_button.get_path()
+		trap_button.focus_neighbour_left = self_path
+		trap_button.focus_neighbour_right = self_path
+		trap_button.focus_neighbour_top = self_path
+		trap_button.focus_neighbour_bottom = self_path
+		trap_button.focus_next = self_path
+		trap_button.focus_previous = self_path
+	_take_button.focus_neighbour_right = _recycle_button.get_path()
+	_recycle_button.focus_neighbour_left = _take_button.get_path()
+
+	set_process(true)
 	_open_button.call_deferred("grab_focus")
 
 
@@ -380,9 +395,27 @@ func _on_accel_done() -> void :
 	var _err = _tween.connect("tween_all_completed", self, "_on_landed")
 
 
+func _enforce_focus() -> void :
+	var desired: Button = null
+	if _landed:
+		if _take_button.visible:
+			desired = _take_button
+		elif _recycle_button.visible:
+			desired = _recycle_button
+	elif _open_button != null and _open_button.visible:
+		desired = _open_button
+	if desired == null:
+		return
+	var focus_owner = get_focus_owner()
+	if focus_owner != _open_button and focus_owner != _take_button and focus_owner != _recycle_button:
+		desired.grab_focus()
+
+
 func _process(_delta: float) -> void :
 	if _strip == null:
 		return
+	if not _spinning:
+		_enforce_focus()
 	if _landed:
 		# post-landing: the outer aura slowly spins and breathes
 		if _outer_glow != null:
@@ -390,6 +423,8 @@ func _process(_delta: float) -> void :
 			_outer_glow.rect_rotation = _glow_phase * 10.0
 			var glow_pulse: float = 1.0 + 0.07 * sin(_glow_phase * 2.2)
 			_outer_glow.rect_scale = Vector2(glow_pulse, glow_pulse)
+		return
+	if not _spinning:
 		return
 	var ticker_in_window: float = _window.rect_size.x / 2.0
 	var card_under: int = int(floor((ticker_in_window - _strip.rect_position.x) / (CARD + CARD_GAP)))
