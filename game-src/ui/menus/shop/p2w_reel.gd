@@ -68,6 +68,12 @@ const GLOW_STRENGTH = {1: 0.0, 2: 0.22, 3: 0.32, 4: 0.42, 5: 0.55, 6: 0.7, 7: 0.
 # the animated aura around the WON card: appears on landing, spins and breathes
 var _outer_glow: TextureRect
 var _glow_phase: float = 0.0
+# celebration state (user 2026-08-11): 2 = gold (full party: sting, confetti,
+# shake, hard name pulse), 1 = pink (minor), 0 = everything else
+var _celebrate: int = 0
+var _confetti: = []
+var _shake_left: float = 0.0
+var _celebration_sound: AudioStreamPlayer
 
 
 # the exact resolved (cursed/retiered) instance the claim will grant; the drop
@@ -196,6 +202,8 @@ func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, res
 	_land_sound = AudioStreamPlayer.new()
 	_land_sound.stream = load("res://ui/sounds/buy.wav")
 	add_child(_land_sound)
+	_celebration_sound = AudioStreamPlayer.new()
+	add_child(_celebration_sound)
 
 	# park the strip so real cards already fill the window in the idle state
 	var ticker_in_window: float = _window.rect_size.x / 2.0
@@ -395,6 +403,28 @@ func _on_accel_done() -> void :
 	var _err = _tween.connect("tween_all_completed", self, "_on_landed")
 
 
+func _spawn_confetti(count: int, colors: Array) -> void :
+	var origin: Vector2 = _window.rect_position + _strip.rect_position + _winner_panel.rect_position + Vector2(CARD / 2.0, CARD / 2.0)
+	for _i in count:
+		_confetti.push_back({
+			"pos": origin + Vector2(rand_range(-20, 20), rand_range(-20, 10)),
+			"vel": Vector2(rand_range(-260, 260), rand_range(-520, -160)),
+			"color": colors[randi() % colors.size()],
+			"size": rand_range(5, 11),
+			"rot": rand_range(0, PI),
+			"spin": rand_range(-6, 6),
+			"life": rand_range(1.4, 2.6),
+		})
+
+
+func _draw() -> void :
+	for c in _confetti:
+		draw_set_transform(c.pos, c.rot, Vector2.ONE)
+		var s: float = c.size
+		draw_rect(Rect2(Vector2(-s / 2.0, -s / 4.0), Vector2(s, s / 2.0)), c.color)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
 func _enforce_focus() -> void :
 	var desired: Button = null
 	if _landed:
@@ -418,11 +448,36 @@ func _process(_delta: float) -> void :
 		_enforce_focus()
 	if _landed:
 		# post-landing: the outer aura slowly spins and breathes
+		_glow_phase += _delta
 		if _outer_glow != null:
-			_glow_phase += _delta
 			_outer_glow.rect_rotation = _glow_phase * 10.0
 			var glow_pulse: float = 1.0 + 0.07 * sin(_glow_phase * 2.2)
 			_outer_glow.rect_scale = Vector2(glow_pulse, glow_pulse)
+		# reveal name pulses: hard for gold, gentle for pink, whisper otherwise
+		if _reveal_label != null:
+			var pulse_amp: float = 0.16 if _celebrate == 2 else (0.08 if _celebrate == 1 else 0.03)
+			var name_pulse: float = 1.0 + pulse_amp * (0.5 + 0.5 * sin(_glow_phase * 6.0))
+			_reveal_label.rect_pivot_offset = Vector2(_reveal_label.rect_size.x / 2.0, _reveal_label.rect_size.y / 2.0)
+			_reveal_label.rect_scale = Vector2(name_pulse, name_pulse)
+		# confetti physics
+		if not _confetti.empty():
+			var alive: = []
+			for c in _confetti:
+				c.life -= _delta
+				if c.life > 0.0:
+					c.vel.y += 900.0 * _delta
+					c.pos += c.vel * _delta
+					c.rot += c.spin * _delta
+					alive.push_back(c)
+			_confetti = alive
+			update()
+		# gold screen shake, decaying
+		if _shake_left > 0.0:
+			_shake_left = max(0.0, _shake_left - _delta)
+			var shake_amp: float = 9.0 * (_shake_left / 0.5)
+			rect_position = Vector2(rand_range(-shake_amp, shake_amp), rand_range(-shake_amp, shake_amp))
+		elif rect_position != Vector2.ZERO:
+			rect_position = Vector2.ZERO
 		return
 	if not _spinning:
 		return
@@ -435,7 +490,11 @@ func _process(_delta: float) -> void :
 		if card_under >= 0 and card_under < _strip.get_child_count():
 			_strip.get_child(card_under).modulate = Color(1.35, 1.35, 1.35)
 		_last_tick_card = card_under
-		_tick_sound.pitch_scale = rand_range(0.92, 1.08)
+		# wheel-of-fortune pitch: neutral through the blur, ramping UP over the
+		# last ~6 cards as the crawl tightens toward the landing
+		var remaining: float = abs(_strip.rect_position.x - _spin_end_x)
+		var ramp: float = clamp(1.0 - remaining / (6.0 * (CARD + CARD_GAP)), 0.0, 1.0)
+		_tick_sound.pitch_scale = rand_range(0.95, 1.05) + ramp * 0.6
 		_tick_sound.play()
 
 
@@ -481,6 +540,22 @@ func _on_landed() -> void :
 		_outer_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(_outer_glow)
 		move_child(_outer_glow, _window.get_index())
+
+	# celebration by landed rarity: gold = the full GOLD moment, pink = minor
+	var landed_rung: int = int(resolved[1])
+	if landed_rung >= 8:
+		_celebrate = 2
+		_celebration_sound.stream = load("res://items/materials/alt_sounds/coin_bag_ring_gemstone_item_01.wav")
+		_celebration_sound.pitch_scale = 1.0
+		_celebration_sound.play()
+		_shake_left = 0.5
+		_spawn_confetti(70, [Color("#ffcd3c"), Color("#fff2b0"), Color("#ffffff"), Color("#ffb02a")])
+	elif landed_rung == 7:
+		_celebrate = 1
+		_celebration_sound.stream = load("res://items/materials/alt_sounds/coin_bag_ring_gemstone_item_03.wav")
+		_celebration_sound.pitch_scale = 1.15
+		_celebration_sound.play()
+		_spawn_confetti(28, [Color("#ff69c7"), Color("#ffc2e5"), Color("#ffffff")])
 
 	var got_name: String = tr(drop_data.name) if drop_data != null else "???"
 	if bool(_entry.get("item_cursed", false)):
