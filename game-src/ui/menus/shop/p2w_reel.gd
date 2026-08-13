@@ -74,6 +74,13 @@ var _celebrate: int = 0
 var _confetti: = []
 var _shake_left: float = 0.0
 var _celebration_sound: AudioStreamPlayer
+# gold fanfare: long bell + ascending gem arpeggio, stepped off the land clock
+var _fanfare_players: = []
+var _fanfare_steps: = []
+# suspense drumroll when the crawl could plausibly end on gold
+var _buildup_sound: AudioStreamPlayer
+var _buildup_checked: bool = false
+var _card_rungs: = []
 
 
 # the exact resolved (cursed/retiered) instance the claim will grant; the drop
@@ -204,6 +211,18 @@ func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, res
 	add_child(_land_sound)
 	_celebration_sound = AudioStreamPlayer.new()
 	add_child(_celebration_sound)
+	_buildup_sound = AudioStreamPlayer.new()
+	_buildup_sound.stream = load("res://ui/sounds/diceroll.wav")
+	_buildup_sound.pitch_scale = 0.82
+	add_child(_buildup_sound)
+	for fanfare_path in ["res://dlcs/dlc_1/items/sunken_bell/bell_large_ringing_01.wav",
+			"res://items/materials/alt_sounds/coin_bag_ring_gemstone_item_01.wav",
+			"res://items/materials/alt_sounds/coin_bag_ring_gemstone_item_02.wav",
+			"res://items/materials/alt_sounds/coin_bag_ring_gemstone_item_04.wav"]:
+		var fanfare_player: = AudioStreamPlayer.new()
+		fanfare_player.stream = load(fanfare_path)
+		add_child(fanfare_player)
+		_fanfare_players.push_back(fanfare_player)
 
 	# park the strip so real cards already fill the window in the idle state
 	var ticker_in_window: float = _window.rect_size.x / 2.0
@@ -348,6 +367,7 @@ func _fill_strip() -> void :
 			card = _make_card(resolved[0], resolved[1], bool(_entry.get("item_cursed", false)))
 			_winner_panel = card
 			prev_id = winner_id
+			_card_rungs.push_back(int(resolved[1]))
 		else:
 			# no identical neighbors on the carousel: reroll while this filler
 			# matches the previous card (or the winner it will sit next to).
@@ -364,6 +384,7 @@ func _fill_strip() -> void :
 			var resolved_f: Array = _rung_of_drop(filler)
 			card = _make_card(resolved_f[0], resolved_f[1], bool(filler.get("item_cursed", false)))
 			prev_id = str(filler.id)
+			_card_rungs.push_back(int(resolved_f[1]))
 		card.rect_position = Vector2(i * (CARD + CARD_GAP), STRIP_PAD)
 		_strip.add_child(card)
 
@@ -404,25 +425,25 @@ func _on_accel_done() -> void :
 
 
 func _spawn_confetti(count: int, colors: Array) -> void :
+	# real ColorRect nodes added LAST so they render on TOP of the whole overlay
+	# (the earlier _draw version painted underneath every child and was invisible)
 	var origin: Vector2 = _window.rect_position + _strip.rect_position + _winner_panel.rect_position + Vector2(CARD / 2.0, CARD / 2.0)
 	for _i in count:
+		var piece: = ColorRect.new()
+		var piece_size: float = rand_range(6, 13)
+		piece.color = colors[randi() % colors.size()]
+		piece.rect_size = Vector2(piece_size, piece_size * 0.5)
+		piece.rect_pivot_offset = piece.rect_size / 2.0
+		piece.rect_rotation = rand_range(0, 360)
+		piece.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		piece.rect_position = origin + Vector2(rand_range(-24, 24), rand_range(-24, 10))
+		add_child(piece)
 		_confetti.push_back({
-			"pos": origin + Vector2(rand_range(-20, 20), rand_range(-20, 10)),
-			"vel": Vector2(rand_range(-260, 260), rand_range(-520, -160)),
-			"color": colors[randi() % colors.size()],
-			"size": rand_range(5, 11),
-			"rot": rand_range(0, PI),
-			"spin": rand_range(-6, 6),
-			"life": rand_range(1.4, 2.6),
+			"node": piece,
+			"vel": Vector2(rand_range(-300, 300), rand_range(-620, -200)),
+			"spin": rand_range(-260, 260),
+			"life": rand_range(1.6, 3.0),
 		})
-
-
-func _draw() -> void :
-	for c in _confetti:
-		draw_set_transform(c.pos, c.rot, Vector2.ONE)
-		var s: float = c.size
-		draw_rect(Rect2(Vector2(-s / 2.0, -s / 4.0), Vector2(s, s / 2.0)), c.color)
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func _enforce_focus() -> void :
@@ -459,22 +480,34 @@ func _process(_delta: float) -> void :
 			var name_pulse: float = 1.0 + pulse_amp * (0.5 + 0.5 * sin(_glow_phase * 6.0))
 			_reveal_label.rect_pivot_offset = Vector2(_reveal_label.rect_size.x / 2.0, _reveal_label.rect_size.y / 2.0)
 			_reveal_label.rect_scale = Vector2(name_pulse, name_pulse)
-		# confetti physics
+		# fanfare steps fire off the land clock
+		if not _fanfare_steps.empty():
+			var due: = []
+			for step in _fanfare_steps:
+				if _glow_phase >= step[0]:
+					_fanfare_players[step[1]].play()
+					due.push_back(step)
+			for step in due:
+				_fanfare_steps.erase(step)
+		# confetti physics on real nodes
 		if not _confetti.empty():
 			var alive: = []
 			for c in _confetti:
 				c.life -= _delta
-				if c.life > 0.0:
-					c.vel.y += 900.0 * _delta
-					c.pos += c.vel * _delta
-					c.rot += c.spin * _delta
+				if c.life > 0.0 and is_instance_valid(c.node):
+					c.vel.y += 950.0 * _delta
+					c.node.rect_position += c.vel * _delta
+					c.node.rect_rotation += c.spin * _delta
+					if c.life < 0.5:
+						c.node.modulate.a = c.life / 0.5
 					alive.push_back(c)
+				elif is_instance_valid(c.node):
+					c.node.queue_free()
 			_confetti = alive
-			update()
-		# gold screen shake, decaying
+		# gold screen shake, decaying - LOUD
 		if _shake_left > 0.0:
 			_shake_left = max(0.0, _shake_left - _delta)
-			var shake_amp: float = 9.0 * (_shake_left / 0.5)
+			var shake_amp: float = 22.0 * (_shake_left / 0.8)
 			rect_position = Vector2(rand_range(-shake_amp, shake_amp), rand_range(-shake_amp, shake_amp))
 		elif rect_position != Vector2.ZERO:
 			rect_position = Vector2.ZERO
@@ -496,6 +529,15 @@ func _process(_delta: float) -> void :
 		var ramp: float = clamp(1.0 - remaining / (6.0 * (CARD + CARD_GAP)), 0.0, 1.0)
 		_tick_sound.pitch_scale = rand_range(0.95, 1.05) + ramp * 0.6
 		_tick_sound.play()
+		# suspense drumroll: entering the final stretch with GOLD in reach (the
+		# winner or any card within 2 of the landing spot) - builds the moment
+		# whether it hits or heartbreaks
+		if not _buildup_checked and remaining < 5.5 * (CARD + CARD_GAP):
+			_buildup_checked = true
+			for near_i in range(max(0, WINNER_INDEX - 2), min(_card_rungs.size(), WINNER_INDEX + 3)):
+				if int(_card_rungs[near_i]) >= 8:
+					_buildup_sound.play()
+					break
 
 
 func _on_landed() -> void :
@@ -545,11 +587,14 @@ func _on_landed() -> void :
 	var landed_rung: int = int(resolved[1])
 	if landed_rung >= 8:
 		_celebrate = 2
-		_celebration_sound.stream = load("res://items/materials/alt_sounds/coin_bag_ring_gemstone_item_01.wav")
-		_celebration_sound.pitch_scale = 1.0
-		_celebration_sound.play()
-		_shake_left = 0.5
-		_spawn_confetti(70, [Color("#ffcd3c"), Color("#fff2b0"), Color("#ffffff"), Color("#ffb02a")])
+		# long victory: big bell rings out under an ascending gem arpeggio
+		_fanfare_players[0].pitch_scale = 1.2
+		_fanfare_players[1].pitch_scale = 1.0
+		_fanfare_players[2].pitch_scale = 1.25
+		_fanfare_players[3].pitch_scale = 1.5
+		_fanfare_steps = [[0.0, 0], [0.0, 1], [0.2, 2], [0.4, 3]]
+		_shake_left = 0.8
+		_spawn_confetti(90, [Color("#ffcd3c"), Color("#fff2b0"), Color("#ffffff"), Color("#ffb02a")])
 	elif landed_rung == 7:
 		_celebrate = 1
 		_celebration_sound.stream = load("res://items/materials/alt_sounds/coin_bag_ring_gemstone_item_03.wav")
