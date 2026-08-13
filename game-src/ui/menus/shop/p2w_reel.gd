@@ -85,6 +85,7 @@ var _buildup_checked: bool = false
 var _buildup_active: bool = false
 var _buildup_retrigger: float = 0.0
 var _card_rungs: = []
+var _last_strip_x: float = 0.0
 
 
 # the exact resolved (cursed/retiered) instance the claim will grant; the drop
@@ -522,6 +523,17 @@ func _process(_delta: float) -> void :
 		return
 	if not _spinning:
 		return
+	# perceptual landing: the quartic tail spends its last stretch in sub-pixel
+	# motion - visually parked while the tween (and buildup) drag on. The moment
+	# motion drops below perception, snap to the end and celebrate NOW, so the
+	# wheel stopping and the celebration are the same beat (user 2026-08-12).
+	var strip_speed: float = abs(_strip.rect_position.x - _last_strip_x) / max(_delta, 0.0001)
+	_last_strip_x = _strip.rect_position.x
+	if abs(_strip.rect_position.x - _spin_end_x) < CARD * 0.5 and strip_speed < 14.0:
+		_tween.stop_all()
+		_strip.rect_position.x = _spin_end_x
+		_on_landed()
+		return
 	# gold-suspense crescendo: rattle re-fires faster/higher/louder as the
 	# strip closes on the landing spot
 	if _buildup_active:
@@ -563,6 +575,8 @@ func _process(_delta: float) -> void :
 
 
 func _on_landed() -> void :
+	if _landed:
+		return  # perceptual landing may fire before the tween's own completion
 	_landed = true
 	_land_sound.play()
 
