@@ -36,7 +36,9 @@ const VANILLA_TIER_LADDER = [Tier.COMMON, Tier.UNCOMMON, Tier.RARE, Tier.LEGENDA
 # ==================== P2W DEBUG (2026-08-12) - REVERT AFTER TEST ====================
 # Forces every P2W shop slot to a GOLD chest costing 1 (celebration testing).
 # Revert = set false. Gates this file's fill branch + shop_item.gd debug pricing.
-const P2W_DEBUG_GOLD_SHOP: = true
+# P2W DEBUG - chests cost 1 coin so lootbox feel can be tested; rarity rolls
+# are natural. REVERT (set false) when testing is over.
+const P2W_DEBUG_CHEAP_CHESTS: = true
 # =====================================================================================
 
 
@@ -453,8 +455,6 @@ func get_player_shop_items(wave: int, player_index: int, args: ItemServiceGetSho
 			# chests curse exactly like items: the vanilla stat_curse-based shop
 			# roll (apply_item_effect_modifications), no flat rate (user 2026-08-11)
 			var chest_offer = apply_item_effect_modifications(get_p2w_chest_for_wave(wave, player_index, args.increase_tier), player_index)
-			if P2W_DEBUG_GOLD_SHOP:
-				chest_offer = apply_item_effect_modifications(get_p2w_chest(8), player_index)
 			chest_offers.push_back([chest_offer, wave])
 		return chest_offers
 

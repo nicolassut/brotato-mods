@@ -185,8 +185,8 @@ func set_shop_item(p_item_data: ItemParentData, p_wave_value: int = RunData.curr
 	if RunData.is_freeloader(player_index):
 		value = 0
 
-	# P2W DEBUG (gated on ItemService.P2W_DEBUG_GOLD_SHOP) - REVERT AFTER TEST
-	if ItemService.P2W_DEBUG_GOLD_SHOP and RunData.is_p2w(player_index) and p_item_data.my_id.begins_with("item_p2w_chest_"):
+	# P2W DEBUG (gated on ItemService.P2W_DEBUG_CHEAP_CHESTS) - REVERT AFTER TEST
+	if ItemService.P2W_DEBUG_CHEAP_CHESTS and RunData.is_p2w(player_index) and p_item_data.my_id.begins_with("item_p2w_chest_"):
 		value = 1
 
 	activate()
