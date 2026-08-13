@@ -102,6 +102,7 @@ var _resolved_drop: ItemParentData = null
 # and the buttons in exact proportion, so nothing overlaps or falls outside its section.
 var _design_size: Vector2 = Vector2(1920, 1080)
 var _section: Rect2 = Rect2()
+var _dim: ColorRect
 
 
 # The slice of screen this player owns. Empty in single-player (the reel keeps the whole
@@ -121,7 +122,11 @@ func _coop_section_for(player_index: int) -> Rect2:
 
 
 # Shrink the whole overlay into the section, preserving aspect so nothing distorts, and centre
-# it in whatever space is left over. Runs AFTER the layout is built.
+# it in whatever space is left over. Runs after the layout is built AND every frame from
+# _process: it is a few float ops, and it is the only thing that keeps the overlay pinned.
+# Any layout pass - landing adds the drop card and its buttons - otherwise re-applies the
+# anchors and snaps the whole thing back to the parent's origin, which is the "UI jumps to the
+# top-left corner once you get the item" bug.
 func _apply_section_transform() -> void :
 	if _section.size.x <= 0.0 or _section.size.y <= 0.0:
 		return
@@ -129,6 +134,15 @@ func _apply_section_transform() -> void :
 	rect_size = _design_size
 	rect_scale = Vector2(scale_factor, scale_factor)
 	rect_global_position = _section.position + (_section.size - _design_size * scale_factor) / 2.0
+
+	# The dim must black out the player's WHOLE section, not just the reel's scaled box. A
+	# 2-player split is tall and narrow, so fitting the ceremony to the width leaves bands of
+	# undimmed game above and below it. Oversize the backdrop in design space by exactly that
+	# leftover and keep it centred, so it lands on the section edges once scaled.
+	if _dim != null:
+		_dim.set_anchors_and_margins_preset(Control.PRESET_TOP_LEFT)
+		_dim.rect_size = _section.size / scale_factor
+		_dim.rect_position = (_design_size - _dim.rect_size) / 2.0
 
 
 func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, resolved_drop: ItemParentData = null) -> void :
@@ -141,16 +155,22 @@ func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, res
 	# design space is the FULL viewport even in coop - the shrink happens at the end
 	_design_size = get_viewport_rect().size
 
-	set_anchors_and_margins_preset(Control.PRESET_WIDE)
+	# Sectioned (coop) runs must NOT anchor WIDE: those anchors make every later layout pass
+	# recompute this rect from the parent, undoing the shrink and the placement. Anchor to the
+	# top-left and drive the rect explicitly instead. Single-player keeps the WIDE preset.
+	if _section.size.x > 0.0:
+		set_anchors_and_margins_preset(Control.PRESET_TOP_LEFT)
+	else:
+		set_anchors_and_margins_preset(Control.PRESET_WIDE)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	focus_mode = Control.FOCUS_ALL
 
-	var dim: = ColorRect.new()
-	dim.set_anchors_and_margins_preset(Control.PRESET_WIDE)
+	_dim = ColorRect.new()
+	_dim.set_anchors_and_margins_preset(Control.PRESET_WIDE)
 	# a cursed chest opens under a purple sky
-	dim.color = Color(0.10, 0.02, 0.14, 0.88) if bool(_entry.get("cursed", false)) else Color(0, 0, 0, 0.82)
-	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(dim)
+	_dim.color = Color(0.10, 0.02, 0.14, 0.88) if bool(_entry.get("cursed", false)) else Color(0, 0, 0, 0.82)
+	_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_dim)
 
 	var view_size: Vector2 = _design_size
 	var window_w: float = min(view_size.x * 0.86, 1240.0)
@@ -536,6 +556,8 @@ func _enforce_focus() -> void :
 func _process(_delta: float) -> void :
 	if _strip == null:
 		return
+	# cheap and idempotent; without it the landing's layout pass drags the overlay away
+	_apply_section_transform()
 	if not _spinning:
 		_enforce_focus()
 	if _landed:
