@@ -113,6 +113,15 @@ var _dim: ColorRect
 # included) to the top-left of the SCREEN the moment the item was revealed - for both players,
 # stacked. The transform now owns home and adds this offset on top.
 var _shake_offset: Vector2 = Vector2.ZERO
+# COOP navigation: the FocusEmulator only lets the selector move onto controls that live
+# inside one of its registered focus BASES (_filter_control) - everything else is rejected
+# and the walk dead-ends. The reel is spawned outside every base, which is why Take/Recycle
+# could be pressed (focus is ASSIGNED directly) but never navigated between: arrows and
+# joystick were structurally blind to the overlay. So the reel registers ITSELF as a
+# temporary focus base on the owning player's emulator - contained on both axes, so that
+# player's navigation stays inside the ceremony - and deregisters when it leaves the tree.
+var _coop_focus_emulator = null
+var _coop_focus_base_data: Resource = null
 
 
 # The slice of screen this player owns. Empty in single-player (the reel keeps the whole
@@ -158,6 +167,33 @@ func _apply_section_transform() -> void :
 		_dim.set_anchors_and_margins_preset(Control.PRESET_TOP_LEFT)
 		_dim.rect_size = _section.size / scale_factor
 		_dim.rect_position = (_design_size - _dim.rect_size) / 2.0
+
+
+func _register_coop_focus_base() -> void :
+	var emulator = Utils.get_focus_emulator(_player_index)
+	if emulator == null:
+		return
+	var base_data: = FocusEmulatorBaseData.new()
+	base_data.path = emulator.get_path_to(self)
+	# contain BOTH axes: navigation from any reel button stays inside the reel, which also
+	# stops the emulator's geometric fallback from escaping into the shop behind the overlay
+	base_data.contain_horizontal_focus = true
+	base_data.contain_vertical_focus = true
+	# the two arrays are parallel (data[i] describes node[i]) - append to both, remove both
+	emulator.focus_base_data.append(base_data)
+	emulator._focus_base_nodes.append(self)
+	_coop_focus_emulator = emulator
+	_coop_focus_base_data = base_data
+
+
+func _exit_tree() -> void :
+	if _coop_focus_emulator != null and is_instance_valid(_coop_focus_emulator):
+		var node_index: int = _coop_focus_emulator._focus_base_nodes.find(self)
+		if node_index != - 1:
+			_coop_focus_emulator._focus_base_nodes.remove(node_index)
+		_coop_focus_emulator.focus_base_data.erase(_coop_focus_base_data)
+	_coop_focus_emulator = null
+	_coop_focus_base_data = null
 
 
 func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, resolved_drop: ItemParentData = null) -> void :
@@ -337,6 +373,10 @@ func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, res
 
 	# everything is built: now shrink it into this player's section (no-op in single-player)
 	_apply_section_transform()
+
+	# coop: become a focus base so this player's arrows/joystick can walk the reel's buttons
+	if RunData.is_coop_run:
+		_register_coop_focus_base()
 
 	set_process(true)
 	Utils.focus_player_control(_open_button, _player_index)
