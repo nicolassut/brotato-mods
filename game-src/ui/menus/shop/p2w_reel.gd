@@ -100,9 +100,19 @@ var _resolved_drop: ItemParentData = null
 # into the player's own slice of the screen. Scaling the finished overlay - rather than
 # re-authoring the layout for a quarter screen - keeps the strip, the odds panel, the item card
 # and the buttons in exact proportion, so nothing overlaps or falls outside its section.
+# how much bigger than a pure width-fit the ceremony may grow when the section has spare
+# height (2-player splits). 1.0 = pure fit; capped against the strip window either way.
+const COOP_SCALE_BOOST: = 1.15
 var _design_size: Vector2 = Vector2(1920, 1080)
 var _section: Rect2 = Rect2()
 var _dim: ColorRect
+# The gold celebration's screen shake, as an OFFSET from the overlay's home position. It used
+# to write rect_position directly with a rest state of Vector2.ZERO - a hidden "home is the
+# screen origin" assumption. In coop, home is the player's section: that reset ran every landed
+# frame, later in _process than the section transform, so it dragged the whole ceremony (dim
+# included) to the top-left of the SCREEN the moment the item was revealed - for both players,
+# stacked. The transform now owns home and adds this offset on top.
+var _shake_offset: Vector2 = Vector2.ZERO
 
 
 # The slice of screen this player owns. Empty in single-player (the reel keeps the whole
@@ -130,10 +140,15 @@ func _coop_section_for(player_index: int) -> Rect2:
 func _apply_section_transform() -> void :
 	if _section.size.x <= 0.0 or _section.size.y <= 0.0:
 		return
+	# Pure fit, never more: scaling BEYOND the fit makes the design rect wider than the section,
+	# so centring it yields a negative offset and the overlay hangs out of the player's slice
+	# (measured: scale 0.575 on a 960px section put the origin at x=-72). The ceremony is made
+	# bigger by NARROWING the canvas in setup instead - see _design_size there.
 	var scale_factor: float = min(_section.size.x / _design_size.x, _section.size.y / _design_size.y)
+
 	rect_size = _design_size
 	rect_scale = Vector2(scale_factor, scale_factor)
-	rect_global_position = _section.position + (_section.size - _design_size * scale_factor) / 2.0
+	rect_global_position = _section.position + (_section.size - _design_size * scale_factor) / 2.0 + _shake_offset
 
 	# The dim must black out the player's WHOLE section, not just the reel's scaled box. A
 	# 2-player split is tall and narrow, so fitting the ceremony to the width leaves bands of
@@ -154,6 +169,14 @@ func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, res
 	_section = _coop_section_for(player_index)
 	# design space is the FULL viewport even in coop - the shrink happens at the end
 	_design_size = get_viewport_rect().size
+
+	# A 2-player split is TALLER than the screen's aspect, so a pure width-fit leaves spare
+	# vertical room and dead space at the sides. Take it by NARROWING the canvas the layout is
+	# authored against: the same elements then occupy more of the section's width once scaled.
+	# Doing it here rather than by over-scaling is what keeps the design rect inside the
+	# section, so nothing spills into the other player's half.
+	if _section.size.x > 0.0 and (_section.size.y / _section.size.x) > (_design_size.y / _design_size.x):
+		_design_size.x = _design_size.x / COOP_SCALE_BOOST
 
 	# Sectioned (coop) runs must NOT anchor WIDE: those anchors make every later layout pass
 	# recompute this rect from the parent, undoing the shrink and the placement. Anchor to the
@@ -597,13 +620,18 @@ func _process(_delta: float) -> void :
 				elif is_instance_valid(c.node):
 					c.node.queue_free()
 			_confetti = alive
-		# gold screen shake, decaying - LOUD
+		# gold screen shake, decaying - LOUD. Writes the OFFSET, never rect_position: home is
+		# the section transform's business (see _shake_offset above for the coop bug this was).
 		if _shake_left > 0.0:
 			_shake_left = max(0.0, _shake_left - _delta)
 			var shake_amp: float = 14.0 * (_shake_left / 0.8)
-			rect_position = Vector2(rand_range(-shake_amp, shake_amp), rand_range(-shake_amp, shake_amp))
-		elif rect_position != Vector2.ZERO:
-			rect_position = Vector2.ZERO
+			_shake_offset = Vector2(rand_range(-shake_amp, shake_amp), rand_range(-shake_amp, shake_amp))
+		else:
+			_shake_offset = Vector2.ZERO
+		if _section.size.x > 0.0:
+			_apply_section_transform()
+		elif rect_position != _shake_offset:
+			rect_position = _shake_offset
 		return
 	if not _spinning:
 		return
