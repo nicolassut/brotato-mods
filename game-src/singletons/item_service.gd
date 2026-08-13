@@ -33,6 +33,13 @@ const BS_TIER_LADDER = [Tier.COMMON, TIER_BS_GREEN, Tier.UNCOMMON, TIER_BS_ORANG
 						Tier.RARE, Tier.LEGENDARY, TIER_BS_PINK, TIER_BS_GOLD]
 const VANILLA_TIER_LADDER = [Tier.COMMON, Tier.UNCOMMON, Tier.RARE, Tier.LEGENDARY]
 
+# ==================== P2W DEBUG (2026-08-12) - REVERT AFTER TEST ====================
+# Forces every P2W shop slot to a GOLD chest costing 1 (celebration testing).
+# Revert = set false. Gates this file's fill branch + shop_item.gd debug pricing.
+const P2W_DEBUG_GOLD_SHOP: = true
+# =====================================================================================
+
+
 # Gourmet DLC - The P2W chest system. Chests are deliberately absent from every
 # registry (items/weapons/consumables arrays), so nothing but his own shop can
 # ever roll one; they load on demand from the generated data file.
@@ -446,6 +453,8 @@ func get_player_shop_items(wave: int, player_index: int, args: ItemServiceGetSho
 			# chests curse exactly like items: the vanilla stat_curse-based shop
 			# roll (apply_item_effect_modifications), no flat rate (user 2026-08-11)
 			var chest_offer = apply_item_effect_modifications(get_p2w_chest_for_wave(wave, player_index, args.increase_tier), player_index)
+			if P2W_DEBUG_GOLD_SHOP:
+				chest_offer = apply_item_effect_modifications(get_p2w_chest(8), player_index)
 			chest_offers.push_back([chest_offer, wave])
 		return chest_offers
 
