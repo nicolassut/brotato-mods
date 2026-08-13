@@ -544,13 +544,15 @@ func _p2w_run_reel_and_open(shop_item: ShopItem, player_index: int) -> void :
 	if p2w_entry.empty():
 		shop_item.p2w_pending_uid = - 1  # stale uid self-heal: next press buys normally
 		return
+	# Gourmet DLC - the ceremony runs in COOP too. It used to be skipped there (the chest just
+	# granted silently) because the overlay was authored full-screen. The reel now shrinks
+	# itself into the buying player's own section of the split screen.
 	var outcome: String = "take"
-	if not RunData.is_coop_run:
-		var reel = P2WReel.new()
-		add_child(reel)
-		reel.setup(p2w_entry, player_index, false, RunData.p2w_resolve_uid(player_index, p2w_uid))
-		outcome = yield(reel, "reel_done")
-		reel.queue_free()
+	var reel = P2WReel.new()
+	add_child(reel)
+	reel.setup(p2w_entry, player_index, false, RunData.p2w_resolve_uid(player_index, p2w_uid))
+	outcome = yield(reel, "reel_done")
+	reel.queue_free()
 	if outcome == "cancel":
 		return
 

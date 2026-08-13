@@ -95,11 +95,51 @@ var _last_strip_x: float = 0.0
 var _resolved_drop: ItemParentData = null
 
 
+# Gourmet DLC - COOP: the ceremony is laid out in DESIGN SPACE (always the full viewport, so
+# every position/size below is the single-player layout verbatim) and then shrunk as a whole
+# into the player's own slice of the screen. Scaling the finished overlay - rather than
+# re-authoring the layout for a quarter screen - keeps the strip, the odds panel, the item card
+# and the buttons in exact proportion, so nothing overlaps or falls outside its section.
+var _design_size: Vector2 = Vector2(1920, 1080)
+var _section: Rect2 = Rect2()
+
+
+# The slice of screen this player owns. Empty in single-player (the reel keeps the whole
+# screen). Brotato splits 2-player runs left/right and 3-4 into quadrants.
+func _coop_section_for(player_index: int) -> Rect2:
+	if not RunData.is_coop_run:
+		return Rect2()
+	var view: Vector2 = get_viewport_rect().size
+	var players: int = RunData.get_player_count()
+	if players <= 1:
+		return Rect2()
+	if players == 2:
+		return Rect2(Vector2(view.x / 2.0 * player_index, 0), Vector2(view.x / 2.0, view.y))
+	var col: int = player_index % 2
+	var row: int = player_index / 2
+	return Rect2(Vector2(view.x / 2.0 * col, view.y / 2.0 * row), Vector2(view.x / 2.0, view.y / 2.0))
+
+
+# Shrink the whole overlay into the section, preserving aspect so nothing distorts, and centre
+# it in whatever space is left over. Runs AFTER the layout is built.
+func _apply_section_transform() -> void :
+	if _section.size.x <= 0.0 or _section.size.y <= 0.0:
+		return
+	var scale_factor: float = min(_section.size.x / _design_size.x, _section.size.y / _design_size.y)
+	rect_size = _design_size
+	rect_scale = Vector2(scale_factor, scale_factor)
+	rect_global_position = _section.position + (_section.size - _design_size * scale_factor) / 2.0
+
+
 func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, resolved_drop: ItemParentData = null) -> void :
 	_entry = entry
 	_player_index = player_index
 	_block_cancel = block_cancel
 	_resolved_drop = resolved_drop
+
+	_section = _coop_section_for(player_index)
+	# design space is the FULL viewport even in coop - the shrink happens at the end
+	_design_size = get_viewport_rect().size
 
 	set_anchors_and_margins_preset(Control.PRESET_WIDE)
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -112,7 +152,7 @@ func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, res
 	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(dim)
 
-	var view_size: Vector2 = get_viewport_rect().size
+	var view_size: Vector2 = _design_size
 	var window_w: float = min(view_size.x * 0.86, 1240.0)
 
 	_window = Control.new()
@@ -252,8 +292,11 @@ func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, res
 	_take_button.focus_neighbour_right = _recycle_button.get_path()
 	_recycle_button.focus_neighbour_left = _take_button.get_path()
 
+	# everything is built: now shrink it into this player's section (no-op in single-player)
+	_apply_section_transform()
+
 	set_process(true)
-	_open_button.call_deferred("grab_focus")
+	Utils.focus_player_control(_open_button, _player_index)
 
 
 # ---- strip construction -------------------------------------------------------
@@ -484,7 +527,10 @@ func _enforce_focus() -> void :
 		return
 	var focus_owner = get_focus_owner()
 	if focus_owner != _open_button and focus_owner != _take_button and focus_owner != _recycle_button:
-		desired.grab_focus()
+		# Gourmet DLC - COOP: route through the per-player focus emulator. A bare grab_focus
+		# fights the OTHER player's reel over the single focus owner and steals their
+		# navigation; focus_player_control falls back to grab_focus in single-player.
+		Utils.focus_player_control(desired, _player_index)
 
 
 func _process(_delta: float) -> void :
@@ -671,7 +717,7 @@ func _on_landed() -> void :
 	# the full item card above the strip (user request), height-capped to the
 	# free space so it never covers other UI; taller cards scroll
 	if drop_data != null:
-		var view_now: Vector2 = get_viewport_rect().size
+		var view_now: Vector2 = _design_size
 		# top margin keeps the card clear of the wave counter; it bottom-aligns
 		# against the strip after shrinking, so short cards hug the reel
 		var card_top: float = 200.0
@@ -723,18 +769,18 @@ func _on_landed() -> void :
 				if owned_weapon.my_id == drop_data.my_id and drop_data.upgrades_into != null:
 					can_take = true
 
-	var view_size: Vector2 = get_viewport_rect().size
+	var view_size: Vector2 = _design_size
 	var buttons_y: float = _window.rect_position.y + CARD + 2.0 * STRIP_PAD + 84
 	if can_take:
 		_take_button.rect_position = Vector2(view_size.x / 2.0 - 232, buttons_y)
 		_recycle_button.rect_position = Vector2(view_size.x / 2.0 + 12, buttons_y)
 		_take_button.visible = true
 		_recycle_button.visible = true
-		_take_button.call_deferred("grab_focus")
+		Utils.focus_player_control(_take_button, _player_index)
 	else:
 		_recycle_button.rect_position = Vector2(view_size.x / 2.0 - 110, buttons_y)
 		_recycle_button.visible = true
-		_recycle_button.call_deferred("grab_focus")
+		Utils.focus_player_control(_recycle_button, _player_index)
 
 
 # once the description has laid itself out, shrink the panel to its REAL
