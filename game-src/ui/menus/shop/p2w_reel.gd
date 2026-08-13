@@ -541,7 +541,7 @@ func _process(_delta: float) -> void :
 	# strip closes on the landing spot
 	if _buildup_active:
 		var b_remaining: float = abs(_strip.rect_position.x - _spin_end_x)
-		var b_progress: float = clamp(1.0 - b_remaining / (3.5 * (CARD + CARD_GAP)), 0.0, 1.0)
+		var b_progress: float = clamp(1.0 - b_remaining / (4.5 * (CARD + CARD_GAP)), 0.0, 1.0)
 		# aggressive curve (user tuning): later start, faster acceleration,
 		# pitch screaming up to ~2.5x by the landing
 		var b_curve: float = pow(b_progress, 0.6)
@@ -569,7 +569,7 @@ func _process(_delta: float) -> void :
 		# suspense drumroll: entering the final stretch with GOLD in reach (the
 		# winner or any card within 2 of the landing spot) - builds the moment
 		# whether it hits or heartbreaks
-		if not _buildup_checked and remaining < 3.5 * (CARD + CARD_GAP):
+		if not _buildup_checked and remaining < 4.5 * (CARD + CARD_GAP):
 			_buildup_checked = true
 			for near_i in range(max(0, WINNER_INDEX - 2), min(_card_rungs.size(), WINNER_INDEX + 3)):
 				if int(_card_rungs[near_i]) >= 8:
