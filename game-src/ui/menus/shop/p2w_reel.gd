@@ -267,12 +267,13 @@ func _rung_of_drop(drop: Dictionary):
 	return [item_data, int(ItemService.P2WData.RUNG_BY_ID.get(drop.id, 1))]
 
 
-func _get_glow_texture(rung: int) -> Texture:
-	if _glow_cache.has(rung):
-		return _glow_cache[rung]
+func _get_glow_texture(rung: int, aura: bool = false) -> Texture:
+	var cache_key: int = rung * 10 + (1 if aura else 0)
+	if _glow_cache.has(cache_key):
+		return _glow_cache[cache_key]
 	var strength: float = GLOW_STRENGTH[rung]
 	if strength <= 0.0:
-		_glow_cache[rung] = null
+		_glow_cache[cache_key] = null
 		return null
 	var tier_int: int = ItemService.P2WData.RUNG_TIERS[rung]
 	var glow_color: Color = ItemService.get_color_from_tier(tier_int)
@@ -283,7 +284,9 @@ func _get_glow_texture(rung: int) -> Texture:
 	var img: = Image.new()
 	img.create(size, size, false, Image.FORMAT_RGBA8)
 	img.lock()
-	var with_rays: bool = rung >= 8
+	# card glows keep their rays subtle and contained (gold only); the landing
+	# AURA gets long dramatic rays for red/pink/gold (user 2026-08-12)
+	var with_rays: bool = rung >= 6 if aura else rung >= 8
 	for y in size:
 		for x in size:
 			var dx: float = x - half
@@ -294,16 +297,19 @@ func _get_glow_texture(rung: int) -> Texture:
 			var falloff: float = pow(max(0.0, 1.0 - dist), 2.2)
 			var alpha: float = falloff * 0.55 * strength
 			if with_rays and dist > 0.05:
-				# baked shining rays: 8 wedges with a LONG reach (user 2026-08-12)
-				# - the shallow falloff keeps them visible to the texture edge
 				var ray: float = pow(abs(cos(atan2(dy, dx) * 4.0)), 14.0)
-				alpha += ray * pow(max(0.0, 1.0 - dist), 0.45) * 0.55
+				if aura:
+					# long dramatic rays reaching the texture edge
+					alpha += ray * pow(max(0.0, 1.0 - dist), 0.45) * 0.55
+				else:
+					# subtle contained rays inside the card
+					alpha += ray * max(0.0, 1.0 - dist) * 0.5
 			if alpha > 0.003:
 				img.set_pixel(x, y, Color(glow_color.r, glow_color.g, glow_color.b, min(alpha, 0.9)))
 	img.unlock()
 	var tex: = ImageTexture.new()
 	tex.create_from_image(img, Texture.FLAG_FILTER)
-	_glow_cache[rung] = tex
+	_glow_cache[cache_key] = tex
 	return tex
 
 
@@ -344,10 +350,7 @@ func _make_card(data, rung: int, is_winner_cursed: bool) -> Panel:
 		var glow: = TextureRect.new()
 		glow.texture = glow_tex
 		glow.expand = true
-		# gold's rays burst well past the card (panels do not clip children)
 		var glow_size: float = CARD * (0.9 + 0.35 * GLOW_STRENGTH[rung])
-		if rung >= 8:
-			glow_size = CARD * 1.85
 		glow.rect_size = Vector2(glow_size, glow_size)
 		glow.rect_position = Vector2((CARD - glow_size) / 2.0, (CARD - glow_size) / 2.0)
 		glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -606,12 +609,17 @@ func _on_landed() -> void :
 	# via the purple rung's texture). Lives on the root, tucked under the strip
 	# window, so it halos past the clip edges instead of being sliced by them.
 	var aura_rung: int = 5 if bool(_entry.get("item_cursed", false)) else int(resolved[1])
-	var aura_tex: Texture = _get_glow_texture(aura_rung)
+	# red/pink/gold get the spinning RAY BURST behind the won card, scaled up
+	# with rarity; everything else keeps the soft radial glow (user 2026-08-12)
+	var aura_is_burst: bool = not bool(_entry.get("item_cursed", false)) and aura_rung >= 6
+	var aura_tex: Texture = _get_glow_texture(aura_rung, aura_is_burst)
 	if aura_tex != null:
 		_outer_glow = TextureRect.new()
 		_outer_glow.texture = aura_tex
 		_outer_glow.expand = true
 		var aura_size: float = CARD * 2.1
+		if aura_is_burst:
+			aura_size = CARD * (3.2 if aura_rung >= 8 else (2.5 if aura_rung == 7 else 2.0))
 		_outer_glow.rect_size = Vector2(aura_size, aura_size)
 		_outer_glow.rect_pivot_offset = Vector2(aura_size / 2.0, aura_size / 2.0)
 		_outer_glow.rect_position = _window.rect_position + _strip.rect_position + _winner_panel.rect_position + Vector2(CARD / 2.0 - aura_size / 2.0, CARD / 2.0 - aura_size / 2.0)
