@@ -220,8 +220,8 @@ EFFECT_W_SAUCE_BLASTER_DROP,Each hit has a {0}% chance to squirt out a Chili Pep
 EFFECT_W_ICE_CREAM_SCOOP_DROP,Each hit has a {0}% chance to scoop out an Ice Cream
 EFFECT_W_GOLDEN_SPATULA_DROP,Each hit has a {0}% chance to flip out a Golden Apple
 EFFECT_W_EXPLODE,"Explodes on impact, damaging nearby enemies"
-EFFECT_GUMBALL_MACHINE,Dispenses {0}x Gumball at the machine every 5 kills your turrets get
-EFFECT_FOOD_GUMBALL,Eating a Gumball grants +{0} ({1}) Engineering for 14 seconds. Stacks
+EFFECT_GUMBALL_MACHINE,"Dispenses {0}x random Gumball (yellow, red, or blue) at the machine every 5 kills your turrets get"
+EFFECT_FOOD_GUMBALL,Eating a Yellow Gumball grants +{0} ({1}) Engineering for 14 seconds. Stacks
 EFFECT_COCKTAIL_BAR,Places a bar that serves a Bloody Mary every {0} seconds to nearby players
 EFFECT_FOOD_BLOODY_MARY,Drinking a Bloody Mary grants +{0}% ({1}) Life Steal for 10 seconds. Stacks
 EFFECT_FOOD_FRIED_EGG,Eating a Fried Egg grants +{0} ({1}) Luck permanently
@@ -336,3 +336,5 @@ P2W_TIER_GREEN,Green
 P2W_TIER_TEAL,Teal
 P2W_TIER_PINK,Pink
 P2W_TIER_GOLD,Gold
+EFFECT_FOOD_GUMBALL_RED,Eating a Red Gumball grants +{0}% ({1}) Attack Speed for 14 seconds. Stacks
+EFFECT_FOOD_GUMBALL_BLUE,Eating a Blue Gumball grants +{0} ({1}) Armor for 14 seconds. Stacks

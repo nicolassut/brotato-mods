@@ -1025,16 +1025,15 @@ func spawn_food(food_data: ConsumableData, pos: Vector2, angle: float = - 1.0, p
 	consumable.already_picked_up = false
 	consumable.consumable_data = food_data
 	consumable.set_texture(food_data.icon)
-	# Gourmet DLC - the Gumball ICON (food_data.icon) is red, so the shop/codex show red by
-	# default; the ARENA spawn swaps in the white base texture and recolours it red/blue/yellow
-	# at random (black outline survives modulate: black x colour = black). Others reset white.
-	if food_data.my_id == "consumable_food_gumball":
-		var _gb_base = load("res://items/foods/gumball/gumball_white.png")
-		if _gb_base != null:
-			consumable.set_texture(_gb_base)
-		consumable.modulate = [Color(0.95, 0.30, 0.30, 1), Color(0.35, 0.55, 0.95, 1), Color(0.95, 0.82, 0.30, 1)][randi() % 3]
-	else:
-		consumable.modulate = Color(1, 1, 1, 1)
+	# Gourmet DLC - gumballs ship a dedicated 40px ARENA sprite per colour (thick
+	# border); the 80px icon stays for card/codex/HUD chip. Colour is decided at
+	# dispense (each colour is its own food), so no modulate trickery here.
+	consumable.modulate = Color(1, 1, 1, 1)
+	if food_data.my_id.begins_with("consumable_food_gumball"):
+		var gb_slug: String = food_data.my_id.replace("consumable_food_", "")
+		var gb_small = load("res://items/foods/%s/%s_small.png" % [gb_slug, gb_slug])
+		if gb_small != null:
+			consumable.set_texture(gb_small)
 	consumable.set_meta("food_spawned_at", _food_wave_time)
 	consumable.drop(pos, 0, get_food_spawn_destination(pos, angle))
 	_consumables.push_back(consumable)
@@ -1214,7 +1213,15 @@ func fire_food_trigger(trigger_hash: int, player_index: int) -> void :
 		var food_data = ItemService.get_food_from_hash(entry[0])
 		if food_data != null:
 			for _j in range(entry[1]):
-				spawn_food(food_data, get_food_spawn_origin(entry[0], player_index), - 1.0, player_index)
+				# Gumball Machine dispenses a random colour; each colour is its
+				# own food (own buff, own HUD chip), rolled per ball
+				var rolled_food = food_data
+				if food_data.my_id == "consumable_food_gumball":
+					var gb_ids: Array = ["consumable_food_gumball", "consumable_food_gumball_red", "consumable_food_gumball_blue"]
+					var gb_pick = ItemService.get_food_from_hash(Keys.generate_hash(gb_ids[randi() % 3]))
+					if gb_pick != null:
+						rolled_food = gb_pick
+				spawn_food(rolled_food, get_food_spawn_origin(entry[0], player_index), - 1.0, player_index)
 
 
 # Gourmet DLC - Gourmet: all fruit becomes food (a random real food replaces the
