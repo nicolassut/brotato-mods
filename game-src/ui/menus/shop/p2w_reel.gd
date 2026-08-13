@@ -169,8 +169,34 @@ func _apply_section_transform() -> void :
 		_dim.rect_position = (_design_size - _dim.rect_size) / 2.0
 
 
+# Find the owning player's FocusEmulator from WHEREVER the reel is hosted. Utils.get_focus_
+# emulator only looks under the current SCENE root - fine in the shop (the emulators are
+# children of CoopShop, which is the scene), but at wave end the emulators live inside
+# coop_upgrades_ui.tscn while the current scene is Main, so the lookup returns null and every
+# focus operation silently no-ops: no default OPEN selection, no Take/Recycle navigation.
+# Walk the reel's ancestors and check each one's direct children, then fall back to Utils.
+func _find_focus_emulator():
+	var node = get_parent()
+	while node != null:
+		var candidate = node.get_node_or_null("FocusEmulator%s" % (_player_index + 1))
+		if candidate != null:
+			return candidate
+		node = node.get_parent()
+	return Utils.get_focus_emulator(_player_index)
+
+
+# Route a reel button focus through the emulator we actually found; plain grab in solo.
+func _focus_reel_button(button: Control) -> void :
+	if not RunData.is_coop_run:
+		Utils.focus_player_control(button, _player_index)
+		return
+	var emulator = _coop_focus_emulator if _coop_focus_emulator != null else _find_focus_emulator()
+	if emulator != null:
+		Utils.focus_player_control(button, _player_index, emulator)
+
+
 func _register_coop_focus_base() -> void :
-	var emulator = Utils.get_focus_emulator(_player_index)
+	var emulator = _find_focus_emulator()
 	if emulator == null:
 		return
 	var base_data: = FocusEmulatorBaseData.new()
@@ -379,7 +405,7 @@ func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, res
 		_register_coop_focus_base()
 
 	set_process(true)
-	Utils.focus_player_control(_open_button, _player_index)
+	_focus_reel_button(_open_button)
 
 
 # ---- strip construction -------------------------------------------------------
@@ -615,7 +641,7 @@ func _enforce_focus() -> void :
 	# the selector looked dead and only confirm worked. Compare the emulator's own focus,
 	# and only re-home it when it has genuinely left the reel's three buttons.
 	if RunData.is_coop_run:
-		var emulator: FocusEmulator = Utils.get_focus_emulator(_player_index)
+		var emulator = _coop_focus_emulator if _coop_focus_emulator != null else _find_focus_emulator()
 		if emulator == null:
 			return
 		var current: Control = emulator.focused_control
@@ -877,11 +903,11 @@ func _on_landed() -> void :
 		_recycle_button.rect_position = Vector2(view_size.x / 2.0 + 12, buttons_y)
 		_take_button.visible = true
 		_recycle_button.visible = true
-		Utils.focus_player_control(_take_button, _player_index)
+		_focus_reel_button(_take_button)
 	else:
 		_recycle_button.rect_position = Vector2(view_size.x / 2.0 - 110, buttons_y)
 		_recycle_button.visible = true
-		Utils.focus_player_control(_recycle_button, _player_index)
+		_focus_reel_button(_recycle_button)
 
 
 # once the description has laid itself out, shrink the panel to its REAL
