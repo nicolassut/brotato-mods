@@ -235,6 +235,11 @@ const UPGRADE_GRID_COLUMNS: = 4
 # Coop gives each player's draft about a quarter of the screen, so 4 columns there produce
 # unreadable slivers. 2 columns x 4 rows keeps all 8 cards on screen with nothing to scroll.
 const UPGRADE_GRID_COLUMNS_COOP: = 2
+# A draft card is an icon, a title and one effect line, so it wants to be a wide rectangle.
+# Without a ceiling it stretches to fill the draft area and comes out square, which is both
+# ugly and taller than 4 rows of screen. The floor is what the content actually needs.
+const CARD_MIN_HEIGHT: = 150
+const CARD_MAX_HEIGHT: = 210
 var _upgrade_grid: GridContainer
 
 
@@ -260,12 +265,20 @@ func _reflow_upgrades_into_grid(parent) -> void :
 	var rows: int = int(ceil(_get_upgrade_uis().size() / float(columns)))
 	var row_h: int = int((area_h - (rows - 1) * 8) / rows)
 
+	# Keep the cards RECTANGLES. Letting them expand vertically turned each one into a square
+	# (and pushed the bottom row off-screen) because the draft area is far taller than a card
+	# needs: a card is an icon, a title and one effect line. Cap the row at CARD_MAX_HEIGHT and
+	# stop expanding into the leftover space - the grid centres instead, so 4 rows fit with no
+	# scrolling. The floor keeps the effect line from being clipped when the area is short.
+	row_h = int(clamp(row_h, CARD_MIN_HEIGHT, CARD_MAX_HEIGHT))
+	_upgrade_grid.size_flags_vertical = SIZE_SHRINK_CENTER
+
 	for upgrade_ui in _get_upgrade_uis():
 		if upgrade_ui.get_parent() != _upgrade_grid:
 			upgrade_ui.get_parent().remove_child(upgrade_ui)
 			_upgrade_grid.add_child(upgrade_ui)
 		upgrade_ui.size_flags_horizontal = SIZE_EXPAND_FILL
-		upgrade_ui.size_flags_vertical = SIZE_EXPAND_FILL
+		upgrade_ui.size_flags_vertical = SIZE_FILL
 		upgrade_ui.rect_min_size = Vector2(0, row_h)
 
 	# Rebuild the focus chain for the GRID. The authored cards are a single row, so they only
