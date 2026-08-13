@@ -515,7 +515,7 @@ func _process(_delta: float) -> void :
 		# gold screen shake, decaying - LOUD
 		if _shake_left > 0.0:
 			_shake_left = max(0.0, _shake_left - _delta)
-			var shake_amp: float = 22.0 * (_shake_left / 0.8)
+			var shake_amp: float = 14.0 * (_shake_left / 0.8)
 			rect_position = Vector2(rand_range(-shake_amp, shake_amp), rand_range(-shake_amp, shake_amp))
 		elif rect_position != Vector2.ZERO:
 			rect_position = Vector2.ZERO
