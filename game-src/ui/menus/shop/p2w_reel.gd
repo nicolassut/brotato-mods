@@ -293,9 +293,10 @@ func _get_glow_texture(rung: int) -> Texture:
 			var falloff: float = pow(max(0.0, 1.0 - dist), 2.2)
 			var alpha: float = falloff * 0.55 * strength
 			if with_rays and dist > 0.05:
-				# baked shining rays: 8 wedges around the ring
+				# baked shining rays: 8 wedges with a LONG reach (user 2026-08-12)
+				# - the shallow falloff keeps them visible to the texture edge
 				var ray: float = pow(abs(cos(atan2(dy, dx) * 4.0)), 14.0)
-				alpha += ray * max(0.0, 1.0 - dist) * 0.5
+				alpha += ray * pow(max(0.0, 1.0 - dist), 0.45) * 0.55
 			if alpha > 0.003:
 				img.set_pixel(x, y, Color(glow_color.r, glow_color.g, glow_color.b, min(alpha, 0.9)))
 	img.unlock()
@@ -342,7 +343,10 @@ func _make_card(data, rung: int, is_winner_cursed: bool) -> Panel:
 		var glow: = TextureRect.new()
 		glow.texture = glow_tex
 		glow.expand = true
+		# gold's rays burst well past the card (panels do not clip children)
 		var glow_size: float = CARD * (0.9 + 0.35 * GLOW_STRENGTH[rung])
+		if rung >= 8:
+			glow_size = CARD * 1.85
 		glow.rect_size = Vector2(glow_size, glow_size)
 		glow.rect_position = Vector2((CARD - glow_size) / 2.0, (CARD - glow_size) / 2.0)
 		glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
