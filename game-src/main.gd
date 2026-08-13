@@ -2301,7 +2301,12 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void :
 		# Gourmet DLC - food buff HUD row, sits under the player's life container
 		var food_buffs_display = preload("res://ui/hud/food_buffs_display.gd").new()
 		food_buffs_display.player = _players[i]
+		# bottom-screen players (positions 2/3): the buff grid sits ABOVE their
+		# bars and its columns grow upward instead of down
+		food_buffs_display.grow_up = i >= 2
 		player_ui.hud_container.add_child(food_buffs_display)
+		if i >= 2:
+			player_ui.hud_container.move_child(food_buffs_display, 0)
 
 		# Gourmet DLC - wave-start food spawners (e.g. Espresso Machine): each owned spawner
 		# appended [food_id_hash, count] into wave_start_foods via its KEY_VALUE effect
