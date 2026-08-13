@@ -240,6 +240,26 @@ func deserialize_and_merge(serialized: Dictionary) -> void:
 
 	effects = deserialized_effects
 
+	# Gourmet DLC - food display effects are PURE TEXT (key "", value 0, only a
+	# text_key + consumable_food_* custom_key driving card lines). A save taken
+	# before a card gained such a line would otherwise show the stale card
+	# forever (e.g. Gumball Machine predating the red/blue colour lines). Safe
+	# to append even on cursed instances: these effects carry no numbers.
+	var display_template = ItemService.get_element_safe(ItemService.items, my_id)
+	if display_template == null:
+		display_template = ItemService.get_element_safe(ItemService.weapons, my_id)
+	if display_template != null:
+		for template_effect in display_template.effects:
+			if template_effect.key != "" or not template_effect.custom_key.begins_with("consumable_food_"):
+				continue
+			var display_line_present: bool = false
+			for own_effect in effects:
+				if own_effect.custom_key == template_effect.custom_key:
+					display_line_present = true
+					break
+			if not display_line_present:
+				effects.push_back(template_effect.duplicate())
+
 func is_pet_item() -> bool:
 	for effect in effects:
 		if effect is PetEffect:
