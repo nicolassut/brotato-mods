@@ -953,6 +953,19 @@ func spawn_consumables(unit: Unit) -> void :
 		consumable.already_picked_up = false
 		consumable.consumable_data = consumable_to_spawn
 		consumable.set_texture(consumable_to_spawn.icon)
+		# Gourmet DLC - P2W: in his runs, item crates ARE lootboxes. Roll the rarity
+		# at spawn (boss crates roll the top band) and dress the ground drop in it.
+		# Pooled nodes: always reset the meta so stale rungs never leak.
+		consumable.set_meta("p2w_rung", - 1)
+		if RunData.has_p2w() and (consumable_to_spawn.my_id_hash == Keys.consumable_item_box_hash or consumable_to_spawn.my_id_hash == Keys.consumable_legendary_item_box_hash):
+			var p2w_crate_rung: int
+			if consumable_to_spawn.my_id_hash == Keys.consumable_legendary_item_box_hash:
+				var p2w_leg_roll: int = Utils.randi_range(0, 99)
+				p2w_crate_rung = 6 if p2w_leg_roll < 70 else (7 if p2w_leg_roll < 90 else 8)
+			else:
+				p2w_crate_rung = ItemService.get_p2w_rung_for_wave(RunData.current_wave, RunData.first_p2w_index(), 0)
+			consumable.set_meta("p2w_rung", p2w_crate_rung)
+			consumable.set_texture(load("res://items/custom/p2w/chest_%d/chest_%d.png" % [p2w_crate_rung, p2w_crate_rung]))
 		if consumable_to_spawn.my_id.begins_with("consumable_food_"):
 			consumable.modulate.a = 1.0
 			consumable.set_meta("food_spawned_at", _food_wave_time)
@@ -1039,16 +1052,15 @@ func spawn_food(food_data: ConsumableData, pos: Vector2, angle: float = - 1.0, p
 	consumable.already_picked_up = false
 	consumable.consumable_data = food_data
 	consumable.set_texture(food_data.icon)
-	# Gourmet DLC - the Gumball ICON (food_data.icon) is red, so the shop/codex show red by
-	# default; the ARENA spawn swaps in the white base texture and recolours it red/blue/yellow
-	# at random (black outline survives modulate: black x colour = black). Others reset white.
-	if food_data.my_id == "consumable_food_gumball":
-		var _gb_base = load("res://items/foods/gumball/gumball_white.png")
-		if _gb_base != null:
-			consumable.set_texture(_gb_base)
-		consumable.modulate = [Color(0.95, 0.30, 0.30, 1), Color(0.35, 0.55, 0.95, 1), Color(0.95, 0.82, 0.30, 1)][randi() % 3]
-	else:
-		consumable.modulate = Color(1, 1, 1, 1)
+	# Gourmet DLC - gumballs ship a dedicated 40px ARENA sprite per colour (thick
+	# border); the 80px icon stays for card/codex/HUD chip. Colour is decided at
+	# dispense (each colour is its own food), so no modulate trickery here.
+	consumable.modulate = Color(1, 1, 1, 1)
+	if food_data.my_id.begins_with("consumable_food_gumball"):
+		var gb_slug: String = food_data.my_id.replace("consumable_food_", "")
+		var gb_small = load("res://items/foods/%s/%s_small.png" % [gb_slug, gb_slug])
+		if gb_small != null:
+			consumable.set_texture(gb_small)
 	consumable.set_meta("food_spawned_at", _food_wave_time)
 	consumable.drop(pos, 0, get_food_spawn_destination(pos, angle))
 	_consumables.push_back(consumable)
@@ -1228,7 +1240,15 @@ func fire_food_trigger(trigger_hash: int, player_index: int) -> void :
 		var food_data = ItemService.get_food_from_hash(entry[0])
 		if food_data != null:
 			for _j in range(entry[1]):
-				spawn_food(food_data, get_food_spawn_origin(entry[0], player_index), - 1.0, player_index)
+				# Gumball Machine dispenses a random colour; each colour is its
+				# own food (own buff, own HUD chip), rolled per ball
+				var rolled_food = food_data
+				if food_data.my_id == "consumable_food_gumball":
+					var gb_ids: Array = ["consumable_food_gumball", "consumable_food_gumball_red", "consumable_food_gumball_blue"]
+					var gb_pick = ItemService.get_food_from_hash(Keys.generate_hash(gb_ids[randi() % 3]))
+					if gb_pick != null:
+						rolled_food = gb_pick
+				spawn_food(rolled_food, get_food_spawn_origin(entry[0], player_index), - 1.0, player_index)
 
 
 # Gourmet DLC - Gourmet: all fruit becomes food (a random real food replaces the
@@ -1419,8 +1439,17 @@ func on_consumable_picked_up(consumable: Node, player_index: int) -> void :
 					player_index_to_add_to = i
 
 		consumable_to_process.player_index = player_index_to_add_to
+		# Gourmet DLC - P2W lootboxes carry their rolled rarity into the wave-end
+		# queue, and the pickup HUD shows the rung-colored crate rather than the
+		# vanilla green box (display duplicate; the data is otherwise identical)
+		var display_consumable = consumable_data
+		if consumable.has_meta("p2w_rung") and int(consumable.get_meta("p2w_rung")) > 0:
+			consumable_to_process.p2w_rung = int(consumable.get_meta("p2w_rung"))
+			display_consumable = consumable_data.duplicate()
+			display_consumable.icon = load("res://items/custom/p2w/chest_%d/chest_%d.png" % [consumable_to_process.p2w_rung, consumable_to_process.p2w_rung])
+			consumable_to_process.consumable_data = display_consumable
 		_consumables_to_process[player_index_to_add_to].push_back(consumable_to_process)
-		_things_to_process_player_containers[player_index_to_add_to].consumables.add_element(consumable_data)
+		_things_to_process_player_containers[player_index_to_add_to].consumables.add_element(display_consumable)
 
 	# Gourmet DLC - After-Dinner Mints count FOOD and fruit only. Item crates are consumables
 	# too, and counting those meant the Mints ticked on shop loot rather than on eating.
@@ -1970,6 +1999,16 @@ func on_upgrade_selected(upgrade_data: UpgradeData, upgrade: UpgradesUI.UpgradeT
 
 
 func on_item_box_take_button_pressed(item_data: ItemParentData, consumable: UpgradesUI.ConsumableToProcess) -> void :
+	# Gourmet DLC - P2W lootboxes can hold weapons; vanilla crates never did. The
+	# choice screen hides Take when no slot is free, so this is the happy path;
+	# the gold fallback is belt-and-braces only.
+	if item_data is WeaponData:
+		var p2w_wpi: int = consumable.player_index
+		if RunData.get_player_weapons_ref(p2w_wpi).size() < int(RunData.get_player_effect(Keys.weapon_slot_hash, p2w_wpi)):
+			var _p2w_w = RunData.add_weapon(item_data, p2w_wpi)
+		else:
+			RunData.add_gold(item_data.value, p2w_wpi)
+		return
 	RunData.add_item(item_data, consumable.player_index)
 
 
@@ -2303,7 +2342,12 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void :
 		# Gourmet DLC - food buff HUD row, sits under the player's life container
 		var food_buffs_display = preload("res://ui/hud/food_buffs_display.gd").new()
 		food_buffs_display.player = _players[i]
+		# bottom-screen players (positions 2/3): the buff grid sits ABOVE their
+		# bars and its columns grow upward instead of down
+		food_buffs_display.grow_up = i >= 2
 		player_ui.hud_container.add_child(food_buffs_display)
+		if i >= 2:
+			player_ui.hud_container.move_child(food_buffs_display, 0)
 
 		# Gourmet DLC - wave-start food spawners (e.g. Espresso Machine): each owned spawner
 		# appended [food_id_hash, count] into wave_start_foods via its KEY_VALUE effect

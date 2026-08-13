@@ -25,6 +25,13 @@ var ban_button_presed: bool = false
 
 var wave_value: = 1
 
+# Gourmet DLC - P2W two-stage chest state. -1 = not armed; otherwise the uid of
+# the serialized pending entry this card opens on its next press.
+var p2w_pending_uid: int = - 1
+var p2w_cursed: bool = false
+# extra chests armed by Magic Mirrors on the same purchase, opened back-to-back
+var p2w_extra_uids: = []
+
 onready var _panel = $PanelContainer
 onready var _button = $"%BuyButton"
 onready var _item_description = $"%ItemDescription"
@@ -141,6 +148,14 @@ func manage_ban_button_visibility() -> void :
 
 
 func set_shop_item(p_item_data: ItemParentData, p_wave_value: int = RunData.current_wave) -> void :
+	# Gourmet DLC - P2W: shop cards are REUSED nodes. A refill must clear any
+	# armed-chest state, or the stale uid points at an already-flushed entry and
+	# the buy press silently does nothing (the cant-buy-after-reload bug).
+	p2w_pending_uid = - 1
+	p2w_cursed = false
+	p2w_extra_uids = []
+	if _panel != null:
+		_panel.add_stylebox_override("panel", null)
 	item_data = p_item_data
 	wave_value = p_wave_value
 	value = ItemService.get_value(wave_value, p_item_data.value, player_index, true, p_item_data is WeaponData, p_item_data.my_id_hash)
@@ -256,6 +271,25 @@ func set_shop_item(p_item_data: ItemParentData, p_wave_value: int = RunData.curr
 		manage_lock_button_visibility()
 
 	_set_panel_lock_style()
+
+
+# Gourmet DLC - P2W: the chest was paid for; the card stays live showing OPEN at
+# price 0, with a purple border when the purchase rolled cursed.
+func p2w_arm(uid: int, cursed: bool) -> void :
+	p2w_pending_uid = uid
+	p2w_cursed = cursed
+	value = 0
+	_lock_button.disable()
+	_lock_button.hide()
+	_button.set_value(0, _spending_power(player_index))
+	_button.set_text(tr("P2W_OPEN"))
+	if cursed:
+		var panel_stylebox = _panel.get_stylebox("panel").duplicate()
+		if panel_stylebox is StyleBoxFlat:
+			panel_stylebox.border_color = ItemService.TIER_RARE_COLOR
+			panel_stylebox.set_border_width_all(3)
+			panel_stylebox.border_blend = true
+			_panel.add_stylebox_override("panel", panel_stylebox)
 
 
 func steal_item() -> void :

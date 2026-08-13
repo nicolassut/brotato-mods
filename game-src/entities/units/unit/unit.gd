@@ -436,6 +436,10 @@ func take_damage(value: int, args: TakeDamageArgs) -> Array:
 		_die_args_unit.killed_by_player_index = from_player_index
 		_die_args_unit.killing_blow_dmg_value = full_dmg_value
 		_die_args_unit.is_burning = args.is_burning
+		# Gourmet DLC - carry the killing entity into the die args; DieArgs.from
+		# was never populated on damage deaths, so turret-kill detection
+		# (Gumball Machine) always saw null and never fired
+		_die_args_unit.from = args.from
 		call_deferred("die", _die_args_unit)
 		_pending_die = true
 

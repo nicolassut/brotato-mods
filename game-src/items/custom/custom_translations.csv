@@ -220,8 +220,8 @@ EFFECT_W_SAUCE_BLASTER_DROP,Each hit has a {0}% chance to squirt out a Chili Pep
 EFFECT_W_ICE_CREAM_SCOOP_DROP,Each hit has a {0}% chance to scoop out an Ice Cream
 EFFECT_W_GOLDEN_SPATULA_DROP,Each hit has a {0}% chance to flip out a Golden Apple
 EFFECT_W_EXPLODE,"Explodes on impact, damaging nearby enemies"
-EFFECT_GUMBALL_MACHINE,Dispenses {0}x Gumball at the machine every 5 kills your turrets get
-EFFECT_FOOD_GUMBALL,Eating a Gumball grants +{0} ({1}) Engineering for 14 seconds. Stacks
+EFFECT_GUMBALL_MACHINE,"Dispenses {0}x random Gumball (yellow, red, or blue) at the machine every 5 kills your turrets get"
+EFFECT_FOOD_GUMBALL,Eating a Yellow Gumball grants +{0} ({1}) Engineering for 14 seconds. Stacks
 EFFECT_COCKTAIL_BAR,Places a bar that serves a Bloody Mary every {0} seconds to nearby players
 EFFECT_FOOD_BLOODY_MARY,Drinking a Bloody Mary grants +{0}% ({1}) Life Steal for 10 seconds. Stacks
 EFFECT_FOOD_FRIED_EGG,Eating a Fried Egg grants +{0} ({1}) Luck permanently
@@ -229,12 +229,6 @@ FRYING_PAN_LUCK,Luck gained: {0}
 EFFECT_W_FRYING_PAN_DROP,Each hit has a {0}% chance to cook up a Fried Egg
 EFFECT_W_WHISK_DROP,Each hit has a {0}% chance to whip up a Cake Slice
 EFFECT_W_ROLLING_PIN_DROP,Each hit has a {0}% chance to roll out a Warm Cookie
-EFFECT_BLACKSMITH_SHOP_WEAPONS,The shop only offers weapons
-EFFECT_BLACKSMITH_CLASS_DOUBLE,Weapon class bonuses are doubled. Their drawbacks are not
-TIER_V,V
-TIER_VI,VI
-TIER_VII,VII
-TIER_VIII,VIII
 EFFECT_PICKY_SPAWNER_LIMIT,You can hold twice the limit of every food spawner
 EFFECT_BUTCHER_RENDER,"At the end of each wave, 20% of the Damage gained that wave becomes permanent Appetite"
 EFFECT_ZOMBIE_REANIMATE,A hit that leaves him on 1 HP heals him back to full
@@ -280,5 +274,76 @@ EFFECT_CREDIT_CARD,"Lets you overspend in the shop, up to {0} into debt"
 CREDIT_CARD_DEBT,Debt taken on: {0}
 EFFECT_BANK_LOAN,"Instantly gain 500 Materials, then go 300 into debt"
 EFFECT_BANK_LOAN_USED,Used
+EFFECT_BLACKSMITH_SHOP_WEAPONS,The shop only offers weapons
+EFFECT_BLACKSMITH_CLASS_DOUBLE,Weapon class bonuses are doubled. Their drawbacks are not
+TIER_V,V
+TIER_VI,VI
+TIER_VII,VII
+TIER_VIII,VIII
+EFFECT_P2W_CHEST_CURSE,A cursed chest's item is 33% likely to come out cursed
+CHEST_P2W_1,Chest I
+EFFECT_P2W_CHEST_ODDS_1,Contains one item (70%) or weapon (30%):
+CHEST_P2W_2,Chest II
+EFFECT_P2W_CHEST_ODDS_2,Contains one item (70%) or weapon (30%):
+CHEST_P2W_3,Chest III
+EFFECT_P2W_CHEST_ODDS_3,Contains one item (70%) or weapon (30%):
+CHEST_P2W_4,Chest IV
+EFFECT_P2W_CHEST_ODDS_4,Contains one item (70%) or weapon (30%):
+CHEST_P2W_5,Chest V
+EFFECT_P2W_CHEST_ODDS_5,Contains one item (70%) or weapon (30%):
+CHEST_P2W_6,Chest VI
+EFFECT_P2W_CHEST_ODDS_6,Contains one item (70%) or weapon (30%):
+CHEST_P2W_7,Chest VII
+EFFECT_P2W_CHEST_ODDS_7,Contains one item (70%) or weapon (30%):
+CHEST_P2W_8,Chest VIII
+EFFECT_P2W_CHEST_ODDS_8,Contains one item (70%) or weapon (30%):
+P2W_OPEN,OPEN
+P2W_CHESTS,Chests opened: {0}
+EFFECT_P2W_SHOP,The shop sells Chests instead of items and weapons
+P2W_CURSED,CURSED
+P2W_CONTINUE,Continue
+EFFECT_P2W_ODDSROW_1_1,[color=#e6e6e6]White chance: 62%[/color]
+EFFECT_P2W_ODDSROW_1_2,[color=#7adb58]Green chance: 20%[/color]
+EFFECT_P2W_ODDSROW_1_3,[color=#5abeff]Blue chance: 10%[/color]
+EFFECT_P2W_ODDSROW_1_4,[color=#00d2be]Teal chance: 6%[/color]
+EFFECT_P2W_ODDSROW_1_5,[color=#ad5aff]Purple chance: 2%[/color]
+EFFECT_P2W_ODDSROW_2_2,[color=#7adb58]Green chance: 40%[/color]
+EFFECT_P2W_ODDSROW_2_1,[color=#e6e6e6]White chance: 22%[/color]
+EFFECT_P2W_ODDSROW_2_3,[color=#5abeff]Blue chance: 20%[/color]
+EFFECT_P2W_ODDSROW_2_4,[color=#00d2be]Teal chance: 10%[/color]
+EFFECT_P2W_ODDSROW_2_5,[color=#ad5aff]Purple chance: 6%[/color]
+EFFECT_P2W_ODDSROW_2_6,[color=#ff3b3b]Red chance: 2%[/color]
+EFFECT_P2W_ODDSROW_3_3,[color=#5abeff]Blue chance: 40%[/color]
+EFFECT_P2W_ODDSROW_3_2,[color=#7adb58]Green chance: 22%[/color]
+EFFECT_P2W_ODDSROW_3_4,[color=#00d2be]Teal chance: 20%[/color]
+EFFECT_P2W_ODDSROW_3_5,[color=#ad5aff]Purple chance: 10%[/color]
+EFFECT_P2W_ODDSROW_3_6,[color=#ff3b3b]Red chance: 6%[/color]
+EFFECT_P2W_ODDSROW_3_7,[color=#ff69c7]Pink chance: 2%[/color]
+EFFECT_P2W_ODDSROW_4_4,[color=#00d2be]Teal chance: 40%[/color]
+EFFECT_P2W_ODDSROW_4_3,[color=#5abeff]Blue chance: 22%[/color]
+EFFECT_P2W_ODDSROW_4_5,[color=#ad5aff]Purple chance: 20%[/color]
+EFFECT_P2W_ODDSROW_4_6,[color=#ff3b3b]Red chance: 10%[/color]
+EFFECT_P2W_ODDSROW_4_7,[color=#ff69c7]Pink chance: 6%[/color]
+EFFECT_P2W_ODDSROW_4_8,[color=#ffcd3c]Gold chance: 2%[/color]
+EFFECT_P2W_ODDSROW_5_5,[color=#ad5aff]Purple chance: 40%[/color]
+EFFECT_P2W_ODDSROW_5_4,[color=#00d2be]Teal chance: 22%[/color]
+EFFECT_P2W_ODDSROW_5_6,[color=#ff3b3b]Red chance: 20%[/color]
+EFFECT_P2W_ODDSROW_5_7,[color=#ff69c7]Pink chance: 10%[/color]
+EFFECT_P2W_ODDSROW_5_8,[color=#ffcd3c]Gold chance: 8%[/color]
+EFFECT_P2W_ODDSROW_6_6,[color=#ff3b3b]Red chance: 40%[/color]
+EFFECT_P2W_ODDSROW_6_5,[color=#ad5aff]Purple chance: 22%[/color]
+EFFECT_P2W_ODDSROW_6_7,[color=#ff69c7]Pink chance: 20%[/color]
+EFFECT_P2W_ODDSROW_6_8,[color=#ffcd3c]Gold chance: 18%[/color]
+EFFECT_P2W_ODDSROW_7_7,[color=#ff69c7]Pink chance: 40%[/color]
+EFFECT_P2W_ODDSROW_7_8,[color=#ffcd3c]Gold chance: 38%[/color]
+EFFECT_P2W_ODDSROW_7_6,[color=#ff3b3b]Red chance: 22%[/color]
+EFFECT_P2W_ODDSROW_8_8,[color=#ffcd3c]Gold chance: 78%[/color]
+EFFECT_P2W_ODDSROW_8_7,[color=#ff69c7]Pink chance: 22%[/color]
+P2W_TIER_GREEN,Green
+P2W_TIER_TEAL,Teal
+P2W_TIER_PINK,Pink
+P2W_TIER_GOLD,Gold
+EFFECT_FOOD_GUMBALL_RED,Eating a Red Gumball grants +{0}% ({1}) Attack Speed for 14 seconds. Stacks
+EFFECT_FOOD_GUMBALL_BLUE,Eating a Blue Gumball grants +{0} ({1}) Armor for 14 seconds. Stacks
 EFFECT_BLACKSMITH_TIERS,Weapons come in 8 tiers instead of 4
 EFFECT_BLACKSMITH_CLASS_TIERS,"Weapon class level comes from the total weapon tiers you own in that class: 1 level per 4 tiers, up to 6"

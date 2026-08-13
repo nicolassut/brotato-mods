@@ -36,15 +36,19 @@ out.resize((96,96),Image.LANCZOS).save(f"{CS}/appetite.png")
 print("wrote appetite.png")
 
 # ---------- StatData resource ----------
-open(f"{CS}/stat_appetite.tres","w").write('''[gd_resource type="Resource" load_steps=3 format=2]
+# ICON LAW (user 2026-08-11): cutlery = small_icon ONLY (tiny stat rows on cards
+# and the stat sheet). Everywhere else - stat popup, upgrade menu, in-round stat
+# gain floaters - uses the STOMACH (items/upgrades/appetite/appetite.png).
+open(f"{CS}/stat_appetite.tres","w").write('''[gd_resource type="Resource" load_steps=4 format=2]
 
 [ext_resource path="res://items/upgrades/stat_data.gd" type="Script" id=1]
 [ext_resource path="res://items/custom_stats/appetite.png" type="Texture" id=2]
+[ext_resource path="res://items/upgrades/appetite/appetite.png" type="Texture" id=3]
 
 [resource]
 script = ExtResource( 1 )
 stat_name = "stat_appetite"
-icon = ExtResource( 2 )
+icon = ExtResource( 3 )
 small_icon = ExtResource( 2 )
 is_primary_stat = false
 is_dlc_stat = true

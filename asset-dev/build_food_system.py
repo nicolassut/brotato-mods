@@ -105,6 +105,10 @@ SPAWNERS = [
  dict(slug="gumball_machine", max_nb=3, name="Gumball Machine", tier=2, value=70,
       tags=["food", "structure", "stat_engineering"], trigger="turret_kill_foods", count=1,
       anchor_structure=dict(scene="res://entities/structures/turret/gumball_machine/gumball_machine.tscn", stats="res://entities/structures/turret/food_stand_stats.tres"),
+      # red/blue gumballs are separate foods (each colour = own buff + HUD chip);
+      # their card lines ride on extra display effects here
+      extra_food_texts=[("EFFECT_FOOD_GUMBALL_RED", "consumable_food_gumball_red"),
+                        ("EFFECT_FOOD_GUMBALL_BLUE", "consumable_food_gumball_blue")],
       text_key="EFFECT_GUMBALL_MACHINE", ext_id=999),
  dict(slug="cocktail_bar", max_nb=3, name="Cocktail Bar", tier=2, value=75,
       tags=["food", "structure", "stat_lifesteal"], count=1,
@@ -189,6 +193,15 @@ STANDALONE_FOODS = [
  dict(food=food("fried_egg", "Fried Egg", "EFFECT_FOOD_FRIED_EGG",
                 perm=[("stat_luck", 1)], perm_app=0.05, tracking_item="weapon_frying_pan"),
       ext_id=1003),
+ # Gumball Machine colour variants (base gumball = yellow/Engineering). Eaten counts
+ # for ALL colours land on the base gumball hash (player.gd redirect), so these two
+ # never seed their own trackers and the machine card shows ONE total.
+ dict(food=food("gumball_red", "Red Gumball", "EFFECT_FOOD_GUMBALL_RED",
+                buff=[("stat_attack_speed", 2, 0.1)], dur=14, stack_cap=20),
+      ext_id=1294),
+ dict(food=food("gumball_blue", "Blue Gumball", "EFFECT_FOOD_GUMBALL_BLUE",
+                buff=[("stat_armor", 1, 0.05)], dur=14, stack_cap=20),
+      ext_id=1295),
 ]
 
 CSV_ROWS = [
@@ -238,8 +251,10 @@ CSV_ROWS = [
  ("EFFECT_FOOD_RIBS", "Eating Ribs grants +{0} ({1}) Melee Damage for 10 seconds. Stacks"),
  ("EFFECT_HOT_DOG_CART", "Spawns {0}x Chili Dog every 15 enemies that die more than 300 range from you"),
  ("EFFECT_FOOD_CHILI_DOG", "Eating a Chili Dog grants +{0} ({1}) Ranged Damage for 10 seconds. Stacks"),
- ("EFFECT_GUMBALL_MACHINE", "Dispenses {0}x Gumball at the machine every 5 kills your turrets get"),
- ("EFFECT_FOOD_GUMBALL", "Eating a Gumball grants +{0} ({1}) Engineering for 14 seconds. Stacks"),
+ ("EFFECT_GUMBALL_MACHINE", "Dispenses {0}x random Gumball (yellow, red, or blue) at the machine every 5 kills your turrets get"),
+ ("EFFECT_FOOD_GUMBALL", "Eating a Yellow Gumball grants +{0} ({1}) Engineering for 14 seconds. Stacks"),
+ ("EFFECT_FOOD_GUMBALL_RED", "Eating a Red Gumball grants +{0}% ({1}) Attack Speed for 14 seconds. Stacks"),
+ ("EFFECT_FOOD_GUMBALL_BLUE", "Eating a Blue Gumball grants +{0} ({1}) Armor for 14 seconds. Stacks"),
  ("EFFECT_COCKTAIL_BAR", "Places a bar that serves a Bloody Mary every {0} seconds to nearby players"),
  ("EFFECT_FOOD_BLOODY_MARY", "Drinking a Bloody Mary grants +{0}% ({1}) Life Steal for 10 seconds. Stacks"),
  ("EFFECT_FOOD_FRIED_EGG", "Eating a Fried Egg grants +{0} ({1}) Luck permanently"),
@@ -783,6 +798,7 @@ def spawner_tres(s):
     slug = s["slug"]
     tags = ", ".join(f'"{t}"' for t in ["spawner"] + s["tags"])
     n_effects = 3 if s.get("anchor_structure") else 2
+    n_effects += len(s.get("extra_food_texts", []))
     effect_ext = "\n".join(
         f'[ext_resource path="res://items/custom/{slug}/{slug}_effect_{i}.tres" type="Resource" id={3 + i}]'
         for i in range(n_effects))
@@ -962,6 +978,10 @@ def main():
         if s.get("anchor_structure"):
             with open(f"{d}/{slug}_effect_2.tres", "w") as fh:
                 fh.write(structure_effect_tres(s["anchor_structure"]["scene"], s["anchor_structure"]["stats"], "EFFECT_HIDDEN"))
+        extra_base = 3 if s.get("anchor_structure") else 2
+        for j, (etk, efid) in enumerate(s.get("extra_food_texts", [])):
+            with open(f"{d}/{slug}_effect_{extra_base + j}.tres", "w") as fh:
+                fh.write(effect_text_tres(etk, efid))
         with open(f"{d}/{slug}_data.tres", "w") as fh:
             fh.write(spawner_tres(s))
 
@@ -980,13 +1000,13 @@ def main():
             FOOD_ART[food_slug](draw)
             img.save(food_png)
         write_png_import(food_png, f"res://items/foods/{food_slug}/{food_slug}.png")
-        # Gourmet DLC - the Gumball ships TWO textures: gumball.png (red) is the static shop/codex
-        # icon, gumball_white.png is the white base main.gd recolours per spawn. Install the base.
-        if food_slug == "gumball":
-            base_final = f"{os.path.dirname(os.path.abspath(__file__))}/foods/final/gumball_white.png"
-            if os.path.exists(base_final):
-                shutil.copy(base_final, f"{d}/gumball_white.png")
-                write_png_import(f"{d}/gumball_white.png", "res://items/foods/gumball/gumball_white.png")
+        # Gourmet DLC - a food with a <slug>_small.png final ships a separate ARENA
+        # sprite at pickup size (gumballs: 40px, thick border); the 80px icon stays
+        # for the card/codex/HUD chip
+        small_final = f"{os.path.dirname(os.path.abspath(__file__))}/foods/final/{food_slug}_small.png"
+        if os.path.exists(small_final):
+            shutil.copy(small_final, f"{d}/{food_slug}_small.png")
+            write_png_import(f"{d}/{food_slug}_small.png", f"res://items/foods/{food_slug}/{food_slug}_small.png")
         with open(f"{d}/{food_slug}_text_effect.tres", "w") as fh:
             fh.write(effect_text_tres(f["text_key"], f["my_id"]))
         with open(f"{d}/{food_slug}_data.tres", "w") as fh:
@@ -1038,6 +1058,10 @@ def main():
         elif not os.path.exists(food_png):
             img, draw = canvas(80); FOOD_ART[food_slug](draw); img.save(food_png)
         write_png_import(food_png, f"res://items/foods/{food_slug}/{food_slug}.png")
+        small_final = f"{os.path.dirname(os.path.abspath(__file__))}/foods/final/{food_slug}_small.png"
+        if os.path.exists(small_final):
+            shutil.copy(small_final, f"{d}/{food_slug}_small.png")
+            write_png_import(f"{d}/{food_slug}_small.png", f"res://items/foods/{food_slug}/{food_slug}_small.png")
         with open(f"{d}/{food_slug}_text_effect.tres", "w") as fh:
             fh.write(effect_text_tres(f["text_key"], f["my_id"]))
         with open(f"{d}/{food_slug}_data.tres", "w") as fh:

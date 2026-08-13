@@ -88,9 +88,12 @@ func on_tracked_value_set(value := 1) -> void:
 
 
 func get_name_text(player_index: int = - 1) -> String:
-	# Gourmet DLC - pass the owner through so the 8-step ladder naming applies to the
-	# Blacksmith's own cards only, never to another player's in coop.
-	var tier_number = ItemService.get_tier_number(tier, player_index)
+	# Gourmet DLC - both halves of the ladder-naming rule, merged:
+	#   player_index : the ladder belongs to the card's OWNER, so a Blacksmith or P2W in coop
+	#                  never renames another player's weapons.
+	#   for_weapon   : only WEAPONS are named by ladder position - upgrades and items keep
+	#                  vanilla numbering, which is what stopped "Fingers III" reading as V.
+	var tier_number = ItemService.get_tier_number(tier, player_index, true)
 	return tr(name) + (" " + tier_number if tier_number != "" else "")
 
 

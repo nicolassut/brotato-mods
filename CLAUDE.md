@@ -4,6 +4,17 @@
 hours.** Everything below follows from that. These rules are not style preferences; each one
 exists because ignoring it has already cost work.
 
+## Building content (characters, items, food, weapons) — read PIPELINE.md FIRST
+
+Before you plan or build ANY character, item, food, or weapon, read `PIPELINE.md` and follow the
+Definition of Done for that content type. It is the single checklist covering every step in one
+pass — data, stats, the card UI/contract, the select icon AND the in-game body, registration,
+mechanics, the two-tree sync, and the verification gate — precisely so none of it has to be
+re-explained. A content change is NOT done until its Definition of Done is fully ticked and
+PIPELINE.md §6 (Verification gate) passes. Never ship a character with a missing body overlay, a
+card with vague/`scales with` text, an unseeded tracker, or a `var x: =` that crashes on boot:
+PIPELINE.md tells you how to get all of it right the first time, without being reminded.
+
 ## Git
 
 **1. Commit early and often.** Commit each coherent chunk the moment it builds and verifies -

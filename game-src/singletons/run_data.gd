@@ -86,6 +86,7 @@ var init_tracked_items: = {
 	Keys.generate_hash("character_gourmet"): [0, 0],  # Gourmet DLC - Appetite gained, Speed lost to fat
 	Keys.generate_hash("character_snail"): [0, 0],  # Gourmet DLC - Escargot armor, slime damage dealt
 	Keys.generate_hash("character_girly"): 0,
+	Keys.generate_hash("character_p2w"): 0,  # Gourmet DLC - chests opened
 	Keys.generate_hash("weapon_frying_pan"): 0,
 	Keys.generate_hash("item_doggy_bag"): 0,
 	Keys.generate_hash("item_farmers_market"): 0,
@@ -578,7 +579,14 @@ func lock_player_shop_item(item_data: ItemParentData, wave_value: int, player_in
 
 
 func unlock_player_shop_item(item_data: ItemParentData, player_index: int) -> void :
+	# Gourmet DLC - P2W chests share a my_id per rung, so id-matching could
+	# unlock the wrong twin (e.g. keep a cursed one, drop the uncursed one).
+	# Match the exact instance first; the id walk stays as the fallback.
 	var player_locked_items = locked_shop_items[player_index]
+	for locked_item in player_locked_items:
+		if locked_item[0] == item_data:
+			player_locked_items.erase(locked_item)
+			return
 	for locked_item in player_locked_items:
 		if locked_item[0].my_id == item_data.my_id:
 			player_locked_items.erase(locked_item)
@@ -1667,16 +1675,6 @@ func is_blacksmith(player_index: int) -> bool:
 	return forge_character != null and forge_character.my_id == "character_blacksmith"
 
 
-# Gourmet DLC - run-level check for UI that has no player_index to work with
-# (weapon name suffixes in particular). The extended tier ladder is a property of
-# the run's weapon pool, so if any player is the Blacksmith the 8-step naming applies.
-func any_player_is_blacksmith() -> bool:
-	for i in get_player_count():
-		if is_blacksmith(i):
-			return true
-	return false
-
-
 func is_mime(player_index: int) -> bool:
 	var mirror_character = get_player_character(player_index)
 	return mirror_character != null and mirror_character.my_id == "character_mime"
@@ -1777,6 +1775,197 @@ func is_freeloader(player_index: int) -> bool:
 func has_freeloader() -> bool:
 	for i in get_player_count():
 		if is_freeloader(i):
+			return true
+	return false
+
+
+# Gourmet DLC - The P2W (chest/lootbox character). Single gate for the whole kit.
+func is_p2w(player_index: int) -> bool:
+	var character = get_player_character(player_index)
+	return character != null and character.my_id == "character_p2w"
+
+
+# Session-local uid so armed shop cards can name their pending entry without
+# index-shift bugs when another chest opens first. NOT serialized: a reload
+# flushes all pending chests at shop entry, so uids never need to survive one.
+var _p2w_next_uid: int = 0
+
+
+# True when ANY player in the run is the P2W (crates become lootboxes run-wide).
+func has_p2w() -> bool:
+	return first_p2w_index() != - 1
+
+
+func first_p2w_index() -> int:
+	for i in get_player_count():
+		if is_p2w(i):
+			return i
+	return - 1
+
+
+# Pure resolve: id -> data, curse applied (random boost rolled HERE, once),
+# P2W retier applied. No queue changes, no counters.
+func _p2w_resolve_pure(entry: Dictionary, player_index: int) -> ItemParentData:
+	var data: ItemParentData = null
+	if entry.kind == "weapon":
+		data = ItemService.get_element_safe(ItemService.weapons, entry.id)
+	else:
+		data = ItemService.get_element_safe(ItemService.items, entry.id)
+	if data != null:
+		data = _p2w_curse_drop(data, entry, player_index)
+		if is_p2w(player_index):
+			data = ItemService.p2w_retier_item(data)
+	return data
+
+
+# One instance per pending chest: the reel DISPLAYS this exact object and the
+# claim GRANTS it, so the card can never disagree with the inventory (the curse
+# boost is random - resolving twice showed base stats on the card while the
+# granted item was boosted). Session-local; a reload just re-resolves.
+var _p2w_drop_cache: = {}
+
+
+func p2w_resolve_uid(player_index: int, uid: int) -> ItemParentData:
+	if _p2w_drop_cache.has(uid):
+		return _p2w_drop_cache[uid]
+	var entry: Dictionary = p2w_peek_pending(player_index, uid)
+	if entry.empty():
+		return null
+	var data: ItemParentData = _p2w_resolve_pure(entry, player_index)
+	_p2w_drop_cache[uid] = data
+	return data
+
+
+# Wave-end path (no pending queue): resolve once at display time and count.
+func p2w_resolve_entry(entry: Dictionary, player_index: int) -> ItemParentData:
+	var data: ItemParentData = _p2w_resolve_pure(entry, player_index)
+	if data != null and is_p2w(player_index):
+		add_tracked_value(player_index, Keys.generate_hash("character_p2w"), 1)
+	return data
+
+
+# Buying a chest: roll the curse AND the contents NOW (CSGO decides at purchase,
+# reveals at open), store serialized so a save/quit can never eat a paid chest.
+# Returns the pending entry (uid/cursed) for the shop UI to arm its card with.
+func p2w_arm_chest(player_index: int, rung: int, chest_cursed: bool = false) -> Dictionary:
+	# cursed state comes from the CARD (chests curse via the vanilla shop roll,
+	# lock-curse pity included); this only records it into the pending entry
+	var drop: Dictionary = ItemService.p2w_roll_chest_drop(rung, player_index, chest_cursed)
+	drop["rung"] = rung
+	drop["cursed"] = chest_cursed
+	drop["uid"] = _p2w_next_uid
+	_p2w_next_uid += 1
+	players_data[player_index].p2w_pending.push_back(drop)
+	return drop
+
+
+# Read-only look at a pending chest (the reel needs rung/drop/curse to stage the
+# ceremony BEFORE the grant happens).
+func p2w_peek_pending(player_index: int, uid: int) -> Dictionary:
+	for entry in players_data[player_index].p2w_pending:
+		if int(entry.get("uid", - 1)) == uid:
+			return entry
+	return {}
+
+
+# Claim a pending drop for the SHOP path: remove + resolve + curse + count, but
+# do NOT grant - base_shop routes the grant through its own buy pipeline so the
+# gear-container UI updates (granting from here left the item invisible in-shop).
+func p2w_claim_drop(player_index: int, uid: int) -> ItemParentData:
+	var pending: Array = players_data[player_index].p2w_pending
+	for i in pending.size():
+		if int(pending[i].get("uid", - 1)) == uid:
+			var entry: Dictionary = pending[i]
+			# grant the SAME instance the reel displayed (cache), resolving
+			# fresh only when no display happened (flush, coop)
+			var claim_data: ItemParentData = _p2w_drop_cache.get(uid)
+			if claim_data == null:
+				claim_data = _p2w_resolve_pure(entry, player_index)
+			var _erased = _p2w_drop_cache.erase(uid)
+			pending.remove(i)
+			add_tracked_value(player_index, Keys.generate_hash("character_p2w"), 1)
+			return claim_data
+	return null
+
+
+func p2w_open_chest_uid(player_index: int, uid: int) -> ItemParentData:
+	var pending: Array = players_data[player_index].p2w_pending
+	for i in pending.size():
+		if int(pending[i].get("uid", - 1)) == uid:
+			return p2w_open_chest(player_index, i)
+	return null
+
+
+# Opening a pending chest: resolve the pre-rolled drop, curse it if the roll said
+# so (Abyssal machinery; quietly does nothing without the DLC), grant it, count it.
+func p2w_open_chest(player_index: int, pending_index: int) -> ItemParentData:
+	var pending: Array = players_data[player_index].p2w_pending
+	if pending_index < 0 or pending_index >= pending.size():
+		return null
+	var entry: Dictionary = pending[pending_index]
+	pending.remove(pending_index)
+	var _stale = _p2w_drop_cache.erase(int(entry.get("uid", - 1)))
+	var granted: ItemParentData = null
+	if entry.kind == "weapon":
+		var weapon_data = ItemService.get_element_safe(ItemService.weapons, entry.id)
+		if weapon_data != null:
+			granted = _p2w_curse_drop(weapon_data, entry, player_index)
+			# a full inventory converts the weapon into its shop value in materials
+			# rather than dropping nothing (chest can roll while slots are full)
+			if get_player_weapons_ref(player_index).size() < int(get_player_effect(Keys.weapon_slot_hash, player_index)):
+				add_weapon(granted, player_index)
+			else:
+				add_gold(granted.value, player_index)
+	else:
+		var item_data = ItemService.get_element_safe(ItemService.items, entry.id)
+		if item_data != null:
+			granted = _p2w_curse_drop(item_data, entry, player_index)
+			if is_p2w(player_index):
+				granted = ItemService.p2w_retier_item(granted)
+			add_item(granted, player_index)
+	add_tracked_value(player_index, Keys.generate_hash("character_p2w"), 1)
+	return granted
+
+
+func _p2w_curse_drop(data: ItemParentData, entry: Dictionary, player_index: int) -> ItemParentData:
+	if not entry.get("item_cursed", false):
+		return data
+	for dlc_id in enabled_dlcs:
+		var dlc_data = ProgressData.get_dlc_data(dlc_id)
+		if dlc_data != null and dlc_data.has_method("curse_item"):
+			return dlc_data.curse_item(data, player_index)
+	return data
+
+
+# Safety net: any chest still unopened when the shop closes (or a run resumes
+# outside a shop) grants silently - paid content is never lost.
+func p2w_flush_pending(player_index: int) -> void :
+	while players_data[player_index].p2w_pending.size() > 0:
+		p2w_open_chest(player_index, 0)
+
+
+# Gourmet DLC - run-level check for UI that has no player_index to work with
+# (weapon name suffixes in particular). The extended tier ladder is a property of
+# the run's weapon pool, so if any player is the Blacksmith the 8-step naming applies.
+# The 8-step ladder is a property of any run whose content uses it: the
+# Blacksmith (forging) or the P2W (chest weapon drops).
+# Gourmet DLC - PER-PLAYER ladder check. any_player_uses_tier_ladder below answers "does this
+# RUN use the ladder", which is the wrong question for a weapon card: in coop it renamed every
+# other player's weapons too. Card naming asks this one, keyed on the card's owner.
+func uses_tier_ladder(player_index: int) -> bool:
+	return is_blacksmith(player_index) or is_p2w(player_index)
+
+
+func any_player_uses_tier_ladder() -> bool:
+	for i in get_player_count():
+		if is_blacksmith(i) or is_p2w(i):
+			return true
+	return false
+
+
+func any_player_is_blacksmith() -> bool:
+	for i in get_player_count():
+		if is_blacksmith(i):
 			return true
 	return false
 

@@ -1,6 +1,9 @@
 class_name BaseShop
 extends Control
 
+# Gourmet DLC - P2W chest-opening ceremony overlay
+const P2WReel = preload("res://ui/menus/shop/p2w_reel.gd")
+
 export (Array, Resource) var combine_sounds
 export (Array, Resource) var recycle_sounds
 export var go_text: = "MENU_GO"
@@ -369,6 +372,11 @@ func _clear_go_button_pressed(player_index: int) -> void :
 
 
 func fill_shop_items(player_locked_items: Array, player_index: int, just_entered_shop: bool = false) -> void :
+	# Gourmet DLC - P2W: every fill (shop entry, reload, reroll) first grants any
+	# chest that was paid for but never opened - paid content is never lost, and no
+	# armed card uid can survive into a fresh card set.
+	if RunData.is_p2w(player_index):
+		RunData.p2w_flush_pending(player_index)
 	var player_shop_items = _shop_items[player_index]
 	var prev_items = player_locked_items.duplicate() if just_entered_shop else player_shop_items.duplicate()
 	_shop_items[player_index] = player_locked_items.duplicate()
@@ -524,8 +532,112 @@ func set_reroll_button_price(player_index: int) -> void :
 		break
 
 
+# Gourmet DLC - P2W: run the case-opening ceremony, then resolve its outcome.
+# Coroutine: the shop stays alive underneath; if it is freed mid-reel (player left)
+# the yield never resumes and the pending entry is granted by the next fill's flush.
+# Coop skips the ceremony (a fullscreen solo reel would block the other players)
+# and takes the drop directly. "cancel" (ESC before the spin) leaves the chest
+# armed on its card for another go.
+func _p2w_run_reel_and_open(shop_item: ShopItem, player_index: int) -> void :
+	var p2w_uid: int = shop_item.p2w_pending_uid
+	var p2w_entry: Dictionary = RunData.p2w_peek_pending(player_index, p2w_uid)
+	if p2w_entry.empty():
+		shop_item.p2w_pending_uid = - 1  # stale uid self-heal: next press buys normally
+		return
+	var outcome: String = "take"
+	if not RunData.is_coop_run:
+		var reel = P2WReel.new()
+		add_child(reel)
+		reel.setup(p2w_entry, player_index, false, RunData.p2w_resolve_uid(player_index, p2w_uid))
+		outcome = yield(reel, "reel_done")
+		reel.queue_free()
+	if outcome == "cancel":
+		return
+
+	var drop_data = RunData.p2w_claim_drop(player_index, p2w_uid)
+	if drop_data == null:
+		return
+	if outcome == "recycle":
+		var p2w_refund: int = ItemService.get_recycling_value(RunData.current_wave, drop_data.value, player_index, drop_data is WeaponData)
+		RunData.add_gold(p2w_refund, player_index)
+	elif drop_data is WeaponData:
+		# route through the shop's own pipeline so the gear container updates; a
+		# weapon that can neither fit nor merge converts to its shop value instead
+		var p2w_slot_max: int = int(RunData.get_player_effect(Keys.weapon_slot_hash, player_index))
+		var p2w_can_merge: bool = false
+		for owned_weapon in RunData.get_player_weapons_ref(player_index):
+			if owned_weapon.my_id == drop_data.my_id and drop_data.upgrades_into != null:
+				p2w_can_merge = true
+		if RunData.get_player_weapons_ref(player_index).size() < p2w_slot_max or p2w_can_merge:
+			buy_weapon(drop_data, player_index)
+		else:
+			RunData.add_gold(drop_data.value, player_index)
+	else:
+		buy_item(drop_data, player_index)
+
+	GourmetTracker.ev("p2w_chest_open", {"p": player_index, "outcome": outcome, "got": drop_data.my_id, "cursed_chest": p2w_entry.get("cursed", false)})
+	# a mirror-duplicated purchase has more chests queued: the next ceremony
+	# opens immediately on the same card
+	if not shop_item.p2w_extra_uids.empty():
+		shop_item.p2w_pending_uid = int(shop_item.p2w_extra_uids.pop_front())
+		_update_stats(player_index)
+		_p2w_run_reel_and_open(shop_item, player_index)
+		return
+	shop_item.deactivate()
+	# erase the exact opened instance; an id match could hit a same-rung twin
+	# (chests share my_id per rung), eating a locked or unopened offer instead
+	var p2w_erased: = false
+	for p2w_offer in _shop_items[player_index]:
+		if p2w_offer[0] == shop_item.item_data:
+			_shop_items[player_index].erase(p2w_offer)
+			p2w_erased = true
+			break
+	if not p2w_erased:
+		for p2w_offer in _shop_items[player_index]:
+			if p2w_offer[0].my_id == shop_item.item_data.my_id:
+				_shop_items[player_index].erase(p2w_offer)
+				break
+	_update_stats(player_index)
+	_get_shop_items_container(player_index).reload_shop_items()
+
+
 func on_shop_item_bought(shop_item: ShopItem, player_index: int) -> void :
-	# Gourmet DLC - Minimalist: can hold a maximum of 6 items
+	# Gourmet DLC - P2W: chests buy in two stages. Press 1 pays and ARMS the card in
+	# place (contents + curse already rolled and serialized by p2w_arm_chest, so a
+	# save/quit cannot eat the purchase); press 2 OPENS it. buy_item is never called -
+	# a chest is not a real inventory item.
+	if RunData.is_p2w(player_index) and shop_item.item_data.my_id.begins_with("item_p2w_chest_"):
+		if shop_item.p2w_pending_uid >= 0:
+			_p2w_run_reel_and_open(shop_item, player_index)
+		else:
+			RunData.remove_currency(shop_item.value, player_index)
+			RunData.get_player_effects(player_index)[Keys.shop_purchases_hash] += 1
+			var p2w_rung: int = int(shop_item.item_data.my_id.replace("item_p2w_chest_", ""))
+			var p2w_entry: Dictionary = RunData.p2w_arm_chest(player_index, p2w_rung, bool(shop_item.item_data.is_cursed))
+			shop_item.p2w_arm(int(p2w_entry.uid), bool(p2w_entry.cursed))
+			# Magic Mirrors duplicate chest purchases too (the card already showed
+			# x2): each consumed mirror arms one EXTRA chest with its OWN roll,
+			# and the ceremonies then run back-to-back
+			shop_item.p2w_extra_uids = []
+			var p2w_mirrors_used: = 0
+			for p2w_dup_effect in RunData.get_player_effect(Keys.duplicate_item_hash, player_index).duplicate():
+				for _p2w_nb in range(int(p2w_dup_effect[1])):
+					var p2w_mirror = RunData.get_player_item(p2w_dup_effect[0], player_index)
+					if p2w_mirror == null:
+						break
+					RunData.remove_item(p2w_mirror, player_index)
+					p2w_mirrors_used += 1
+					var p2w_extra: Dictionary = RunData.p2w_arm_chest(player_index, p2w_rung, bool(shop_item.item_data.is_cursed))
+					shop_item.p2w_extra_uids.push_back(int(p2w_extra.uid))
+			if p2w_mirrors_used > 0:
+				_get_gear_container(player_index).set_items_data(RunData.get_player_items(player_index))
+			GourmetTracker.ev("p2w_chest_buy", {"p": player_index, "rung": p2w_rung, "cursed": p2w_entry.cursed, "paid": shop_item.value, "mirrored": p2w_mirrors_used})
+			# the ceremony opens immediately (user spec); cancelling it leaves the
+			# armed card behind, whose next press re-enters the ceremony above
+			_p2w_run_reel_and_open(shop_item, player_index)
+		return
+
+	# Gourmet DLC - Minimalist: can hold a maximum of 6 items (P2W branch above)
 	var minimalist_char = RunData.get_player_character(player_index)
 	if minimalist_char != null and minimalist_char.my_id == "character_minimalist" and shop_item.item_data.get_category() == Category.ITEM:
 		var nb_items_held: = 0

@@ -1099,8 +1099,13 @@ func on_consumable_picked_up(consumable_data: ConsumableData, food_age: float = 
 	# never by class name: see the cyclic-dependency law)
 	if consumable_data.my_id.begins_with("consumable_food_"):
 		# per-food eaten counter (shown on the spawner's card). The food's my_id is seeded
-		# in RunData.init_tracked_items so add_tracked_value accepts it.
-		RunData.add_tracked_value(player_index, consumable_data.get_my_id_hash(), 1)
+		# in RunData.init_tracked_items so add_tracked_value accepts it. All gumball
+		# colours count into the ONE base-gumball total (the machine card shows a single
+		# "Gumball eaten" line; colour hashes are deliberately unseeded).
+		var eaten_hash: int = consumable_data.get_my_id_hash()
+		if consumable_data.my_id.begins_with("consumable_food_gumball"):
+			eaten_hash = Keys.generate_hash("consumable_food_gumball")
+		RunData.add_tracked_value(player_index, eaten_hash, 1)
 		_apply_food_buff(consumable_data, food_age)
 
 	var consumable_stats_while_max_effect = RunData.get_player_effect(Keys.consumable_stats_while_max_hash, player_index)

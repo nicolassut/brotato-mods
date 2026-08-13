@@ -16,6 +16,10 @@ var gold: int = 0
 # until it is clear. See run_data.add_gold / spend_currency / get_credit_limit.
 var debt: int = 0
 var debt_progress: int = 0
+# Gourmet DLC - P2W: chests paid for but not yet opened. Contents pre-roll at
+# purchase (CSGO style) so a reload can never eat a paid chest. Each entry:
+# {"rung": int, "cursed": bool, "kind": "item"|"weapon", "id": String, "item_cursed": bool}
+var p2w_pending = []
 var overtime_pay_gold_this_wave: int = 0
 var selected_weapon: WeaponData
 var selected_item: ItemData
@@ -67,6 +71,7 @@ func duplicate() -> PlayerRunData:
 	copy.gold = gold
 	copy.debt = debt
 	copy.debt_progress = debt_progress
+	copy.p2w_pending = p2w_pending.duplicate(true)
 	copy.selected_weapon = selected_weapon
 	copy.selected_item = selected_item
 	copy.weapons = weapons.duplicate()
@@ -124,7 +129,8 @@ func serialize() -> Dictionary:
 		"gold": gold,
 		"debt": debt,
 		"debt_progress": debt_progress,
-		"selected_weapon": selected_weapon.my_id if selected_weapon else null, 
+		"p2w_pending": p2w_pending.duplicate(true),
+		"selected_weapon": selected_weapon.my_id if selected_weapon else null,
 		"selected_item": selected_item.my_id if selected_item else null, 
 		"weapons": serialized_weapons, 
 		"items": serialized_items, 
@@ -164,6 +170,12 @@ func deserialize(data: Dictionary) -> PlayerRunData:
 	gold = int(data.gold)
 	debt = int(data.debt) if data.has("debt") else 0
 	debt_progress = int(data.debt_progress) if data.has("debt_progress") else 0
+	p2w_pending = []
+	if data.has("p2w_pending"):
+		for entry in data.p2w_pending:
+			# JSON deserializes every number as float - int-cast or %/indexing crashes (see CLAUDE landmines)
+			p2w_pending.push_back({"rung": int(entry.rung), "cursed": bool(entry.cursed),
+					"kind": str(entry.kind), "id": str(entry.id), "item_cursed": bool(entry.item_cursed)})
 
 	if data.selected_weapon != null:
 		var weapon_data = ItemService.get_element_safe(ItemService.weapons, data.selected_weapon)

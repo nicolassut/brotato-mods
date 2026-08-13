@@ -83,6 +83,8 @@ POOLS = {
  "special":     ["knife","stick","plank","rock","fist","hand","screwdriver","scissors",
                  "spear","torch","hatchet","dagger","fighting_stick","pistol","slingshot",
                  "smg","wand","taser","crossbow","revolver"],
+ "p2w":         ["pistol","smg","knife","stick","slingshot","wand","taser","scissors",
+                 "pizza_cutter","champagne_popper"],
  "freeloader":  ["knife","stick","plank","rock","fist","hand","screwdriver","scissors",
                  "spear","torch","hatchet","dagger","fighting_stick","pistol","slingshot",
                  "smg","wand","taser","crossbow","revolver"],
@@ -123,6 +125,7 @@ TRACKING = {"gourmet": "GOURMET_APPETITE_GAINED",
             "ruminant": "RUMINANT_CHEWS",            # extra chews from the echo chain
             "blacksmith": "BLACKSMITH_FORGES",       # weapons forged
             "mime": "MIME_DUPLICATIONS",             # magic-mirror duplications
+            "p2w": "P2W_CHESTS",                     # chests opened (run_data.p2w_open_chest)
             "girly": "GIRLY_PANICS",                 # panic-teleport count
             # live reading, not a running total: RunData.refresh_debt_tracker SETS this to the
             # enemy buff his current debt is producing right now (run_data.gd)
@@ -314,11 +317,16 @@ CHARS = [
     ("LINE","EFFECT_DEBTOR_PRICES",2),
     ("LINE","EFFECT_DEBTOR_ENEMIES",1),
     ("LINE","EFFECT_DEBTOR_INTEREST",1)],[]),
+ # Phase 2 MINIMAL entry (chest engine testing) - full kit/card/art comes in Phase 4
+ # of issues/brotato-mods/p2w-character. Art is the Freeloader placeholder.
+ ("p2w","The P2W","character_p2w",[],
+   [("LINE","EFFECT_P2W_SHOP",0),
+    ("stat_luck",10)],[]),
 ]
 
 # explicit ext ids for characters added after the original 14 (base+i past 824
 # collides with stat resources - stat_appetite is id=825)
-EXT_IDS = {"girly": 998, "freeloader": 1004, "special": 1005, "test_debt": 1008}  # test_debt is DEBUG
+EXT_IDS = {"girly": 998, "freeloader": 1004, "special": 1005, "test_debt": 1008, "p2w": 1293}  # 1013-1292 = blacksmith ladder weapons  # test_debt is DEBUG
 
 SKINNED = {"zombie","snail","mole"}
 LEGS_MOD = {
@@ -587,28 +595,20 @@ def main():
             continue
         d = f"{CUSTOM}/{slug}"
         os.makedirs(d, exist_ok=True)
-        # ART IS ONLY WRITTEN WHEN MISSING: the live pngs and appearance tres are owned by the
-        # ART PIPELINE (vectorized icons + full-body overlay faces at depth 1.0, blanked legacy
-        # skins), which runs AFTER this builder and produces better art than final/ holds.
-        # final/ is the pre-pipeline source, NOT the newest art.
-        #
-        # Do not "fix" this into an unconditional copy. That was tried on 2026-08-09 and
-        # reverted the same day: it overwrote 14 character icons and 17 faces/skins with their
-        # old pre-vector versions, because a stale-looking diff against final/ is the NORMAL
-        # state for a character whose art has been through the pipeline.
-        #
-        # A genuinely new character has no live png, so it is copied here and then run through
-        # the pipeline. If a character's art is redrawn, install it deliberately (copy it in,
-        # or re-run the pipeline) rather than loosening this guard.
-        if not os.path.exists(f"{d}/{slug}_icon.png"):
+        # The tracked final/ art is the SOURCE OF TRUTH: overwrite the live pngs from it every
+        # build so reworked icons/bodies actually reach other machines. The old "only if missing"
+        # guard is exactly why entire icon reworks got missed cross-machine - a rebuilt machine
+        # kept its stale icon. A live png is only left alone when there is NO final to install
+        # (e.g. a character whose art was never saved to final/).
+        if os.path.exists(f"{FINAL}/{slug}_icon.png"):
             shutil.copy(f"{FINAL}/{slug}_icon.png", f"{d}/{slug}_icon.png")
-        if not os.path.exists(f"{d}/{slug}_face.png"):
+        if os.path.exists(f"{APPSRC}/{slug}_face.png"):
             shutil.copy(f"{APPSRC}/{slug}_face.png", f"{d}/{slug}_face.png")
         if not os.path.exists(f"{d}/{slug}_face_appearance.tres"):
             with open(f"{d}/{slug}_face_appearance.tres","w") as f:
                 f.write(appearance_tres(f"res://items/custom_characters/{slug}/{slug}_face.png", 0, "600.0", 0))
         if slug in SKINNED:
-            if not os.path.exists(f"{d}/{slug}_skin.png"):
+            if os.path.exists(f"{APPSRC}/{slug}_skin.png"):
                 shutil.copy(f"{APPSRC}/{slug}_skin.png", f"{d}/{slug}_skin.png")
             if not os.path.exists(f"{d}/{slug}_skin_appearance.tres"):
                 with open(f"{d}/{slug}_skin_appearance.tres","w") as f:

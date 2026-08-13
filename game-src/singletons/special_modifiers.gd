@@ -5,8 +5,8 @@ extends Node
 #  - Wave 1 rolls NOTHING. From then on the shop previews the NEXT wave's modifiers, so the
 #    player shops knowing what is coming.
 #  - Jagged count curve, peaking at 4-6 around waves 13-20, never running away after.
-#  - More bad than good; good gets slightly rarer as the run climbs. A wave can roll all bad
-#    or all good.
+#  - More bad than good; good gets slightly rarer as the run climbs, but any wave that rolls
+#    anything is guaranteed at least one good AND one bad (min 2). See roll_for_wave.
 #  - Endless repeats the pool; it never exhausts.
 #  - EVERY wave-scoped modifier is temporary.
 #
@@ -322,21 +322,25 @@ func roll_for_wave(wave: int, player_index: int, blocked_axes: Array = []) -> Ar
 	if count <= 0:
 		return []
 
-	# Room for one good AND one bad, so a rolling wave never drops below two.
-	var target: int = int(max(count, 2))
-	var chosen: = []
+	# Gourmet DLC - Wildcard guarantee: any wave he rolls modifiers he always gets at least one
+	# POSITIVE and one NEGATIVE, so a minimum of two. (A count of 0 still yields none - the only
+	# way he ends a wave with no modifiers.) Seed one good and one bad first, then fill the rest
+	# with the normal weighted roll.
+	count = int(max(count, 2))
 
-	# Guarantee the good/bad pair FIRST so the random fillers can never crowd them out.
-	var forced_good: Dictionary = _pick_constrained(wave, player_index, blocked_axes, chosen, "good")
-	if not forced_good.empty():
-		chosen.push_back(forced_good)
-	var forced_bad: Dictionary = _pick_constrained(wave, player_index, blocked_axes, chosen, "bad")
-	if not forced_bad.empty():
-		chosen.push_back(forced_bad)
+	# Both machines built this guarantee independently; this keeps ONE implementation
+	# (_pick_of_kind, which already honours conflicts, eligibility and blocked axes).
+	var chosen: = []
+	var seed_good: Dictionary = _pick_of_kind("good", wave, player_index, blocked_axes, chosen)
+	if not seed_good.empty():
+		chosen.push_back(seed_good)
+	var seed_bad: Dictionary = _pick_of_kind("bad", wave, player_index, blocked_axes, chosen)
+	if not seed_bad.empty():
+		chosen.push_back(seed_bad)
 
 	# Fill the remaining slots from the whole pool with the normal weighted drift.
 	var tries: = 0
-	while chosen.size() < target and tries < MAX_ROLL_TRIES:
+	while chosen.size() < count and tries < MAX_ROLL_TRIES:
 		tries += 1
 		var candidate: Dictionary = _pick_weighted(wave)
 		if candidate.empty():
@@ -360,6 +364,8 @@ func roll_for_wave(wave: int, player_index: int, blocked_axes: Array = []) -> Ar
 	return ids
 
 
+# Gourmet DLC - weighted pick restricted to one kind ("good"/"bad"), honouring the same
+# conflict / eligibility / blocked-axis rules as the main roll. Empty {} if none qualify.
 func _axis_blocked(mod: Dictionary, blocked_axes: Array) -> bool:
 	for axis in mod.axes:
 		if axis in blocked_axes:
@@ -367,24 +373,33 @@ func _axis_blocked(mod: Dictionary, blocked_axes: Array) -> bool:
 	return false
 
 
-# Pick one modifier of a given kind ("good"/"bad") that clears every constraint (conflicts,
-# eligibility, blocked axes) against what is already chosen. Returns {} only when the pool
-# genuinely can't supply one this wave - the caller then does its best without it.
-func _pick_constrained(wave: int, player_index: int, blocked_axes: Array, chosen: Array, kind: String) -> Dictionary:
-	var tries: = 0
-	while tries < MAX_ROLL_TRIES:
-		tries += 1
-		var candidate: Dictionary = _pick_weighted_of_kind(wave, kind)
-		if candidate.empty():
-			return {}
-		if _conflicts(candidate, chosen):
+func _pick_of_kind(kind: String, wave: int, player_index: int, blocked_axes: Array, chosen: Array) -> Dictionary:
+	var pool: = []
+	var total: = 0.0
+	for m in REGISTRY:
+		if m.kind != kind:
 			continue
-		if not _eligible(candidate, player_index):
+		if _conflicts(m, chosen) or not _eligible(m, player_index):
 			continue
-		if _axis_blocked(candidate, blocked_axes):
+		var axis_blocked: = false
+		for axis in m.axes:
+			if axis in blocked_axes:
+				axis_blocked = true
+				break
+		if axis_blocked:
 			continue
-		return candidate
-	return {}
+		var w: float = _weight_for(m, wave)
+		if w > 0.0:
+			pool.push_back([m, w])
+			total += w
+	if total <= 0.0:
+		return {}
+	var roll: = rand_range(0.0, total)
+	for pair in pool:
+		roll -= pair[1]
+		if roll <= 0.0:
+			return pair[0]
+	return pool[pool.size() - 1][0]
 
 
 func _pick_weighted(wave: int) -> Dictionary:
@@ -401,27 +416,6 @@ func _pick_weighted(wave: int) -> Dictionary:
 		if roll <= 0.0:
 			return m
 	return REGISTRY[REGISTRY.size() - 1]
-
-
-# Weighted pick restricted to one kind ("good"/"bad"), for the guaranteed pair. Uses the same
-# wave drift as _pick_weighted so late-wave good stays rarer. {} only if the kind is empty.
-func _pick_weighted_of_kind(wave: int, kind: String) -> Dictionary:
-	var total: = 0.0
-	for m in REGISTRY:
-		if m.kind == kind:
-			total += _weight_for(m, wave)
-
-	if total <= 0.0:
-		return {}
-
-	var roll: = rand_range(0.0, total)
-	for m in REGISTRY:
-		if m.kind != kind:
-			continue
-		roll -= _weight_for(m, wave)
-		if roll <= 0.0:
-			return m
-	return {}
 
 
 # Apply / unapply are strict inverses: every effect is a numeric delta on the effects dict.
