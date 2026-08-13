@@ -77,9 +77,13 @@ var _celebration_sound: AudioStreamPlayer
 # gold fanfare: long bell + ascending gem arpeggio, stepped off the land clock
 var _fanfare_players: = []
 var _fanfare_steps: = []
-# suspense drumroll when the crawl could plausibly end on gold
+# suspense riser when the crawl could plausibly end on gold: the diceroll
+# sample is a single blip, so a real buildup is made by rapid-firing it with
+# pitch and volume climbing toward the landing
 var _buildup_sound: AudioStreamPlayer
 var _buildup_checked: bool = false
+var _buildup_active: bool = false
+var _buildup_retrigger: float = 0.0
 var _card_rungs: = []
 
 
@@ -514,6 +518,17 @@ func _process(_delta: float) -> void :
 		return
 	if not _spinning:
 		return
+	# gold-suspense crescendo: rattle re-fires faster/higher/louder as the
+	# strip closes on the landing spot
+	if _buildup_active:
+		var b_remaining: float = abs(_strip.rect_position.x - _spin_end_x)
+		var b_progress: float = clamp(1.0 - b_remaining / (5.5 * (CARD + CARD_GAP)), 0.0, 1.0)
+		_buildup_retrigger -= _delta
+		if _buildup_retrigger <= 0.0:
+			_buildup_retrigger = 0.16 - 0.09 * b_progress
+			_buildup_sound.pitch_scale = 0.7 + 1.0 * b_progress
+			_buildup_sound.volume_db = - 14.0 + 14.0 * b_progress
+			_buildup_sound.play()
 	var ticker_in_window: float = _window.rect_size.x / 2.0
 	var card_under: int = int(floor((ticker_in_window - _strip.rect_position.x) / (CARD + CARD_GAP)))
 	if card_under != _last_tick_card:
@@ -536,7 +551,7 @@ func _process(_delta: float) -> void :
 			_buildup_checked = true
 			for near_i in range(max(0, WINNER_INDEX - 2), min(_card_rungs.size(), WINNER_INDEX + 3)):
 				if int(_card_rungs[near_i]) >= 8:
-					_buildup_sound.play()
+					_buildup_active = true
 					break
 
 
