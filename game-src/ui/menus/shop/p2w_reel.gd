@@ -420,7 +420,10 @@ func _on_open_pressed() -> void :
 	# velocity at the seam (2*f/t1 = 3*(1-f)/t2) - momentum carries straight
 	# through with no visible jolt (user 2026-08-13).
 	var accel_time: float = rand_range(ACCEL_TIME_MIN, ACCEL_TIME_MAX)
-	_decel_time = rand_range(DECEL_TIME_MIN, DECEL_TIME_MAX)
+	# gold keeps the full coast; every rung below it shaves 0.2s off both ends
+	# so common drops resolve faster (user 2026-08-13)
+	var rung_shave: float = 0.2 * (8 - int(_card_rungs[WINNER_INDEX]))
+	_decel_time = rand_range(DECEL_TIME_MIN - rung_shave, DECEL_TIME_MAX - rung_shave)
 	var accel_fraction: float = 3.0 * accel_time / (3.0 * accel_time + 2.0 * _decel_time)
 	var ticker_in_window: float = _window.rect_size.x / 2.0
 	var land_offset: float = rand_range(- CARD * 0.34, CARD * 0.34)
