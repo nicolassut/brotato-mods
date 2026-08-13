@@ -30,8 +30,8 @@ const IDLE_INDEX: = 6
 # long cubic coast-down - reads as "accelerates, whirls, slowly lands"
 # the OPEN press YANKS the strip: almost half the whole run blurs past in the
 # first 0.4s, then the quartic coast-down takes over
-const ACCEL_TIME_MIN: = 0.34
-const ACCEL_TIME_MAX: = 0.52
+const ACCEL_TIME_MIN: = 0.12
+const ACCEL_TIME_MAX: = 0.18
 # quartic coast-down: most of the distance flies by early, then the last 2-3
 # cards CREEP past the ticker for seconds - the near-miss agony is the point
 const DECEL_TIME_MIN: = 6.8
