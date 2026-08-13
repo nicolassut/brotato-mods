@@ -217,8 +217,10 @@ func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, res
 	_celebration_sound = AudioStreamPlayer.new()
 	add_child(_celebration_sound)
 	_buildup_sound = AudioStreamPlayer.new()
-	_buildup_sound.stream = load("res://ui/sounds/diceroll.wav")
-	_buildup_sound.pitch_scale = 0.82
+	# gem-chime tremolo (user 2026-08-12: the dice rattle was not exciting) -
+	# a glittery shimmer that accelerates and climbs; gem_05 is not used by the
+	# landing fanfare so the two stay distinct
+	_buildup_sound.stream = load("res://items/materials/alt_sounds/coin_bag_ring_gemstone_item_05.wav")
 	add_child(_buildup_sound)
 	for fanfare_path in ["res://dlcs/dlc_1/items/sunken_bell/bell_large_ringing_01.wav",
 			"res://items/materials/alt_sounds/coin_bag_ring_gemstone_item_01.wav",
@@ -547,9 +549,9 @@ func _process(_delta: float) -> void :
 		var b_curve: float = pow(b_progress, 0.6)
 		_buildup_retrigger -= _delta
 		if _buildup_retrigger <= 0.0:
-			_buildup_retrigger = 0.13 - 0.085 * b_curve
-			_buildup_sound.pitch_scale = 0.8 + 1.7 * b_curve
-			_buildup_sound.volume_db = - 10.0 + 10.0 * b_curve
+			_buildup_retrigger = 0.12 - 0.075 * b_curve
+			_buildup_sound.pitch_scale = 0.75 + 1.6 * b_curve
+			_buildup_sound.volume_db = - 16.0 + 14.0 * b_curve
 			_buildup_sound.play()
 	var ticker_in_window: float = _window.rect_size.x / 2.0
 	var card_under: int = int(floor((ticker_in_window - _strip.rect_position.x) / (CARD + CARD_GAP)))
