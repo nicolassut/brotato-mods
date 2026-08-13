@@ -30,11 +30,12 @@ const IDLE_INDEX: = 6
 # long cubic coast-down - reads as "accelerates, whirls, slowly lands"
 # the OPEN press YANKS the strip: almost half the whole run blurs past in the
 # first 0.4s, then the quartic coast-down takes over
-const ACCEL_TIME: = 0.4
+const ACCEL_TIME_MIN: = 0.34
+const ACCEL_TIME_MAX: = 0.52
 # quartic coast-down: most of the distance flies by early, then the last 2-3
 # cards CREEP past the ticker for seconds - the near-miss agony is the point
-const DECEL_TIME: = 7.5
-const ACCEL_FRACTION: = 0.45
+const DECEL_TIME_MIN: = 6.8
+const DECEL_TIME_MAX: = 8.8
 # vertical headroom inside the clip window: without it the winner's pop-scale
 # grew past the clip rect and its top/bottom borders were sliced off
 const STRIP_PAD: = 26.0
@@ -55,6 +56,7 @@ var _recycle_button: Button
 var _spinning: bool = false
 var _landed: bool = false
 var _spin_end_x: float = 0.0
+var _decel_time: float = DECEL_TIME_MAX
 var _drop_card: Panel
 var _drop_card_scroll: ScrollContainer
 var _drop_card_desc: Control
@@ -411,19 +413,25 @@ func _on_open_pressed() -> void :
 	_spinning = true
 	_open_button.visible = false
 
-	# phase 1 ramps up hard (quad ease-in over the first stretch), phase 2 coasts
-	# down long (cubic ease-out to the winner), offset a random amount INSIDE the
-	# card so every landing differs
+	# phase 1 yanks (quad ease-in), phase 2 coasts down long (cubic ease-out to
+	# the winner), offset a random amount INSIDE the card so every landing
+	# differs. Yank and coast durations are randomized so no two spins feel the
+	# same, and the handoff fraction is solved so both phases have the SAME
+	# velocity at the seam (2*f/t1 = 3*(1-f)/t2) - momentum carries straight
+	# through with no visible jolt (user 2026-08-13).
+	var accel_time: float = rand_range(ACCEL_TIME_MIN, ACCEL_TIME_MAX)
+	_decel_time = rand_range(DECEL_TIME_MIN, DECEL_TIME_MAX)
+	var accel_fraction: float = 3.0 * accel_time / (3.0 * accel_time + 2.0 * _decel_time)
 	var ticker_in_window: float = _window.rect_size.x / 2.0
 	var land_offset: float = rand_range(- CARD * 0.34, CARD * 0.34)
 	var end_x: float = ticker_in_window - (WINNER_INDEX * (CARD + CARD_GAP) + CARD / 2.0 + land_offset)
 	var start_x: float = _strip.rect_position.x
-	var mid_x: float = start_x + (end_x - start_x) * ACCEL_FRACTION
+	var mid_x: float = start_x + (end_x - start_x) * accel_fraction
 	_spin_end_x = end_x
 
 	_tween = Tween.new()
 	add_child(_tween)
-	_tween.interpolate_property(_strip, "rect_position:x", start_x, mid_x, ACCEL_TIME,
+	_tween.interpolate_property(_strip, "rect_position:x", start_x, mid_x, accel_time,
 			Tween.TRANS_QUAD, Tween.EASE_IN)
 	_tween.start()
 	var _err = _tween.connect("tween_all_completed", self, "_on_accel_done")
@@ -432,7 +440,7 @@ func _on_open_pressed() -> void :
 
 func _on_accel_done() -> void :
 	_tween.disconnect("tween_all_completed", self, "_on_accel_done")
-	_tween.interpolate_property(_strip, "rect_position:x", _strip.rect_position.x, _spin_end_x, DECEL_TIME,
+	_tween.interpolate_property(_strip, "rect_position:x", _strip.rect_position.x, _spin_end_x, _decel_time,
 			Tween.TRANS_CUBIC, Tween.EASE_OUT)
 	_tween.start()
 	var _err = _tween.connect("tween_all_completed", self, "_on_landed")
