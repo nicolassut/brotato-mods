@@ -68,13 +68,19 @@ custom_args = [  ]
 
 def tint_crate(src_png, dst_png, rgb, gem_channel="g"):
     """Selective rarity tint (user 2026-08-11: full tint was far too strong).
-    The bright GEM (dominant source hue: green on the normal crate, red on the
-    boss crate) goes fully to the rung color; the slat interior takes a 45%
-    wash; the wood frame only 25%; outlines untouched."""
+    Green crates (rungs 1-5): bright gem hard-tints, slats 45%, frame 25%.
+    Boss crates (rungs 6-8, red gem source): the gem is DARK red, so the
+    threshold drops to 60 and gem brightness gets a floor (a dark gem became
+    muddy dark-gold - user 2026-08-12); the cream frame takes a stronger wash
+    or the crate barely reads colored at all."""
     from PIL import Image
     img = Image.open(src_png).convert("RGBA")
     px = img.load()
     w, h = img.size
+    boss = gem_channel != "g"
+    gem_lum_min = 60 if boss else 100
+    slat_t = 0.55 if boss else 0.45
+    frame_t = 0.40 if boss else 0.25
     for y in range(h):
         for x in range(w):
             r, g, b, a = px[x, y]
@@ -84,17 +90,19 @@ def tint_crate(src_png, dst_png, rgb, gem_channel="g"):
             if lum < 40:  # outline stays black
                 continue
             f = lum / 255.0
-            full = (int(rgb[0] * f), int(rgb[1] * f), int(rgb[2] * f))
             if gem_channel == "g":
                 gemish = g > r * 1.15 and g > b * 1.15
             else:
                 gemish = r > g * 1.15 and r > b * 1.15
-            if gemish and lum >= 100:        # the gem: hard recolor
+            if gemish and boss:
+                f = 0.5 + 0.5 * f  # brightness floor: dark gem -> bright rung color
+            full = (int(rgb[0] * f), int(rgb[1] * f), int(rgb[2] * f))
+            if gemish and lum >= gem_lum_min:  # the gem: hard recolor
                 t = 1.0
-            elif gemish:                     # slat interior: colored glow
-                t = 0.45
-            else:                            # wood frame: subtle wash
-                t = 0.25
+            elif gemish:                       # slat interior: colored glow
+                t = slat_t
+            else:                              # wood frame: wash
+                t = frame_t
             px[x, y] = (int(r + (full[0] - r) * t), int(g + (full[1] - g) * t),
                         int(b + (full[2] - b) * t), a)
     img.save(dst_png)

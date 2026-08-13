@@ -33,7 +33,7 @@ const IDLE_INDEX: = 6
 const ACCEL_TIME: = 0.4
 # quartic coast-down: most of the distance flies by early, then the last 2-3
 # cards CREEP past the ticker for seconds - the near-miss agony is the point
-const DECEL_TIME: = 6.5
+const DECEL_TIME: = 7.5
 const ACCEL_FRACTION: = 0.45
 # vertical headroom inside the clip window: without it the winner's pop-scale
 # grew past the clip rect and its top/bottom borders were sliced off
@@ -433,7 +433,7 @@ func _on_open_pressed() -> void :
 func _on_accel_done() -> void :
 	_tween.disconnect("tween_all_completed", self, "_on_accel_done")
 	_tween.interpolate_property(_strip, "rect_position:x", _strip.rect_position.x, _spin_end_x, DECEL_TIME,
-			Tween.TRANS_QUART, Tween.EASE_OUT)
+			Tween.TRANS_CUBIC, Tween.EASE_OUT)
 	_tween.start()
 	var _err = _tween.connect("tween_all_completed", self, "_on_landed")
 
