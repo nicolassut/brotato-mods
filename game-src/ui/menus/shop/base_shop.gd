@@ -576,10 +576,19 @@ func _p2w_run_reel_and_open(shop_item: ShopItem, player_index: int) -> void :
 		_p2w_run_reel_and_open(shop_item, player_index)
 		return
 	shop_item.deactivate()
+	# erase the exact opened instance; an id match could hit a same-rung twin
+	# (chests share my_id per rung), eating a locked or unopened offer instead
+	var p2w_erased: = false
 	for p2w_offer in _shop_items[player_index]:
-		if p2w_offer[0].my_id == shop_item.item_data.my_id:
+		if p2w_offer[0] == shop_item.item_data:
 			_shop_items[player_index].erase(p2w_offer)
+			p2w_erased = true
 			break
+	if not p2w_erased:
+		for p2w_offer in _shop_items[player_index]:
+			if p2w_offer[0].my_id == shop_item.item_data.my_id:
+				_shop_items[player_index].erase(p2w_offer)
+				break
 	_update_stats(player_index)
 	_get_shop_items_container(player_index).reload_shop_items()
 

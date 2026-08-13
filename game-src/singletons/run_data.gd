@@ -559,7 +559,14 @@ func lock_player_shop_item(item_data: ItemParentData, wave_value: int, player_in
 
 
 func unlock_player_shop_item(item_data: ItemParentData, player_index: int) -> void :
+	# Gourmet DLC - P2W chests share a my_id per rung, so id-matching could
+	# unlock the wrong twin (e.g. keep a cursed one, drop the uncursed one).
+	# Match the exact instance first; the id walk stays as the fallback.
 	var player_locked_items = locked_shop_items[player_index]
+	for locked_item in player_locked_items:
+		if locked_item[0] == item_data:
+			player_locked_items.erase(locked_item)
+			return
 	for locked_item in player_locked_items:
 		if locked_item[0].my_id == item_data.my_id:
 			player_locked_items.erase(locked_item)

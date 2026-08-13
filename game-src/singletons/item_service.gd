@@ -36,9 +36,6 @@ const VANILLA_TIER_LADDER = [Tier.COMMON, Tier.UNCOMMON, Tier.RARE, Tier.LEGENDA
 # ==================== P2W DEBUG (2026-08-12) - REVERT AFTER TEST ====================
 # Forces every P2W shop slot to a GOLD chest costing 1 (celebration testing).
 # Revert = set false. Gates this file's fill branch + shop_item.gd debug pricing.
-# P2W DEBUG - chests cost 1 coin so lootbox feel can be tested; rarity rolls
-# are natural. REVERT (set false) when testing is over.
-const P2W_DEBUG_CHEAP_CHESTS: = true
 # =====================================================================================
 
 
@@ -52,7 +49,11 @@ var _p2w_chests = {}
 func get_p2w_chest(rung: int) -> ItemData:
 	if not _p2w_chests.has(rung):
 		_p2w_chests[rung] = load(P2WData.CHEST_PATHS[rung])
-	return _p2w_chests[rung]
+	# every offer is its OWN instance: same-rung chests share a my_id, and a
+	# shared cached object meant a cursed twin could alias a locked uncursed
+	# chest through id-matched erase/unlock (locked chest "turned cursed" on
+	# reroll - user 2026-08-13)
+	return _p2w_chests[rung].duplicate()
 
 
 # The chest rarity roll rides the same wave-gated ladder walk the Blacksmith's
