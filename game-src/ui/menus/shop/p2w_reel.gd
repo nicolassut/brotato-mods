@@ -568,11 +568,22 @@ func _enforce_focus() -> void :
 		desired = _open_button
 	if desired == null:
 		return
+	# COOP: the player's selector IS their FocusEmulator, not the engine focus owner. This
+	# trap used to compare get_focus_owner() - real focus, which in coop never sits on the
+	# reel's buttons - so it "corrected" the emulator back to the default button EVERY frame,
+	# and arrow/joystick moves between Take and Recycle were snapped back within a frame:
+	# the selector looked dead and only confirm worked. Compare the emulator's own focus,
+	# and only re-home it when it has genuinely left the reel's three buttons.
+	if RunData.is_coop_run:
+		var emulator: FocusEmulator = Utils.get_focus_emulator(_player_index)
+		if emulator == null:
+			return
+		var current: Control = emulator.focused_control
+		if current != _open_button and current != _take_button and current != _recycle_button:
+			Utils.focus_player_control(desired, _player_index, emulator)
+		return
 	var focus_owner = get_focus_owner()
 	if focus_owner != _open_button and focus_owner != _take_button and focus_owner != _recycle_button:
-		# Gourmet DLC - COOP: route through the per-player focus emulator. A bare grab_focus
-		# fights the OTHER player's reel over the single focus owner and steals their
-		# navigation; focus_player_control falls back to grab_focus in single-player.
 		Utils.focus_player_control(desired, _player_index)
 
 
