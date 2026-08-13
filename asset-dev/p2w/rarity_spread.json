@@ -1,1997 +1,2012 @@
 {
- "locked": true,
- "ladder": {
-  "1": "White",
-  "2": "Green",
-  "3": "Blue",
-  "4": "Orange",
-  "5": "Purple",
-  "6": "Red",
-  "7": "Pink",
-  "8": "Gold"
- },
- "items": {
-  "item_acid": {
-   "rung": 4,
-   "name": "Acid",
-   "tier": 1,
-   "value": 65
-  },
-  "item_alien_baby": {
-   "rung": 4,
-   "name": "Alien Baby",
-   "tier": 2,
-   "value": 80,
-   "sentiment": "C"
-  },
-  "item_alien_eyes": {
-   "rung": 3,
-   "name": "Alien Eyes",
-   "tier": 1,
-   "value": 50
-  },
-  "item_alien_magic": {
-   "rung": 5,
-   "name": "Alien Magic",
-   "tier": 2,
-   "value": 85,
-   "sentiment": "C"
-  },
-  "item_alien_tongue": {
-   "rung": 2,
-   "name": "Alien Tongue",
-   "tier": 0,
-   "value": 25
-  },
-  "item_alien_worm": {
-   "rung": 1,
-   "name": "Alien Worm",
-   "tier": 0,
-   "value": 15
-  },
-  "item_alloy": {
-   "rung": 5,
-   "name": "Alloy",
-   "tier": 2,
-   "value": 80
-  },
-  "item_baby_elephant": {
-   "rung": 2,
-   "name": "Baby Elephant",
-   "tier": 0,
-   "value": 22,
-   "sentiment": "A"
-  },
-  "item_baby_gecko": {
-   "rung": 2,
-   "name": "Baby Gecko",
-   "tier": 0,
-   "value": 18,
-   "sentiment": "A"
-  },
-  "item_baby_with_a_beard": {
-   "rung": 5,
-   "name": "Baby with a Beard",
-   "tier": 2,
-   "value": 100,
-   "sentiment": "C"
-  },
-  "item_bag": {
-   "rung": 2,
-   "name": "Bag",
-   "tier": 0,
-   "value": 15,
-   "sentiment": "A"
-  },
-  "item_bandana": {
-   "rung": 4,
-   "name": "Bandana",
-   "tier": 2,
-   "value": 75,
-   "sentiment": "C"
-  },
-  "item_banner": {
-   "rung": 4,
-   "name": "Banner",
-   "tier": 1,
-   "value": 55
-  },
-  "item_barricade": {
-   "rung": 4,
-   "name": "Barricade",
-   "tier": 2,
-   "value": 75,
-   "sentiment": "D"
-  },
-  "item_bat": {
-   "rung": 1,
-   "name": "Bat",
-   "tier": 0,
-   "value": 20
-  },
-  "item_beanie": {
-   "rung": 1,
-   "name": "Beanie",
-   "tier": 0,
-   "value": 20
-  },
-  "item_bean_teacher": {
-   "rung": 5,
-   "name": "Bean Teacher",
-   "tier": 2,
-   "value": 70
-  },
-  "item_big_arms": {
-   "rung": 7,
-   "name": "Big Arms",
-   "tier": 3,
-   "value": 105
-  },
-  "item_black_belt": {
-   "rung": 3,
-   "name": "Black Belt",
-   "tier": 1,
-   "value": 50
-  },
-  "item_blindfold": {
-   "rung": 2,
-   "name": "Blindfold",
-   "tier": 1,
-   "value": 45,
-   "sentiment": "C"
-  },
-  "item_blood_donation": {
-   "rung": 4,
-   "name": "Blood Donation",
-   "tier": 2,
-   "value": 50
-  },
-  "item_blood_leech": {
-   "rung": 2,
-   "name": "Blood Leech",
-   "tier": 1,
-   "value": 45,
-   "sentiment": "C"
-  },
-  "item_boiling_water": {
-   "rung": 1,
-   "name": "Boiling Water",
-   "tier": 0,
-   "value": 30,
-   "sentiment": "C"
-  },
-  "item_book": {
-   "rung": 1,
-   "name": "Book",
-   "tier": 0,
-   "value": 15
-  },
-  "item_bowler_hat": {
-   "rung": 5,
-   "name": "Bowler Hat",
-   "tier": 2,
-   "value": 75
-  },
-  "item_boxing_glove": {
-   "rung": 1,
-   "name": "Boxing Glove",
-   "tier": 0,
-   "value": 18
-  },
-  "item_broken_mouth": {
-   "rung": 2,
-   "name": "Broken Mouth",
-   "tier": 0,
-   "value": 25
-  },
-  "item_butterfly": {
-   "rung": 1,
-   "name": "Butterfly",
-   "tier": 0,
-   "value": 30,
-   "sentiment": "C"
-  },
-  "item_campfire": {
-   "rung": 4,
-   "name": "Campfire",
-   "tier": 1,
-   "value": 40,
-   "sentiment": "A"
-  },
-  "item_candle": {
-   "rung": 4,
-   "name": "Candle",
-   "tier": 2,
-   "value": 65
-  },
-  "item_cape": {
-   "rung": 7,
-   "name": "Cape",
-   "tier": 3,
-   "value": 110
-  },
-  "item_chameleon": {
-   "rung": 4,
-   "name": "Chameleon",
-   "tier": 2,
-   "value": 70,
-   "sentiment": "C"
-  },
-  "item_charcoal": {
-   "rung": 1,
-   "name": "Charcoal",
-   "tier": 0,
-   "value": 20
-  },
-  "item_claw_tree": {
-   "rung": 1,
-   "name": "Claw Tree",
-   "tier": 0,
-   "value": 20
-  },
-  "item_clover": {
-   "rung": 4,
-   "name": "Clover",
-   "tier": 2,
-   "value": 65
-  },
-  "item_cog": {
-   "rung": 2,
-   "name": "Cog",
-   "tier": 1,
-   "value": 35
-  },
-  "item_compass": {
-   "rung": 2,
-   "name": "Compass",
-   "tier": 1,
-   "value": 40,
-   "sentiment": "C"
-  },
-  "item_coupon": {
-   "rung": 1,
-   "name": "Coupon",
-   "tier": 0,
-   "value": 15
-  },
-  "item_crown": {
-   "rung": 5,
-   "name": "Crown",
-   "tier": 2,
-   "value": 70
-  },
-  "item_cute_monkey": {
-   "rung": 2,
-   "name": "Cute Monkey",
-   "tier": 0,
-   "value": 25
-  },
-  "item_cyberball": {
-   "rung": 2,
-   "name": "Cyberball",
-   "tier": 1,
-   "value": 30
-  },
-  "item_cyclops_worm": {
-   "rung": 2,
-   "name": "Cyclops Worm",
-   "tier": 1,
-   "value": 45,
-   "sentiment": "C"
-  },
-  "item_defective_steroids": {
-   "rung": 1,
-   "name": "Defective Steroids",
-   "tier": 0,
-   "value": 20
-  },
-  "item_diploma": {
-   "rung": 6,
-   "name": "Diploma",
-   "tier": 3,
-   "value": 90
-  },
-  "item_duct_tape": {
-   "rung": 1,
-   "name": "Duct Tape",
-   "tier": 0,
-   "value": 20
-  },
-  "item_dynamite": {
-   "rung": 1,
-   "name": "Dynamite",
-   "tier": 0,
-   "value": 20
-  },
-  "item_energy_bracelet": {
-   "rung": 4,
-   "name": "Energy Bracelet",
-   "tier": 1,
-   "value": 55
-  },
-  "item_exoskeleton": {
-   "rung": 6,
-   "name": "Exoskeleton",
-   "tier": 3,
-   "value": 90
-  },
-  "item_eyes_surgery": {
-   "rung": 4,
-   "name": "Eyes Surgery",
-   "tier": 1,
-   "value": 60
-  },
-  "item_fertilizer": {
-   "rung": 1,
-   "name": "Fertilizer",
-   "tier": 0,
-   "value": 15
-  },
-  "item_fin": {
-   "rung": 5,
-   "name": "Fin",
-   "tier": 2,
-   "value": 65
-  },
-  "item_focus": {
-   "rung": 6,
-   "name": "Focus",
-   "tier": 3,
-   "value": 110,
-   "sentiment": "C"
-  },
-  "item_fuel_tank": {
-   "rung": 2,
-   "name": "Fuel Tank",
-   "tier": 1,
-   "value": 45,
-   "sentiment": "C"
-  },
-  "item_gambling_token": {
-   "rung": 3,
-   "name": "Gambling Token",
-   "tier": 1,
-   "value": 50
-  },
-  "item_gentle_alien": {
-   "rung": 2,
-   "name": "Gentle Alien",
-   "tier": 0,
-   "value": 30
-  },
-  "item_glasses": {
-   "rung": 2,
-   "name": "Glasses",
-   "tier": 0,
-   "value": 20,
-   "sentiment": "A"
-  },
-  "item_glass_cannon": {
-   "rung": 5,
-   "name": "Glass Cannon",
-   "tier": 2,
-   "value": 75
-  },
-  "item_gnome": {
-   "rung": 5,
-   "name": "Gnome",
-   "tier": 3,
-   "value": 100,
-   "sentiment": "D"
-  },
-  "item_goat_skull": {
-   "rung": 1,
-   "name": "Goat Skull",
-   "tier": 0,
-   "value": 25,
-   "sentiment": "C"
-  },
-  "item_gummy_berserker": {
-   "rung": 2,
-   "name": "Gummy Berserker",
-   "tier": 0,
-   "value": 25
-  },
-  "item_handcuffs": {
-   "rung": 5,
-   "name": "Handcuffs",
-   "tier": 2,
-   "value": 80
-  },
-  "item_head_injury": {
-   "rung": 1,
-   "name": "Head Injury",
-   "tier": 0,
-   "value": 25,
-   "sentiment": "D"
-  },
-  "item_heavy_bullets": {
-   "rung": 6,
-   "name": "Heavy Bullets",
-   "tier": 3,
-   "value": 100
-  },
-  "item_hedgehog": {
-   "rung": 1,
-   "name": "Hedgehog",
-   "tier": 0,
-   "value": 30,
-   "sentiment": "C"
-  },
-  "item_helmet": {
-   "rung": 1,
-   "name": "Helmet",
-   "tier": 0,
-   "value": 15
-  },
-  "item_hunting_trophy": {
-   "rung": 5,
-   "name": "Hunting Trophy",
-   "tier": 2,
-   "value": 55,
-   "sentiment": "S"
-  },
-  "item_injection": {
-   "rung": 1,
-   "name": "Injection",
-   "tier": 0,
-   "value": 20
-  },
-  "item_insanity": {
-   "rung": 1,
-   "name": "Insanity",
-   "tier": 0,
-   "value": 20
-  },
-  "item_jetpack": {
-   "rung": 6,
-   "name": "Jet Pack",
-   "tier": 3,
-   "value": 100
-  },
-  "item_landmines": {
-   "rung": 1,
-   "name": "Landmines",
-   "tier": 0,
-   "value": 15
-  },
-  "item_leather_vest": {
-   "rung": 3,
-   "name": "Leather Vest",
-   "tier": 1,
-   "value": 45
-  },
-  "item_lemonade": {
-   "rung": 1,
-   "name": "Lemonade",
-   "tier": 0,
-   "value": 15
-  },
-  "item_lens": {
-   "rung": 1,
-   "name": "Lens",
-   "tier": 0,
-   "value": 20
-  },
-  "item_little_frog": {
-   "rung": 3,
-   "name": "Little Frog",
-   "tier": 1,
-   "value": 45
-  },
-  "item_little_muscley_dude": {
-   "rung": 2,
-   "name": "Little Muscley Dude",
-   "tier": 1,
-   "value": 50,
-   "sentiment": "D"
-  },
-  "item_lost_duck": {
-   "rung": 2,
-   "name": "Lost Duck",
-   "tier": 0,
-   "value": 25
-  },
-  "item_lucky_charm": {
-   "rung": 5,
-   "name": "Lucky Charm",
-   "tier": 2,
-   "value": 75
-  },
-  "item_lumberjack_shirt": {
-   "rung": 1,
-   "name": "Lumberjack Shirt",
-   "tier": 0,
-   "value": 15
-  },
-  "item_mammoth": {
-   "rung": 7,
-   "name": "Mammoth",
-   "tier": 3,
-   "value": 110
-  },
-  "item_mastery": {
-   "rung": 3,
-   "name": "Mastery",
-   "tier": 1,
-   "value": 55,
-   "sentiment": "C"
-  },
-  "item_medal": {
-   "rung": 4,
-   "name": "Medal",
-   "tier": 1,
-   "value": 55
-  },
-  "item_medikit": {
-   "rung": 5,
-   "name": "Medikit",
-   "tier": 3,
-   "value": 95,
-   "sentiment": "C"
-  },
-  "item_metal_detector": {
-   "rung": 3,
-   "name": "Metal Detector",
-   "tier": 1,
-   "value": 40
-  },
-  "item_metal_plate": {
-   "rung": 2,
-   "name": "Metal Plate",
-   "tier": 1,
-   "value": 40,
-   "sentiment": "D"
-  },
-  "item_missile": {
-   "rung": 3,
-   "name": "Missile",
-   "tier": 1,
-   "value": 45
-  },
-  "item_mouse": {
-   "rung": 4,
-   "name": "Mouse",
-   "tier": 2,
-   "value": 55
-  },
-  "item_mushroom": {
-   "rung": 1,
-   "name": "Mushroom",
-   "tier": 0,
-   "value": 25,
-   "sentiment": "C"
-  },
-  "item_mutation": {
-   "rung": 1,
-   "name": "Mutation",
-   "tier": 0,
-   "value": 25,
-   "sentiment": "D"
-  },
-  "item_night_goggles": {
-   "rung": 6,
-   "name": "Night Goggles",
-   "tier": 3,
-   "value": 95
-  },
-  "item_octopus": {
-   "rung": 7,
-   "name": "Octopus",
-   "tier": 3,
-   "value": 105
-  },
-  "item_padding": {
-   "rung": 3,
-   "name": "Padding",
-   "tier": 1,
-   "value": 45
-  },
-  "item_panda": {
-   "rung": 7,
-   "name": "Panda",
-   "tier": 3,
-   "value": 100
-  },
-  "item_peaceful_bee": {
-   "rung": 1,
-   "name": "Peaceful Bee",
-   "tier": 0,
-   "value": 18
-  },
-  "item_pencil": {
-   "rung": 1,
-   "name": "Pencil",
-   "tier": 0,
-   "value": 8
-  },
-  "item_piggy_bank": {
-   "rung": 4,
-   "name": "Piggy Bank",
-   "tier": 1,
-   "value": 40,
-   "sentiment": "A"
-  },
-  "item_plant": {
-   "rung": 1,
-   "name": "Plant",
-   "tier": 0,
-   "value": 15
-  },
-  "item_plastic_explosive": {
-   "rung": 4,
-   "name": "Plastic Explosive",
-   "tier": 2,
-   "value": 60
-  },
-  "item_poisonous_tonic": {
-   "rung": 6,
-   "name": "Poisonous Tonic",
-   "tier": 2,
-   "value": 80
-  },
-  "item_potato": {
-   "rung": 7,
-   "name": "Potato",
-   "tier": 3,
-   "value": 95,
-   "sentiment": "A"
-  },
-  "item_power_generator": {
-   "rung": 5,
-   "name": "Power Generator",
-   "tier": 2,
-   "value": 65
-  },
-  "item_propeller_hat": {
-   "rung": 2,
-   "name": "Propeller Hat",
-   "tier": 0,
-   "value": 28
-  },
-  "item_pumpkin": {
-   "rung": 3,
-   "name": "Pumpkin",
-   "tier": 1,
-   "value": 40
-  },
-  "item_recycling_machine": {
-   "rung": 3,
-   "name": "Recycling Machine",
-   "tier": 1,
-   "value": 35,
-   "sentiment": "A"
-  },
-  "item_retromations_hoodie": {
-   "rung": 8,
-   "name": "Retromation\u2019s Hoodie",
-   "tier": 3,
-   "value": 110
-  },
-  "item_ricochet": {
-   "rung": 8,
-   "name": "Ricochet",
-   "tier": 3,
-   "value": 110
-  },
-  "item_rip_and_tear": {
-   "rung": 4,
-   "name": "Rip and Tear",
-   "tier": 2,
-   "value": 65,
-   "sentiment": "C"
-  },
-  "item_ritual": {
-   "rung": 4,
-   "name": "Ritual",
-   "tier": 1,
-   "value": 60
-  },
-  "item_robot_arm": {
-   "rung": 6,
-   "name": "Robot Arm",
-   "tier": 3,
-   "value": 100,
-   "sentiment": "C"
-  },
-  "item_sad_tomato": {
-   "rung": 4,
-   "name": "Sad Tomato",
-   "tier": 2,
-   "value": 50
-  },
-  "item_scar": {
-   "rung": 2,
-   "name": "Scar",
-   "tier": 0,
-   "value": 25
-  },
-  "item_scared_sausage": {
-   "rung": 2,
-   "name": "Scared Sausage",
-   "tier": 0,
-   "value": 25
-  },
-  "item_scope": {
-   "rung": 3,
-   "name": "Scope",
-   "tier": 1,
-   "value": 48
-  },
-  "item_shady_potion": {
-   "rung": 3,
-   "name": "Shady Potion",
-   "tier": 1,
-   "value": 48
-  },
-  "item_shmoop": {
-   "rung": 4,
-   "name": "Shmoop",
-   "tier": 2,
-   "value": 60
-  },
-  "item_small_magazine": {
-   "rung": 4,
-   "name": "Small Magazine",
-   "tier": 1,
-   "value": 60
-  },
-  "item_snail": {
-   "rung": 2,
-   "name": "Snail",
-   "tier": 1,
-   "value": 40,
-   "sentiment": "C"
-  },
-  "item_snake": {
-   "rung": 2,
-   "name": "Snake",
-   "tier": 0,
-   "value": 25
-  },
-  "item_spider": {
-   "rung": 7,
-   "name": "Spider",
-   "tier": 3,
-   "value": 110,
-   "sentiment": "C"
-  },
-  "item_statue": {
-   "rung": 4,
-   "name": "Statue",
-   "tier": 2,
-   "value": 60
-  },
-  "item_sunglasses": {
-   "rung": 4,
-   "name": "Sunglasses",
-   "tier": 1,
-   "value": 50
-  },
-  "item_terrified_onion": {
-   "rung": 1,
-   "name": "Terrified Onion",
-   "tier": 0,
-   "value": 15
-  },
-  "item_toolbox": {
-   "rung": 4,
-   "name": "Toolbox",
-   "tier": 2,
-   "value": 55
-  },
-  "item_torture": {
-   "rung": 6,
-   "name": "Torture",
-   "tier": 3,
-   "value": 100,
-   "sentiment": "C"
-  },
-  "item_toxic_sludge": {
-   "rung": 1,
-   "name": "Toxic Sludge",
-   "tier": 0,
-   "value": 20
-  },
-  "item_tractor": {
-   "rung": 5,
-   "name": "Tractor",
-   "tier": 2,
-   "value": 70
-  },
-  "item_tree": {
-   "rung": 1,
-   "name": "Tree",
-   "tier": 0,
-   "value": 15
-  },
-  "item_triangle_of_power": {
-   "rung": 5,
-   "name": "Triangle of Power",
-   "tier": 2,
-   "value": 65
-  },
-  "item_turret": {
-   "rung": 1,
-   "name": "Turret",
-   "tier": 0,
-   "value": 15
-  },
-  "item_turret_flame": {
-   "rung": 2,
-   "name": "Incendiary Turret",
-   "tier": 1,
-   "value": 40,
-   "sentiment": "C"
-  },
-  "item_turret_healing": {
-   "rung": 2,
-   "name": "Medical Turret",
-   "tier": 1,
-   "value": 40,
-   "sentiment": "C"
-  },
-  "item_turret_laser": {
-   "rung": 4,
-   "name": "Laser Turret",
-   "tier": 2,
-   "value": 65,
-   "sentiment": "C"
-  },
-  "item_turret_rocket": {
-   "rung": 5,
-   "name": "Explosive Turret",
-   "tier": 3,
-   "value": 80,
-   "sentiment": "C"
-  },
-  "item_ugly_tooth": {
-   "rung": 2,
-   "name": "Ugly Tooth",
-   "tier": 0,
-   "value": 25
-  },
-  "item_vigilante_ring": {
-   "rung": 5,
-   "name": "Vigilante Ring",
-   "tier": 2,
-   "value": 92,
-   "sentiment": "C"
-  },
-  "item_warrior_helmet": {
-   "rung": 5,
-   "name": "Warrior Helmet",
-   "tier": 2,
-   "value": 80,
-   "sentiment": "C"
-  },
-  "item_weird_food": {
-   "rung": 1,
-   "name": "Weird Food",
-   "tier": 0,
-   "value": 20
-  },
-  "item_weird_ghost": {
-   "rung": 1,
-   "name": "Weird Ghost",
-   "tier": 0,
-   "value": 12
-  },
-  "item_wheat": {
-   "rung": 6,
-   "name": "Wheat",
-   "tier": 2,
-   "value": 85
-  },
-  "item_wheelbarrow": {
-   "rung": 4,
-   "name": "Wheelbarrow",
-   "tier": 1,
-   "value": 40,
-   "sentiment": "A"
-  },
-  "item_whetstone": {
-   "rung": 2,
-   "name": "Whetstone",
-   "tier": 1,
-   "value": 40,
-   "sentiment": "C"
-  },
-  "item_white_flag": {
-   "rung": 2,
-   "name": "White Flag",
-   "tier": 1,
-   "value": 40,
-   "sentiment": "C"
-  },
-  "item_wings": {
-   "rung": 6,
-   "name": "Wings",
-   "tier": 2,
-   "value": 85
-  },
-  "item_wisdom": {
-   "rung": 5,
-   "name": "Wisdom",
-   "tier": 2,
-   "value": 85,
-   "sentiment": "C"
-  },
-  "item_wolf_helmet": {
-   "rung": 6,
-   "name": "Wolf Helmet",
-   "tier": 3,
-   "value": 90
-  },
-  "item_tyler": {
-   "rung": 3,
-   "name": "Tyler",
-   "tier": 1,
-   "value": 62,
-   "sentiment": "C"
-  },
-  "item_wandering_bot": {
-   "rung": 4,
-   "name": "Wandering Bot",
-   "tier": 2,
-   "value": 60
-  },
-  "item_dangerous_bunny": {
-   "rung": 2,
-   "name": "Dangerous Bunny",
-   "tier": 1,
-   "value": 30
-  },
-  "item_sifds_relic": {
-   "rung": 7,
-   "name": "Sifd\u2019s Relic",
-   "tier": 3,
-   "value": 100
-  },
-  "item_estys_couch": {
-   "rung": 5,
-   "name": "Esty\u2019s Couch",
-   "tier": 3,
-   "value": 100,
-   "sentiment": "D"
-  },
-  "item_explosive_shells": {
-   "rung": 6,
-   "name": "Explosive Shells",
-   "tier": 3,
-   "value": 100
-  },
-  "item_tardigrade": {
-   "rung": 4,
-   "name": "Tardigrade",
-   "tier": 2,
-   "value": 50
-  },
-  "item_strange_book": {
-   "rung": 4,
-   "name": "Strange Book",
-   "tier": 2,
-   "value": 70,
-   "sentiment": "C"
-  },
-  "item_grinds_magical_leaf": {
-   "rung": 7,
-   "name": "Grind's Magical Leaf",
-   "tier": 3,
-   "value": 110
-  },
-  "item_potion": {
-   "rung": 5,
-   "name": "Regeneration Potion",
-   "tier": 3,
-   "value": 90,
-   "sentiment": "C"
-  },
-  "item_anvil": {
-   "rung": 8,
-   "name": "Anvil",
-   "tier": 3,
-   "value": 120,
-   "sentiment": "C",
-   "hand": true
-  },
-  "item_community_support": {
-   "rung": 4,
-   "name": "Community Support",
-   "tier": 2,
-   "value": 75,
-   "sentiment": "C"
-  },
-  "item_adrenaline": {
-   "rung": 4,
-   "name": "Adrenaline",
-   "tier": 2,
-   "value": 60
-  },
-  "item_bait": {
-   "rung": 2,
-   "name": "Bait",
-   "tier": 1,
-   "value": 25
-  },
-  "item_bloody_hand": {
-   "rung": 7,
-   "name": "Bloody Hand",
-   "tier": 3,
-   "value": 110
-  },
-  "item_extra_stomach": {
-   "rung": 5,
-   "name": "Extra Stomach",
-   "tier": 3,
-   "value": 100,
-   "sentiment": "C"
-  },
-  "item_garden": {
-   "rung": 3,
-   "name": "Garden",
-   "tier": 1,
-   "value": 50
-  },
-  "item_giant_belt": {
-   "rung": 7,
-   "name": "Giant Belt",
-   "tier": 3,
-   "value": 110
-  },
-  "item_improved_tools": {
-   "rung": 5,
-   "name": "Improved Tools",
-   "tier": 2,
-   "value": 70
-  },
-  "item_peacock": {
-   "rung": 4,
-   "name": "Peacock",
-   "tier": 2,
-   "value": 50
-  },
-  "item_riposte": {
-   "rung": 4,
-   "name": "Riposte",
-   "tier": 1,
-   "value": 40,
-   "sentiment": "A"
-  },
-  "item_silver_bullet": {
-   "rung": 5,
-   "name": "Silver Bullet",
-   "tier": 2,
-   "value": 70
-  },
-  "item_spicy_sauce": {
-   "rung": 3,
-   "name": "Spicy Sauce",
-   "tier": 1,
-   "value": 40
-  },
-  "item_tentacle": {
-   "rung": 3,
-   "name": "Tentacle",
-   "tier": 1,
-   "value": 35,
-   "sentiment": "A"
-  },
-  "item_lucky_coin": {
-   "rung": 7,
-   "name": "Lucky Coin",
-   "tier": 3,
-   "value": 105
-  },
-  "item_fairy": {
-   "rung": 6,
-   "name": "Fairy",
-   "tier": 2,
-   "value": 85
-  },
-  "item_lure": {
-   "rung": 2,
-   "name": "Lure",
-   "tier": 1,
-   "value": 34
-  },
-  "item_pocket_factory": {
-   "rung": 4,
-   "name": "Pocket Factory",
-   "tier": 1,
-   "value": 75
-  },
-  "item_shackles": {
-   "rung": 6,
-   "name": "Shackles",
-   "tier": 2,
-   "value": 80
-  },
-  "item_sharp_bullet": {
-   "rung": 1,
-   "name": "Sharp Bullet",
-   "tier": 0,
-   "value": 25,
-   "sentiment": "C"
-  },
-  "item_stone_skin": {
-   "rung": 6,
-   "name": "Stone Skin",
-   "tier": 2,
-   "value": 85
-  },
-  "item_celery_tea": {
-   "rung": 3,
-   "name": "Celery Tea",
-   "tier": 1,
-   "value": 35,
-   "sentiment": "A"
-  },
-  "item_coil": {
-   "rung": 5,
-   "name": "Coil",
-   "tier": 2,
-   "value": 70
-  },
-  "item_jelly": {
-   "rung": 1,
-   "name": "Jelly",
-   "tier": 0,
-   "value": 15
-  },
-  "item_frozen_heart": {
-   "rung": 5,
-   "name": "Frozen Heart",
-   "tier": 2,
-   "value": 90,
-   "sentiment": "C"
-  },
-  "item_decomposing_flesh": {
-   "rung": 2,
-   "name": "Decomposing Flesh",
-   "tier": 1,
-   "value": 30
-  },
-  "item_greek_fire": {
-   "rung": 7,
-   "name": "Greek Fire",
-   "tier": 3,
-   "value": 100,
-   "sentiment": "A"
-  },
-  "item_ball_and_chain": {
-   "rung": 5,
-   "name": "Ball and Chain",
-   "tier": 2,
-   "value": 75
-  },
-  "item_nail": {
-   "rung": 5,
-   "name": "Nail",
-   "tier": 2,
-   "value": 65
-  },
-  "item_ice_cube": {
-   "rung": 3,
-   "name": "Ice Cube",
-   "tier": 1,
-   "value": 50
-  },
-  "item_pile_of_books": {
-   "rung": 4,
-   "name": "Pile of Books",
-   "tier": 1,
-   "value": 60
-  },
-  "item_snowball": {
-   "rung": 3,
-   "name": "Snowball",
-   "tier": 1,
-   "value": 50,
-   "sentiment": "C"
-  },
-  "item_clockwork_wasp": {
-   "rung": 3,
-   "name": "Clockwork Wasp",
-   "tier": 1,
-   "value": 45
-  },
-  "item_reinforced_steel": {
-   "rung": 2,
-   "name": "Reinforced Steel",
-   "tier": 1,
-   "value": 50,
-   "sentiment": "C"
-  },
-  "item_evil_hat": {
-   "rung": 8,
-   "name": "Gobbler\u2019s Hat",
-   "tier": 3,
-   "value": 130
-  },
-  "item_ghost_outfit": {
-   "rung": 5,
-   "name": "Ghost Outfit",
-   "tier": 2,
-   "value": 80
-  },
-  "item_fruit_basket": {
-   "rung": 2,
-   "name": "Fruit Basket",
-   "tier": 1,
-   "value": 45,
-   "sentiment": "D"
-  },
-  "item_hourglass": {
-   "rung": 5,
-   "name": "Hourglass",
-   "tier": 3,
-   "value": 100,
-   "sentiment": "C"
-  },
-  "item_candy_bag": {
-   "rung": 5,
-   "name": "Candy Bag",
-   "tier": 2,
-   "value": 70
-  },
-  "item_will_o_the_wisp": {
-   "rung": 6,
-   "name": "Will-o\u2019-Wisp",
-   "tier": 2,
-   "value": 80
-  },
-  "item_lootworm": {
-   "rung": 2,
-   "name": "Lootworm",
-   "tier": 0,
-   "value": 30
-  },
-  "item_doc_moth": {
-   "rung": 4,
-   "name": "Doc Moth",
-   "tier": 1,
-   "value": 55
-  },
-  "item_bonk_dog": {
-   "rung": 3,
-   "name": "Bonk Dog",
-   "tier": 1,
-   "value": 40
-  },
-  "item_scapegoat": {
-   "rung": 8,
-   "name": "Scapegoat",
-   "tier": 3,
-   "value": 110
-  },
-  "item_catling_gun": {
-   "rung": 2,
-   "name": "Catling Gun",
-   "tier": 1,
-   "value": 34
-  },
-  "item_bot_o_mine": {
-   "rung": 4,
-   "name": "Bot-O-Mine",
-   "tier": 1,
-   "value": 55
-  },
-  "item_jellyshield": {
-   "rung": 4,
-   "name": "Jellyshield",
-   "tier": 2,
-   "value": 50
-  },
-  "item_blazemander": {
-   "rung": 3,
-   "name": "Blazemander",
-   "tier": 1,
-   "value": 40
-  },
-  "item_ratzilla": {
-   "rung": 2,
-   "name": "Ratzilla",
-   "tier": 0,
-   "value": 30
-  },
-  "item_vampire_fang": {
-   "rung": 7,
-   "name": "Vampire Fang",
-   "tier": 3,
-   "value": 110,
-   "hand": true
-  },
-  "item_iron_lung": {
-   "rung": 6,
-   "name": "Iron Lung",
-   "tier": 3,
-   "value": 95
-  },
-  "item_overclocked_chip": {
-   "rung": 7,
-   "name": "Overclocked Chip",
-   "tier": 3,
-   "value": 105
-  },
-  "item_overtime_pay": {
-   "rung": 6,
-   "name": "Overtime Pay",
-   "tier": 2,
-   "value": 80
-  },
-  "item_second_mortgage": {
-   "rung": 5,
-   "name": "Second Mortgage",
-   "tier": 2,
-   "value": 70
-  },
-  "item_voodoo_potato": {
-   "rung": 5,
-   "name": "Voodoo Potato",
-   "tier": 2,
-   "value": 70
-  },
-  "item_energy_drink": {
-   "rung": 3,
-   "name": "Energy Drink",
-   "tier": 1,
-   "value": 50
-  },
-  "item_loaded_dice": {
-   "rung": 4,
-   "name": "Cracked Dice",
-   "tier": 1,
-   "value": 60
-  },
-  "item_tin_foil_hat": {
-   "rung": 1,
-   "name": "Tin Foil Hat",
-   "tier": 0,
-   "value": 15
-  },
-  "item_potato_peeler": {
-   "rung": 1,
-   "name": "Potato Peeler",
-   "tier": 0,
-   "value": 15
-  },
-  "item_salt_shaker": {
-   "rung": 1,
-   "name": "Salt Shaker",
-   "tier": 0,
-   "value": 20
-  },
-  "item_silver_fork": {
-   "rung": 2,
-   "name": "Silver Fork",
-   "tier": 0,
-   "value": 25
-  },
-  "item_chopsticks": {
-   "rung": 3,
-   "name": "Chopsticks",
-   "tier": 1,
-   "value": 45
-  },
-  "item_chewing_gum": {
-   "rung": 1,
-   "name": "Chewing Gum",
-   "tier": 0,
-   "value": 18
-  },
-  "item_espresso_machine": {
-   "rung": 3,
-   "name": "Espresso Machine",
-   "tier": 1,
-   "value": 50
-  },
-  "item_butchers_hook": {
-   "rung": 5,
-   "name": "Butcher'S Hook",
-   "tier": 2,
-   "value": 80
-  },
-  "item_bakers_oven": {
-   "rung": 3,
-   "name": "Baker'S Oven",
-   "tier": 1,
-   "value": 45
-  },
-  "item_beehive": {
-   "rung": 4,
-   "name": "Beehive",
-   "tier": 1,
-   "value": 55
-  },
-  "item_wok_station": {
-   "rung": 5,
-   "name": "Wok Station",
-   "tier": 2,
-   "value": 70
-  },
-  "item_popcorn_machine": {
-   "rung": 3,
-   "name": "Popcorn Machine",
-   "tier": 1,
-   "value": 50
-  },
-  "item_deep_fryer": {
-   "rung": 4,
-   "name": "Deep Fryer",
-   "tier": 1,
-   "value": 55
-  },
-  "item_sushi_bar": {
-   "rung": 6,
-   "name": "Sushi Bar",
-   "tier": 2,
-   "value": 85
-  },
-  "item_grandmas_cookbook": {
-   "rung": 2,
-   "name": "Grandma'S Cookbook",
-   "tier": 0,
-   "value": 25
-  },
-  "item_pizza_delivery": {
-   "rung": 1,
-   "name": "Pizza Delivery",
-   "tier": 0,
-   "value": 20
-  },
-  "item_victory_feast": {
-   "rung": 6,
-   "name": "Victory Feast",
-   "tier": 2,
-   "value": 80
-  },
-  "item_street_vendor": {
-   "rung": 2,
-   "name": "Street Vendor",
-   "tier": 0,
-   "value": 22
-  },
-  "item_fondue_set": {
-   "rung": 3,
-   "name": "Fondue Set",
-   "tier": 1,
-   "value": 50
-  },
-  "item_gym_membership": {
-   "rung": 3,
-   "name": "Gym Membership",
-   "tier": 1,
-   "value": 45
-  },
-  "item_fancy_restaurant": {
-   "rung": 6,
-   "name": "Fancy Restaurant",
-   "tier": 3,
-   "value": 95
-  },
-  "item_farmers_market": {
-   "rung": 4,
-   "name": "Farmers' Market",
-   "tier": 1,
-   "value": 60
-  },
-  "item_after_dinner_mints": {
-   "rung": 5,
-   "name": "After-Dinner Mints",
-   "tier": 2,
-   "value": 75
-  },
-  "item_chili_greenhouse": {
-   "rung": 5,
-   "name": "Chili Greenhouse",
-   "tier": 2,
-   "value": 75
-  },
-  "item_doggy_bag": {
-   "rung": 5,
-   "name": "Doggy Bag",
-   "tier": 2,
-   "value": 70
-  },
-  "item_ice_cream_truck": {
-   "rung": 6,
-   "name": "Ice Cream Truck",
-   "tier": 3,
-   "value": 100
-  },
-  "item_pepper_grinder": {
-   "rung": 4,
-   "name": "Pepper Grinder",
-   "tier": 1,
-   "value": 55
-  },
-  "item_growling_stomach": {
-   "rung": 3,
-   "name": "Growling Stomach",
-   "tier": 1,
-   "value": 50
-  },
-  "item_sous_vide_machine": {
-   "rung": 6,
-   "name": "Sous-Vide Machine",
-   "tier": 2,
-   "value": 80
-  },
-  "item_cast_iron_stomach": {
-   "rung": 5,
-   "name": "Cast-Iron Stomach",
-   "tier": 2,
-   "value": 75
-  },
-  "item_michelin_star": {
-   "rung": 8,
-   "name": "Michelin Star",
-   "tier": 3,
-   "value": 110
-  },
-  "item_bottomless_pit": {
-   "rung": 6,
-   "name": "Bottomless Pit",
-   "tier": 3,
-   "value": 100
-  },
-  "item_slow_cooker": {
-   "rung": 3,
-   "name": "Slow Cooker",
-   "tier": 1,
-   "value": 50
-  },
-  "item_preservatives": {
-   "rung": 5,
-   "name": "Preservatives",
-   "tier": 2,
-   "value": 70
-  },
-  "item_msg": {
-   "rung": 6,
-   "name": "Msg",
-   "tier": 2,
-   "value": 85
-  },
-  "item_intermittent_fasting": {
-   "rung": 6,
-   "name": "Intermittent Fasting",
-   "tier": 3,
-   "value": 95
-  },
-  "item_second_helping": {
-   "rung": 5,
-   "name": "Second Helping",
-   "tier": 2,
-   "value": 75
-  },
-  "item_cooler_box": {
-   "rung": 4,
-   "name": "Cooler Box",
-   "tier": 1,
-   "value": 55
-  },
-  "item_compost_bin": {
-   "rung": 3,
-   "name": "Compost Bin",
-   "tier": 1,
-   "value": 45
-  },
-  "item_chicken_soup": {
-   "rung": 1,
-   "name": "Chicken Soup",
-   "tier": 0,
-   "value": 20
-  },
-  "item_sugar_rush": {
-   "rung": 2,
-   "name": "Sugar Rush",
-   "tier": 0,
-   "value": 25
-  },
-  "item_food_fight": {
-   "rung": 5,
-   "name": "Food Fight",
-   "tier": 2,
-   "value": 80
-  },
-  "item_grease_fire": {
-   "rung": 5,
-   "name": "Grease Fire",
-   "tier": 2,
-   "value": 75
-  },
-  "item_full_belly": {
-   "rung": 4,
-   "name": "Full Belly",
-   "tier": 1,
-   "value": 55
-  },
-  "item_food_coma": {
-   "rung": 6,
-   "name": "Food Coma",
-   "tier": 3,
-   "value": 100
-  },
-  "item_snack_break": {
-   "rung": 2,
-   "name": "Snack Break",
-   "tier": 0,
-   "value": 22
-  },
-  "item_buffet_insurance": {
-   "rung": 4,
-   "name": "Buffet Insurance",
-   "tier": 1,
-   "value": 60
-  },
-  "item_alarm_clock": {
-   "rung": 2,
-   "name": "Alarm Clock",
-   "tier": 0,
-   "value": 20,
-   "sentiment": "A"
-  },
-  "item_party_balloon": {
-   "rung": 1,
-   "name": "Party Balloon",
-   "tier": 0,
-   "value": 15
-  },
-  "item_mosquito_jar": {
-   "rung": 1,
-   "name": "Mosquito Jar",
-   "tier": 0,
-   "value": 25,
-   "sentiment": "C"
-  },
-  "item_sticky_bomb": {
-   "rung": 5,
-   "name": "Sticky Bomb",
-   "tier": 2,
-   "value": 70
-  },
-  "item_space_heater": {
-   "rung": 4,
-   "name": "Space Heater",
-   "tier": 2,
-   "value": 60
-  },
-  "item_caltrops": {
-   "rung": 2,
-   "name": "Caltrops",
-   "tier": 0,
-   "value": 25
-  },
-  "item_magnifying_glass": {
-   "rung": 3,
-   "name": "Magnifying Glass",
-   "tier": 1,
-   "value": 45
-  },
-  "item_sunscreen": {
-   "rung": 3,
-   "name": "Sunscreen",
-   "tier": 1,
-   "value": 40
-  },
-  "item_training_weights": {
-   "rung": 5,
-   "name": "Training Weights",
-   "tier": 2,
-   "value": 75
-  },
-  "item_loyalty_card": {
-   "rung": 4,
-   "name": "Loyalty Card",
-   "tier": 1,
-   "value": 55
-  },
-  "item_static_cling": {
-   "rung": 6,
-   "name": "Static Cling",
-   "tier": 2,
-   "value": 85
-  },
-  "item_echo_chamber": {
-   "rung": 7,
-   "name": "Echo Chamber",
-   "tier": 3,
-   "value": 105
-  },
-  "item_nine_lives": {
-   "rung": 8,
-   "name": "Nine Lives",
-   "tier": 3,
-   "value": 110
-  },
-  "item_burp_of_power": {
-   "rung": 3,
-   "name": "Burp Of Power",
-   "tier": 1,
-   "value": 50
-  },
-  "item_panic_button": {
-   "rung": 6,
-   "name": "Panic Button",
-   "tier": 2,
-   "value": 80
-  },
-  "item_pocket_sand": {
-   "rung": 1,
-   "name": "Pocket Sand",
-   "tier": 0,
-   "value": 18
-  },
-  "item_set_menu": {
-   "rung": 5,
-   "name": "Set Menu",
-   "tier": 2,
-   "value": 70
-  },
-  "item_soul_food": {
-   "rung": 7,
-   "name": "Soul Food",
-   "tier": 3,
-   "value": 100
-  },
-  "item_bbq_grill": {
-   "rung": 5,
-   "name": "Bbq Grill",
-   "tier": 2,
-   "value": 75
-  },
-  "item_hot_dog_cart": {
-   "rung": 5,
-   "name": "Hot Dog Cart",
-   "tier": 2,
-   "value": 75
-  },
-  "item_elastic_waistband": {
-   "rung": 5,
-   "name": "Elastic Waistband",
-   "tier": 2,
-   "value": 80
-  },
-  "item_wine_cellar": {
-   "rung": 5,
-   "name": "Wine Cellar",
-   "tier": 2,
-   "value": 70
-  },
-  "item_delivery_drone": {
-   "rung": 5,
-   "name": "Delivery Drone",
-   "tier": 2,
-   "value": 80
-  },
-  "item_gumball_machine": {
-   "rung": 5,
-   "name": "Gumball Machine",
-   "tier": 2,
-   "value": 70
-  },
-  "item_cocktail_bar": {
-   "rung": 5,
-   "name": "Cocktail Bar",
-   "tier": 2,
-   "value": 75
-  },
-  "item_credit_card": {
-   "rung": 4,
-   "name": "Credit Card",
-   "tier": 1,
-   "value": 60
-  },
-  "item_bank_loan": {
-   "rung": 6,
-   "name": "Bank Loan",
-   "tier": 2,
-   "value": 90
-  },
-  "item_ashes": {
-   "rung": 6,
-   "name": "Ashes",
-   "tier": 3,
-   "value": 100
-  },
-  "item_axolotl": {
-   "rung": 8,
-   "name": "Axolotl",
-   "tier": 3,
-   "value": 130
-  },
-  "item_baby_squid": {
-   "rung": 4,
-   "name": "Baby Squid",
-   "tier": 1,
-   "value": 55
-  },
-  "item_barnacle": {
-   "rung": 6,
-   "name": "Barnacle",
-   "tier": 2,
-   "value": 80,
-   "sentiment": "S"
-  },
-  "item_black_flag": {
-   "rung": 5,
-   "name": "Black Flag",
-   "tier": 2,
-   "value": 60,
-   "sentiment": "S"
-  },
-  "item_bone_dice": {
-   "rung": 2,
-   "name": "Bone Dice",
-   "tier": 1,
-   "value": 30
-  },
-  "item_cauldron": {
-   "rung": 2,
-   "name": "Cauldron",
-   "tier": 1,
-   "value": 35
-  },
-  "item_coral": {
-   "rung": 2,
-   "name": "Coral",
-   "tier": 1,
-   "value": 40,
-   "sentiment": "D"
-  },
-  "item_corrupted_shard": {
-   "rung": 1,
-   "name": "Corrupted Shard",
-   "tier": 0,
-   "value": 12
-  },
-  "item_crystal": {
-   "rung": 5,
-   "name": "Crystal",
-   "tier": 2,
-   "value": 65
-  },
-  "item_eyepatch": {
-   "rung": 3,
-   "name": "Eyepatch",
-   "tier": 1,
-   "value": 55,
-   "sentiment": "C"
-  },
-  "item_feather": {
-   "rung": 1,
-   "name": "Feather",
-   "tier": 0,
-   "value": 18
-  },
-  "item_fish_hook": {
-   "rung": 3,
-   "name": "Fish Hook",
-   "tier": 1,
-   "value": 35,
-   "sentiment": "A"
-  },
-  "item_goblet": {
-   "rung": 5,
-   "name": "Goblet",
-   "tier": 2,
-   "value": 70
-  },
-  "item_goldfish": {
-   "rung": 4,
-   "name": "Goldfish",
-   "tier": 2,
-   "value": 23
-  },
-  "item_jerky": {
-   "rung": 4,
-   "name": "Jerky",
-   "tier": 1,
-   "value": 50,
-   "sentiment": "A"
-  },
-  "item_knot": {
-   "rung": 5,
-   "name": "Knot",
-   "tier": 2,
-   "value": 80,
-   "sentiment": "C"
-  },
-  "item_krakens_eye": {
-   "rung": 7,
-   "name": "Krakens Eye",
-   "tier": 3,
-   "value": 110
-  },
-  "item_lantern": {
-   "rung": 7,
-   "name": "Lantern",
-   "tier": 3,
-   "value": 100
-  },
-  "item_lighthouse": {
-   "rung": 6,
-   "name": "Lighthouse",
-   "tier": 2,
-   "value": 80
-  },
-  "item_mirror": {
-   "rung": 5,
-   "name": "Mirror",
-   "tier": 2,
-   "value": 60,
-   "sentiment": "A"
-  },
-  "item_pearl": {
-   "rung": 4,
-   "name": "Pearl",
-   "tier": 1,
-   "value": 60
-  },
-  "item_penguin": {
-   "rung": 2,
-   "name": "Penguin",
-   "tier": 0,
-   "value": 25
-  },
-  "item_saltwater": {
-   "rung": 3,
-   "name": "Saltwater",
-   "tier": 1,
-   "value": 50
-  },
-  "item_scarf": {
-   "rung": 6,
-   "name": "Scarf",
-   "tier": 2,
-   "value": 80
-  },
-  "item_seashell": {
-   "rung": 7,
-   "name": "Seashell",
-   "tier": 3,
-   "value": 100
-  },
-  "item_small_fish": {
-   "rung": 1,
-   "name": "Small Fish",
-   "tier": 0,
-   "value": 18
-  },
-  "item_spyglass": {
-   "rung": 3,
-   "name": "Spyglass",
-   "tier": 1,
-   "value": 30,
-   "sentiment": "A"
-  },
-  "item_starfish": {
-   "rung": 6,
-   "name": "Starfish",
-   "tier": 2,
-   "value": 75,
-   "sentiment": "A"
-  },
-  "item_sunken_bell": {
-   "rung": 4,
-   "name": "Sunken Bell",
-   "tier": 2,
-   "value": 65,
-   "sentiment": "D"
-  },
-  "item_treasure_map": {
-   "rung": 3,
-   "name": "Treasure Map",
-   "tier": 1,
-   "value": 35
-  },
-  "item_whistle": {
-   "rung": 2,
-   "name": "Whistle",
-   "tier": 0,
-   "value": 25
+  "locked": true,
+  "ladder": {
+    "1": "White",
+    "2": "Green",
+    "3": "Blue",
+    "4": "Orange",
+    "5": "Purple",
+    "6": "Red",
+    "7": "Pink",
+    "8": "Gold"
+  },
+  "items": {
+    "item_acid": {
+      "rung": 4,
+      "name": "Acid",
+      "tier": 1,
+      "value": 65
+    },
+    "item_alien_baby": {
+      "rung": 4,
+      "name": "Alien Baby",
+      "tier": 2,
+      "value": 80,
+      "sentiment": "C"
+    },
+    "item_alien_eyes": {
+      "rung": 3,
+      "name": "Alien Eyes",
+      "tier": 1,
+      "value": 50
+    },
+    "item_alien_magic": {
+      "rung": 5,
+      "name": "Alien Magic",
+      "tier": 2,
+      "value": 85,
+      "sentiment": "C"
+    },
+    "item_alien_tongue": {
+      "rung": 2,
+      "name": "Alien Tongue",
+      "tier": 0,
+      "value": 25
+    },
+    "item_alien_worm": {
+      "rung": 1,
+      "name": "Alien Worm",
+      "tier": 0,
+      "value": 15
+    },
+    "item_alloy": {
+      "rung": 5,
+      "name": "Alloy",
+      "tier": 2,
+      "value": 80
+    },
+    "item_baby_elephant": {
+      "rung": 2,
+      "name": "Baby Elephant",
+      "tier": 0,
+      "value": 22,
+      "sentiment": "A"
+    },
+    "item_baby_gecko": {
+      "rung": 2,
+      "name": "Baby Gecko",
+      "tier": 0,
+      "value": 18,
+      "sentiment": "A"
+    },
+    "item_baby_with_a_beard": {
+      "rung": 5,
+      "name": "Baby with a Beard",
+      "tier": 2,
+      "value": 100,
+      "sentiment": "C"
+    },
+    "item_bag": {
+      "rung": 2,
+      "name": "Bag",
+      "tier": 0,
+      "value": 15,
+      "sentiment": "A"
+    },
+    "item_bandana": {
+      "rung": 4,
+      "name": "Bandana",
+      "tier": 2,
+      "value": 75,
+      "sentiment": "C"
+    },
+    "item_banner": {
+      "rung": 4,
+      "name": "Banner",
+      "tier": 1,
+      "value": 55
+    },
+    "item_barricade": {
+      "rung": 4,
+      "name": "Barricade",
+      "tier": 2,
+      "value": 75,
+      "sentiment": "D"
+    },
+    "item_bat": {
+      "rung": 1,
+      "name": "Bat",
+      "tier": 0,
+      "value": 20
+    },
+    "item_beanie": {
+      "rung": 1,
+      "name": "Beanie",
+      "tier": 0,
+      "value": 20
+    },
+    "item_bean_teacher": {
+      "rung": 5,
+      "name": "Bean Teacher",
+      "tier": 2,
+      "value": 70
+    },
+    "item_big_arms": {
+      "rung": 7,
+      "name": "Big Arms",
+      "tier": 3,
+      "value": 105
+    },
+    "item_black_belt": {
+      "rung": 3,
+      "name": "Black Belt",
+      "tier": 1,
+      "value": 50
+    },
+    "item_blindfold": {
+      "rung": 2,
+      "name": "Blindfold",
+      "tier": 1,
+      "value": 45,
+      "sentiment": "C"
+    },
+    "item_blood_donation": {
+      "rung": 4,
+      "name": "Blood Donation",
+      "tier": 2,
+      "value": 50
+    },
+    "item_blood_leech": {
+      "rung": 2,
+      "name": "Blood Leech",
+      "tier": 1,
+      "value": 45,
+      "sentiment": "C"
+    },
+    "item_boiling_water": {
+      "rung": 1,
+      "name": "Boiling Water",
+      "tier": 0,
+      "value": 30,
+      "sentiment": "C"
+    },
+    "item_book": {
+      "rung": 1,
+      "name": "Book",
+      "tier": 0,
+      "value": 15
+    },
+    "item_bowler_hat": {
+      "rung": 5,
+      "name": "Bowler Hat",
+      "tier": 2,
+      "value": 75
+    },
+    "item_boxing_glove": {
+      "rung": 1,
+      "name": "Boxing Glove",
+      "tier": 0,
+      "value": 18
+    },
+    "item_broken_mouth": {
+      "rung": 2,
+      "name": "Broken Mouth",
+      "tier": 0,
+      "value": 25
+    },
+    "item_butterfly": {
+      "rung": 1,
+      "name": "Butterfly",
+      "tier": 0,
+      "value": 30,
+      "sentiment": "C"
+    },
+    "item_campfire": {
+      "rung": 4,
+      "name": "Campfire",
+      "tier": 1,
+      "value": 40,
+      "sentiment": "A"
+    },
+    "item_candle": {
+      "rung": 4,
+      "name": "Candle",
+      "tier": 2,
+      "value": 65
+    },
+    "item_cape": {
+      "rung": 7,
+      "name": "Cape",
+      "tier": 3,
+      "value": 110
+    },
+    "item_chameleon": {
+      "rung": 4,
+      "name": "Chameleon",
+      "tier": 2,
+      "value": 70,
+      "sentiment": "C"
+    },
+    "item_charcoal": {
+      "rung": 1,
+      "name": "Charcoal",
+      "tier": 0,
+      "value": 20
+    },
+    "item_claw_tree": {
+      "rung": 1,
+      "name": "Claw Tree",
+      "tier": 0,
+      "value": 20
+    },
+    "item_clover": {
+      "rung": 4,
+      "name": "Clover",
+      "tier": 2,
+      "value": 65
+    },
+    "item_cog": {
+      "rung": 2,
+      "name": "Cog",
+      "tier": 1,
+      "value": 35
+    },
+    "item_compass": {
+      "rung": 2,
+      "name": "Compass",
+      "tier": 1,
+      "value": 40,
+      "sentiment": "C"
+    },
+    "item_coupon": {
+      "rung": 2,
+      "name": "Coupon",
+      "tier": 0,
+      "value": 15,
+      "hand": true
+    },
+    "item_crown": {
+      "rung": 5,
+      "name": "Crown",
+      "tier": 2,
+      "value": 70
+    },
+    "item_cute_monkey": {
+      "rung": 2,
+      "name": "Cute Monkey",
+      "tier": 0,
+      "value": 25
+    },
+    "item_cyberball": {
+      "rung": 2,
+      "name": "Cyberball",
+      "tier": 1,
+      "value": 30
+    },
+    "item_cyclops_worm": {
+      "rung": 3,
+      "name": "Cyclops Worm",
+      "tier": 1,
+      "value": 45,
+      "sentiment": "C",
+      "hand": true
+    },
+    "item_defective_steroids": {
+      "rung": 1,
+      "name": "Defective Steroids",
+      "tier": 0,
+      "value": 20
+    },
+    "item_diploma": {
+      "rung": 6,
+      "name": "Diploma",
+      "tier": 3,
+      "value": 90
+    },
+    "item_duct_tape": {
+      "rung": 1,
+      "name": "Duct Tape",
+      "tier": 0,
+      "value": 20
+    },
+    "item_dynamite": {
+      "rung": 1,
+      "name": "Dynamite",
+      "tier": 0,
+      "value": 20
+    },
+    "item_energy_bracelet": {
+      "rung": 4,
+      "name": "Energy Bracelet",
+      "tier": 1,
+      "value": 55
+    },
+    "item_exoskeleton": {
+      "rung": 6,
+      "name": "Exoskeleton",
+      "tier": 3,
+      "value": 90
+    },
+    "item_eyes_surgery": {
+      "rung": 4,
+      "name": "Eyes Surgery",
+      "tier": 1,
+      "value": 60
+    },
+    "item_fertilizer": {
+      "rung": 1,
+      "name": "Fertilizer",
+      "tier": 0,
+      "value": 15
+    },
+    "item_fin": {
+      "rung": 5,
+      "name": "Fin",
+      "tier": 2,
+      "value": 65
+    },
+    "item_focus": {
+      "rung": 6,
+      "name": "Focus",
+      "tier": 3,
+      "value": 110,
+      "sentiment": "C"
+    },
+    "item_fuel_tank": {
+      "rung": 2,
+      "name": "Fuel Tank",
+      "tier": 1,
+      "value": 45,
+      "sentiment": "C"
+    },
+    "item_gambling_token": {
+      "rung": 3,
+      "name": "Gambling Token",
+      "tier": 1,
+      "value": 50
+    },
+    "item_gentle_alien": {
+      "rung": 2,
+      "name": "Gentle Alien",
+      "tier": 0,
+      "value": 30
+    },
+    "item_glasses": {
+      "rung": 2,
+      "name": "Glasses",
+      "tier": 0,
+      "value": 20,
+      "sentiment": "A"
+    },
+    "item_glass_cannon": {
+      "rung": 5,
+      "name": "Glass Cannon",
+      "tier": 2,
+      "value": 75
+    },
+    "item_gnome": {
+      "rung": 5,
+      "name": "Gnome",
+      "tier": 3,
+      "value": 100,
+      "sentiment": "D"
+    },
+    "item_goat_skull": {
+      "rung": 1,
+      "name": "Goat Skull",
+      "tier": 0,
+      "value": 25,
+      "sentiment": "C"
+    },
+    "item_gummy_berserker": {
+      "rung": 2,
+      "name": "Gummy Berserker",
+      "tier": 0,
+      "value": 25
+    },
+    "item_handcuffs": {
+      "rung": 5,
+      "name": "Handcuffs",
+      "tier": 2,
+      "value": 80
+    },
+    "item_head_injury": {
+      "rung": 1,
+      "name": "Head Injury",
+      "tier": 0,
+      "value": 25,
+      "sentiment": "D"
+    },
+    "item_heavy_bullets": {
+      "rung": 7,
+      "name": "Heavy Bullets",
+      "tier": 3,
+      "value": 100,
+      "hand": true
+    },
+    "item_hedgehog": {
+      "rung": 1,
+      "name": "Hedgehog",
+      "tier": 0,
+      "value": 30,
+      "sentiment": "C"
+    },
+    "item_helmet": {
+      "rung": 1,
+      "name": "Helmet",
+      "tier": 0,
+      "value": 15
+    },
+    "item_hunting_trophy": {
+      "rung": 5,
+      "name": "Hunting Trophy",
+      "tier": 2,
+      "value": 55,
+      "sentiment": "S"
+    },
+    "item_injection": {
+      "rung": 1,
+      "name": "Injection",
+      "tier": 0,
+      "value": 20
+    },
+    "item_insanity": {
+      "rung": 1,
+      "name": "Insanity",
+      "tier": 0,
+      "value": 20
+    },
+    "item_jetpack": {
+      "rung": 6,
+      "name": "Jet Pack",
+      "tier": 3,
+      "value": 100
+    },
+    "item_landmines": {
+      "rung": 1,
+      "name": "Landmines",
+      "tier": 0,
+      "value": 15
+    },
+    "item_leather_vest": {
+      "rung": 3,
+      "name": "Leather Vest",
+      "tier": 1,
+      "value": 45
+    },
+    "item_lemonade": {
+      "rung": 1,
+      "name": "Lemonade",
+      "tier": 0,
+      "value": 15
+    },
+    "item_lens": {
+      "rung": 1,
+      "name": "Lens",
+      "tier": 0,
+      "value": 20
+    },
+    "item_little_frog": {
+      "rung": 3,
+      "name": "Little Frog",
+      "tier": 1,
+      "value": 45
+    },
+    "item_little_muscley_dude": {
+      "rung": 2,
+      "name": "Little Muscley Dude",
+      "tier": 1,
+      "value": 50,
+      "sentiment": "D"
+    },
+    "item_lost_duck": {
+      "rung": 2,
+      "name": "Lost Duck",
+      "tier": 0,
+      "value": 25
+    },
+    "item_lucky_charm": {
+      "rung": 5,
+      "name": "Lucky Charm",
+      "tier": 2,
+      "value": 75
+    },
+    "item_lumberjack_shirt": {
+      "rung": 1,
+      "name": "Lumberjack Shirt",
+      "tier": 0,
+      "value": 15
+    },
+    "item_mammoth": {
+      "rung": 7,
+      "name": "Mammoth",
+      "tier": 3,
+      "value": 110
+    },
+    "item_mastery": {
+      "rung": 3,
+      "name": "Mastery",
+      "tier": 1,
+      "value": 55,
+      "sentiment": "C"
+    },
+    "item_medal": {
+      "rung": 4,
+      "name": "Medal",
+      "tier": 1,
+      "value": 55
+    },
+    "item_medikit": {
+      "rung": 5,
+      "name": "Medikit",
+      "tier": 3,
+      "value": 95,
+      "sentiment": "C"
+    },
+    "item_metal_detector": {
+      "rung": 3,
+      "name": "Metal Detector",
+      "tier": 1,
+      "value": 40
+    },
+    "item_metal_plate": {
+      "rung": 2,
+      "name": "Metal Plate",
+      "tier": 1,
+      "value": 40,
+      "sentiment": "D"
+    },
+    "item_missile": {
+      "rung": 3,
+      "name": "Missile",
+      "tier": 1,
+      "value": 45
+    },
+    "item_mouse": {
+      "rung": 4,
+      "name": "Mouse",
+      "tier": 2,
+      "value": 55
+    },
+    "item_mushroom": {
+      "rung": 1,
+      "name": "Mushroom",
+      "tier": 0,
+      "value": 25,
+      "sentiment": "C"
+    },
+    "item_mutation": {
+      "rung": 1,
+      "name": "Mutation",
+      "tier": 0,
+      "value": 25,
+      "sentiment": "D"
+    },
+    "item_night_goggles": {
+      "rung": 6,
+      "name": "Night Goggles",
+      "tier": 3,
+      "value": 95
+    },
+    "item_octopus": {
+      "rung": 7,
+      "name": "Octopus",
+      "tier": 3,
+      "value": 105
+    },
+    "item_padding": {
+      "rung": 3,
+      "name": "Padding",
+      "tier": 1,
+      "value": 45
+    },
+    "item_panda": {
+      "rung": 7,
+      "name": "Panda",
+      "tier": 3,
+      "value": 100
+    },
+    "item_peaceful_bee": {
+      "rung": 1,
+      "name": "Peaceful Bee",
+      "tier": 0,
+      "value": 18
+    },
+    "item_pencil": {
+      "rung": 1,
+      "name": "Pencil",
+      "tier": 0,
+      "value": 8
+    },
+    "item_piggy_bank": {
+      "rung": 4,
+      "name": "Piggy Bank",
+      "tier": 1,
+      "value": 40,
+      "sentiment": "A"
+    },
+    "item_plant": {
+      "rung": 1,
+      "name": "Plant",
+      "tier": 0,
+      "value": 15
+    },
+    "item_plastic_explosive": {
+      "rung": 4,
+      "name": "Plastic Explosive",
+      "tier": 2,
+      "value": 60
+    },
+    "item_poisonous_tonic": {
+      "rung": 6,
+      "name": "Poisonous Tonic",
+      "tier": 2,
+      "value": 80
+    },
+    "item_potato": {
+      "rung": 7,
+      "name": "Potato",
+      "tier": 3,
+      "value": 95,
+      "sentiment": "A"
+    },
+    "item_power_generator": {
+      "rung": 5,
+      "name": "Power Generator",
+      "tier": 2,
+      "value": 65
+    },
+    "item_propeller_hat": {
+      "rung": 2,
+      "name": "Propeller Hat",
+      "tier": 0,
+      "value": 28
+    },
+    "item_pumpkin": {
+      "rung": 3,
+      "name": "Pumpkin",
+      "tier": 1,
+      "value": 40
+    },
+    "item_recycling_machine": {
+      "rung": 3,
+      "name": "Recycling Machine",
+      "tier": 1,
+      "value": 35,
+      "sentiment": "A"
+    },
+    "item_retromations_hoodie": {
+      "rung": 8,
+      "name": "Retromation\u2019s Hoodie",
+      "tier": 3,
+      "value": 110
+    },
+    "item_ricochet": {
+      "rung": 8,
+      "name": "Ricochet",
+      "tier": 3,
+      "value": 110
+    },
+    "item_rip_and_tear": {
+      "rung": 4,
+      "name": "Rip and Tear",
+      "tier": 2,
+      "value": 65,
+      "sentiment": "C"
+    },
+    "item_ritual": {
+      "rung": 4,
+      "name": "Ritual",
+      "tier": 1,
+      "value": 60
+    },
+    "item_robot_arm": {
+      "rung": 6,
+      "name": "Robot Arm",
+      "tier": 3,
+      "value": 100,
+      "sentiment": "C"
+    },
+    "item_sad_tomato": {
+      "rung": 4,
+      "name": "Sad Tomato",
+      "tier": 2,
+      "value": 50
+    },
+    "item_scar": {
+      "rung": 2,
+      "name": "Scar",
+      "tier": 0,
+      "value": 25
+    },
+    "item_scared_sausage": {
+      "rung": 2,
+      "name": "Scared Sausage",
+      "tier": 0,
+      "value": 25
+    },
+    "item_scope": {
+      "rung": 3,
+      "name": "Scope",
+      "tier": 1,
+      "value": 48
+    },
+    "item_shady_potion": {
+      "rung": 3,
+      "name": "Shady Potion",
+      "tier": 1,
+      "value": 48
+    },
+    "item_shmoop": {
+      "rung": 4,
+      "name": "Shmoop",
+      "tier": 2,
+      "value": 60
+    },
+    "item_small_magazine": {
+      "rung": 4,
+      "name": "Small Magazine",
+      "tier": 1,
+      "value": 60
+    },
+    "item_snail": {
+      "rung": 3,
+      "name": "Snail",
+      "tier": 1,
+      "value": 40,
+      "sentiment": "C",
+      "hand": true
+    },
+    "item_snake": {
+      "rung": 2,
+      "name": "Snake",
+      "tier": 0,
+      "value": 25
+    },
+    "item_spider": {
+      "rung": 8,
+      "name": "Spider",
+      "tier": 3,
+      "value": 110,
+      "sentiment": "C",
+      "hand": true
+    },
+    "item_statue": {
+      "rung": 4,
+      "name": "Statue",
+      "tier": 2,
+      "value": 60
+    },
+    "item_sunglasses": {
+      "rung": 4,
+      "name": "Sunglasses",
+      "tier": 1,
+      "value": 50
+    },
+    "item_terrified_onion": {
+      "rung": 1,
+      "name": "Terrified Onion",
+      "tier": 0,
+      "value": 15
+    },
+    "item_toolbox": {
+      "rung": 4,
+      "name": "Toolbox",
+      "tier": 2,
+      "value": 55
+    },
+    "item_torture": {
+      "rung": 6,
+      "name": "Torture",
+      "tier": 3,
+      "value": 100,
+      "sentiment": "C"
+    },
+    "item_toxic_sludge": {
+      "rung": 1,
+      "name": "Toxic Sludge",
+      "tier": 0,
+      "value": 20
+    },
+    "item_tractor": {
+      "rung": 5,
+      "name": "Tractor",
+      "tier": 2,
+      "value": 70
+    },
+    "item_tree": {
+      "rung": 1,
+      "name": "Tree",
+      "tier": 0,
+      "value": 15
+    },
+    "item_triangle_of_power": {
+      "rung": 5,
+      "name": "Triangle of Power",
+      "tier": 2,
+      "value": 65
+    },
+    "item_turret": {
+      "rung": 1,
+      "name": "Turret",
+      "tier": 0,
+      "value": 15
+    },
+    "item_turret_flame": {
+      "rung": 2,
+      "name": "Incendiary Turret",
+      "tier": 1,
+      "value": 40,
+      "sentiment": "C"
+    },
+    "item_turret_healing": {
+      "rung": 2,
+      "name": "Medical Turret",
+      "tier": 1,
+      "value": 40,
+      "sentiment": "C"
+    },
+    "item_turret_laser": {
+      "rung": 4,
+      "name": "Laser Turret",
+      "tier": 2,
+      "value": 65,
+      "sentiment": "C"
+    },
+    "item_turret_rocket": {
+      "rung": 5,
+      "name": "Explosive Turret",
+      "tier": 3,
+      "value": 80,
+      "sentiment": "C"
+    },
+    "item_ugly_tooth": {
+      "rung": 2,
+      "name": "Ugly Tooth",
+      "tier": 0,
+      "value": 25
+    },
+    "item_vigilante_ring": {
+      "rung": 5,
+      "name": "Vigilante Ring",
+      "tier": 2,
+      "value": 92,
+      "sentiment": "C"
+    },
+    "item_warrior_helmet": {
+      "rung": 5,
+      "name": "Warrior Helmet",
+      "tier": 2,
+      "value": 80,
+      "sentiment": "C"
+    },
+    "item_weird_food": {
+      "rung": 1,
+      "name": "Weird Food",
+      "tier": 0,
+      "value": 20
+    },
+    "item_weird_ghost": {
+      "rung": 1,
+      "name": "Weird Ghost",
+      "tier": 0,
+      "value": 12
+    },
+    "item_wheat": {
+      "rung": 6,
+      "name": "Wheat",
+      "tier": 2,
+      "value": 85
+    },
+    "item_wheelbarrow": {
+      "rung": 4,
+      "name": "Wheelbarrow",
+      "tier": 1,
+      "value": 40,
+      "sentiment": "A"
+    },
+    "item_whetstone": {
+      "rung": 2,
+      "name": "Whetstone",
+      "tier": 1,
+      "value": 40,
+      "sentiment": "C"
+    },
+    "item_white_flag": {
+      "rung": 2,
+      "name": "White Flag",
+      "tier": 1,
+      "value": 40,
+      "sentiment": "C"
+    },
+    "item_wings": {
+      "rung": 6,
+      "name": "Wings",
+      "tier": 2,
+      "value": 85
+    },
+    "item_wisdom": {
+      "rung": 5,
+      "name": "Wisdom",
+      "tier": 2,
+      "value": 85,
+      "sentiment": "C"
+    },
+    "item_wolf_helmet": {
+      "rung": 6,
+      "name": "Wolf Helmet",
+      "tier": 3,
+      "value": 90
+    },
+    "item_tyler": {
+      "rung": 3,
+      "name": "Tyler",
+      "tier": 1,
+      "value": 62,
+      "sentiment": "C"
+    },
+    "item_wandering_bot": {
+      "rung": 4,
+      "name": "Wandering Bot",
+      "tier": 2,
+      "value": 60
+    },
+    "item_dangerous_bunny": {
+      "rung": 3,
+      "name": "Dangerous Bunny",
+      "tier": 1,
+      "value": 30,
+      "hand": true
+    },
+    "item_sifds_relic": {
+      "rung": 7,
+      "name": "Sifd\u2019s Relic",
+      "tier": 3,
+      "value": 100
+    },
+    "item_estys_couch": {
+      "rung": 5,
+      "name": "Esty\u2019s Couch",
+      "tier": 3,
+      "value": 100,
+      "sentiment": "D"
+    },
+    "item_explosive_shells": {
+      "rung": 6,
+      "name": "Explosive Shells",
+      "tier": 3,
+      "value": 100
+    },
+    "item_tardigrade": {
+      "rung": 5,
+      "name": "Tardigrade",
+      "tier": 2,
+      "value": 50,
+      "hand": true
+    },
+    "item_strange_book": {
+      "rung": 4,
+      "name": "Strange Book",
+      "tier": 2,
+      "value": 70,
+      "sentiment": "C"
+    },
+    "item_grinds_magical_leaf": {
+      "rung": 7,
+      "name": "Grind's Magical Leaf",
+      "tier": 3,
+      "value": 110
+    },
+    "item_potion": {
+      "rung": 6,
+      "name": "Regeneration Potion",
+      "tier": 3,
+      "value": 90,
+      "sentiment": "C",
+      "hand": true
+    },
+    "item_anvil": {
+      "rung": 8,
+      "name": "Anvil",
+      "tier": 3,
+      "value": 120,
+      "sentiment": "C",
+      "hand": true
+    },
+    "item_community_support": {
+      "rung": 4,
+      "name": "Community Support",
+      "tier": 2,
+      "value": 75,
+      "sentiment": "C"
+    },
+    "item_adrenaline": {
+      "rung": 4,
+      "name": "Adrenaline",
+      "tier": 2,
+      "value": 60
+    },
+    "item_bait": {
+      "rung": 2,
+      "name": "Bait",
+      "tier": 1,
+      "value": 25
+    },
+    "item_bloody_hand": {
+      "rung": 7,
+      "name": "Bloody Hand",
+      "tier": 3,
+      "value": 110
+    },
+    "item_extra_stomach": {
+      "rung": 5,
+      "name": "Extra Stomach",
+      "tier": 3,
+      "value": 100,
+      "sentiment": "C"
+    },
+    "item_garden": {
+      "rung": 3,
+      "name": "Garden",
+      "tier": 1,
+      "value": 50
+    },
+    "item_giant_belt": {
+      "rung": 7,
+      "name": "Giant Belt",
+      "tier": 3,
+      "value": 110
+    },
+    "item_improved_tools": {
+      "rung": 5,
+      "name": "Improved Tools",
+      "tier": 2,
+      "value": 70
+    },
+    "item_peacock": {
+      "rung": 4,
+      "name": "Peacock",
+      "tier": 2,
+      "value": 50
+    },
+    "item_riposte": {
+      "rung": 4,
+      "name": "Riposte",
+      "tier": 1,
+      "value": 40,
+      "sentiment": "A"
+    },
+    "item_silver_bullet": {
+      "rung": 5,
+      "name": "Silver Bullet",
+      "tier": 2,
+      "value": 70
+    },
+    "item_spicy_sauce": {
+      "rung": 3,
+      "name": "Spicy Sauce",
+      "tier": 1,
+      "value": 40
+    },
+    "item_tentacle": {
+      "rung": 3,
+      "name": "Tentacle",
+      "tier": 1,
+      "value": 35,
+      "sentiment": "A"
+    },
+    "item_lucky_coin": {
+      "rung": 7,
+      "name": "Lucky Coin",
+      "tier": 3,
+      "value": 105
+    },
+    "item_fairy": {
+      "rung": 6,
+      "name": "Fairy",
+      "tier": 2,
+      "value": 85
+    },
+    "item_lure": {
+      "rung": 2,
+      "name": "Lure",
+      "tier": 1,
+      "value": 34
+    },
+    "item_pocket_factory": {
+      "rung": 4,
+      "name": "Pocket Factory",
+      "tier": 1,
+      "value": 75
+    },
+    "item_shackles": {
+      "rung": 6,
+      "name": "Shackles",
+      "tier": 2,
+      "value": 80
+    },
+    "item_sharp_bullet": {
+      "rung": 1,
+      "name": "Sharp Bullet",
+      "tier": 0,
+      "value": 25,
+      "sentiment": "C"
+    },
+    "item_stone_skin": {
+      "rung": 6,
+      "name": "Stone Skin",
+      "tier": 2,
+      "value": 85
+    },
+    "item_celery_tea": {
+      "rung": 4,
+      "name": "Celery Tea",
+      "tier": 1,
+      "value": 35,
+      "sentiment": "A",
+      "hand": true
+    },
+    "item_coil": {
+      "rung": 5,
+      "name": "Coil",
+      "tier": 2,
+      "value": 70
+    },
+    "item_jelly": {
+      "rung": 1,
+      "name": "Jelly",
+      "tier": 0,
+      "value": 15
+    },
+    "item_frozen_heart": {
+      "rung": 5,
+      "name": "Frozen Heart",
+      "tier": 2,
+      "value": 90,
+      "sentiment": "C"
+    },
+    "item_decomposing_flesh": {
+      "rung": 2,
+      "name": "Decomposing Flesh",
+      "tier": 1,
+      "value": 30
+    },
+    "item_greek_fire": {
+      "rung": 7,
+      "name": "Greek Fire",
+      "tier": 3,
+      "value": 100,
+      "sentiment": "A"
+    },
+    "item_ball_and_chain": {
+      "rung": 5,
+      "name": "Ball and Chain",
+      "tier": 2,
+      "value": 75
+    },
+    "item_nail": {
+      "rung": 5,
+      "name": "Nail",
+      "tier": 2,
+      "value": 65
+    },
+    "item_ice_cube": {
+      "rung": 3,
+      "name": "Ice Cube",
+      "tier": 1,
+      "value": 50
+    },
+    "item_pile_of_books": {
+      "rung": 4,
+      "name": "Pile of Books",
+      "tier": 1,
+      "value": 60
+    },
+    "item_snowball": {
+      "rung": 3,
+      "name": "Snowball",
+      "tier": 1,
+      "value": 50,
+      "sentiment": "C"
+    },
+    "item_clockwork_wasp": {
+      "rung": 3,
+      "name": "Clockwork Wasp",
+      "tier": 1,
+      "value": 45
+    },
+    "item_reinforced_steel": {
+      "rung": 2,
+      "name": "Reinforced Steel",
+      "tier": 1,
+      "value": 50,
+      "sentiment": "C"
+    },
+    "item_evil_hat": {
+      "rung": 8,
+      "name": "Gobbler\u2019s Hat",
+      "tier": 3,
+      "value": 130
+    },
+    "item_ghost_outfit": {
+      "rung": 5,
+      "name": "Ghost Outfit",
+      "tier": 2,
+      "value": 80
+    },
+    "item_fruit_basket": {
+      "rung": 2,
+      "name": "Fruit Basket",
+      "tier": 1,
+      "value": 45,
+      "sentiment": "D"
+    },
+    "item_hourglass": {
+      "rung": 5,
+      "name": "Hourglass",
+      "tier": 3,
+      "value": 100,
+      "sentiment": "C"
+    },
+    "item_candy_bag": {
+      "rung": 5,
+      "name": "Candy Bag",
+      "tier": 2,
+      "value": 70
+    },
+    "item_will_o_the_wisp": {
+      "rung": 6,
+      "name": "Will-o\u2019-Wisp",
+      "tier": 2,
+      "value": 80
+    },
+    "item_lootworm": {
+      "rung": 2,
+      "name": "Lootworm",
+      "tier": 0,
+      "value": 30
+    },
+    "item_doc_moth": {
+      "rung": 4,
+      "name": "Doc Moth",
+      "tier": 1,
+      "value": 55
+    },
+    "item_bonk_dog": {
+      "rung": 3,
+      "name": "Bonk Dog",
+      "tier": 1,
+      "value": 40
+    },
+    "item_scapegoat": {
+      "rung": 8,
+      "name": "Scapegoat",
+      "tier": 3,
+      "value": 110
+    },
+    "item_catling_gun": {
+      "rung": 2,
+      "name": "Catling Gun",
+      "tier": 1,
+      "value": 34
+    },
+    "item_bot_o_mine": {
+      "rung": 4,
+      "name": "Bot-O-Mine",
+      "tier": 1,
+      "value": 55
+    },
+    "item_jellyshield": {
+      "rung": 4,
+      "name": "Jellyshield",
+      "tier": 2,
+      "value": 50
+    },
+    "item_blazemander": {
+      "rung": 3,
+      "name": "Blazemander",
+      "tier": 1,
+      "value": 40
+    },
+    "item_ratzilla": {
+      "rung": 2,
+      "name": "Ratzilla",
+      "tier": 0,
+      "value": 30
+    },
+    "item_vampire_fang": {
+      "rung": 7,
+      "name": "Vampire Fang",
+      "tier": 3,
+      "value": 110,
+      "hand": true
+    },
+    "item_iron_lung": {
+      "rung": 6,
+      "name": "Iron Lung",
+      "tier": 3,
+      "value": 95
+    },
+    "item_overclocked_chip": {
+      "rung": 7,
+      "name": "Overclocked Chip",
+      "tier": 3,
+      "value": 105
+    },
+    "item_overtime_pay": {
+      "rung": 6,
+      "name": "Overtime Pay",
+      "tier": 2,
+      "value": 80
+    },
+    "item_second_mortgage": {
+      "rung": 5,
+      "name": "Second Mortgage",
+      "tier": 2,
+      "value": 70
+    },
+    "item_voodoo_potato": {
+      "rung": 5,
+      "name": "Voodoo Potato",
+      "tier": 2,
+      "value": 70
+    },
+    "item_energy_drink": {
+      "rung": 3,
+      "name": "Energy Drink",
+      "tier": 1,
+      "value": 50
+    },
+    "item_loaded_dice": {
+      "rung": 4,
+      "name": "Cracked Dice",
+      "tier": 1,
+      "value": 60
+    },
+    "item_tin_foil_hat": {
+      "rung": 1,
+      "name": "Tin Foil Hat",
+      "tier": 0,
+      "value": 15
+    },
+    "item_potato_peeler": {
+      "rung": 1,
+      "name": "Potato Peeler",
+      "tier": 0,
+      "value": 15
+    },
+    "item_salt_shaker": {
+      "rung": 1,
+      "name": "Salt Shaker",
+      "tier": 0,
+      "value": 20
+    },
+    "item_silver_fork": {
+      "rung": 2,
+      "name": "Silver Fork",
+      "tier": 0,
+      "value": 25
+    },
+    "item_chopsticks": {
+      "rung": 3,
+      "name": "Chopsticks",
+      "tier": 1,
+      "value": 45
+    },
+    "item_chewing_gum": {
+      "rung": 1,
+      "name": "Chewing Gum",
+      "tier": 0,
+      "value": 18
+    },
+    "item_espresso_machine": {
+      "rung": 3,
+      "name": "Espresso Machine",
+      "tier": 1,
+      "value": 50
+    },
+    "item_butchers_hook": {
+      "rung": 5,
+      "name": "Butcher'S Hook",
+      "tier": 2,
+      "value": 80
+    },
+    "item_bakers_oven": {
+      "rung": 3,
+      "name": "Baker'S Oven",
+      "tier": 1,
+      "value": 45
+    },
+    "item_beehive": {
+      "rung": 4,
+      "name": "Beehive",
+      "tier": 1,
+      "value": 55
+    },
+    "item_wok_station": {
+      "rung": 5,
+      "name": "Wok Station",
+      "tier": 2,
+      "value": 70
+    },
+    "item_popcorn_machine": {
+      "rung": 3,
+      "name": "Popcorn Machine",
+      "tier": 1,
+      "value": 50
+    },
+    "item_deep_fryer": {
+      "rung": 4,
+      "name": "Deep Fryer",
+      "tier": 1,
+      "value": 55
+    },
+    "item_sushi_bar": {
+      "rung": 6,
+      "name": "Sushi Bar",
+      "tier": 2,
+      "value": 85
+    },
+    "item_grandmas_cookbook": {
+      "rung": 2,
+      "name": "Grandma'S Cookbook",
+      "tier": 0,
+      "value": 25
+    },
+    "item_pizza_delivery": {
+      "rung": 1,
+      "name": "Pizza Delivery",
+      "tier": 0,
+      "value": 20
+    },
+    "item_victory_feast": {
+      "rung": 6,
+      "name": "Victory Feast",
+      "tier": 2,
+      "value": 80
+    },
+    "item_street_vendor": {
+      "rung": 2,
+      "name": "Street Vendor",
+      "tier": 0,
+      "value": 22
+    },
+    "item_fondue_set": {
+      "rung": 3,
+      "name": "Fondue Set",
+      "tier": 1,
+      "value": 50
+    },
+    "item_gym_membership": {
+      "rung": 3,
+      "name": "Gym Membership",
+      "tier": 1,
+      "value": 45
+    },
+    "item_fancy_restaurant": {
+      "rung": 6,
+      "name": "Fancy Restaurant",
+      "tier": 3,
+      "value": 95
+    },
+    "item_farmers_market": {
+      "rung": 4,
+      "name": "Farmers' Market",
+      "tier": 1,
+      "value": 60
+    },
+    "item_after_dinner_mints": {
+      "rung": 6,
+      "name": "After-Dinner Mints",
+      "tier": 2,
+      "value": 75,
+      "hand": true
+    },
+    "item_chili_greenhouse": {
+      "rung": 5,
+      "name": "Chili Greenhouse",
+      "tier": 2,
+      "value": 75
+    },
+    "item_doggy_bag": {
+      "rung": 5,
+      "name": "Doggy Bag",
+      "tier": 2,
+      "value": 70
+    },
+    "item_ice_cream_truck": {
+      "rung": 7,
+      "name": "Ice Cream Truck",
+      "tier": 3,
+      "value": 100,
+      "hand": true
+    },
+    "item_pepper_grinder": {
+      "rung": 4,
+      "name": "Pepper Grinder",
+      "tier": 1,
+      "value": 55
+    },
+    "item_growling_stomach": {
+      "rung": 3,
+      "name": "Growling Stomach",
+      "tier": 1,
+      "value": 50
+    },
+    "item_sous_vide_machine": {
+      "rung": 6,
+      "name": "Sous-Vide Machine",
+      "tier": 2,
+      "value": 80
+    },
+    "item_cast_iron_stomach": {
+      "rung": 5,
+      "name": "Cast-Iron Stomach",
+      "tier": 2,
+      "value": 75
+    },
+    "item_michelin_star": {
+      "rung": 8,
+      "name": "Michelin Star",
+      "tier": 3,
+      "value": 110
+    },
+    "item_bottomless_pit": {
+      "rung": 6,
+      "name": "Bottomless Pit",
+      "tier": 3,
+      "value": 100
+    },
+    "item_slow_cooker": {
+      "rung": 3,
+      "name": "Slow Cooker",
+      "tier": 1,
+      "value": 50
+    },
+    "item_preservatives": {
+      "rung": 5,
+      "name": "Preservatives",
+      "tier": 2,
+      "value": 70
+    },
+    "item_msg": {
+      "rung": 6,
+      "name": "Msg",
+      "tier": 2,
+      "value": 85
+    },
+    "item_intermittent_fasting": {
+      "rung": 6,
+      "name": "Intermittent Fasting",
+      "tier": 3,
+      "value": 95
+    },
+    "item_second_helping": {
+      "rung": 5,
+      "name": "Second Helping",
+      "tier": 2,
+      "value": 75
+    },
+    "item_cooler_box": {
+      "rung": 4,
+      "name": "Cooler Box",
+      "tier": 1,
+      "value": 55
+    },
+    "item_compost_bin": {
+      "rung": 3,
+      "name": "Compost Bin",
+      "tier": 1,
+      "value": 45
+    },
+    "item_chicken_soup": {
+      "rung": 1,
+      "name": "Chicken Soup",
+      "tier": 0,
+      "value": 20
+    },
+    "item_sugar_rush": {
+      "rung": 2,
+      "name": "Sugar Rush",
+      "tier": 0,
+      "value": 25
+    },
+    "item_food_fight": {
+      "rung": 5,
+      "name": "Food Fight",
+      "tier": 2,
+      "value": 80
+    },
+    "item_grease_fire": {
+      "rung": 5,
+      "name": "Grease Fire",
+      "tier": 2,
+      "value": 75
+    },
+    "item_full_belly": {
+      "rung": 4,
+      "name": "Full Belly",
+      "tier": 1,
+      "value": 55
+    },
+    "item_food_coma": {
+      "rung": 6,
+      "name": "Food Coma",
+      "tier": 3,
+      "value": 100
+    },
+    "item_snack_break": {
+      "rung": 2,
+      "name": "Snack Break",
+      "tier": 0,
+      "value": 22
+    },
+    "item_buffet_insurance": {
+      "rung": 4,
+      "name": "Buffet Insurance",
+      "tier": 1,
+      "value": 60
+    },
+    "item_alarm_clock": {
+      "rung": 2,
+      "name": "Alarm Clock",
+      "tier": 0,
+      "value": 20,
+      "sentiment": "A"
+    },
+    "item_party_balloon": {
+      "rung": 1,
+      "name": "Party Balloon",
+      "tier": 0,
+      "value": 15
+    },
+    "item_mosquito_jar": {
+      "rung": 1,
+      "name": "Mosquito Jar",
+      "tier": 0,
+      "value": 25,
+      "sentiment": "C"
+    },
+    "item_sticky_bomb": {
+      "rung": 5,
+      "name": "Sticky Bomb",
+      "tier": 2,
+      "value": 70
+    },
+    "item_space_heater": {
+      "rung": 4,
+      "name": "Space Heater",
+      "tier": 2,
+      "value": 60
+    },
+    "item_caltrops": {
+      "rung": 2,
+      "name": "Caltrops",
+      "tier": 0,
+      "value": 25
+    },
+    "item_magnifying_glass": {
+      "rung": 3,
+      "name": "Magnifying Glass",
+      "tier": 1,
+      "value": 45
+    },
+    "item_sunscreen": {
+      "rung": 3,
+      "name": "Sunscreen",
+      "tier": 1,
+      "value": 40
+    },
+    "item_training_weights": {
+      "rung": 5,
+      "name": "Training Weights",
+      "tier": 2,
+      "value": 75
+    },
+    "item_loyalty_card": {
+      "rung": 4,
+      "name": "Loyalty Card",
+      "tier": 1,
+      "value": 55
+    },
+    "item_static_cling": {
+      "rung": 6,
+      "name": "Static Cling",
+      "tier": 2,
+      "value": 85
+    },
+    "item_echo_chamber": {
+      "rung": 7,
+      "name": "Echo Chamber",
+      "tier": 3,
+      "value": 105
+    },
+    "item_nine_lives": {
+      "rung": 8,
+      "name": "Nine Lives",
+      "tier": 3,
+      "value": 110
+    },
+    "item_burp_of_power": {
+      "rung": 3,
+      "name": "Burp Of Power",
+      "tier": 1,
+      "value": 50
+    },
+    "item_panic_button": {
+      "rung": 6,
+      "name": "Panic Button",
+      "tier": 2,
+      "value": 80
+    },
+    "item_pocket_sand": {
+      "rung": 1,
+      "name": "Pocket Sand",
+      "tier": 0,
+      "value": 18
+    },
+    "item_set_menu": {
+      "rung": 5,
+      "name": "Set Menu",
+      "tier": 2,
+      "value": 70
+    },
+    "item_soul_food": {
+      "rung": 7,
+      "name": "Soul Food",
+      "tier": 3,
+      "value": 100
+    },
+    "item_bbq_grill": {
+      "rung": 5,
+      "name": "Bbq Grill",
+      "tier": 2,
+      "value": 75
+    },
+    "item_hot_dog_cart": {
+      "rung": 5,
+      "name": "Hot Dog Cart",
+      "tier": 2,
+      "value": 75
+    },
+    "item_elastic_waistband": {
+      "rung": 5,
+      "name": "Elastic Waistband",
+      "tier": 2,
+      "value": 80
+    },
+    "item_wine_cellar": {
+      "rung": 5,
+      "name": "Wine Cellar",
+      "tier": 2,
+      "value": 70
+    },
+    "item_delivery_drone": {
+      "rung": 6,
+      "name": "Delivery Drone",
+      "tier": 2,
+      "value": 80,
+      "hand": true
+    },
+    "item_gumball_machine": {
+      "rung": 5,
+      "name": "Gumball Machine",
+      "tier": 2,
+      "value": 70
+    },
+    "item_cocktail_bar": {
+      "rung": 5,
+      "name": "Cocktail Bar",
+      "tier": 2,
+      "value": 75
+    },
+    "item_credit_card": {
+      "rung": 4,
+      "name": "Credit Card",
+      "tier": 1,
+      "value": 60
+    },
+    "item_bank_loan": {
+      "rung": 6,
+      "name": "Bank Loan",
+      "tier": 2,
+      "value": 90
+    },
+    "item_ashes": {
+      "rung": 6,
+      "name": "Ashes",
+      "tier": 3,
+      "value": 100
+    },
+    "item_axolotl": {
+      "rung": 8,
+      "name": "Axolotl",
+      "tier": 3,
+      "value": 130
+    },
+    "item_baby_squid": {
+      "rung": 4,
+      "name": "Baby Squid",
+      "tier": 1,
+      "value": 55
+    },
+    "item_barnacle": {
+      "rung": 6,
+      "name": "Barnacle",
+      "tier": 2,
+      "value": 80,
+      "sentiment": "S"
+    },
+    "item_black_flag": {
+      "rung": 5,
+      "name": "Black Flag",
+      "tier": 2,
+      "value": 60,
+      "sentiment": "S"
+    },
+    "item_bone_dice": {
+      "rung": 2,
+      "name": "Bone Dice",
+      "tier": 1,
+      "value": 30
+    },
+    "item_cauldron": {
+      "rung": 2,
+      "name": "Cauldron",
+      "tier": 1,
+      "value": 35
+    },
+    "item_coral": {
+      "rung": 2,
+      "name": "Coral",
+      "tier": 1,
+      "value": 40,
+      "sentiment": "D"
+    },
+    "item_corrupted_shard": {
+      "rung": 1,
+      "name": "Corrupted Shard",
+      "tier": 0,
+      "value": 12
+    },
+    "item_crystal": {
+      "rung": 5,
+      "name": "Crystal",
+      "tier": 2,
+      "value": 65
+    },
+    "item_eyepatch": {
+      "rung": 3,
+      "name": "Eyepatch",
+      "tier": 1,
+      "value": 55,
+      "sentiment": "C"
+    },
+    "item_feather": {
+      "rung": 1,
+      "name": "Feather",
+      "tier": 0,
+      "value": 18
+    },
+    "item_fish_hook": {
+      "rung": 4,
+      "name": "Fish Hook",
+      "tier": 1,
+      "value": 35,
+      "sentiment": "A",
+      "hand": true
+    },
+    "item_goblet": {
+      "rung": 5,
+      "name": "Goblet",
+      "tier": 2,
+      "value": 70
+    },
+    "item_goldfish": {
+      "rung": 5,
+      "name": "Goldfish",
+      "tier": 2,
+      "value": 23,
+      "hand": true
+    },
+    "item_jerky": {
+      "rung": 4,
+      "name": "Jerky",
+      "tier": 1,
+      "value": 50,
+      "sentiment": "A"
+    },
+    "item_knot": {
+      "rung": 5,
+      "name": "Knot",
+      "tier": 2,
+      "value": 80,
+      "sentiment": "C"
+    },
+    "item_krakens_eye": {
+      "rung": 7,
+      "name": "Krakens Eye",
+      "tier": 3,
+      "value": 110
+    },
+    "item_lantern": {
+      "rung": 7,
+      "name": "Lantern",
+      "tier": 3,
+      "value": 100
+    },
+    "item_lighthouse": {
+      "rung": 6,
+      "name": "Lighthouse",
+      "tier": 2,
+      "value": 80
+    },
+    "item_mirror": {
+      "rung": 5,
+      "name": "Mirror",
+      "tier": 2,
+      "value": 60,
+      "sentiment": "A"
+    },
+    "item_pearl": {
+      "rung": 4,
+      "name": "Pearl",
+      "tier": 1,
+      "value": 60
+    },
+    "item_penguin": {
+      "rung": 2,
+      "name": "Penguin",
+      "tier": 0,
+      "value": 25
+    },
+    "item_saltwater": {
+      "rung": 3,
+      "name": "Saltwater",
+      "tier": 1,
+      "value": 50
+    },
+    "item_scarf": {
+      "rung": 6,
+      "name": "Scarf",
+      "tier": 2,
+      "value": 80
+    },
+    "item_seashell": {
+      "rung": 8,
+      "name": "Seashell",
+      "tier": 3,
+      "value": 100,
+      "hand": true
+    },
+    "item_small_fish": {
+      "rung": 1,
+      "name": "Small Fish",
+      "tier": 0,
+      "value": 18
+    },
+    "item_spyglass": {
+      "rung": 3,
+      "name": "Spyglass",
+      "tier": 1,
+      "value": 30,
+      "sentiment": "A"
+    },
+    "item_starfish": {
+      "rung": 6,
+      "name": "Starfish",
+      "tier": 2,
+      "value": 75,
+      "sentiment": "A"
+    },
+    "item_sunken_bell": {
+      "rung": 4,
+      "name": "Sunken Bell",
+      "tier": 2,
+      "value": 65,
+      "sentiment": "D"
+    },
+    "item_treasure_map": {
+      "rung": 3,
+      "name": "Treasure Map",
+      "tier": 1,
+      "value": 35
+    },
+    "item_whistle": {
+      "rung": 2,
+      "name": "Whistle",
+      "tier": 0,
+      "value": 25
+    }
   }
- }
 }
