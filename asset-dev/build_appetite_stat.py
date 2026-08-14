@@ -50,9 +50,9 @@ script = ExtResource( 1 )
 stat_name = "stat_appetite"
 icon = ExtResource( 3 )
 small_icon = ExtResource( 2 )
-is_primary_stat = false
+is_primary_stat = true
 is_dlc_stat = true
-color_override = Color( 0, 0, 0, 1 )
+color_override = Color( 0.95, 0.62, 0.2, 1 )
 reverse = false
 ''')
 print("wrote stat_appetite.tres")
