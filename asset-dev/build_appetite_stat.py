@@ -10,30 +10,13 @@ CS   = f"{DEC}/items/custom_stats"
 TSCN = f"{DEC}/singletons/item_service.tscn"
 os.makedirs(CS, exist_ok=True)
 
-# ---------- icon: crossed fork & knife (universal "appetite/dining" glyph), 96x96 ----------
-def utensil(kind):
-    S=8; N=96*S
-    im=Image.new("RGBA",(N,N),(0,0,0,0)); d=ImageDraw.Draw(im); cx=N//2
-    SIL=(212,214,222,255); OL=(24,20,26,255)
-    def cap(x0,y0,x1,y1,fill,r): d.rounded_rectangle([int(x0),int(y0),int(x1),int(y1)],radius=int(r),fill=fill)
-    if kind=="knife":
-        cap(cx-5*S,50*S,cx+5*S,86*S,OL,5*S);  cap(cx-3*S,52*S,cx+3*S,84*S,SIL,3*S)     # handle
-        d.polygon([(cx-6*S,12*S),(cx+3*S,11*S),(cx+6*S,52*S),(cx-6*S,52*S)],fill=OL)    # blade
-        d.polygon([(cx-3*S,16*S),(cx+1*S,15*S),(cx+3*S,50*S),(cx-3*S,50*S)],fill=SIL)
-    else:
-        cap(cx-5*S,50*S,cx+5*S,86*S,OL,5*S);  cap(cx-3*S,52*S,cx+3*S,84*S,SIL,3*S)     # handle
-        cap(cx-8*S,38*S,cx+8*S,56*S,OL,6*S);  cap(cx-6*S,38*S,cx+6*S,54*S,SIL,5*S)     # head
-        for tx in (-6,-2,2,6):                                                          # tines
-            cap(cx+tx*S-2*S,12*S,cx+tx*S+2*S,44*S,OL,2*S)
-            cap(cx+tx*S-1*S,15*S,cx+tx*S+1*S,41*S,SIL,1*S)
-    return im,N
-
-f,N=utensil("fork");  k,_=utensil("knife")
-fork = f.rotate(26, resample=Image.BICUBIC, center=(N//2,N//2))
-knife= k.rotate(-26,resample=Image.BICUBIC, center=(N//2,N//2))
-out=Image.new("RGBA",(N,N),(0,0,0,0)); out.alpha_composite(fork); out.alpha_composite(knife)
-out.resize((96,96),Image.LANCZOS).save(f"{CS}/appetite.png")
-print("wrote appetite.png")
+# ---------- stat glyph: install the VECTORIZED fork & knife from the tracked final ----------
+# (never PIL-draw this: a builder rerun once stomped the proper vectorized glyph
+# with the crude placeholder - user 2026-08-14)
+import shutil as _sh
+_final = os.path.join(os.path.dirname(os.path.abspath(__file__)), "items_appetite", "final", "stat_appetite_icon.png")
+_sh.copy(_final, f"{CS}/appetite.png")
+print("installed stat glyph from tracked final")
 
 # ---------- StatData resource ----------
 # ICON LAW (user 2026-08-11): cutlery = small_icon ONLY (tiny stat rows on cards
