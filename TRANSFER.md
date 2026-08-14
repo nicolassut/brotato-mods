@@ -18,6 +18,21 @@ Why past transfers were slow and lossy, and what fixed each cause:
    runs. Fix: `apply_to_live.sh` - builders, mirror copy, editor import
    session, and all verification gates in one command.
 
+## Transfer tags - the zero-confusion rule
+
+Every completed transfer ends by tagging the synced commit on BOTH machines'
+history: `git tag transfer-YYYYMMDD && git push --tags`. From then on, "what
+changed since we last synced" is not a judgement call - it is literally:
+
+    git diff --name-status $(git describe --tags --match 'transfer-*' --abbrev=0)..origin/main
+
+Every file in that list is authoritative from the SENDER - the sender changed
+it after the last sync, so the incoming version wins, no matter how it looks.
+Art especially: NEVER decide old-vs-new by appearance or file size. The only
+exception: if the receiving machine ALSO changed the same file since the tag,
+that is a real conflict - STOP, render both versions side by side, and let the
+user pick. Record the choice in the commit message.
+
 ## Paste-ready prompt for the Claude on the receiving machine
 
 ---
@@ -34,15 +49,19 @@ Steps, in order:
    work (my local character changes or anything else), commit it now on main
    with explicit paths and a clear message. Nothing may be stashed, reset, or
    checked out.
-2. `git -C ~/brotato-mods fetch origin`, then `git -C ~/brotato-mods merge
-   origin/main`. If there are conflicts, resolve them by intent: keep BOTH this
-   machine's changes (mainly characters) and everything incoming - the incoming
-   work includes the P2W character (chests, reel ceremony), tri-color gumballs,
-   HUD buff grid, rarity spread hand-edits, and many engine fixes. When a
-   conflict touches `item_service.tscn` or `custom_translations.csv`, the
-   union of both sides is almost always correct (registrations and translation
-   rows are additive). After resolving, `python3 asset-dev/check_cards.py`
-   must exit clean before you commit the merge.
+2. `git -C ~/brotato-mods fetch origin`, then compute the authoritative
+   change list BEFORE merging:
+   `git diff --name-status $(git describe --tags --match 'transfer-*' --abbrev=0)..origin/main`
+   Every file in that list is the sender's work since the last sync: the
+   INCOMING version wins on any conflict, no matter how it looks - never
+   judge art or data by appearance, size, or gut feeling. Then
+   `git merge origin/main`. A file is only a genuine decision point if THIS
+   machine also changed it since the last transfer tag - in that case stop,
+   render both versions side by side, and ask the user to pick. For
+   `item_service.tscn` and `custom_translations.csv` conflicts, the union of
+   both sides is almost always correct (registrations and translation rows
+   are additive). After resolving, `python3 asset-dev/check_cards.py` must
+   exit clean before you commit the merge.
 3. `cd ~/brotato-mods && ./apply_to_live.sh` - this runs the current builders,
    copies the game-src mirror over the live tree, runs a 35-second Godot
    EDITOR session so new textures import, and then runs every verification
@@ -54,8 +73,11 @@ Steps, in order:
    in the live tree (never mirrored), copy them into `game-src/` now, verify
    with the drift check in CLAUDE.md, and commit.
 5. `git push origin main` so the other machine can pull this machine's
-   character work next time.
-6. Launch the game and confirm it boots to the character select.
+   work next time.
+6. Tag the sync point and push it:
+   `git tag transfer-$(date +%Y%m%d) && git push --tags`
+   (if the tag exists already today, suffix it: transfer-YYYYMMDD-2).
+7. Launch the game and confirm it boots to the character select.
 
 Report exactly what merged, any conflicts and how you resolved them, and the
 gate outputs.
