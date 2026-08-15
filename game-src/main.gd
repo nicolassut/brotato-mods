@@ -96,6 +96,12 @@ var _food_scheduled_spawns: = [[], [], [], []]
 var _food_prev_steps: = [0, 0, 0, 0]
 var _food_prev_positions: = [null, null, null, null]
 var _food_wave_time: = 0.0
+# Gourmet DLC - metered spawner queues: build-scaling triggers (chili greenhouse,
+# sushi bar, wok station) serve at most one food per FOOD_METER_SECONDS per
+# spawner type; extra earned foods queue and wait their turn (user 2026-08-14)
+const FOOD_METER_SECONDS: = 2.0
+var _food_metered_triggers: = {}
+var _food_meters: = [{}, {}, {}, {}]
 
 var _end_wave_timer_timedout: = false
 
@@ -206,6 +212,14 @@ func _ready() -> void :
 		Keys.close_kill_foods_hash: 15,
 		Keys.far_kill_foods_hash: 15,
 		Keys.turret_kill_foods_hash: 5,
+	}
+
+	# the triggers whose event rate scales with the build itself (burning ticks,
+	# crits, burning kills) flood the map late-run; they drain through the meter
+	_food_metered_triggers = {
+		Keys.burning_tick_foods_hash: true,
+		Keys.crit_foods_hash: true,
+		Keys.burning_kill_foods_hash: true,
 	}
 
 	if consumable_scene != null:
@@ -1248,7 +1262,10 @@ func fire_food_trigger(trigger_hash: int, player_index: int) -> void :
 					var gb_pick = ItemService.get_food_from_hash(Keys.generate_hash(gb_ids[randi() % 3]))
 					if gb_pick != null:
 						rolled_food = gb_pick
-				spawn_food(rolled_food, get_food_spawn_origin(entry[0], player_index), - 1.0, player_index)
+				if _food_metered_triggers.has(trigger_hash):
+					_food_meter_enqueue(trigger_hash, entry[0], rolled_food, player_index)
+				else:
+					spawn_food(rolled_food, get_food_spawn_origin(entry[0], player_index), - 1.0, player_index)
 
 
 # Gourmet DLC - Gourmet: all fruit becomes food (a random real food replaces the
@@ -1344,6 +1361,19 @@ func _accumulate_food_timer(trigger_hash: int, player_index: int, delta: float, 
 	_food_timer_accums[player_index][trigger_hash] = accum
 
 
+# Serve immediately when the spawner's meter is free, otherwise join its queue.
+# One meter per trigger type per player, so each spawner kind has its own line.
+func _food_meter_enqueue(trigger_hash: int, food_hash: int, food_data, player_index: int) -> void :
+	if not _food_meters[player_index].has(trigger_hash):
+		_food_meters[player_index][trigger_hash] = {"cd": 0.0, "queue": []}
+	var meter: Dictionary = _food_meters[player_index][trigger_hash]
+	if meter["cd"] <= 0.0 and meter["queue"].empty():
+		spawn_food(food_data, get_food_spawn_origin(food_hash, player_index), - 1.0, player_index)
+		meter["cd"] = FOOD_METER_SECONDS
+	else:
+		meter["queue"].push_back([food_hash, food_data])
+
+
 func _process_food_triggers(delta: float) -> void :
 	if _cleaning_up or _players.empty():
 		return
@@ -1377,6 +1407,16 @@ func _process_food_triggers(delta: float) -> void :
 		if steps > _food_prev_steps[i]:
 			count_food_trigger(Keys.step_foods_hash, i, steps - _food_prev_steps[i])
 		_food_prev_steps[i] = steps
+
+		# metered spawners: tick the cooldown, serve the next queued food when free
+		for meter_hash in _food_meters[i]:
+			var meter: Dictionary = _food_meters[i][meter_hash]
+			if meter["cd"] > 0.0:
+				meter["cd"] -= delta
+			if meter["cd"] <= 0.0 and not meter["queue"].empty():
+				var queued = meter["queue"].pop_front()
+				spawn_food(queued[1], get_food_spawn_origin(queued[0], i), - 1.0, i)
+				meter["cd"] = FOOD_METER_SECONDS
 
 		# Pizza Delivery / Street Vendor / Leftovers: precomputed wave times
 		var scheduled: Array = _food_scheduled_spawns[i]
@@ -2411,6 +2451,10 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void :
 			var leftovers_hash: int = Keys.generate_hash("consumable_food_leftovers")
 			if ItemService.get_food_from_hash(leftovers_hash) != null:
 				var leftovers_due: int = int(effects[Keys.banked_leftovers_hash])
+				# at most 50 servings per Doggy Bag owned per wave (user 2026-08-14);
+				# the bank keeps the rest - it still never resets
+				var leftovers_serve_cap: int = 50 * int(effects[Keys.doggy_bag_hash])
+				leftovers_due = int(min(leftovers_due, leftovers_serve_cap))
 				for _leftover in range(leftovers_due):
 					_food_scheduled_spawns[i].push_back([rand_range(0.05, 0.9) * food_wave_duration, leftovers_hash, 1])
 				GourmetTracker.ev("leftovers_served", {"p": i, "n": leftovers_due})
