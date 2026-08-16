@@ -68,8 +68,17 @@ POOLS = {
                  "frying_pan","rolling_pin","dinner_bell","whisk","corn_cannon"],
  "snail":       ["spiky_shield","rock","plank","stick","cactus_mace","jousting_lance",
                  "screwdriver","trident_fork","fish_slapper","icicle","sauce_blaster"],
- "blacksmith":  ["wrench","hatchet","screwdriver","rock","knife","spear","torch","chopper",
-                 "cactus_mace","skewer","fighting_stick","jousting_lance"],
+ # every weapon class gets 1-2 starting options (his whole kit is class-based, so
+ # the start must not lock him out of a class): blade chopper; blunt rock/spiky_shield;
+ # culinary skewer/cleaver; ethereal ghost_axe/ghost_scepter; explosive plank/shredder;
+ # fire torch/wand; gun pistol/smg; heavy cactus_mace; medical medical_gun/scissors;
+ # medieval fighting_stick/crossbow; precise knife/dagger; primitive spear/hatchet;
+ # support taser/pruner; tool wrench/screwdriver; unarmed fist/hand
+ "blacksmith":  ["wrench","screwdriver","rock","spiky_shield","knife","dagger","spear",
+                 "hatchet","torch","wand","chopper","cactus_mace","skewer","cleaver",
+                 "fighting_stick","crossbow","pistol","smg","plank","shredder",
+                 "ghost_axe","ghost_scepter","medical_gun","scissors","taser","pruner",
+                 "fist","hand"],
  "juggler":     ["knife","dagger","scissors","shuriken","chopper","skewer","wand",
                  "pizza_cutter","shredder","champagne_popper"],
  "mole":        ["screwdriver","claw","dagger","hand","knife","scissors","rock","skewer",
