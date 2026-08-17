@@ -35,7 +35,26 @@ var ledger: = true
 var roster: = true
 
 
+var _applied_at_boot: bool = false
+
+
 func _ready() -> void :
+	# fallback only: ProgressData._ready drives apply_at_boot() BEFORE it loads
+	# the save file. If that hook is ever lost, this at least registers content
+	# late (menus work, saved-run resolution would not - hence the hook).
+	apply_at_boot()
+
+
+# Register all packs' content. MUST run before ProgressData.load_game_file()
+# resolves a saved run (character, shop offers, inventory) against the content
+# registry - the vanilla DLCs register at exactly that point, and running after
+# it silently null-resolves every custom id in the save (2026-08-17 regression:
+# resumed P2W run lost is_p2w - chest went to inventory, vanilla weapons in the
+# chest shop). Idempotent: first caller wins.
+func apply_at_boot() -> void :
+	if _applied_at_boot:
+		return
+	_applied_at_boot = true
 	_scan_available()
 	for pack_id in available_packs:
 		enabled[pack_id] = true

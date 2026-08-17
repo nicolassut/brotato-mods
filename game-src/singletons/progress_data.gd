@@ -130,6 +130,11 @@ func _ready() -> void :
 	for available_dlc in available_dlcs:
 		available_dlc.add_resources()
 
+	# Gourmet ecosystem - packs register HERE, alongside the vanilla DLCs, so
+	# every custom id exists before load_game_file() resolves the saved run.
+	# (Packs' own _ready is only a safety fallback and runs much later.)
+	Packs.apply_at_boot()
+
 	RunData.reset()
 
 	if DebugService.generate_full_unlocked_save_file:
