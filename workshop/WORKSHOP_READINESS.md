@@ -21,10 +21,20 @@
    (untouched files byte-identical, 445/445 scripts). Regenerable: GDRE Tools in
    ~/Downloads, `--headless --recover=<pck> --output=<dir>`. Full-game sweep found
    exactly ONE unmirrored edit (debug_service.gd - the known local-only debug block).
-2. **Autoload strategy**: mods cannot patch project.godot. Core must add Packs /
-   GameModes / GourmetTracker / ButcherSkin / SpecialModifiers as root nodes at
-   load time, and boot-order-sensitive work (pack apply before save load) must be
-   re-verified under that ordering - this is the riskiest conversion item.
+2. ~~Autoload strategy~~ **RESOLVED BY EXPERIMENT 2026-08-18** (disposable-clone
+   probes, real trees untouched; full backups taken first). Findings:
+   - Script extensions via `ModLoaderMod.install_script_extension` WORK ON
+     AUTOLOAD SCRIPTS (utils.gd + progress_data.gd proven) - the deprecated
+     `ModLoader.install_script_extension` shim does NOT; never use it.
+   - The critical ordering survives: an extension of ProgressData._ready runs
+     BEFORE the vanilla body loads the save - packs-before-save-load holds.
+   - Service root-injection: add_child must be IMMEDIATE from the mod's _ready
+     (call_deferred lands after the autoload phase - too late).
+   - Bare autoload identifiers are PARSE-FATAL on installs lacking them (655
+     cascade errors with Packs/GameModes removed). Strategy: host services on
+     an extension of an always-present vanilla autoload and rewrite references
+     mechanically. Measured burden: Packs. x11, GameModes. x8, GourmetTracker.
+     x66, SpecialModifiers. x19, ButcherSkin. x5 = 109 references total.
 3. **project.godot input action**: `interact` must be registered via InputMap at
    runtime in Core.
 4. **item_service.tscn / scene diffs**: 10 scene files differ; scenes cannot be
