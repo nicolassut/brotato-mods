@@ -368,6 +368,7 @@ func init_gameplay_options() -> Dictionary:
 		"endless_score_storing": 0, 
 		"share_coop_loot": true, 
 		"deactivated_dlcs": [], 
+		"disabled_packs": [], 
 		"deactivated_skin_sets": [], 
 		"no_item_appearance": false, 
 		"holding_button": true, 
@@ -548,6 +549,12 @@ func reset_and_save_run_state(run_state: Dictionary) -> void :
 func check_dlc_valid_for_saved_run_state() -> bool:
 	if ProgressData.saved_run_state.has_run_state == false:
 		return true
+
+	# Gourmet ecosystem - a saved run also needs every PACK it was started with
+	# (old saves without the key were made with everything on and pass vacuously)
+	for saved_pack_id in saved_run_state.get("enabled_packs", []):
+		if not Packs.is_pack_enabled(str(saved_pack_id)):
+			return false
 
 	if saved_run_state.has("current_zone"):
 		var current_zone = saved_run_state.current_zone

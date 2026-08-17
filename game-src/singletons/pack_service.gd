@@ -8,10 +8,11 @@ extends Node
 # uses for DLCs. The cached boolean facade below is the guard surface future
 # seams read (`if Packs.food:`).
 #
-# Still deliberately NOT here (arrives with ECOSYSTEM.md Phase 3):
-# - persistence (settings.disabled_packs) beyond this session and the toggle UI
-#   polish; runtime deactivate works but mid-run toggling is unsupported.
-# - RunData.enabled_packs run snapshot + Continue invalidation.
+# Phase 3: persistence (ProgressData.settings.disabled_packs, DLC opt-out
+# pattern), the options-menu toggle UI, the RunData.enabled_packs run snapshot
+# (Continue invalidates when a required pack is off), and a --packs= cmdline
+# override for the boot test matrix. Mid-run toggling stays unsupported: the
+# toggle UI is title-screen-only.
 
 signal pack_activated(pack_id)
 signal pack_deactivated(pack_id)
@@ -56,12 +57,34 @@ func apply_at_boot() -> void :
 		return
 	_applied_at_boot = true
 	_scan_available()
+	# enabled = available minus the persisted opt-out list (DLC pattern:
+	# settings.deactivated_dlcs). Settings are loaded before this runs
+	# (ProgressData._ready calls load_settings() before the pack hook).
+	var disabled: Array = ProgressData.settings.get("disabled_packs", [])
 	for pack_id in available_packs:
-		enabled[pack_id] = true
+		enabled[pack_id] = not disabled.has(pack_id)
+	# test-only override: --packs=food,forge / --packs=none / --packs=all
+	# (used by check_pack_matrix.sh; never set in normal play)
+	for cmdline_arg in OS.get_cmdline_args():
+		if str(cmdline_arg).begins_with("--packs="):
+			var wanted: = str(cmdline_arg).replace("--packs=", "")
+			for pack_id in available_packs:
+				if wanted == "all":
+					enabled[pack_id] = true
+				elif wanted == "none":
+					enabled[pack_id] = false
+				else:
+					enabled[pack_id] = wanted.split(",").has(pack_id)
 	_apply_enabled()
 	_refresh_flags()
-	# greppable boot line - the smoke-test gate for the pack system
-	print("PackService: %d pack(s) available: %s" % [available_packs.size(), str(available_packs.keys())])
+	# greppable boot line - the smoke-test gate for the pack system. States the
+	# ENABLED set + registered counts so a boot log proves which packs are live
+	# (a line that reads the same for every combination proves nothing).
+	var enabled_ids: Array = enabled_pack_ids()
+	print("PackService: %d available, enabled=%s | chars=%d items=%d weapons=%d foods=%d" % [
+		available_packs.size(), str(enabled_ids),
+		ItemService.characters.size(), ItemService.items.size(),
+		ItemService.weapons.size(), ItemService.foods.size()])
 	# full self-test AFTER the whole boot settles (save loaded, pools built)
 	call_deferred("_verify_registration")
 
@@ -153,6 +176,15 @@ func is_pack_enabled(pack_id: String) -> bool:
 	return bool(enabled.get(pack_id, false))
 
 
+func enabled_pack_ids() -> Array:
+	var ids: = []
+	for pack_id in enabled:
+		if bool(enabled[pack_id]):
+			ids.push_back(str(pack_id))
+	ids.sort()
+	return ids
+
+
 func activate_pack(pack_id: String) -> void :
 	if not available_packs.has(pack_id) or bool(enabled.get(pack_id, false)):
 		return
@@ -160,6 +192,8 @@ func activate_pack(pack_id: String) -> void :
 	available_packs[pack_id].add_resources()
 	ProgressData.add_unlocked_by_default()
 	ItemService.init_unlocked_pool()
+	ProgressData.settings.disabled_packs.erase(pack_id)
+	ProgressData.save_settings()
 	_refresh_flags()
 	emit_signal("pack_activated", pack_id)
 
@@ -170,6 +204,9 @@ func deactivate_pack(pack_id: String) -> void :
 	enabled[pack_id] = false
 	available_packs[pack_id].remove_resources()
 	ItemService.init_unlocked_pool()
+	if not ProgressData.settings.disabled_packs.has(pack_id):
+		ProgressData.settings.disabled_packs.push_back(pack_id)
+	ProgressData.save_settings()
 	_refresh_flags()
 	emit_signal("pack_deactivated", pack_id)
 

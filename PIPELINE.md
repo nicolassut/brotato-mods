@@ -201,7 +201,9 @@ Files by type (recipes in §4). Tick every box:
 ## 6. VERIFICATION GATE (must ALL pass before "done" / commit)
 
 **One command runs the whole suite: `bash check_all.sh`** (static gates + mirror drift +
-a real boot that must print `PackService VERIFY: OK`). Individual gates below.
+a real boot that must print `PackService VERIFY: OK`). When touching packs, registration,
+or engine seams, ALSO run `bash check_pack_matrix.sh` (4 boots: all/none/food/fortune+forge,
+asserting the exact enabled set and registered counts per combo). Individual gates below.
 
 **THE CONSUMER LAW (2026-08-17, non-negotiable):** before declaring any structural or
 contract change safe, grep-enumerate every READER and WRITER of the thing you changed

@@ -286,6 +286,9 @@ var is_coop_run = false
 var is_streamplay_run = false
 var play_mode = 0
 var enabled_dlcs = []
+# Gourmet ecosystem - pack set this run was started with (Continue is invalidated
+# if a required pack is disabled later; see ProgressData.check_dlc_valid_for_saved_run_state)
+var enabled_packs = []
 var menu_selection_back: = false
 
 var wave_timer: WaveTimer = null
@@ -612,6 +615,7 @@ func reset(restart: bool = false) -> void :
 		set_coop_run(false)
 		is_endless_run = false
 		enabled_dlcs = ProgressData.get_active_dlc_ids()
+		enabled_packs = Packs.enabled_pack_ids()
 		current_difficulty = 0
 		ProgressData.reset_dlc_resources_to_active_dlcs()
 	else:
@@ -2588,6 +2592,7 @@ func get_state() -> Dictionary:
 		"play_mode": PlayMode.SOLO, 
 		"is_streamplay_run": false, 
 		"enabled_dlcs": enabled_dlcs, 
+		"enabled_packs": enabled_packs, 
 
 		"tracked_item_effects": tracked_item_effects.duplicate(true)
 	}
@@ -2662,6 +2667,7 @@ func resume_from_state(state: Dictionary) -> void :
 	play_mode = RunData.PlayMode.COOP if state.is_coop_run else state.get("play_mode", RunData.PlayMode.SOLO)
 	is_streamplay_run = play_mode == RunData.PlayMode.STREAMPLAY_LOCAL or play_mode == RunData.PlayMode.STREAMPLAY_INTERNET
 	enabled_dlcs = state.enabled_dlcs
+	enabled_packs = state.get("enabled_packs", [])
 
 	tracked_item_effects = Utils.convert_to_hash_array(state.tracked_item_effects.duplicate())
 
