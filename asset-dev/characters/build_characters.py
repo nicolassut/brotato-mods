@@ -315,9 +315,17 @@ CHARS = [
  # starts with a Credit Card AND a Bank Loan, so the run opens at +500 materials / -300 debt
  # with 100 of overspend credit (which the shared debt pool holds back until debt drops below
  # 100 - itself a live test of that rule). High HP/Speed/Luck so you survive to the shop and
- # The Debtor (debt-economy character) was the DEBUG test_debt entry - deleted from the
- # roster 2026-08-18 (user order). The debt design notes live in git history; ext id 1008
- # stays reserved in EXT_IDS. Rebuild him properly as ledger-pack content when designed.
+ # can watch income repay the debt. Art reused from the Freeloader.
+ # One rule per card line, the same shape as the Freeloader above - his whole kit IS the debt
+ # economy, so it reads as a list of rules rather than one paragraph. No stat bonuses: the
+ # earlier +60 HP / +20 Speed / +50 Damage / +50 Luck / +5 Regen were debug leftovers from
+ # when this was the test_debt character and had nothing to do with the design.
+ ("test_debt","The Debtor","character_test_debt",[],
+   [("LINE","EFFECT_DEBTOR_MATERIALS",1),
+    ("LINE","EFFECT_DEBTOR_CREDIT",0),
+    ("LINE","EFFECT_DEBTOR_PRICES",2),
+    ("LINE","EFFECT_DEBTOR_ENEMIES",1),
+    ("LINE","EFFECT_DEBTOR_INTEREST",1)],[]),
  # Phase 2 MINIMAL entry (chest engine testing) - full kit/card/art comes in Phase 4
  # of issues/brotato-mods/p2w-character. Art is the Freeloader placeholder.
  ("p2w","The P2W","character_p2w",[],

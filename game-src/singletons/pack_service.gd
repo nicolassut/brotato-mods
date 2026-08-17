@@ -28,7 +28,7 @@ const ROSTER_ORDER: = ["character_gourmet", "character_picky_eater", "character_
 	"character_comp_eater", "character_butcher", "character_zombie", "character_minimalist",
 	"character_mime", "character_tourist", "character_ruminant", "character_snail",
 	"character_blacksmith", "character_juggler", "character_mole", "character_girly",
-	"character_freeloader", "character_special", "character_p2w"]
+	"character_freeloader", "character_special", "character_test_debt", "character_p2w"]
 
 # pack_id -> PackData resource
 var available_packs: = {}
