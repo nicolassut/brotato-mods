@@ -153,7 +153,11 @@ func _init_players() -> void :
 
 func _go_back() -> void :
 	RunData.reload_music = false
-	var _error = get_tree().change_scene(MenuData.title_screen_scene)
+	# Gourmet ecosystem - back returns to the lobby it came from
+	if bool(ProgressData.settings.get("skip_lobby", false)):
+		var _error = get_tree().change_scene(MenuData.title_screen_scene)
+	else:
+		var _error = get_tree().change_scene(MenuData.lobby_scene)
 	ProgressData.end_activity(false)
 
 

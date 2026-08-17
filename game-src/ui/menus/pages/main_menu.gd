@@ -337,8 +337,14 @@ func reload_logo(screen: TitleScreenBackgroundData) -> void :
 
 func _on_StartButton_pressed() -> void :
 	MusicManager.tween( - 5)
-	ProgressData.start_activity()
-	var _error = get_tree().change_scene(MenuData.character_selection_scene)
+	# Gourmet ecosystem - Start enters the lobby; the lobby's door starts the
+	# actual run flow (and calls start_activity there). skip_lobby preserves
+	# the vanilla direct path.
+	if bool(ProgressData.settings.get("skip_lobby", false)):
+		ProgressData.start_activity()
+		var _error = get_tree().change_scene(MenuData.character_selection_scene)
+	else:
+		var _error = get_tree().change_scene(MenuData.lobby_scene)
 
 
 func _on_OptionsButton_pressed() -> void :

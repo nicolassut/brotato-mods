@@ -9,5 +9,8 @@ var title_screen_scene: String = "res://ui/menus/title_screen/title_screen.tscn"
 var game_scene: String = "res://main.tscn"
 var shop_scene: String = "res://ui/menus/shop/shop.tscn"
 var character_selection_scene: String = "res://ui/menus/run/character_selection.tscn"
+# Gourmet ecosystem - the walkable hub between main menu and character select
+# (ECOSYSTEM.md Phase 7); skipped when settings.skip_lobby is true
+var lobby_scene: String = "res://ui/lobby/lobby.tscn"
 var weapon_selection_scene: String = "res://ui/menus/run/weapon_selection.tscn"
 var difficulty_selection_scene: String = "res://ui/menus/run/difficulty_selection/difficulty_selection.tscn"
