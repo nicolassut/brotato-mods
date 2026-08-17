@@ -250,6 +250,9 @@ func init() -> void :
 		Streamplay.stop()
 		RunData.reset()
 
+	if not has_node("%HubButton") and start_button.get_parent().find_node("HubButton", false, false) == null:
+		_add_hub_button()
+
 	more_games_button.text = "MENU_DLC_AVAILABLE_STANDARD"
 	more_games_button.add_color_override("font_color", Utils.DLC_BUTTON_TEXT_COLOR)
 	more_games_button.theme = load("res://resources/themes/special_button_theme.tres")
@@ -337,14 +340,27 @@ func reload_logo(screen: TitleScreenBackgroundData) -> void :
 
 func _on_StartButton_pressed() -> void :
 	MusicManager.tween( - 5)
-	# Gourmet ecosystem - Start enters the lobby; the lobby's door starts the
-	# actual run flow (and calls start_activity there). skip_lobby preserves
-	# the vanilla direct path.
-	if bool(ProgressData.settings.get("skip_lobby", false)):
-		ProgressData.start_activity()
-		var _error = get_tree().change_scene(MenuData.character_selection_scene)
-	else:
-		var _error = get_tree().change_scene(MenuData.lobby_scene)
+	ProgressData.start_activity()
+	var _error = get_tree().change_scene(MenuData.character_selection_scene)
+
+
+# Gourmet ecosystem - the Hub is its own main-menu destination (user 2026-08-18:
+# an ALTERNATE place beside the normal flow, never inside the Start path). The
+# button is cloned from Start at runtime so theme/focus styling always matches.
+func _add_hub_button() -> void :
+	var hub_button: Button = start_button.duplicate()
+	hub_button.name = "HubButton"
+	hub_button.text = tr("LOBBY_HUB")
+	for connection in hub_button.get_signal_connection_list("pressed"):
+		hub_button.disconnect("pressed", connection.target, connection.method)
+	var _e = hub_button.connect("pressed", self, "_on_HubButton_pressed")
+	start_button.get_parent().add_child(hub_button)
+	start_button.get_parent().move_child(hub_button, start_button.get_index() + 1)
+
+
+func _on_HubButton_pressed() -> void :
+	MusicManager.tween( - 5)
+	var _error = get_tree().change_scene(MenuData.lobby_scene)
 
 
 func _on_OptionsButton_pressed() -> void :

@@ -153,11 +153,13 @@ func _init_players() -> void :
 
 func _go_back() -> void :
 	RunData.reload_music = false
-	# Gourmet ecosystem - back returns to the lobby it came from
-	if bool(ProgressData.settings.get("skip_lobby", false)):
-		var _error = get_tree().change_scene(MenuData.title_screen_scene)
-	else:
+	# Gourmet ecosystem - back returns to wherever the run flow started:
+	# the Hub if its Departure door led here, the title screen otherwise
+	if MenuData.run_flow_from_lobby:
+		MenuData.run_flow_from_lobby = false
 		var _error = get_tree().change_scene(MenuData.lobby_scene)
+	else:
+		var _error = get_tree().change_scene(MenuData.title_screen_scene)
 	ProgressData.end_activity(false)
 
 

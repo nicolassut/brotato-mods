@@ -80,6 +80,7 @@ func _spawn_npc(texture_path: String, at: Vector2, display_name: String, prompt:
 
 
 func _on_door_interacted() -> void :
+	MenuData.run_flow_from_lobby = true
 	ProgressData.start_activity()
 	var _error = get_tree().change_scene(MenuData.character_selection_scene)
 
