@@ -7,17 +7,20 @@
 - Pack content manifests are REAL: generated from the live pack tres files, so the
   data side of packaging is already mechanical.
 
-## Core surface (what GourmetCore must carry)
-- 84 engine .gd files to convert to script extensions (`core_surface.json`).
+## Core surface (what GourmetCore must carry) - MEASURED against pristine vanilla
+- 59 vanilla .gd files actually modified (extension targets, ranked by
+  diff-line count in `core_surface.json`; top: main.gd at 1201 lines).
+- 20 mod-ADDED scripts (ship as files, no extension machinery needed).
+- 5 precautionary mirrors identical to vanilla (not Core surface).
 - 11 non-script files (scenes/config/art) needing other strategies.
-- 66/84 .gd files carry Gourmet-marked edits (comment-marked seams;
-  the rest are wholesale-modified files where extension = full-function override).
+- 66/84 .gd files carry Gourmet-marked edits.
 
 ## Blockers before real packaging (ordered)
-1. **Pristine decompile**: the safety repo's first commit already contains Gourmet
-   edits, so per-function diffs (modified vs vanilla) cannot be computed from git.
-   Re-decompile the Steam pck at the pinned version (1.1.15.4) into a
-   reference tree first.
+1. ~~Pristine decompile~~ **RESOLVED 2026-08-18**: `~/brotato-vanilla-reference/` is a
+   GDRE v2.6.0 recovery of the Steam pck (1.1.15.4), determinism-validated
+   (untouched files byte-identical, 445/445 scripts). Regenerable: GDRE Tools in
+   ~/Downloads, `--headless --recover=<pck> --output=<dir>`. Full-game sweep found
+   exactly ONE unmirrored edit (debug_service.gd - the known local-only debug block).
 2. **Autoload strategy**: mods cannot patch project.godot. Core must add Packs /
    GameModes / GourmetTracker / ButcherSkin / SpecialModifiers as root nodes at
    load time, and boot-order-sensitive work (pack apply before save load) must be

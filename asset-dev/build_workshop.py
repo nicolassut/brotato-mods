@@ -64,13 +64,36 @@ def main():
     gd_files = [f for f in core_files if f.endswith(".gd")]
     other_files = [f for f in core_files if not f.endswith(".gd")]
 
+    # With the pristine reference present (~/brotato-vanilla-reference, GDRE
+    # v2.6.0 recovery of the Steam pck), the surface splits into REAL diffs:
+    # modified-vanilla files (extension targets, with line counts), mod-ADDED
+    # files (ship as-is, no extension needed), and precautionary mirrors
+    # (identical to vanilla - not Core surface at all).
+    import subprocess
+    van = os.path.expanduser("~/brotato-vanilla-reference")
+    diffed, added, identical = [], [], []
+    if os.path.isdir(van):
+        for f in gd_files:
+            vpath = os.path.join(van, f)
+            if not os.path.exists(vpath):
+                added.append(f)
+            elif subprocess.run(["cmp", "-s", vpath, f"{REPO}/game-src/{f}"]).returncode == 0:
+                identical.append(f)
+            else:
+                n = int(subprocess.run(["bash", "-c", "diff '%s' '%s/game-src/%s' | grep -c '^[<>]'" % (vpath, REPO, f)],
+                                       capture_output=True, text=True).stdout.strip() or 0)
+                diffed.append({"file": f, "diff_lines": n})
+        diffed.sort(key=lambda d: -d["diff_lines"])
+
     core_dir = os.path.join(OUT, "nicolassut-GourmetCore")
     os.makedirs(os.path.join(core_dir, "extensions"))
     json.dump(manifest("GourmetCore",
                        "Gourmet ecosystem base: engine extensions, PackService, game modes, the Hub. All Gourmet packs depend on this.",
                        []),
               open(os.path.join(core_dir, "manifest.json"), "w"), indent="\t")
-    json.dump({"script_extension_targets": gd_files, "non_script_surface": other_files},
+    json.dump({"script_extension_targets": diffed if diffed else gd_files,
+               "mod_added_scripts": added, "precautionary_mirrors_identical": identical,
+               "non_script_surface": other_files},
               open(os.path.join(core_dir, "core_surface.json"), "w"), indent=1)
     open(os.path.join(core_dir, "mod_main.gd"), "w").write(
 """extends Node
@@ -124,17 +147,20 @@ func _init(modLoader = ModLoader):
 - Pack content manifests are REAL: generated from the live pack tres files, so the
   data side of packaging is already mechanical.
 
-## Core surface (what GourmetCore must carry)
-- {len(gd_files)} engine .gd files to convert to script extensions (`core_surface.json`).
+## Core surface (what GourmetCore must carry) - MEASURED against pristine vanilla
+- {len(diffed) if diffed else len(gd_files)} vanilla .gd files actually modified (extension targets, ranked by
+  diff-line count in `core_surface.json`; top: {diffed[0]["file"] + " at " + str(diffed[0]["diff_lines"]) + " lines" if diffed else "n/a"}).
+- {len(added)} mod-ADDED scripts (ship as files, no extension machinery needed).
+- {len(identical)} precautionary mirrors identical to vanilla (not Core surface).
 - {len(other_files)} non-script files (scenes/config/art) needing other strategies.
-- {hook_marked}/{len(gd_files)} .gd files carry Gourmet-marked edits (comment-marked seams;
-  the rest are wholesale-modified files where extension = full-function override).
+- {hook_marked}/{len(gd_files)} .gd files carry Gourmet-marked edits.
 
 ## Blockers before real packaging (ordered)
-1. **Pristine decompile**: the safety repo's first commit already contains Gourmet
-   edits, so per-function diffs (modified vs vanilla) cannot be computed from git.
-   Re-decompile the Steam pck at the pinned version ({GAME_VERSION}) into a
-   reference tree first.
+1. ~~Pristine decompile~~ **RESOLVED 2026-08-18**: `~/brotato-vanilla-reference/` is a
+   GDRE v2.6.0 recovery of the Steam pck ({GAME_VERSION}), determinism-validated
+   (untouched files byte-identical, 445/445 scripts). Regenerable: GDRE Tools in
+   ~/Downloads, `--headless --recover=<pck> --output=<dir>`. Full-game sweep found
+   exactly ONE unmirrored edit (debug_service.gd - the known local-only debug block).
 2. **Autoload strategy**: mods cannot patch project.godot. Core must add Packs /
    GameModes / GourmetTracker / ButcherSkin / SpecialModifiers as root nodes at
    load time, and boot-order-sensitive work (pack apply before save load) must be
