@@ -13,6 +13,40 @@ compositing), `HANDOVER_FOOD_SYSTEM.md` (food internals), `HANDOVER_NEW_ITEMS.md
 
 ---
 
+## 0-bis. THE PACK LAW (ecosystem rule - read ECOSYSTEM.md first)
+
+The mod is becoming an ecosystem of optional packs (`core`, `food`, `fortune`, `forge`,
+`ledger`, `roster` - see `ECOSYSTEM.md` for the partition and architecture). From now on:
+
+1. **Every piece of content declares its pack.** Before building, decide which pack it
+   belongs to (or that it is synergy content with `requires_packs`). State it in the plan,
+   record it in the builder entry. Content with no declared pack does not ship.
+2. **Ext ids come from your pack's range.** Current allocations (formalized from history):
+
+   | range | owner |
+   |---|---|
+   | 800-809 | food (first 10 custom items) |
+   | 811-824 | characters (mixed packs - split lands in ecosystem Phase 2) |
+   | 825-839 | food (Appetite stat + items) |
+   | 840-1003 | food (spawners/foods/pantry/culinary + late characters 998/1004/1005/1008) |
+   | 1006-1007 | ledger (credit_card, bank_loan) |
+   | 1009-1012 | food (Appetite upgrades) |
+   | 1013-1292 | forge (Blacksmith ladder weapons) |
+   | 1293-1295 | fortune (P2W char) + food (gumball colours) |
+   | **1296+** | NEW content: claim the next id AND note the owning pack in the builder |
+
+   Known hazard: 824/825 collision (documented in build_characters.py) - never assume
+   `base+i` is free; check the map.
+3. **New engine hooks are small NAMED functions.** Never inline a feature branch into the
+   middle of a vanilla function; add `_gourmet_<thing>()` (or `if Packs.<id>:` once
+   PackService exists) and call it from one seam line. This is what makes the eventual
+   ModLoader script-extension packaging (ECOSYSTEM.md Phase 8) mechanical instead of a
+   rewrite.
+4. **Synergy content** (requires 2+ packs) must be hidden-when-incomplete: registered only
+   when all required packs are enabled, never grayed out or degraded.
+
+---
+
 ## 0. The two trees + where everything lives (orient first)
 
 - **`~/brotato-decompiled/`** — the LIVE game (Godot 3.6, runs from here). NOT the mod repo.

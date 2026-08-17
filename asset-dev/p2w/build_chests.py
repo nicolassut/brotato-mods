@@ -23,6 +23,7 @@ import shutil
 DEC = os.path.expanduser("~/brotato-decompiled")
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = f"{DEC}/items/custom/p2w"
+REPO = os.path.dirname(os.path.dirname(HERE))
 
 RUNG_TIERS = {1: 0, 2: 7, 3: 1, 4: 8, 5: 2, 6: 3, 7: 9, 8: 10}
 RUNG_NAMES = {1: "White", 2: "Green", 3: "Blue", 4: "Teal",
@@ -271,7 +272,13 @@ const RUNG_BY_ID = {gd_dict(rung_by_id)}
 """
     with open(f"{OUT}/p2w_data.gd", "w") as f:
         f.write(gd)
-    print(f"chests 1-8 written to {OUT}; p2w_data.gd holds {len(rung_by_id)} spread entries; CSV rows updated")
+    # engine-loaded generated code must ALSO live in the game-src mirror (ecosystem
+    # Phase 0 law: nothing engine-loaded is generated live-only)
+    mirror_dir = os.path.join(REPO, "game-src", "items", "custom", "p2w")
+    os.makedirs(mirror_dir, exist_ok=True)
+    with open(os.path.join(mirror_dir, "p2w_data.gd"), "w") as f:
+        f.write(gd)
+    print(f"chests 1-8 written to {OUT}; p2w_data.gd holds {len(rung_by_id)} spread entries (live + mirror); CSV rows updated")
 
 
 if __name__ == "__main__":
