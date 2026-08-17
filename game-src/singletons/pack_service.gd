@@ -62,6 +62,50 @@ func apply_at_boot() -> void :
 	_refresh_flags()
 	# greppable boot line - the smoke-test gate for the pack system
 	print("PackService: %d pack(s) available: %s" % [available_packs.size(), str(available_packs.keys())])
+	# full self-test AFTER the whole boot settles (save loaded, pools built)
+	call_deferred("_verify_registration")
+
+
+# Permanent boot self-test (greppable: "PackService VERIFY"). Proves for every
+# enabled pack that each declared resource actually sits in the live registry,
+# that no registry array contains null (a broken tres path in a pack injects
+# nulls), and that every pack character resolves by id - the exact failure
+# class of the 2026-08-17 resume regression.
+func _verify_registration() -> void :
+	var problems: = []
+	var registries: = {
+		"characters": ItemService.characters, "items": ItemService.items,
+		"weapons": ItemService.weapons, "foods": ItemService.foods,
+		"stats": ItemService.stats, "sets": ItemService.sets,
+		"upgrades": ItemService.upgrades,
+	}
+	for reg_name in registries:
+		for entry in registries[reg_name]:
+			if entry == null:
+				problems.push_back("null entry in ItemService.%s" % reg_name)
+	for pack_id in available_packs:
+		if not bool(enabled.get(pack_id, false)):
+			continue
+		var pack = available_packs[pack_id]
+		var pack_arrays: = {
+			"characters": pack.characters, "items": pack.items,
+			"weapons": pack.weapons, "foods": pack.foods,
+			"stats": pack.stats, "sets": pack.sets, "upgrades": pack.upgrades,
+		}
+		for reg_name in pack_arrays:
+			for res in pack_arrays[reg_name]:
+				if res == null:
+					problems.push_back("%s: null resource in %s (broken tres path)" % [pack_id, reg_name])
+				elif not registries[reg_name].has(res):
+					problems.push_back("%s: %s missing from ItemService.%s" % [pack_id, str(res.resource_path), reg_name])
+		for character in pack.characters:
+			if character != null and ItemService.get_element_safe(ItemService.characters, character.my_id) == null:
+				problems.push_back("%s: character %s does not resolve by id" % [pack_id, str(character.my_id)])
+	if problems.empty():
+		print("PackService VERIFY: OK (all pack content registered, no nulls, characters resolve)")
+	else:
+		for problem in problems:
+			printerr("PackService VERIFY FAIL: %s" % problem)
 
 
 # Register every enabled pack's content into the live singletons, then unlock
