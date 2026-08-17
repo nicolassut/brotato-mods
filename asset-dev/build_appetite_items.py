@@ -109,31 +109,18 @@ def main():
         built.append(slug)
         print("wrote", slug)
 
-    # register the built ones (idempotent per item)
-    t = open(TSCN).read()
-    ids = {slug: BASE_ID+i for i,(slug,*_) in enumerate(ITEMS)}
+    # Ecosystem Phase 2+: register in the FOOD pack (idempotent); DEREGISTERED
+    # items stay unregistered on purpose.
+    import sys as _sys
+    _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from pack_registry import register as pack_register
     changed = 0
-    anchor = '[ext_resource path="res://items/custom_stats/stat_appetite.tres" type="Resource" id=825]\n'
-    assert anchor in t, "appetite stat anchor missing"
-    new_ids = []
     for slug in built:
         if slug in DEREGISTERED:
             continue
-        line = f'[ext_resource path="res://items/custom/{slug}/{slug}_data.tres" type="Resource" id={ids[slug]}]\n'
-        if line in t: continue
-        t = t.replace(anchor, anchor + line)
-        new_ids.append(ids[slug])
-        changed += 1
-    if new_ids:
-        # append to the items = [ ... ] array (single line), before its closing bracket
-        m = re.search(r"^items = \[.*\]$", t, re.M)
-        arr = m.group(0)
-        add = "".join(f", ExtResource( {i} )" for i in new_ids)
-        t = t.replace(arr, arr[:arr.rfind("]")].rstrip() + add + " ]", 1)
-        m2 = re.search(r"load_steps=(\d+)", t)
-        t = t.replace(f"load_steps={m2.group(1)}", f"load_steps={int(m2.group(1))+changed}", 1)
-        open(TSCN,"w").write(t)
-    print(f"registered {changed} new items in item_service.tscn")
+        if pack_register("food", "items", f"items/custom/{slug}/{slug}_data.tres", quiet=True):
+            changed += 1
+    print(f"food pack: +{changed} appetite items" if changed else "appetite items pack registration up to date")
 
 if __name__ == "__main__":
     main()

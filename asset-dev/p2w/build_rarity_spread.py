@@ -74,11 +74,12 @@ def props(path):
 
 
 def registered_item_paths():
-    src = open(f"{DEC}/singletons/item_service.tscn").read()
-    ext = dict(re.findall(r'\[ext_resource path="([^"]+)" type="Resource" id=(\d+)\]', src))
-    by_id = {i: p for p, i in ext.items()}
-    m = re.search(r"^items = \[ (.*) \]$", src, re.M)
-    return [by_id[i] for i in re.findall(r"ExtResource\(\s*(\d+)\s*\)", m.group(1))]
+    # Ecosystem Phase 2+: registration = vanilla tscn UNION the pack files.
+    # Reading only the tscn silently dropped every custom item (2026-08-17).
+    import sys as _sys
+    _sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from pack_registry import registered_paths
+    return registered_paths("items")
 
 
 def load_items():

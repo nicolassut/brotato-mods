@@ -22,7 +22,8 @@ suggestions).
 - **Mod dev workspace (git `nicolassut/brotato-mods`, PUBLIC):** `~/brotato-mods`. Builders in
   `~/brotato-mods/asset-dev/`. Every game change MUST be mirrored in the builder that generates
   it or a rebuild reverts it.
-- **Content registration:** `~/brotato-decompiled/singletons/item_service.tscn`
+- **Content registration (ecosystem Phase 2+):** `packs/<id>/pack_data.tres` via
+  `asset-dev/pack_registry.py` (the tscn is vanilla-only)
   (`characters`/`weapons`/`items`/`foods` arrays; highest ext id currently ~992 — new content
   takes the next ids). Card text: `items/custom/custom_translations.csv` (key,en).
 - **Codex** (browsable data site): `asset-dev/extract_codex.py` -> `codex.json` ->
@@ -79,7 +80,7 @@ art installed in place survives rebuilds).
   special=)`. Existing trigger buckets: kill/crit/explosion/material/level_up/burning_kill/
   burning_tick/standstill_timer/step/consumable_count/damage_taken/mid_wave/random_times/
   elite_kill/reroll_banked/wave_start. A NEW trigger needs a hook in `main.gd`. The builder
-  writes both tres, registers in item_service.tscn, and adds CSV rows.
+  writes both tres, registers in the food pack, and adds CSV rows.
 - **General item** — `asset-dev/build_pantry_items.py`: `item(slug,name,tier,value, kit=[...],
   tags, max_nb, tracking="")`. kit entries: `("stat",key,val)` or `("key",key,val,text_key,
   sign)` (custom-key SUM effect w/ card text) or `("proj",text_key)`. Its CSV_ROWS are

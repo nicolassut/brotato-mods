@@ -17,7 +17,8 @@ THE CONTRACT
   E. Every non-empty tracking_text resolves to a CSV row with {0} AND a seeded tracking key.
   F. No food row hardcodes a duration that disagrees with the food's buff_duration.
 
-Only content REGISTERED in item_service.tscn is checked; unregistered .tres on disk is dead
+Only REGISTERED content is checked (vanilla item_service.tscn arrays UNION the
+packs/*/pack_data.tres arrays - ecosystem Phase 2); unregistered .tres on disk is dead
 weight and is reported separately as info.
 
 Exit code 1 on any violation, with the offending slug and row.

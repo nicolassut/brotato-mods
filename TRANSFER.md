@@ -58,7 +58,7 @@ Steps, in order:
    `git merge origin/main`. A file is only a genuine decision point if THIS
    machine also changed it since the last transfer tag - in that case stop,
    render both versions side by side, and ask the user to pick. For
-   `item_service.tscn` and `custom_translations.csv` conflicts, the union of
+   `packs/*/pack_data.tres` and `custom_translations.csv` conflicts, the union of
    both sides is almost always correct (registrations and translation rows
    are additive). After resolving, `python3 asset-dev/check_cards.py` must
    exit clean before you commit the merge.

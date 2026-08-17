@@ -56,7 +56,7 @@ re-reads the runtime code) before putting them in the final report.
 - **Runtime that defines the REAL formula** (derive the correct text from here, never guess):
   `entities/units/player/player.gd`, `main.gd`, `singletons/run_data.gd`,
   `weapons/weapon_service.gd`, and per-effect scripts under `effects/`.
-- **Registration:** `~/brotato-decompiled/singletons/item_service.tscn` (characters / weapons /
+- **Registration (ecosystem Phase 2+):** `packs/<id>/pack_data.tres` per pack (characters / weapons /
   items / foods arrays).
 - **Builders (mirror EVERY live change here or a rebuild reverts it):**
   `~/brotato-mods/asset-dev/` — `build_pantry_items.py`, `build_food_system.py`,

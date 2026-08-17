@@ -40,17 +40,11 @@ reverse = false
 ''')
 print("wrote stat_appetite.tres")
 
-# ---------- register in item_service.tscn ----------
-t=open(TSCN).read()
-if "stat_appetite.tres" not in t:
-    anchor='[ext_resource path="res://items/custom_characters/mole/mole_data.tres" type="Resource" id=824]\n'
-    assert anchor in t, "mole anchor not found"
-    t=t.replace(anchor, anchor+'[ext_resource path="res://items/custom_stats/stat_appetite.tres" type="Resource" id=825]\n')
-    t=re.sub(r'^stats = \[.*\]$',
-             lambda m: m.group(0)[:m.group(0).rfind(']')].rstrip()+", ExtResource( 825 ) ]",
-             t, count=1, flags=re.M)
-    t=re.sub(r'load_steps=(\d+)', lambda m: f"load_steps={int(m.group(1))+1}", t, count=1)
-    open(TSCN,"w").write(t)
-    print("registered stat_appetite in item_service.tscn (id 825)")
+# ---------- register in the FOOD pack (ecosystem Phase 2+) ----------
+import sys as _sys
+_sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from pack_registry import register as pack_register
+if pack_register("food", "stats", "items/custom_stats/stat_appetite.tres", quiet=True):
+    print("registered stat_appetite in the food pack")
 else:
-    print("already registered - skipped")
+    print("stat_appetite pack registration up to date")

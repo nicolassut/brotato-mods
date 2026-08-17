@@ -5,16 +5,18 @@
 #
 # What it does, in order:
 #   1. Run the CURRENT-generation builders (they write tres/pngs/.import files
-#      into the live tree from the repo's tracked canonical finals).
+#      into the live tree from the repo's tracked canonical finals; registration
+#      goes to packs/<id>/pack_data.tres via pack_registry.py - NEVER the tscn).
 #   2. Copy the game-src mirror over the live tree (hand-edited engine files,
-#      item_service.tscn registry, custom_translations.csv). Mirror runs LAST so
+#      the vanilla-only item_service.tscn, pack files, custom_translations.csv). Mirror runs LAST so
 #      the repo's registry/translations are always authoritative.
 #   3. A 35s Godot EDITOR session so new/changed textures actually reimport
 #      (a plain launch will NOT rescan; "-e --quit" exits before the scan).
 #   4. Verification gates: check_cards, check_sync, boot smoke test.
 #
-# NEVER run the legacy builders build_mod_items.py / build_decompiled_items.py -
-# they use 1-indexed tiers and will corrupt live data.
+# NEVER run the legacy builders build_mod_items.py / build_decompiled_items.py
+# (1-indexed tiers, corrupt live data) or patch_item_service.py (dead one-shot,
+# hard-disabled).
 
 set -euo pipefail
 REPO="$(cd "$(dirname "$0")" && pwd)"

@@ -88,5 +88,5 @@ chains, duration agreement) across every registered card. It must exit clean. If
 same commit or it will start lying.
 
 Builders write into `~/brotato-decompiled/`. After running any of them, confirm
-`singletons/item_service.tscn` did not drift - a builder re-registering items that were
-deliberately deregistered is a known failure mode.
+`singletons/item_service.tscn` did not drift (it is vanilla-only since the pack split -
+custom registration lives in `packs/<id>/pack_data.tres`; `check_packs.py` must exit clean).

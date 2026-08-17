@@ -128,13 +128,14 @@ Build in this order; tick every box. Files: `asset-dev/characters/build_characte
       so the legs poke out. Installed as `<slug>_face_appearance.tres` (position 0 OTHER, depth
       600). Icon and body come from the SAME source art so they can't drift. LOOK at it on the
       potato with legs.
-- [ ] **Registration** present in `item_service.tscn` `characters` array (the builder does this;
+- [ ] **Registration** present in the owning pack's `packs/<id>/pack_data.tres` `characters`
+      array (the builder does this via `pack_registry.py`;
       confirm it did and did NOT drop or duplicate anything).
 - [ ] **Mechanic code** (if any gimmick): a `RunData.is_<slug>(player_index)` gate + hooks behind
       `character.my_id == "character_<slug>"`. Coop-aware (see §7 coop trap). Boot-safe (§7 `:=`).
 - [ ] **game-src mirror synced** for every engine file you touched (`cmp` each; drift check clean).
 - [ ] **Builders run:** `build_characters.py` (+ any item/food builder you added content to).
-      Confirm `item_service.tscn` did not drift.
+      Confirm `item_service.tscn` did not drift (vanilla-only) and `check_packs.py` is clean.
 - [ ] **Verification gate (§6) passes.**
 
 ---
@@ -155,7 +156,8 @@ Files by type (recipes in §4). Tick every box:
 - [ ] **Icon** delivered per `HANDOVER_ART_PIPELINE.md` (vectorized, thick outline, fit to the
       item frame). Installed; `.png.import` sidecar written.
 - [ ] **Save/resume int rule** (§7) honored for any new %/iterated counter.
-- [ ] **Registration** in `item_service.tscn` (right array) confirmed, no drift.
+- [ ] **Registration** in the owning pack's `pack_data.tres` (right array, via
+      `pack_registry.py`) confirmed; `check_packs.py` clean; tscn untouched.
 - [ ] **game-src mirror synced**; **builders run**; **Verification gate (§6) passes**; **codex
       regenerated.**
 
