@@ -20,6 +20,15 @@ signal pack_deactivated(pack_id)
 const PACKS_DIR: = "res://packs"
 # apply order is fixed so the character-select roster groups deterministically
 const PACK_APPLY_ORDER: = ["food", "fortune", "forge", "ledger", "roster"]
+# The character-select order (historical, pre-split). Pack apply order groups
+# customs by pack, which reshuffled the roster (user 2026-08-18) - after every
+# apply the custom characters are re-sorted into THIS order. New characters
+# must be added here or they land after the known ones.
+const ROSTER_ORDER: = ["character_gourmet", "character_picky_eater", "character_dishwasher",
+	"character_comp_eater", "character_butcher", "character_zombie", "character_minimalist",
+	"character_mime", "character_tourist", "character_ruminant", "character_snail",
+	"character_blacksmith", "character_juggler", "character_mole", "character_girly",
+	"character_freeloader", "character_special", "character_p2w"]
 
 # pack_id -> PackData resource
 var available_packs: = {}
@@ -165,9 +174,26 @@ func _apply_enabled() -> void :
 			available_packs[pack_id].add_resources()
 			applied += 1
 	evaluate_synergies(true)
+	_reorder_roster()
 	if applied > 0:
 		ProgressData.add_unlocked_by_default()
 		ItemService.init_unlocked_pool()
+
+
+func _reorder_roster() -> void :
+	var customs: = []
+	for character in ItemService.characters:
+		if character != null and ROSTER_ORDER.has(character.my_id):
+			customs.push_back(character)
+	for character in customs:
+		ItemService.characters.erase(character)
+	customs.sort_custom(self, "_roster_compare")
+	for character in customs:
+		ItemService.characters.push_back(character)
+
+
+func _roster_compare(a, b) -> bool:
+	return ROSTER_ORDER.find(a.my_id) < ROSTER_ORDER.find(b.my_id)
 
 
 # The hidden-when-incomplete law: a synergy's content is registered ONLY while
@@ -257,6 +283,7 @@ func activate_pack(pack_id: String) -> void :
 	ProgressData.settings.disabled_packs.erase(pack_id)
 	ProgressData.save_settings()
 	evaluate_synergies()
+	_reorder_roster()
 	_refresh_flags()
 	emit_signal("pack_activated", pack_id)
 

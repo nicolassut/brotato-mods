@@ -25,7 +25,7 @@ func _init_mode_selector() -> void :
 	if modes.empty():
 		return
 	_mode_button = OptionButton.new()
-	_mode_button.add_item(tr("MODE_NONE") if TranslationServer.get_locale() != "" else "No mode", 0)
+	_mode_button.add_item(tr("MODE_NONE"), 0)
 	_mode_button.set_item_metadata(0, "")
 	var selected_index: int = 0
 	for mode in modes:
