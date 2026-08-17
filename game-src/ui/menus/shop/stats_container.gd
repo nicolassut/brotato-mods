@@ -114,7 +114,7 @@ func _ensure_rules_ui(player_index: int) -> void :
 	# ONLY The Special. His rules are rerolled every wave, so they cannot live on a static
 	# character card and need a live panel. Every other character's rules are fixed and belong
 	# on the selection card - do not add tabs here for them.
-	if _top_tabs != null or not RunData.is_special(player_index):
+	if _top_tabs != null or not RunData.has_wildcard_flow(player_index):
 		return
 
 	_top_tabs = HBoxContainer.new()

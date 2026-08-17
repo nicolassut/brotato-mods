@@ -347,3 +347,4 @@ EFFECT_FOOD_GUMBALL_RED,Eating a Red Gumball grants +{0}% ({1}) Attack Speed for
 EFFECT_FOOD_GUMBALL_BLUE,Eating a Blue Gumball grants +{0} ({1}) Armor for 14 seconds. Stacks
 EFFECT_BLACKSMITH_TIERS,Weapons come in 8 tiers instead of 4
 EFFECT_BLACKSMITH_CLASS_TIERS,"Weapon class level comes from the total weapon tiers you own in that class: 1 level per 4 tiers, up to 6"
+MODE_NONE,No mode

@@ -369,6 +369,7 @@ func init_gameplay_options() -> Dictionary:
 		"share_coop_loot": true, 
 		"deactivated_dlcs": [], 
 		"disabled_packs": [], 
+		"selected_game_mode": "", 
 		"deactivated_skin_sets": [], 
 		"no_item_appearance": false, 
 		"holding_button": true, 

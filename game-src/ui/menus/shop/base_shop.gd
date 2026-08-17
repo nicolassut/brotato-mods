@@ -1405,7 +1405,7 @@ func _on_tree_exited() -> void :
 	# so they are live while shopping, and removed here. Tearing them down at wave end with
 	# the wave-scoped ones would have made every shop modifier silently do nothing.
 	for special_index in RunData.get_player_count():
-		if not RunData.is_special(special_index):
+		if not RunData.has_wildcard_flow(special_index):
 			continue
 		var sp_effects: Dictionary = RunData.get_player_effects(special_index)
 		var shop_ids: Array = SpecialModifiers.stored_ids(Keys.special_shop_mods_hash, special_index)

@@ -2690,6 +2690,7 @@ GourmetTracker="*res://singletons/gourmet_tracker.gd"
 ButcherSkin="*res://singletons/butcher_skin.gd"
 SpecialModifiers="*res://singletons/special_modifiers.gd"
 Packs="*res://singletons/pack_service.gd"
+GameModes="*res://singletons/game_mode_service.gd"
 
 [debug]
 

@@ -257,7 +257,7 @@ func _ready() -> void :
 	# also keeps current health under a reduced max and avoids the stats_manager Nil flush
 	# crash documented on the original block.
 	for special_index in RunData.get_player_count():
-		if not RunData.is_special(special_index):
+		if not RunData.has_wildcard_flow(special_index):
 			continue
 		var sp_pending: Array = SpecialModifiers.stored_ids(Keys.special_next_mods_hash, special_index)
 		if sp_pending.empty():
@@ -2139,7 +2139,7 @@ func _on_WaveTimer_timeout() -> void :
 	# LIFE_SHOP modifiers are deliberately NOT removed here: they exist to affect the shop that
 	# is about to open, and are stripped when it closes (base_shop).
 	for special_index in RunData.get_player_count():
-		if not RunData.is_special(special_index):
+		if not RunData.has_wildcard_flow(special_index):
 			continue
 
 		var sp_effects: Dictionary = RunData.get_player_effects(special_index)

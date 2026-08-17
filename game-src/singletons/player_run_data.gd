@@ -55,6 +55,8 @@ var banned_items: = []
 var chal_recycling_current: = 0
 var consumables_picked_up_this_run: = 0
 var curse_locked_shop_items_pity: = 0
+# Gourmet ecosystem - game modes active for this player (GameModes.REGISTRY ids)
+var game_mode_ids: = []
 var chal_will_o_the_wisp: = 0
 
 
@@ -88,6 +90,7 @@ func duplicate() -> PlayerRunData:
 	copy.chal_recycling_current = chal_recycling_current
 	copy.consumables_picked_up_this_run = consumables_picked_up_this_run
 	copy.curse_locked_shop_items_pity = curse_locked_shop_items_pity
+	copy.game_mode_ids = game_mode_ids.duplicate()
 	copy.banned_items = banned_items.duplicate()
 	copy.uses_ban = uses_ban
 	copy.remaining_ban_token = remaining_ban_token
@@ -146,6 +149,7 @@ func serialize() -> Dictionary:
 		"chal_recycling_current": chal_recycling_current, 
 		"consumables_picked_up_this_run": consumables_picked_up_this_run, 
 		"curse_locked_shop_items_pity": curse_locked_shop_items_pity, 
+		"game_mode_ids": game_mode_ids, 
 		"banned_items": banned_items.duplicate(), 
 		"remaining_ban_token": remaining_ban_token, 
 		"uses_ban": uses_ban
@@ -276,6 +280,11 @@ func deserialize(data: Dictionary) -> PlayerRunData:
 	chal_recycling_current = data.chal_recycling_current
 	consumables_picked_up_this_run = data.consumables_picked_up_this_run
 	curse_locked_shop_items_pity = data.curse_locked_shop_items_pity if "curse_locked_shop_items_pity" in data else 0
+	game_mode_ids = []
+	for saved_mode_id in data.get("game_mode_ids", []):
+		# defensive: strip ids no longer registered (old saves, renamed modes)
+		if not GameModes.mode_by_id(str(saved_mode_id)).empty():
+			game_mode_ids.push_back(str(saved_mode_id))
 
 	if data.has("banned_items"):
 		banned_items = data.banned_items.duplicate()

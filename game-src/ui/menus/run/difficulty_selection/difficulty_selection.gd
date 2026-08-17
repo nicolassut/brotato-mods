@@ -102,6 +102,17 @@ func _on_element_pressed(element: InventoryElement, _inventory_player_index: int
 
 		RunData.enabled_dlcs = ProgressData.get_active_dlc_ids()
 
+	# Gourmet ecosystem - stamp the selected game mode onto every player (the
+	# pre-lobby selector is global; per-player selection arrives with the lobby
+	# mode shrine). Validated against the live registry + pack availability.
+	var selected_mode: String = str(ProgressData.settings.get("selected_game_mode", ""))
+	for mode_player_index in RunData.get_player_count():
+		RunData.players_data[mode_player_index].game_mode_ids = []
+		if selected_mode != "" and not GameModes.mode_by_id(selected_mode).empty():
+			for available_mode in GameModes.available_modes():
+				if str(available_mode["id"]) == selected_mode:
+					RunData.players_data[mode_player_index].game_mode_ids.push_back(selected_mode)
+
 		ProgressData.save()
 
 		

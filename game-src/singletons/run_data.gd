@@ -1760,6 +1760,20 @@ func _mime_copies_fit(shop_weapon: WeaponData, player_index: int, copies: int) -
 
 
 # Gourmet DLC - The Special (character #18): every wave rolls random modifiers.
+# Gourmet ecosystem - game modes (GameModes.REGISTRY ids per player)
+func is_game_mode_active(mode_id: String, player_index: int) -> bool:
+	if player_index < 0 or player_index >= players_data.size():
+		return false
+	return players_data[player_index].game_mode_ids.has(mode_id)
+
+
+# The Wildcard's per-wave modifier lifecycle (roll/preview/apply/teardown) runs
+# for The Wildcard himself AND for any player running the "Wildcard Rules" game
+# mode - every lifecycle gate reads THIS, never is_special directly.
+func has_wildcard_flow(player_index: int) -> bool:
+	return is_special(player_index) or is_game_mode_active("wildcard_rules", player_index)
+
+
 func is_special(player_index: int) -> bool:
 	var character = get_player_character(player_index)
 	return character != null and character.my_id == "character_special"
