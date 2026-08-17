@@ -1,15 +1,16 @@
-[gd_resource type="Resource" load_steps=3 format=2]
+[gd_resource type="Resource" load_steps=4 format=2]
 
 [ext_resource path="res://packs/pack_data.gd" type="Script" id=1]
 [ext_resource path="res://items/custom_characters/p2w/p2w_data.tres" type="Resource" id=2]
 
+[ext_resource path="res://packs/synergies/mystery_meal/synergy_data.tres" type="Resource" id=999]
 [resource]
 script = ExtResource( 1 )
 my_id = "pack_fortune"
 pack_id = "fortune"
 display_name = "Fortune"
 requires_packs = PoolStringArray(  )
-synergies = [  ]
+synergies = [ ExtResource( 999 ) ]
 characters = [ ExtResource( 2 ) ]
 items = [  ]
 weapons = [  ]

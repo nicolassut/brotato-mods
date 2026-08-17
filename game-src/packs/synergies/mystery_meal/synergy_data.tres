@@ -1,0 +1,18 @@
+[gd_resource type="Resource" load_steps=2 format=2]
+
+[ext_resource path="res://packs/synergy_data.gd" type="Script" id=1]
+
+[resource]
+script = ExtResource( 1 )
+my_id = "synergy_mystery_meal"
+synergy_id = "mystery_meal"
+display_name = "Mystery Meal"
+requires_packs = PoolStringArray( "food" )
+synergies = [  ]
+characters = [  ]
+items = [  ]
+weapons = [  ]
+foods = [  ]
+stats = [  ]
+sets = [  ]
+upgrades = [  ]

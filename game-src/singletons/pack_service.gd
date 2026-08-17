@@ -23,6 +23,8 @@ const PACK_APPLY_ORDER: = ["food", "fortune", "forge", "ledger", "roster"]
 
 # pack_id -> PackData resource
 var available_packs: = {}
+# synergy_id -> SynergyData currently APPLIED (content registered)
+var active_synergies: = {}
 # pack_id -> bool (in-memory; persistence lands in Phase 2)
 var enabled: = {}
 
@@ -124,6 +126,19 @@ func _verify_registration() -> void :
 		for character in pack.characters:
 			if character != null and ItemService.get_element_safe(ItemService.characters, character.my_id) == null:
 				problems.push_back("%s: character %s does not resolve by id" % [pack_id, str(character.my_id)])
+	for sid in active_synergies:
+		var synergy = active_synergies[sid]
+		var synergy_arrays: = {
+			"characters": synergy.characters, "items": synergy.items,
+			"weapons": synergy.weapons, "foods": synergy.foods,
+			"stats": synergy.stats, "sets": synergy.sets, "upgrades": synergy.upgrades,
+		}
+		for reg_name in synergy_arrays:
+			for res in synergy_arrays[reg_name]:
+				if res == null:
+					problems.push_back("synergy %s: null resource in %s" % [sid, reg_name])
+				elif not registries[reg_name].has(res):
+					problems.push_back("synergy %s: %s missing from ItemService.%s" % [sid, str(res.resource_path), reg_name])
 	if problems.empty():
 		print("PackService VERIFY: OK (all pack content registered, no nulls, characters resolve)")
 	else:
@@ -149,7 +164,54 @@ func _apply_enabled() -> void :
 		if bool(enabled.get(pack_id, false)):
 			available_packs[pack_id].add_resources()
 			applied += 1
+	evaluate_synergies(true)
 	if applied > 0:
+		ProgressData.add_unlocked_by_default()
+		ItemService.init_unlocked_pool()
+
+
+# The hidden-when-incomplete law: a synergy's content is registered ONLY while
+# its owning pack AND every pack in requires_packs are enabled; the moment any
+# of them is disabled the content is unregistered (absent from select, shop,
+# codex). Runs at boot and after every toggle. skip_pairing: boot calls the
+# unlock+pool pairing once for packs and synergies together.
+func evaluate_synergies(skip_pairing: bool = false) -> void :
+	var changed: bool = false
+	var seen_ids: = {}
+	for pack_id in available_packs:
+		var pack = available_packs[pack_id]
+		for synergy in pack.synergies:
+			if synergy == null or str(synergy.synergy_id) == "":
+				continue
+			var sid: String = str(synergy.synergy_id)
+			seen_ids[sid] = true
+			var wanted: bool = bool(enabled.get(pack_id, false))
+			for required_id in synergy.requires_packs:
+				if not bool(enabled.get(str(required_id), false)):
+					wanted = false
+			if wanted and not active_synergies.has(sid):
+				synergy.add_resources()
+				active_synergies[sid] = synergy
+				changed = true
+			elif not wanted and active_synergies.has(sid):
+				active_synergies[sid].remove_resources()
+				var _erased = active_synergies.erase(sid)
+				changed = true
+	# a synergy whose owner vanished from the scan entirely
+	for sid in active_synergies.keys():
+		if not seen_ids.has(sid):
+			active_synergies[sid].remove_resources()
+			var _erased2 = active_synergies.erase(sid)
+			changed = true
+	var hidden: = []
+	for sid in seen_ids:
+		if not active_synergies.has(sid):
+			hidden.push_back(sid)
+	hidden.sort()
+	var active_ids: Array = active_synergies.keys()
+	active_ids.sort()
+	print("PackService synergies: active=%s hidden=%s" % [str(active_ids), str(hidden)])
+	if changed and not skip_pairing:
 		ProgressData.add_unlocked_by_default()
 		ItemService.init_unlocked_pool()
 
@@ -194,6 +256,7 @@ func activate_pack(pack_id: String) -> void :
 	ItemService.init_unlocked_pool()
 	ProgressData.settings.disabled_packs.erase(pack_id)
 	ProgressData.save_settings()
+	evaluate_synergies()
 	_refresh_flags()
 	emit_signal("pack_activated", pack_id)
 
@@ -207,6 +270,7 @@ func deactivate_pack(pack_id: String) -> void :
 	if not ProgressData.settings.disabled_packs.has(pack_id):
 		ProgressData.settings.disabled_packs.push_back(pack_id)
 	ProgressData.save_settings()
+	evaluate_synergies()
 	_refresh_flags()
 	emit_signal("pack_deactivated", pack_id)
 

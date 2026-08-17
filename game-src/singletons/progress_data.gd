@@ -807,6 +807,9 @@ func load_with_generic_loader(loader, path: = "") -> void :
 
 	_append_without_duplicates(challenges_completed, challenges_completed_hash)
 
+	if "systems_unlocked" in loader:
+		_append_without_duplicates(systems_unlocked, Utils.convert_to_hash_array(loader.systems_unlocked))
+
 	for difficulty_json in loader.difficulties_unlocked_serialized:
 		var difficulty: = CharacterDifficultyInfo.new()
 		difficulty.deserialize_and_merge(difficulty_json)
@@ -1333,6 +1336,7 @@ func _set_loader_properties(loader_v3: ProgressDataLoaderV3, run_state: Dictiona
 	loader_v3.weapons_unlocked = Utils.convert_to_hash_array(weapons_unlocked.duplicate())
 	loader_v3.items_unlocked = Utils.convert_to_hash_array(items_unlocked.duplicate())
 	loader_v3.challenges_completed = Utils.convert_to_hash_array(challenges_completed.duplicate())
+	loader_v3.systems_unlocked = Utils.convert_to_hash_array(systems_unlocked.duplicate())
 	loader_v3.difficulties_unlocked_serialized.clear()
 	for difficulty_unlocked in difficulties_unlocked:
 		loader_v3.difficulties_unlocked_serialized.push_back(difficulty_unlocked.serialize())

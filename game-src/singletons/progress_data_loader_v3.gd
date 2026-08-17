@@ -18,6 +18,9 @@ var consumables_unlocked: = []
 var weapons_unlocked: = []
 var items_unlocked: = []
 var challenges_completed: = []
+# Gourmet ecosystem - persisted since Phase 4; OPTIONAL in the save (old saves
+# lack it), so it must NEVER join the hard-fail property whitelist below
+var systems_unlocked: = []
 
 var difficulties_unlocked_serialized: = []
 var inactive_mods: = []
@@ -157,6 +160,8 @@ func load_progress_save_file(path: = "") -> void :
 	
 	var challenges_completed_hash = Utils.convert_to_hash_array(save_object.challenges_completed, true)
 	challenges_completed = challenges_completed_hash
+
+	systems_unlocked = Utils.convert_to_hash_array(save_object.get("systems_unlocked", []))
 
 	difficulties_unlocked_serialized = save_object.difficulties_unlocked
 	inactive_mods = save_object.inactive_mods
@@ -579,6 +584,7 @@ func get_save_object() -> Dictionary:
 		"weapons_unlocked": weapons_unlocked, 
 		"items_unlocked": items_unlocked, 
 		"challenges_completed": challenges_completed, 
+		"systems_unlocked": systems_unlocked, 
 		"difficulties_unlocked": difficulties_unlocked_serialized, 
 		"inactive_mods": inactive_mods, 
 		"read_announcements": read_announcements, 

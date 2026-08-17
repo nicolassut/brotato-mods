@@ -13,6 +13,14 @@ expect_for() {
     fortune,forge) echo 'enabled=\[forge, fortune\]' ;;
   esac
 }
+expect_synergy() {
+  case "$1" in
+    all)           echo 'active=\[mystery_meal\] hidden=\[\]' ;;
+    none)          echo 'active=\[\] hidden=\[mystery_meal\]' ;;
+    food)          echo 'active=\[\] hidden=\[mystery_meal\]' ;;
+    fortune,forge) echo 'active=\[\] hidden=\[mystery_meal\]' ;;
+  esac
+}
 for COMBO in all none food fortune,forge; do
   SMOKE="$(mktemp)"
   "$GODOT" --path "$LIVE" --packs="$COMBO" --quit > "$SMOKE" 2>&1 || { echo "FAIL($COMBO): boot died"; tail -20 "$SMOKE"; exit 1; }
@@ -24,6 +32,9 @@ for COMBO in all none food fortune,forge; do
   fi
   if ! grep -qE "$(expect_for "$COMBO")" "$SMOKE"; then
     echo "FAIL($COMBO): enabled set mismatch:"; grep "PackService:" "$SMOKE"; exit 1
+  fi
+  if ! grep -qE "$(expect_synergy "$COMBO")" "$SMOKE"; then
+    echo "FAIL($COMBO): synergy state mismatch:"; grep "synergies:" "$SMOKE"; exit 1
   fi
   echo "PASS($COMBO): $(grep 'PackService:' "$SMOKE" | head -1)"
 done
