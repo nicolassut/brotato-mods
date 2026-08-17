@@ -1,0 +1,23 @@
+{
+	"name": "GourmetRoster",
+	"namespace": "nicolassut",
+	"version_number": "0.1.0",
+	"description": "Gourmet ecosystem pack: roster (8 resources). Requires GourmetCore.",
+	"website_url": "https://github.com/nicolassut/brotato-mods",
+	"dependencies": [
+		"nicolassut-GourmetCore"
+	],
+	"extra": {
+		"godot": {
+			"incompatibilities": [],
+			"authors": [
+				"nicolassut"
+			],
+			"compatible_mod_loader_version": "6.x",
+			"compatible_game_version": [
+				"1.1.15.4"
+			],
+			"config_defaults": {}
+		}
+	}
+}

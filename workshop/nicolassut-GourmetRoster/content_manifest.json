@@ -1,0 +1,13 @@
+{
+ "pack_id": "roster",
+ "resources": [
+  "items/custom_characters/zombie/zombie_data.tres",
+  "items/custom_characters/minimalist/minimalist_data.tres",
+  "items/custom_characters/mime/mime_data.tres",
+  "items/custom_characters/tourist/tourist_data.tres",
+  "items/custom_characters/juggler/juggler_data.tres",
+  "items/custom_characters/mole/mole_data.tres",
+  "items/custom_characters/freeloader/freeloader_data.tres",
+  "items/custom_characters/special/special_data.tres"
+ ]
+}

@@ -1,0 +1,21 @@
+{
+	"name": "GourmetCore",
+	"namespace": "nicolassut",
+	"version_number": "0.1.0",
+	"description": "Gourmet ecosystem base: engine extensions, PackService, game modes, the Hub. All Gourmet packs depend on this.",
+	"website_url": "https://github.com/nicolassut/brotato-mods",
+	"dependencies": [],
+	"extra": {
+		"godot": {
+			"incompatibilities": [],
+			"authors": [
+				"nicolassut"
+			],
+			"compatible_mod_loader_version": "6.x",
+			"compatible_game_version": [
+				"1.1.15.4"
+			],
+			"config_defaults": {}
+		}
+	}
+}

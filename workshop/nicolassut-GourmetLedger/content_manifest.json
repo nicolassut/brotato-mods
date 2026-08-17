@@ -1,0 +1,8 @@
+{
+ "pack_id": "ledger",
+ "resources": [
+  "items/custom/credit_card/credit_card_data.tres",
+  "items/custom/bank_loan/bank_loan_data.tres",
+  "items/custom_characters/test_debt/test_debt_data.tres"
+ ]
+}
