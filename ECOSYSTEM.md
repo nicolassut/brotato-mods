@@ -93,11 +93,12 @@ Starter synergy ideas (frameworks first, content later; user invents more):
 
 - Walkable `ui/lobby/lobby.tscn` (Node2D). `lobby_player.gd` = movement-only
   KinematicBody2D (do NOT reuse full player.gd - it is wired to weapons/waves).
-- Insertion: new constant in `singletons/menu_data.gd` (the 13-line scene-path choke
-  point). Main-menu Start -> lobby; a door NPC -> the unchanged character-select ->
-  weapon -> difficulty flow. `difficulty_selection.gd` stays the single RunData
-  configuration choke point and additionally consumes lobby-chosen game modes. Ship
-  behind a "skip lobby" setting.
+- Insertion (user law 2026-08-18): the Hub is an ALTERNATE main-menu destination - a
+  "Hub" button beside Start. The Start path stays vanilla, always. The Hub's Departure
+  door enters the unchanged character-select -> weapon -> difficulty flow (Back returns
+  to the Hub only when the flow began there, via MenuData.run_flow_from_lobby).
+  `difficulty_selection.gd` stays the single RunData configuration choke point and
+  additionally consumes lobby-chosen game modes.
 - NPC framework: `lobby_npc.gd` = Node2D + proximity Area2D (pattern:
   `item_attract_area.gd`) + interact prompt. NEW input action `interact` (none exists).
   Dialogs via `popin_manager.gd`; every popup registers as a FocusEmulator focus base
