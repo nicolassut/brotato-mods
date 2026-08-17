@@ -2689,6 +2689,7 @@ OS_Seaven="*res://singletons/os_seaven.gd"
 GourmetTracker="*res://singletons/gourmet_tracker.gd"
 ButcherSkin="*res://singletons/butcher_skin.gd"
 SpecialModifiers="*res://singletons/special_modifiers.gd"
+Packs="*res://singletons/pack_service.gd"
 
 [debug]
 
