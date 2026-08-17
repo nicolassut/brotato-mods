@@ -55,9 +55,12 @@ The mod is becoming an ecosystem of optional packs (`core`, `food`, `fortune`, `
 - **Builders write into `~/brotato-decompiled/`.** Every live engine edit MUST also live in
   `game-src/` (the mirror) or a builder/rebuild reverts it. See CLAUDE.md "The two trees" for
   the drift-check one-liner. After editing an engine file: edit one copy, `cmp` the other, sync.
-- **Registration:** `singletons/item_service.tscn` — `characters` / `weapons` / `items` /
-  `foods` arrays, each entry an ext_resource with an explicit ext id. New content takes the next
-  free id (see each builder's `EXT_IDS`).
+- **Registration (ecosystem Phase 2+):** custom content registers at RUNTIME through the
+  pack resources `packs/<id>/pack_data.tres` (applied by the `Packs` autoload at boot), NOT
+  in `item_service.tscn` — the scene file now holds vanilla content only. New content: add
+  its ext_resource + array entry to the OWNING PACK's pack_data.tres (both trees), claim the
+  next free id (1296+), and `check_packs.py` must stay clean. Never re-add custom entries to
+  item_service.tscn.
 - **Card text:** `items/custom/custom_translations.csv` (`KEY,English`).
 - **Codex:** `asset-dev/extract_codex.py` → `codex.json` → `build_codex_html.py` → regenerate
   after any content change (reads the .tres directly, no repack needed).
@@ -196,6 +199,8 @@ Files by type (recipes in §4). Tick every box:
 ## 6. VERIFICATION GATE (must ALL pass before "done" / commit)
 
 1. `cd asset-dev && python3 check_cards.py` → **exits clean** ("card contract OK").
+1a. `python3 asset-dev/check_packs.py` → **exits clean** ("packs OK") — pack registration
+    integrity: every migrated path in exactly one pack, none left in item_service.tscn.
 1b. `python3 asset-dev/check_sync.py` → **no HARD ORPHANS** (every live custom texture's art is
     tracked in the repo). Ideally 0 MISPLACED too — an icon at its canonical `final/` so the builder
     re-installs it on any machine. This is the "nothing gets missed cross-machine" guard.

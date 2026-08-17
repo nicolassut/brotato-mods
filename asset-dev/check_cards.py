@@ -70,8 +70,22 @@ for name in ("items", "weapons", "foods", "characters"):
     _arrays[name] = set(re.findall(r"ExtResource\(\s*(\d+)\s*\)", m.group(1))) if m else set()
 _ID_TO_PATH = {i: p for p, i in re.findall(r'\[ext_resource path="res://([^"]+)"[^\]]*id=(\d+)\]', TSCN_TEXT)}
 
+# Ecosystem Phase 2: custom content registers at runtime through the PackData
+# resources under res://packs/ - "registered" = tscn arrays UNION pack arrays.
+_PACK_PATHS = {name: set() for name in ("items", "weapons", "foods", "characters", "stats", "sets", "upgrades")}
+for _pack_tres in glob.glob(f"{DEC}/packs/*/pack_data.tres"):
+    _pt = open(_pack_tres).read()
+    _pid2path = {i: p for p, i in re.findall(r'\[ext_resource path="res://([^"]+)"[^\]]*id=(\d+)\]', _pt)}
+    REGISTERED_PATHS.update(p for p in _pid2path.values())
+    for name in _PACK_PATHS:
+        m = re.search(r"^%s = \[(.*)\]$" % name, _pt, re.M)
+        if m:
+            for i in re.findall(r"ExtResource\(\s*(\d+)\s*\)", m.group(1)):
+                if i in _pid2path:
+                    _PACK_PATHS[name].add(_pid2path[i])
+
 def registered_paths(kind):
-    return {_ID_TO_PATH[i] for i in _arrays[kind] if i in _ID_TO_PATH}
+    return {_ID_TO_PATH[i] for i in _arrays[kind] if i in _ID_TO_PATH} | _PACK_PATHS.get(kind, set())
 
 
 # ---------- food data ----------

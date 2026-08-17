@@ -47,6 +47,7 @@ pkill -f "Godot" 2>/dev/null || true; sleep 1
 echo "== 4/4 gates =="
 python3 asset-dev/check_cards.py
 python3 asset-dev/check_sync.py
+python3 asset-dev/check_packs.py
 SMOKE="$(mktemp)"
 "$GODOT" --path "$LIVE" --quit > "$SMOKE" 2>&1 || { echo "BOOT FAILED"; tail -30 "$SMOKE"; exit 1; }
 if grep -qiE "parse error|script error" "$SMOKE"; then

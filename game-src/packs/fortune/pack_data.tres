@@ -1,0 +1,19 @@
+[gd_resource type="Resource" load_steps=3 format=2]
+
+[ext_resource path="res://packs/pack_data.gd" type="Script" id=1]
+[ext_resource path="res://items/custom_characters/p2w/p2w_data.tres" type="Resource" id=2]
+
+[resource]
+script = ExtResource( 1 )
+my_id = "pack_fortune"
+pack_id = "fortune"
+display_name = "Fortune"
+requires_packs = PoolStringArray(  )
+synergies = [  ]
+characters = [ ExtResource( 2 ) ]
+items = [  ]
+weapons = [  ]
+foods = [  ]
+stats = [  ]
+sets = [  ]
+upgrades = [  ]

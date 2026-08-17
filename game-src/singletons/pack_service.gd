@@ -1,21 +1,24 @@
 extends Node
 
 # Gourmet ecosystem - the pack lifecycle service, autoloaded as "Packs"
-# (ECOSYSTEM.md). Phase 1 scaffolding: scans res://packs/, everything found is
-# enabled, and the cached boolean facade below is the guard surface future
+# (ECOSYSTEM.md). Phase 2: custom content registration lives in the six
+# PackData resources under res://packs/ (no longer scene-baked in
+# item_service.tscn); this service applies every enabled pack at boot in a
+# fixed order, then runs the same unlock+pool pairing ProgressData.activate_dlc
+# uses for DLCs. The cached boolean facade below is the guard surface future
 # seams read (`if Packs.food:`).
 #
-# Deliberately NOT yet done here (arrives with ECOSYSTEM.md Phase 2/3):
-# - calling PackData.add_resources()/remove_resources() on toggle: all content
-#   is still scene-baked in item_service.tscn, so applying resources here would
-#   double-register. Until registration migrates, toggling only flips flags.
-# - persistence (settings.disabled_packs) and the toggle UI.
+# Still deliberately NOT here (arrives with ECOSYSTEM.md Phase 3):
+# - persistence (settings.disabled_packs) beyond this session and the toggle UI
+#   polish; runtime deactivate works but mid-run toggling is unsupported.
 # - RunData.enabled_packs run snapshot + Continue invalidation.
 
 signal pack_activated(pack_id)
 signal pack_deactivated(pack_id)
 
 const PACKS_DIR: = "res://packs"
+# apply order is fixed so the character-select roster groups deterministically
+const PACK_APPLY_ORDER: = ["food", "fortune", "forge", "ledger", "roster"]
 
 # pack_id -> PackData resource
 var available_packs: = {}
@@ -36,9 +39,33 @@ func _ready() -> void :
 	_scan_available()
 	for pack_id in available_packs:
 		enabled[pack_id] = true
+	_apply_enabled()
 	_refresh_flags()
 	# greppable boot line - the smoke-test gate for the pack system
 	print("PackService: %d pack(s) available: %s" % [available_packs.size(), str(available_packs.keys())])
+
+
+# Register every enabled pack's content into the live singletons, then unlock
+# and pool ONCE - mirroring ProgressData.activate_dlc's add_resources +
+# add_unlocked_by_default pairing. Runs at boot (this autoload is last, so
+# every singleton is ready) and content lands before any save/profile load
+# re-runs the same generic unlock scan.
+func _apply_enabled() -> void :
+	var apply_order: Array = []
+	for pack_id in PACK_APPLY_ORDER:
+		if available_packs.has(pack_id):
+			apply_order.push_back(pack_id)
+	for pack_id in available_packs:
+		if not apply_order.has(pack_id):
+			apply_order.push_back(pack_id)
+	var applied: int = 0
+	for pack_id in apply_order:
+		if bool(enabled.get(pack_id, false)):
+			available_packs[pack_id].add_resources()
+			applied += 1
+	if applied > 0:
+		ProgressData.add_unlocked_by_default()
+		ItemService.init_unlocked_pool()
 
 
 func _scan_available() -> void :
@@ -60,10 +87,6 @@ func _scan_available() -> void :
 
 
 func is_pack_enabled(pack_id: String) -> bool:
-	# unknown packs read as disabled; the transitional "everything" marker pack
-	# stands in for every real pack until the Phase 2 split
-	if enabled.get("everything", false):
-		return true
 	return bool(enabled.get(pack_id, false))
 
 
@@ -71,8 +94,9 @@ func activate_pack(pack_id: String) -> void :
 	if not available_packs.has(pack_id) or bool(enabled.get(pack_id, false)):
 		return
 	enabled[pack_id] = true
-	# Phase 2: available_packs[pack_id].add_resources() once registration
-	# migrates off item_service.tscn
+	available_packs[pack_id].add_resources()
+	ProgressData.add_unlocked_by_default()
+	ItemService.init_unlocked_pool()
 	_refresh_flags()
 	emit_signal("pack_activated", pack_id)
 
@@ -81,7 +105,8 @@ func deactivate_pack(pack_id: String) -> void :
 	if not bool(enabled.get(pack_id, false)):
 		return
 	enabled[pack_id] = false
-	# Phase 2: available_packs[pack_id].remove_resources()
+	available_packs[pack_id].remove_resources()
+	ItemService.init_unlocked_pool()
 	_refresh_flags()
 	emit_signal("pack_deactivated", pack_id)
 
