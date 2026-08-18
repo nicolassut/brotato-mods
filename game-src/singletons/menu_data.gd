@@ -17,5 +17,9 @@ var run_flow_from_lobby: bool = false
 # set by the Hub's changing booth: character select stores the picks as hub
 # characters and returns to the Hub instead of continuing to weapon select
 var character_select_for_lobby: bool = false
+# avatar positions captured when leaving the Hub into any menu; the Hub
+# restores (and clears) them on re-entry so you come back exactly where you
+# stood. Empty = fresh entry, spawn at the entrance.
+var lobby_return_positions: Array = []
 var weapon_selection_scene: String = "res://ui/menus/run/weapon_selection.tscn"
 var difficulty_selection_scene: String = "res://ui/menus/run/difficulty_selection/difficulty_selection.tscn"

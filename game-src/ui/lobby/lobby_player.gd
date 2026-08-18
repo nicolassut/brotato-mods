@@ -10,7 +10,7 @@ extends KinematicBody2D
 
 const SPEED: = 430.0
 # the walkable area; keep in sync with HUB_ART_SPEC.md section 1
-const BOUNDS: = Rect2(-1216, -936, 2432, 1816)
+const BOUNDS: = Rect2(-1376, -1176, 2752, 2288)
 
 var player_index: int = 0
 var device: int = 0

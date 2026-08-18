@@ -23,7 +23,7 @@ waiting for rescue. The Hub is the outpost the survivors built from wreckage:
   HANDOVER_ART_PIPELINE.md + HANDOVER_CHARACTER_ART_STYLE.md are mandatory
   reading before generating a single image.
 
-## 2. Map - two tiers, twin staircases, ~1.5 screens, camera follows
+## 2. Map - two tiers, twin staircases, ~2 screens, camera follows
 
 ```
         +--------------------------------------------------+
@@ -44,7 +44,7 @@ waiting for rescue. The Hub is the outpost the survivors built from wreckage:
   (PvZ Garden Warfare 2 style) - visible from the whole plaza.
 - The ENTRANCE is at the bottom center; you walk in facing the fountain with
   the shuttle visible at the top - the whole pre-flight path reads at a glance.
-- Scene ~1.5 screens tall; Camera2D follows (solo: the player; coop: midpoint
+- Scene ~2 screens; Camera2D follows (solo: the player; coop: midpoint
   of all avatars, clamped to map bounds).
 
 ### The SLOT SYSTEM (expandability law)

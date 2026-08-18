@@ -30,9 +30,11 @@ func apply_items_appearance(all_items: Array) -> void :
 	while popped != null:
 		character_node.move_child(popped, 0)
 		popped = appearances_behind.pop_back()
-	# tint the legs to match a recoloured body (green/brown characters)
+	# tint the legs to match a recoloured body (green/brown characters).
+	# ALWAYS write the value: skipping white characters left the previous
+	# character's tint stuck in the select preview (2026-08-18 playtest)
 	var legs_node = character_node.get_node_or_null("Legs")
-	if legs_node and item_data is CharacterData and item_data.legs_modulate != Color(1, 1, 1):
+	if legs_node and item_data is CharacterData:
 		for leg in legs_node.get_children():
 			var leg_sprite = leg.get_node_or_null("Sprite")
 			if leg_sprite:

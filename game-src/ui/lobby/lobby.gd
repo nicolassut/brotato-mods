@@ -25,27 +25,27 @@ const DEFAULT_CHARACTER: = "character_well_rounded"
 
 # ALL rects come from HUB_ART_SPEC.md section 1 - placeholder footprints are
 # the FINAL art footprints (placeholder law). Change the spec first.
-const DECK_RECT: = Rect2(-1216, -936, 2432, 376)
-const CLIFF_RECT: = Rect2(-1216, -560, 2432, 320)
-const PLAZA_RECT: = Rect2(-1216, -240, 2432, 1120)
-const STAIR_WEST: = Rect2(-672, -656, 256, 512)
-const STAIR_EAST: = Rect2(416, -656, 256, 512)
-const SHUTTLE_PAD_RECT: = Rect2(-280, -880, 560, 320)
-const SHUTTLE_POS: = Vector2(0, -720)
-const SHRINE_POS: = Vector2(-880, -700)
-const SHRINE_RECT: = Rect2(-976, -812, 192, 224)
-const BOARD_RECT: = Rect2(688, -812, 384, 224)
-const BOOTH_POS: = Vector2(0, -220)
-const BOOTH_RECT: = Rect2(-112, -348, 224, 256)
-const FOUNTAIN_RECT: = Rect2(-192, 100, 384, 320)
-const GATE_RECT: = Rect2(-192, 832, 384, 160)
+const DECK_RECT: = Rect2(-1376, -1176, 2752, 560)
+const CLIFF_RECT: = Rect2(-1376, -616, 2752, 384)
+const PLAZA_RECT: = Rect2(-1376, -232, 2752, 1344)
+const STAIR_WEST: = Rect2(-672, -712, 256, 576)
+const STAIR_EAST: = Rect2(416, -712, 256, 576)
+const SHUTTLE_PAD_RECT: = Rect2(-280, -1000, 560, 384)
+const SHUTTLE_POS: = Vector2(0, -810)
+const SHRINE_POS: = Vector2(-880, -890)
+const SHRINE_RECT: = Rect2(-976, -1000, 192, 224)
+const BOARD_RECT: = Rect2(688, -1000, 384, 224)
+const BOOTH_POS: = Vector2(0, -212)
+const BOOTH_RECT: = Rect2(-112, -340, 224, 256)
+const FOUNTAIN_RECT: = Rect2(-192, 180, 384, 320)
+const GATE_RECT: = Rect2(-192, 1064, 384, 160)
 const SLOT_SIZE: = Vector2(416, 352)
 # 2+2+2: two per side column, two flanking the entrance (slot RECT centers)
 const SLOT_POSITIONS: = [
-	Vector2(-980, 40), Vector2(-980, 460), Vector2(-550, 660),
-	Vector2(980, 40), Vector2(980, 460), Vector2(550, 660),
+	Vector2(-1140, 80), Vector2(-1140, 520), Vector2(-550, 800),
+	Vector2(1140, 80), Vector2(1140, 520), Vector2(550, 800),
 ]
-const SPAWN_POINT: = Vector2(0, 780)
+const SPAWN_POINT: = Vector2(0, 1000)
 
 var _players: = []
 var _camera: Camera2D = null
@@ -64,7 +64,7 @@ func _ready() -> void :
 
 
 func _build_floor() -> void :
-	_rect(Rect2(-1280, -1000, 2560, 2000), WALL_COLOR)
+	_rect(Rect2(-1440, -1240, 2880, 2480), WALL_COLOR)
 	_rect(DECK_RECT, DECK_COLOR)
 	_rect(CLIFF_RECT, CLIFF_COLOR)
 	_rect(PLAZA_RECT, FLOOR_COLOR)
@@ -139,10 +139,15 @@ func _build_players() -> void :
 		circle.radius = 24.0
 		shape.shape = circle
 		avatar.add_child(shape)
-		avatar.position = SPAWN_POINT + Vector2((player_index - (count - 1) / 2.0) * 90.0, 0)
+		# returning from a menu: stand exactly where you were (captured on exit)
+		if player_index < MenuData.lobby_return_positions.size():
+			avatar.position = MenuData.lobby_return_positions[player_index]
+		else:
+			avatar.position = SPAWN_POINT + Vector2((player_index - (count - 1) / 2.0) * 90.0, 0)
 		add_child(avatar)
 		avatar.dress_as(_resolve_character(str(last_played[player_index]) if player_index < last_played.size() else ""))
 		_players.push_back(avatar)
+	MenuData.lobby_return_positions = []
 
 
 func _resolve_character(my_id: String):
@@ -161,10 +166,10 @@ func _build_camera() -> void :
 	_camera.current = true
 	_camera.smoothing_enabled = true
 	_camera.smoothing_speed = 6.0
-	_camera.limit_left = - 1280
-	_camera.limit_right = 1280
-	_camera.limit_top = - 1000
-	_camera.limit_bottom = 944
+	_camera.limit_left = - 1440
+	_camera.limit_right = 1440
+	_camera.limit_top = - 1240
+	_camera.limit_bottom = 1176
 	add_child(_camera)
 
 
@@ -207,10 +212,17 @@ func _spawn_npc(texture_path: String, at: Vector2, display_name: String, prompt:
 	return npc
 
 
+func _remember_positions() -> void :
+	MenuData.lobby_return_positions = []
+	for avatar in _players:
+		MenuData.lobby_return_positions.push_back(avatar.position)
+
+
 func _on_shuttle_interacted() -> void :
 	# HUB_PLAN flow law: the hub character IS the run character. Apply every
 	# active player's hub character to RunData exactly like character
 	# selection's confirm does, then enter the flow at weapon select.
+	_remember_positions()
 	MenuData.run_flow_from_lobby = true
 	ProgressData.start_activity()
 	var last_played: Array = ProgressData.settings.get("last_played_characters", ["", "", "", ""])
@@ -225,6 +237,7 @@ func _on_shuttle_interacted() -> void :
 
 
 func _on_booth_interacted() -> void :
+	_remember_positions()
 	MenuData.run_flow_from_lobby = true
 	MenuData.character_select_for_lobby = true
 	ProgressData.start_activity()
@@ -255,4 +268,5 @@ func _update_shrine_prompt() -> void :
 func _unhandled_input(event: InputEvent) -> void :
 	if event.is_action_pressed("ui_cancel"):
 		get_tree().set_input_as_handled()
+		_remember_positions()
 		var _error = get_tree().change_scene(MenuData.title_screen_scene)

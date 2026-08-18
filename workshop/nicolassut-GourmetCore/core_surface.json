@@ -145,8 +145,16 @@
    "diff_lines": 14
   },
   {
+   "file": "singletons/menu_data.gd",
+   "diff_lines": 12
+  },
+  {
    "file": "ui/menus/shop/shop.gd",
    "diff_lines": 11
+  },
+  {
+   "file": "ui/menus/ingame/character_panel_ui.gd",
+   "diff_lines": 10
   },
   {
    "file": "effects/consumables/consumable_healing_effect.gd",
@@ -166,14 +174,6 @@
   },
   {
    "file": "singletons/announcement_manager.gd",
-   "diff_lines": 8
-  },
-  {
-   "file": "singletons/menu_data.gd",
-   "diff_lines": 8
-  },
-  {
-   "file": "ui/menus/ingame/character_panel_ui.gd",
    "diff_lines": 8
   },
   {

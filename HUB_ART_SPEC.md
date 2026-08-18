@@ -11,7 +11,7 @@ placeholder layout built from these exact footprints is signed off in play
 
 - Player: potato.png 150x150 canvas, ~110px tall on screen with legs
 - Food-stand world sprites: 96-115px | vanilla turret 80x100 | tree 225x225
-- Design resolution 1920x1080; avatar speed 430 px/s (map crossing ~6s)
+- Design resolution 1920x1080; map ~2 screens (user, v3); avatar 430 px/s
 - A hub BUILDING should read ~3x player height: ~350px tall
 - Vector masters make final size flexible - the sizes below are the IN-GAME
   target px the vectorized art gets scaled to; generate at PixelLab >=171
@@ -20,32 +20,32 @@ placeholder layout built from these exact footprints is signed off in play
 ## 1. The map, exactly (origin at center; all rects x,y,w,h)
 
 ```
-canvas: 2560 x 2000  (x -1280..1280, y -1000..1000)
+canvas: 2880 x 2480  (x -1440..1440, y -1240..1240) - ~2 SCREENS (user, v3)
 perimeter wall ring: 64px thick, all four sides
-DECK        floor: -1216,-936 .. 1216,-560   (2432 x 376, metal)
-CLIFF FACE  strip: -1216,-560 .. 1216,-240   (2432 x 320) <- stairs run this
-PLAZA       floor: -1216,-240 .. 1216, 880   (2432 x 1120, alien dirt)
-bottom wall: y 880..944, ENTRANCE GATE 384x160 at (-192,832)
-STAIR WEST : rect -672,-656 .. -416,-144  (256 x 512: 96 landing + 320 run + 96 apron)
-STAIR EAST : rect  416,-656 ..  672,-144  (mirrored)
-SHUTTLE PAD: rect -280,-880 ..  280,-560  (560 x 320, flush with deck bottom)
-SHUTTLE    : 420 x 300, parked on the pad, center (0,-720)
-MODE SHRINE: 192 x 224 rect (-976,-812)
-UNLOCK BOARD: 384 x 224 rect (688,-812)
-BOOTH      : 224 x 256 rect (-112,-348), backs onto the cliff face
-FOUNTAIN   : 384 x 320 rect (-192,100)
+DECK        floor: -1376,-1176 .. 1376,-616   (2752 x 560, metal)
+CLIFF FACE  strip: -1376,-616  .. 1376,-232   (2752 x 384) <- stairs run this
+PLAZA       floor: -1376,-232  .. 1376, 1112  (2752 x 1344, alien dirt)
+bottom wall: y 1112..1176, ENTRANCE GATE 384x160 at (-192,1064)
+STAIR WEST : rect -672,-712 .. -416,-136  (256 x 576: 96 landing + 384 run + 96 apron)
+STAIR EAST : rect  416,-712 ..  672,-136  (mirrored)
+SHUTTLE PAD: rect -280,-1000 .. 280,-616  (560 x 384, flush with deck bottom)
+SHUTTLE    : 420 x 300, parked on the pad, center (0,-810)
+MODE SHRINE: 192 x 224 rect (-976,-1000)
+UNLOCK BOARD: 384 x 224 rect (688,-1000)
+BOOTH      : 224 x 256 rect (-112,-340), backs onto the cliff face
+FOUNTAIN   : 384 x 320 rect (-192,180)
 SLOTS (common footprint 416 x 352, 2+2+2):
-  slot_1 (-980, 40)  slot_2 (-980, 460)  slot_3 (-550, 660)   west + southwest
-  slot_4 ( 980, 40)  slot_5 ( 980, 460)  slot_6 ( 550, 660)   east + southeast
-SPAWN      : (0, 780), avatars fan out +-90px per player
-camera limits: x +-1280, y -1000..944
+  slot_1 (-1140, 80)  slot_2 (-1140, 520)  slot_3 (-550, 800)   west + southwest
+  slot_4 ( 1140, 80)  slot_5 ( 1140, 520)  slot_6 ( 550, 800)   east + southeast
+SPAWN      : (0, 1000), avatars fan out +-90px per player
+camera limits: x +-1440, y -1240..1176
 GEOMETRY LAW: rect changes re-run the overlap/alignment checker
 (asset-dev/check_hub_geometry.py) - zero overlaps, band continuity, stairs
 exactly landing+run+apron, everything inside the playable area.
 ```
 
-Stairs are LONG on purpose: a 512px run (96 top landing + 320 cliff descent +
-96 bottom apron) - nearly 5 player-heights of staircase, reads as a real
+Stairs are LONG on purpose: a 576px run (96 top landing + 384 cliff descent +
+96 bottom apron) - over 5 player-heights of staircase, reads as a real
 climb. The cliff strip exists so the stairs have something to descend.
 
 ## 2. Asset inventory - the complete generation list
@@ -60,8 +60,8 @@ heavy post-process; NEVER outline ground).
 | # | asset | file (final px) | class | placement | prompt core (+ standard suffix*) |
 |---|---|---|---|---|---|
 | 1 | cliff face segment | cliff_seg.png 256x256, tiles horizontally | G | cliff strip, ~8 tiles + stairs replace 2 each side | "sheer retaining wall built from riveted scrap metal plates and girders, seen front-on, dark rusted steel, horizontal seam lines, subtle top edge lip, tileable left-right, muted colors, no outline" |
-| 2 | staircase west | stairs_w.png 256x512 (east = mirror) | O | STAIR rects | "long straight industrial staircase descending toward viewer, wide flat metal steps with scrap plate risers, side rails of welded pipes, seen front-on slight top-down, thick black outline on rails and step edges" |
-| 3 | shuttle pad | shuttle_pad.png 560x320 | G | deck center | "circular rocket landing pad painted on metal deck, worn yellow-black hazard ring, scorch marks radiating from center, bolt seams, seen from above, flat muted colors, no outline" |
+| 2 | staircase west | stairs_w.png 256x576 (east = mirror) | O | STAIR rects | "long straight industrial staircase descending toward viewer, wide flat metal steps with scrap plate risers, side rails of welded pipes, seen front-on slight top-down, thick black outline on rails and step edges" |
+| 3 | shuttle pad | shuttle_pad.png 560x384 | G | deck center | "circular rocket landing pad painted on metal deck, worn yellow-black hazard ring, scorch marks radiating from center, bolt seams, seen from above, flat muted colors, no outline" |
 | 4 | the shuttle | shuttle.png 420x300 | O | on pad, nose up-right | "small stout cartoon spaceship shuttle parked at an angle, round cockpit window, dented hull plates with rivets, two stubby landing legs, slight three-quarter view, wonky hand-drawn shape, thick chunky black outline, flat cartoon colors" |
 | 5 | changing booth | booth.png 224x256 | O | cliff base center | "narrow fairground changing booth with drawn curtain, scrap metal frame, small marquee light bulbs on top, front-facing slight top-down, wonky hand-drawn, thick black outline, flat cartoon colors" |
 | 6 | mode shrine | shrine.png 192x224 | O | deck west | "small strange alien altar made of stacked scrap and one glowing dial, front-facing, wonky, thick black outline, flat cartoon colors" |
