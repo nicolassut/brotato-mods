@@ -241,6 +241,7 @@
   "singletons/special_modifiers.gd",
   "ui/hud/food_buffs_display.gd",
   "ui/lobby/lobby.gd",
+  "ui/lobby/lobby_avatar_visual.gd",
   "ui/lobby/lobby_npc.gd",
   "ui/lobby/lobby_player.gd",
   "ui/menus/shop/p2w_reel.gd",

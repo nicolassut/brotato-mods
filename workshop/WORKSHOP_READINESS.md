@@ -10,10 +10,10 @@
 ## Core surface (what GourmetCore must carry) - MEASURED against pristine vanilla
 - 56 vanilla .gd files actually modified (extension targets, ranked by
   diff-line count in `core_surface.json`; top: main.gd at 1211 lines).
-- 20 mod-ADDED scripts (ship as files, no extension machinery needed).
+- 21 mod-ADDED scripts (ship as files, no extension machinery needed).
 - 9 precautionary mirrors identical to vanilla (not Core surface).
 - 11 non-script files (scenes/config/art) needing other strategies.
-- 69/85 .gd files carry Gourmet-marked edits.
+- 70/86 .gd files carry Gourmet-marked edits.
 
 ## Blockers before real packaging (ordered)
 1. ~~Pristine decompile~~ **RESOLVED 2026-08-18**: `~/brotato-vanilla-reference/` is a

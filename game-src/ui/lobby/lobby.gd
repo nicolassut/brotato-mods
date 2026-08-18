@@ -1,8 +1,9 @@
 extends Node2D
 
 # Gourmet ecosystem - THE HUB (HUB_PLAN.md; step 1 = flow on placeholders).
-# Two faked tiers: the upper DEPARTURE DECK (north, behind a wall band with
-# two stair gaps) and the lower plaza. Stations: the departure SHUTTLE (enters
+# Two faked tiers per HUB_ART_SPEC.md section 1 (the layout IS the art spec):
+# upper DEPARTURE DECK, 256px cliff face strip with two LONG staircases, and
+# the lower plaza. Stations: the departure SHUTTLE (enters
 # the run flow at weapon select - characters come from hub state), the
 # CHANGING BOOTH on the back wall between the stairs (opens the unchanged
 # vanilla character select for all players; coop joins there), and the
@@ -14,21 +15,34 @@ extends Node2D
 const LobbyNpc: = preload("res://ui/lobby/lobby_npc.gd")
 const LobbyPlayer: = preload("res://ui/lobby/lobby_player.gd")
 
-const FLOOR_COLOR: = Color(0.16, 0.13, 0.11, 1.0)
-const WALL_COLOR: = Color(0.09, 0.07, 0.06, 1.0)
+const FLOOR_COLOR: = Color(0.17, 0.14, 0.125, 1.0)      # plaza: alien dirt
+const DECK_COLOR: = Color(0.14, 0.15, 0.17, 1.0)        # deck: metal plating
+const CLIFF_COLOR: = Color(0.08, 0.065, 0.055, 1.0)     # cliff face strip
+const WALL_COLOR: = Color(0.055, 0.045, 0.04, 1.0)      # perimeter
+const PAD_COLOR: = Color(0.19, 0.19, 0.16, 1.0)         # shuttle pad decal
+const SLOT_COLOR: = Color(0.13, 0.11, 0.10, 1.0)        # building footprints
 const DEFAULT_CHARACTER: = "character_well_rounded"
 
-# the wall band separating deck from plaza, and its two stair gaps
-const DIVIDER_TOP: = - 260.0
-const DIVIDER_BOTTOM: = - 160.0
-const STAIR_LEFT: = Rect2(-820, DIVIDER_TOP, 200, 100)
-const STAIR_RIGHT: = Rect2(620, DIVIDER_TOP, 200, 100)
-
+# ALL rects come from HUB_ART_SPEC.md section 1 - placeholder footprints are
+# the FINAL art footprints (placeholder law). Change the spec first.
+const DECK_RECT: = Rect2(-1216, -936, 2432, 420)
+const CLIFF_RECT: = Rect2(-1216, -516, 2432, 256)
+const PLAZA_RECT: = Rect2(-1216, -260, 2432, 1140)
+const STAIR_WEST: = Rect2(-896, -580, 256, 384)
+const STAIR_EAST: = Rect2(640, -580, 256, 384)
+const SHUTTLE_PAD_RECT: = Rect2(-280, -940, 560, 420)
+const SHUTTLE_POS: = Vector2(0, -730)
+const SHRINE_POS: = Vector2(-640, -700)
+const BOARD_RECT: = Rect2(448, -812, 384, 224)
+const BOOTH_POS: = Vector2(0, -240)
+const FOUNTAIN_RECT: = Rect2(-192, 80, 384, 320)
+const GATE_RECT: = Rect2(-192, 864, 384, 160)
+const SLOT_SIZE: = Vector2(416, 352)
 const SLOT_POSITIONS: = [
-	Vector2(-750, 60), Vector2(-750, 260), Vector2(-750, 460),
-	Vector2(750, 60), Vector2(750, 260), Vector2(750, 460),
+	Vector2(-880, -20), Vector2(-880, 320), Vector2(-880, 660),
+	Vector2(880, -20), Vector2(880, 320), Vector2(880, 660),
 ]
-const SPAWN_POINT: = Vector2(0, 540)
+const SPAWN_POINT: = Vector2(0, 800)
 
 var _players: = []
 var _camera: Camera2D = null
@@ -47,33 +61,36 @@ func _ready() -> void :
 
 
 func _build_floor() -> void :
-	var wall: = ColorRect.new()
-	wall.rect_position = Vector2(-1250, -770)
-	wall.rect_size = Vector2(2500, 1540)
-	wall.color = WALL_COLOR
-	add_child(wall)
-	var floor_rect: = ColorRect.new()
-	floor_rect.rect_position = Vector2(-1100, -620)
-	floor_rect.rect_size = Vector2(2200, 1240)
-	floor_rect.color = FLOOR_COLOR
-	add_child(floor_rect)
-	# the deck/plaza divider wall band, with the two stair gaps drawn open
-	var divider: = ColorRect.new()
-	divider.rect_position = Vector2(-1100, DIVIDER_TOP)
-	divider.rect_size = Vector2(2200, DIVIDER_BOTTOM - DIVIDER_TOP)
-	divider.color = WALL_COLOR
-	add_child(divider)
-	for stair in [STAIR_LEFT, STAIR_RIGHT]:
-		var gap: = ColorRect.new()
-		gap.rect_position = stair.position
-		gap.rect_size = stair.size
-		gap.color = FLOOR_COLOR
-		add_child(gap)
-	# collision: three wall segments; the stair gaps stay walkable
-	_add_wall(Rect2(-1100, DIVIDER_TOP, STAIR_LEFT.position.x + 1100, 100))
-	_add_wall(Rect2(STAIR_LEFT.end.x, DIVIDER_TOP,
-			STAIR_RIGHT.position.x - STAIR_LEFT.end.x, 100))
-	_add_wall(Rect2(STAIR_RIGHT.end.x, DIVIDER_TOP, 1100 - STAIR_RIGHT.end.x, 100))
+	_rect(Rect2(-1280, -1000, 2560, 2000), WALL_COLOR)
+	_rect(DECK_RECT, DECK_COLOR)
+	_rect(CLIFF_RECT, CLIFF_COLOR)
+	_rect(PLAZA_RECT, FLOOR_COLOR)
+	# the two long staircases descend the cliff strip (landing + run + apron)
+	for stair in [STAIR_WEST, STAIR_EAST]:
+		_rect(stair, DECK_COLOR)
+	_rect(SHUTTLE_PAD_RECT, PAD_COLOR)
+	_rect(FOUNTAIN_RECT, SLOT_COLOR)
+	_rect(BOARD_RECT, SLOT_COLOR)
+	_rect(GATE_RECT, CLIFF_COLOR)
+	for slot_pos in SLOT_POSITIONS:
+		_rect(Rect2(slot_pos - SLOT_SIZE / 2.0, SLOT_SIZE), SLOT_COLOR)
+	# collision: cliff strip blocks deck<->plaza except through the stairs
+	_add_wall(Rect2(CLIFF_RECT.position.x, CLIFF_RECT.position.y,
+			STAIR_WEST.position.x - CLIFF_RECT.position.x, CLIFF_RECT.size.y))
+	_add_wall(Rect2(STAIR_WEST.end.x, CLIFF_RECT.position.y,
+			STAIR_EAST.position.x - STAIR_WEST.end.x, CLIFF_RECT.size.y))
+	_add_wall(Rect2(STAIR_EAST.end.x, CLIFF_RECT.position.y,
+			CLIFF_RECT.end.x - STAIR_EAST.end.x, CLIFF_RECT.size.y))
+	# the fountain is solid
+	_add_wall(FOUNTAIN_RECT)
+
+
+func _rect(rect: Rect2, color: Color) -> void :
+	var r: = ColorRect.new()
+	r.rect_position = rect.position
+	r.rect_size = rect.size
+	r.color = color
+	add_child(r)
 
 
 func _add_wall(rect: Rect2) -> void :
@@ -139,10 +156,10 @@ func _build_camera() -> void :
 	_camera.current = true
 	_camera.smoothing_enabled = true
 	_camera.smoothing_speed = 6.0
-	_camera.limit_left = - 1250
-	_camera.limit_right = 1250
-	_camera.limit_top = - 770
-	_camera.limit_bottom = 770
+	_camera.limit_left = - 1280
+	_camera.limit_right = 1280
+	_camera.limit_top = - 1000
+	_camera.limit_bottom = 944
 	add_child(_camera)
 
 
@@ -158,17 +175,17 @@ func _process(_delta: float) -> void :
 func _build_npcs() -> void :
 	# the departure shuttle (deck) - enters the run flow at WEAPON select
 	var shuttle = _spawn_npc("res://items/custom/street_vendor/street_vendor.png",
-			Vector2(0, -460), tr("LOBBY_SHUTTLE"), tr("LOBBY_SHUTTLE_PROMPT"))
+			SHUTTLE_POS, tr("LOBBY_SHUTTLE"), tr("LOBBY_SHUTTLE_PROMPT"))
 	var _e0 = shuttle.connect("interacted", self, "_on_shuttle_interacted")
 
 	# the changing booth - back wall between the stairs (opens character select)
 	var booth = _spawn_npc("res://items/custom/espresso_machine/espresso_machine.png",
-			Vector2(0, -60), tr("LOBBY_BOOTH"), tr("LOBBY_BOOTH_PROMPT"))
+			BOOTH_POS, tr("LOBBY_BOOTH"), tr("LOBBY_BOOTH_PROMPT"))
 	var _e1 = booth.connect("interacted", self, "_on_booth_interacted")
 
 	# the game-mode shrine (deck) - interact cycles the mode
 	_shrine = _spawn_npc("res://items/custom_characters/special/special_icon.png",
-			Vector2(-620, -460), tr("LOBBY_SHRINE"), "")
+			SHRINE_POS, tr("LOBBY_SHRINE"), "")
 	_update_shrine_prompt()
 	var _e2 = _shrine.connect("interacted", self, "_on_shrine_interacted")
 

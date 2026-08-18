@@ -9,14 +9,15 @@ extends KinematicBody2D
 # last-played (or booth-chosen) character.
 
 const SPEED: = 430.0
-# the walkable area; keep in sync with the floor rect lobby.gd draws
-const BOUNDS: = Rect2(-1050, -570, 2100, 1140)
+# the walkable area; keep in sync with HUB_ART_SPEC.md section 1
+const BOUNDS: = Rect2(-1216, -936, 2432, 1816)
 
 var player_index: int = 0
 var device: int = 0
 var use_device_actions: bool = false
 
 var _visual: Node2D = null
+var _anim_player: AnimationPlayer = null
 
 
 func _physics_process(_delta: float) -> void :
@@ -24,6 +25,12 @@ func _physics_process(_delta: float) -> void :
 	if direction.length() > 1.0:
 		direction = direction.normalized()
 	var _velocity = move_and_slide(direction * SPEED)
+	var moving: = direction != Vector2.ZERO
+	if _anim_player != null:
+		if moving and _anim_player.current_animation != "move":
+			_anim_player.play("move")
+		elif not moving and _anim_player.current_animation != "idle":
+			_anim_player.play("idle")
 	if direction.x != 0.0 and _visual != null:
 		_visual.scale.x = - 1.0 if direction.x < 0.0 else 1.0
 	position.x = clamp(position.x, BOUNDS.position.x, BOUNDS.position.x + BOUNDS.size.x)
@@ -48,34 +55,72 @@ func _vector_for_prefix(prefix: String) -> Vector2:
 
 
 func dress_as(character) -> void :
-	# base potato + the character's own appearance layers, stacked like
-	# player.gd apply_items_effects does in a run (behind layers use
-	# show_behind_parent). Placeholder-quality on purpose: no legs animation.
+	# the REAL in-game body: Animation node (shadow + potato + legs) driven by
+	# the actual player idle/move animations, so the avatar walks and bounces
+	# exactly like in a run. Appearance layers stack on the body sprite like
+	# player.gd apply_items_effects does.
 	if _visual != null:
 		_visual.queue_free()
 	_visual = Node2D.new()
 	_visual.name = "Visual"
+	_visual.set_script(load("res://ui/lobby/lobby_avatar_visual.gd"))
 	add_child(_visual)
 
-	var base: = Sprite.new()
-	var potato = load("res://entities/units/player/potato.png")
-	if potato != null:
-		base.texture = potato
-	_visual.add_child(base)
+	var anim_node: = Node2D.new()
+	anim_node.name = "Animation"
+	anim_node.position = Vector2(0, - 24)
+	_visual.add_child(anim_node)
 
-	if character == null:
-		return
-	var appearances: Array = character.item_appearances
-	appearances = appearances.duplicate()
-	appearances.sort_custom(self, "_sort_appearance_depth")
-	for appearance in appearances:
-		if appearance == null:
-			continue
-		var layer: = Sprite.new()
-		layer.texture = appearance.get_sprite()
-		base.add_child(layer)
-		if appearance.depth < - 1:
-			layer.show_behind_parent = true
+	var potato = load("res://entities/units/player/potato.png")
+
+	var shadow: = Sprite.new()
+	shadow.name = "Shadow"
+	shadow.texture = potato
+	shadow.modulate = Color(0, 0, 0, 0.392157)
+	shadow.position = Vector2(0, 38)
+	shadow.scale = Vector2(1, - 0.3)
+	shadow.show_behind_parent = true
+	anim_node.add_child(shadow)
+
+	var body: = Sprite.new()
+	body.name = "Sprite"
+	body.texture = potato
+	anim_node.add_child(body)
+
+	var legs: = Node2D.new()
+	legs.name = "Legs"
+	legs.show_behind_parent = true
+	anim_node.add_child(legs)
+	var leg_l = load("res://entities/units/player/leg_l.tscn").instance()
+	leg_l.position = Vector2(15, 18)
+	leg_l.show_behind_parent = true
+	legs.add_child(leg_l)
+	var leg_r = load("res://entities/units/player/leg_r.tscn").instance()
+	leg_r.position = Vector2(-16, 18)
+	leg_r.show_behind_parent = true
+	legs.add_child(leg_r)
+
+	if character != null:
+		var appearances: Array = character.item_appearances
+		appearances = appearances.duplicate()
+		appearances.sort_custom(self, "_sort_appearance_depth")
+		for appearance in appearances:
+			if appearance == null:
+				continue
+			var layer: = Sprite.new()
+			layer.texture = appearance.get_sprite()
+			body.add_child(layer)
+			if appearance.depth < - 1:
+				layer.show_behind_parent = true
+
+	# AnimationPlayer as a child of Visual: its default root is Visual, so the
+	# track paths ("Animation:...", "Animation/Legs/LegL:...") resolve, and
+	# the "." method track finds play_step_sound on lobby_avatar_visual.gd
+	_anim_player = AnimationPlayer.new()
+	_anim_player.add_animation("idle", load("res://entities/units/player/player_idle.tres"))
+	_anim_player.add_animation("move", load("res://entities/units/player/player_move.tres"))
+	_visual.add_child(_anim_player)
+	_anim_player.play("idle")
 
 
 func _sort_appearance_depth(a, b) -> bool:
