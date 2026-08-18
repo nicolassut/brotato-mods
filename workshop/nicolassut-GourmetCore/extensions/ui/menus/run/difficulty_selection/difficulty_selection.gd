@@ -26,13 +26,12 @@ func _on_element_pressed(element: InventoryElement, _inventory_player_index: int
 		# Gourmet ecosystem - stamp the selected game mode onto every player (the
 		# pre-lobby selector is global; per-player selection arrives with the lobby
 		# mode shrine). Validated against the live registry + pack availability.
-		var selected_mode: String = str(ProgressData.settings.get("selected_game_mode", ""))
+		# run-wide multi-select (user 2026-08-18): the SAME validated mode list
+		# is stamped onto every player - run-wide semantics riding the existing
+		# per-player storage, so save/resume needs no loader change
+		var selected_modes: Array = Utils.game_modes.selected_mode_ids()
 		for mode_player_index in RunData.get_player_count():
-			RunData.players_data[mode_player_index].game_mode_ids = []
-			if selected_mode != "" and not Utils.game_modes.mode_by_id(selected_mode).empty():
-				for available_mode in Utils.game_modes.available_modes():
-					if str(available_mode["id"]) == selected_mode:
-						RunData.players_data[mode_player_index].game_mode_ids.push_back(selected_mode)
+			RunData.players_data[mode_player_index].game_mode_ids = selected_modes.duplicate()
 		# Gourmet ecosystem - remember each player's character across sessions: the
 		# Hub avatars wear these (HUB_PLAN step 1). This is the single run-start
 		# choke point, so the vanilla Start path keeps them fresh too.

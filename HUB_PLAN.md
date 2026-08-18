@@ -92,7 +92,7 @@ The Hub is functionally ETG's Breach: your hub character IS your run character.
 |---|---|---|---|---|
 | Departure shuttle | core | enter run flow at weapon select | any player triggers; vanilla coop weapon/difficulty UIs carry consensus | never |
 | Changing booth (back wall) | core | opens vanilla character select (all players) | the select screen is the coop join point, as vanilla | never |
-| Mode shrine | core | per-player game-mode pages (dialog) | one page per active player, FocusEmulator base per popup | never |
+| Mode shrine | core | RUN-WIDE MULTI-SELECT mode popup (user 2026-08-18): toggle any number of special modes, persisted, stamped to every player at run start | opener controls (run-wide, no per-player pages) | never |
 | Unlock board | core | read-only unlock/challenge progress (reads challenges_completed, reuses unlock ceremony art) | opener controls; others keep walking | never |
 | Chef's diner (slot 4) | food | food/spawner showcase dialog | opener controls | vacant building |
 | Chest gremlin den (slot 5) | fortune | chest odds preview (RUNG_BY_ID live data) | opener controls | vacant building |

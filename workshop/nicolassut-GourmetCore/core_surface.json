@@ -70,7 +70,7 @@
   },
   {
    "file": "singletons/progress_data.gd",
-   "diff_lines": 45
+   "diff_lines": 46
   },
   {
    "file": "items/global/item_parent_data.gd",
@@ -78,10 +78,6 @@
   },
   {
    "file": "ui/menus/pages/menu_options.gd",
-   "diff_lines": 32
-  },
-  {
-   "file": "ui/menus/run/run_options_panel.gd",
    "diff_lines": 32
   },
   {
@@ -94,7 +90,7 @@
   },
   {
    "file": "ui/menus/run/difficulty_selection/difficulty_selection.gd",
-   "diff_lines": 27
+   "diff_lines": 26
   },
   {
    "file": "items/global/weapon_data.gd",
@@ -257,7 +253,8 @@
   "pause.gd",
   "singletons/challenge_service.gd",
   "singletons/item_service_get_shop_items_args.gd",
-  "ui/menus/debug/debug_menu.gd"
+  "ui/menus/debug/debug_menu.gd",
+  "ui/menus/run/run_options_panel.gd"
  ],
  "non_script_surface": [
   "entities/structures/turret/bbq_grill/bbq_grill.tscn",

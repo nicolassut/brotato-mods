@@ -39,6 +39,31 @@ func available_modes() -> Array:
 	return result
 
 
+# Run-wide multi-select (user, 2026-08-18: modes affect the WHOLE RUN, several
+# at once; the Hub's mode shrine is the only chooser). Legacy single-mode key
+# folds in transparently.
+func selected_mode_ids() -> Array:
+	var ids: = []
+	for mode_id in ProgressData.settings.get("selected_game_modes", []):
+		if not mode_by_id(str(mode_id)).empty() and not ids.has(str(mode_id)):
+			ids.push_back(str(mode_id))
+	var legacy: String = str(ProgressData.settings.get("selected_game_mode", ""))
+	if legacy != "" and not mode_by_id(legacy).empty() and not ids.has(legacy):
+		ids.push_back(legacy)
+	return ids
+
+
+func set_mode_selected(mode_id: String, selected: bool) -> void :
+	var ids: Array = selected_mode_ids()
+	if selected and not ids.has(mode_id):
+		ids.push_back(mode_id)
+	elif not selected:
+		ids.erase(mode_id)
+	ProgressData.settings.selected_game_modes = ids
+	ProgressData.settings.selected_game_mode = ""
+	ProgressData.save_settings()
+
+
 func mode_by_id(mode_id: String) -> Dictionary:
 	for mode in REGISTRY:
 		if str(mode["id"]) == mode_id:

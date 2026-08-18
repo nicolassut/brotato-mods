@@ -50,6 +50,7 @@ const SPAWN_POINT: = Vector2(0, 1000)
 var _players: = []
 var _camera: Camera2D = null
 var _shrine = null
+var _mode_popup: CanvasLayer = null
 
 
 func _ready() -> void :
@@ -286,28 +287,92 @@ func _on_booth_interacted() -> void :
 
 
 func _on_shrine_interacted() -> void :
-	# cycle: none -> each available mode -> none. Persisted immediately; the
-	# run start stamps it per player (difficulty_selection).
-	var modes: Array = Utils.game_modes.available_modes()
-	var current: String = str(ProgressData.settings.get("selected_game_mode", ""))
-	var cycle: Array = [""]
-	for mode in modes:
-		cycle.push_back(str(mode["id"]))
-	var next_index: int = (cycle.find(current) + 1) % cycle.size()
-	ProgressData.settings.selected_game_mode = cycle[next_index]
-	ProgressData.save_settings()
+	# run-wide MULTI-SELECT (user 2026-08-18): toggle any number of special
+	# modes; persisted immediately, stamped onto every player at run start.
+	if _mode_popup != null:
+		return
+	_mode_popup = _build_mode_popup()
+	add_child(_mode_popup)
+
+
+func _build_mode_popup() -> CanvasLayer:
+	var layer: = CanvasLayer.new()
+	var panel: = Panel.new()
+	panel.rect_min_size = Vector2(560, 0)
+	panel.anchor_left = 0.5
+	panel.anchor_top = 0.5
+	panel.anchor_right = 0.5
+	panel.anchor_bottom = 0.5
+	layer.add_child(panel)
+	var box: = VBoxContainer.new()
+	box.rect_min_size = Vector2(520, 0)
+	box.rect_position = Vector2(20, 20)
+	panel.add_child(box)
+	var title: = Label.new()
+	title.text = tr("LOBBY_SHRINE_TITLE")
+	box.add_child(title)
+	var selected: Array = Utils.game_modes.selected_mode_ids()
+	var first_button: Button = null
+	for mode in Utils.game_modes.available_modes():
+		var mode_id: String = str(mode["id"])
+		var toggle: = Button.new()
+		toggle.toggle_mode = true
+		toggle.pressed = selected.has(mode_id)
+		toggle.text = _mode_toggle_text(str(mode["name"]), toggle.pressed)
+		var _e = toggle.connect("toggled", self, "_on_mode_toggled", [toggle, mode_id, str(mode["name"])])
+		box.add_child(toggle)
+		if first_button == null:
+			first_button = toggle
+	if first_button == null:
+		var empty: = Label.new()
+		empty.text = tr("LOBBY_SHRINE_EMPTY")
+		box.add_child(empty)
+	var close: = Button.new()
+	close.text = tr("MENU_BACK")
+	var _e2 = close.connect("pressed", self, "_close_mode_popup")
+	box.add_child(close)
+	if first_button != null:
+		first_button.call_deferred("grab_focus")
+	else:
+		close.call_deferred("grab_focus")
+	# size the panel to its content once the box lays out
+	box.connect("resized", self, "_fit_mode_popup", [panel, box])
+	return layer
+
+
+func _fit_mode_popup(panel: Panel, box: VBoxContainer) -> void :
+	panel.rect_size = box.rect_size + Vector2(40, 40)
+	panel.rect_position = - panel.rect_size / 2.0
+	panel.margin_left = - panel.rect_size.x / 2.0
+	panel.margin_top = - panel.rect_size.y / 2.0
+
+
+func _mode_toggle_text(mode_name: String, on: bool) -> String:
+	return "%s  [%s]" % [mode_name, tr("LOBBY_MODE_ON") if on else tr("LOBBY_MODE_OFF")]
+
+
+func _on_mode_toggled(pressed: bool, toggle: Button, mode_id: String, mode_name: String) -> void :
+	Utils.game_modes.set_mode_selected(mode_id, pressed)
+	toggle.text = _mode_toggle_text(mode_name, pressed)
 	_update_shrine_prompt()
 
 
+func _close_mode_popup() -> void :
+	if _mode_popup != null:
+		_mode_popup.queue_free()
+		_mode_popup = null
+
+
 func _update_shrine_prompt() -> void :
-	var current: String = str(ProgressData.settings.get("selected_game_mode", ""))
-	var mode: Dictionary = Utils.game_modes.mode_by_id(current)
-	var mode_name: String = tr("MODE_NONE") if mode.empty() else str(mode["name"])
-	_shrine.set_prompt(tr("LOBBY_SHRINE_PROMPT") % mode_name)
+	var count: int = Utils.game_modes.selected_mode_ids().size()
+	_shrine.set_prompt(tr("LOBBY_SHRINE_PROMPT") % count)
 
 
 func _unhandled_input(event: InputEvent) -> void :
 	if event.is_action_pressed("ui_cancel"):
 		get_tree().set_input_as_handled()
+		if _mode_popup != null:
+			_close_mode_popup()
+			return
 		_remember_positions()
 		var _error = get_tree().change_scene(MenuData.title_screen_scene)

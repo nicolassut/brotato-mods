@@ -129,8 +129,12 @@ LOBBY_BOOTH_PROMPT,[E] Change character
 LOBBY_DOOR,Departure
 LOBBY_DOOR_PROMPT,[E] Start a run
 LOBBY_HUB,Hub
+LOBBY_MODE_OFF,OFF
+LOBBY_MODE_ON,ON
 LOBBY_SHRINE,Mode Shrine
-LOBBY_SHRINE_PROMPT,[E] Mode: %s
+LOBBY_SHRINE_EMPTY,No modes available yet
+LOBBY_SHRINE_PROMPT,[E] Run modes (%d on)
+LOBBY_SHRINE_TITLE,Choose run modes
 LOBBY_SHUTTLE,Departure shuttle
 LOBBY_SHUTTLE_PROMPT,[E] Take off
 MODE_NONE,No mode

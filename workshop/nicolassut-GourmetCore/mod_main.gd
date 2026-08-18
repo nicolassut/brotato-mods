@@ -52,7 +52,6 @@ const EXTENSIONS = [
 	"ui/menus/pages/menu_codex.gd",
 	"ui/menus/pages/menu_options.gd",
 	"ui/menus/pages/sort_inventory_button.gd",
-	"ui/menus/run/run_options_panel.gd",
 	"ui/menus/shop/base_shop.gd",
 	"ui/menus/shop/coop_shop_player_container.gd",
 	"ui/menus/shop/item_description.gd",

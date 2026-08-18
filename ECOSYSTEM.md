@@ -109,9 +109,9 @@ Starter synergy ideas (frameworks first, content later; user invents more):
   `challenges_completed`, reuses the existing unlock ceremony UI).
 - **Game modes**: `GameModeData {id, name, icon, modifier_ids, allowed_in_coop,
   forbidden_pairs}` + a core `game_mode_service.gd` modeled on `special_modifiers.gd`
-  (reversible numeric-delta registry, FORBIDDEN_PAIRS, apply/unapply). **Per-player**
-  selection (precedent: per-player OptionButton in character_selection console path),
-  stored in `RunData.players_data[i]`, snapshotted for save/resume with the same
+  (reversible numeric-delta registry, FORBIDDEN_PAIRS, apply/unapply). RUN-WIDE MULTI-SELECT (user 2026-08-18; was per-player) chosen ONLY at the Hub mode
+  shrine, stored identically in every `RunData.players_data[i]` (rides the
+  existing per-player serialization), snapshotted for save/resume with the same
   invalidation as enabled_packs. Interim pre-lobby UI: extend `run_options_panel.gd`
   (endless/coop button pattern) so modes can ship in Phase 6 before the lobby exists.
 - Co-op: all local players get avatars, shared camera, any player interacts; per-player
