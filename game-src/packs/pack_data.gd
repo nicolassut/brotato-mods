@@ -13,6 +13,12 @@ export (String) var pack_id: = ""
 export (String) var display_name: = ""
 # other pack_ids this pack needs (core is implicit and never listed)
 export (PoolStringArray) var requires_packs: = PoolStringArray()
+# Hub slot system (HUB_PLAN/HUB_ART_SPEC): the pack's building in the plaza.
+# name = translation key; icon = PLACEHOLDER texture until the art pass ships
+# real building sprites. Which slot it occupies is Core's registry (lobby.gd).
+export (String) var lobby_building_name: = ""
+export (String) var lobby_building_icon: = ""
+
 # SynergyData resources owned by this pack (registered by PackService only when
 # every required pack is enabled - the hidden-when-incomplete law)
 export (Array, Resource) var synergies: = []

@@ -27,5 +27,6 @@ EFFECT_TOURIST_XP,"-15% XP Gain, or +15% instead on Danger 0"
 EFFECT_ZOMBIE_DODGE_CAP,Dodge is capped at 10%. Anything raising the cap is 50% less effective
 EFFECT_ZOMBIE_NO_SUSTAIN,"Life Steal, HP Regeneration and consumable-healing items never appear in his shop"
 EFFECT_ZOMBIE_REANIMATE,A hit that leaves him on 1 HP heals him back to full
+LOBBY_BLDG_BUNKHOUSE,The Bunkhouse
 MIME_DUPLICATIONS,Items duplicated: {0}
 ZOMBIE_REANIMATIONS,Reanimations: {0}

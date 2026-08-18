@@ -5,6 +5,7 @@ EFFECT_BLACKSMITH_CLASS_TIERS,"Weapon class level comes from the total weapon ti
 EFFECT_BLACKSMITH_FORGE,"Combine two weapons of the same tier sharing a class into a random weapon of that class one tier higher. At max tier, combine into a different max-tier weapon instead"
 EFFECT_BLACKSMITH_SHOP_WEAPONS,The shop only offers weapons
 EFFECT_BLACKSMITH_TIERS,Weapons come in 8 tiers instead of 4
+LOBBY_BLDG_SMITHY,The Smithy
 WEAPON_CHAMPAGNE_POPPER,Champagne Popper
 WEAPON_CHEESE_GRATER,Cheese Grater
 WEAPON_CLEAVER,Cleaver

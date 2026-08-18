@@ -198,6 +198,8 @@
 script = ExtResource( 1 )
 my_id = "pack_food"
 pack_id = "food"
+lobby_building_name = "LOBBY_BLDG_DINER"
+lobby_building_icon = "res://items/all/scared_sausage/scared_sausage_icon.png"
 display_name = "Food"
 requires_packs = PoolStringArray(  )
 synergies = [  ]

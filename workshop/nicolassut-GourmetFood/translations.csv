@@ -126,6 +126,7 @@ GOURMET_APPETITE_GAINED,Appetite gained: {0}
 GOURMET_HARVESTING_GAINED,Harvesting gained: {0}
 GOURMET_SNAIL_ARMOR_GAINED,Armor gained: {0}
 GREASE_FIRE_IGNITES,Enemies ignited: {0}
+LOBBY_BLDG_DINER,Chef's Diner
 NINE_LIVES_USED,Lives used: {0}
 OVERTIME_PAY_DESC,"Gain 1% Attack Speed per 80 Materials collected each wave (max +6% per wave, permanent)"
 OVERTIME_PAY_GAINED,Attack Speed gained: {0}

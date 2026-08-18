@@ -9,6 +9,8 @@
 script = ExtResource( 1 )
 my_id = "pack_ledger"
 pack_id = "ledger"
+lobby_building_name = "LOBBY_BLDG_BANK"
+lobby_building_icon = "res://items/all/piggy_bank/piggy_bank_icon.png"
 display_name = "Ledger"
 requires_packs = PoolStringArray(  )
 synergies = [  ]

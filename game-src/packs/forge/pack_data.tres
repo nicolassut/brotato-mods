@@ -287,6 +287,8 @@
 script = ExtResource( 1 )
 my_id = "pack_forge"
 pack_id = "forge"
+lobby_building_name = "LOBBY_BLDG_SMITHY"
+lobby_building_icon = "res://items/all/improved_tools/improved_tools_icon.png"
 display_name = "Forge"
 requires_packs = PoolStringArray(  )
 synergies = [  ]

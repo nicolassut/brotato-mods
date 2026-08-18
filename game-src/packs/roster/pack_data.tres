@@ -14,6 +14,8 @@
 script = ExtResource( 1 )
 my_id = "pack_roster"
 pack_id = "roster"
+lobby_building_name = "LOBBY_BLDG_BUNKHOUSE"
+lobby_building_icon = "res://items/all/helmet/helmet_icon.png"
 display_name = "Roster"
 requires_packs = PoolStringArray(  )
 synergies = [  ]

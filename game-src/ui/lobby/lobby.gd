@@ -58,8 +58,9 @@ func _ready() -> void :
 	_build_players()
 	_build_camera()
 	_build_npcs()
-	print("Lobby ready: %d station(s), %d slots" % [
+	print("Lobby ready: %d station(s), %d building(s), %d slots" % [
 		get_tree().get_nodes_in_group("lobby_npcs").size(),
+		get_tree().get_nodes_in_group("lobby_buildings").size(),
 		get_tree().get_nodes_in_group("lobby_slots").size()])
 
 
@@ -77,8 +78,7 @@ func _build_floor() -> void :
 	_rect(SHRINE_RECT, SLOT_COLOR)
 	_rect(BOOTH_RECT, SLOT_COLOR)
 	_rect(GATE_RECT, CLIFF_COLOR)
-	for slot_pos in SLOT_POSITIONS:
-		_rect(Rect2(slot_pos - SLOT_SIZE / 2.0, SLOT_SIZE), SLOT_COLOR)
+	_build_slot_buildings()
 	# collision: cliff strip blocks deck<->plaza except through the stairs
 	_add_wall(Rect2(CLIFF_RECT.position.x, CLIFF_RECT.position.y,
 			STAIR_WEST.position.x - CLIFF_RECT.position.x, CLIFF_RECT.size.y))
@@ -109,6 +109,47 @@ func _add_wall(rect: Rect2) -> void :
 	body.position = rect.position + rect.size / 2.0
 	body.add_child(shape)
 	add_child(body)
+
+
+# HUB_PLAN slot registry: which pack owns which slot anchor. Unassigned
+# slots show the RESERVED building; an assigned-but-unavailable/disabled
+# pack shows the VACANT building. New packs claim a free slot here only.
+const SLOT_ASSIGNMENT: = {
+	1: "forge", 2: "ledger", 4: "food", 5: "fortune", 6: "roster",
+}
+
+
+func _build_slot_buildings() -> void :
+	for i in SLOT_POSITIONS.size():
+		var slot_index: int = i + 1
+		var slot_rect: = Rect2(SLOT_POSITIONS[i] - SLOT_SIZE / 2.0, SLOT_SIZE)
+		var pack_id: String = str(SLOT_ASSIGNMENT.get(slot_index, ""))
+		if pack_id == "":
+			_spawn_building_placeholder(slot_rect, tr("LOBBY_BLDG_RESERVED"), "", false)
+			continue
+		var pack = Utils.packs.available_packs.get(pack_id)
+		if pack == null or not Utils.packs.is_pack_enabled(pack_id):
+			_spawn_building_placeholder(slot_rect, tr("LOBBY_BLDG_VACANT"), "", false)
+			continue
+		_spawn_building_placeholder(slot_rect, tr(str(pack.lobby_building_name)),
+				str(pack.lobby_building_icon), true)
+
+
+func _spawn_building_placeholder(slot_rect: Rect2, display_name: String,
+		icon_path: String, active: bool) -> void :
+	# placeholder-law rendering: the EXACT final footprint as a flat rect,
+	# an existing icon, and the station name plate. Interactions arrive in
+	# step 3; the real carnival-register art is a pure texture swap later.
+	_rect(slot_rect, SLOT_COLOR if active else Color(0.10, 0.085, 0.075, 1.0))
+	var npc = LobbyNpc.new()
+	var texture: Texture = null
+	if icon_path != "" and ResourceLoader.exists(icon_path):
+		texture = load(icon_path)
+	npc.setup(texture, display_name, "")
+	npc.position = slot_rect.position + Vector2(slot_rect.size.x / 2.0, slot_rect.size.y / 2.0)
+	if active:
+		npc.add_to_group("lobby_buildings")
+	add_child(npc)
 
 
 func _build_slots() -> void :

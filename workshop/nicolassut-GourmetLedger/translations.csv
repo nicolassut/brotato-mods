@@ -10,3 +10,4 @@ EFFECT_DEBTOR_INTEREST,Your debt gains 5% interest at the end of every wave
 EFFECT_DEBTOR_MATERIALS,Materials repay your debt and grant XP but no money
 EFFECT_DEBTOR_PRICES,"Prices are shown as the debt they add, in red"
 EFFECT_DEBT_EXPLAIN,"While in debt you gain no Materials until it is repaid, and every point of debt costs 2 Materials to clear"
+LOBBY_BLDG_BANK,The Bank

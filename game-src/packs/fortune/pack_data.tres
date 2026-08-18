@@ -8,6 +8,8 @@
 script = ExtResource( 1 )
 my_id = "pack_fortune"
 pack_id = "fortune"
+lobby_building_name = "LOBBY_BLDG_GREMLIN"
+lobby_building_icon = "res://items/all/candy_bag/candy_bag_icon.png"
 display_name = "Fortune"
 requires_packs = PoolStringArray(  )
 synergies = [ ExtResource( 999 ) ]
