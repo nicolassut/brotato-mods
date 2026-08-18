@@ -16,6 +16,7 @@ extends Node
 
 const LOG_NAME = "nicolassut-GourmetCore"
 const EXT_ROOT = "res://mods-unpacked/nicolassut-GourmetCore/extensions/"
+const TRANSLATIONS_CSV = "res://mods-unpacked/nicolassut-GourmetCore/translations.csv"
 
 const SERVICES = [
 	["GourmetTracker", "res://singletons/gourmet_tracker.gd"],
@@ -90,6 +91,7 @@ const EXTENSIONS = [
 
 func _init(modLoader = ModLoader):
 	ModLoaderUtils.log_info("Init", LOG_NAME)
+	_load_translations()
 	for ext in EXTENSIONS:
 		ModLoaderMod.install_script_extension(EXT_ROOT.plus_file(ext))
 
@@ -122,3 +124,28 @@ func _register_interact_action() -> void :
 	var joy = InputEventJoypadButton.new()
 	joy.button_index = 3
 	InputMap.action_add_event("interact", joy)
+
+func _load_translations() -> void :
+	# runtime replacement for the project.godot translations list (a mod
+	# cannot patch it): parse this mod's CSV rows into Translation resources
+	var f = File.new()
+	if f.open(TRANSLATIONS_CSV, File.READ) != OK:
+		return
+	var header = f.get_csv_line()
+	if header.size() < 2:
+		f.close()
+		return
+	var translations = []
+	for i in range(1, header.size()):
+		var t = Translation.new()
+		t.locale = header[i]
+		translations.push_back(t)
+	while not f.eof_reached():
+		var row = f.get_csv_line()
+		if row.size() < 2 or row[0] == "":
+			continue
+		for i in range(1, int(min(row.size(), header.size()))):
+			translations[i - 1].add_message(row[0], row[i])
+	f.close()
+	for t in translations:
+		TranslationServer.add_translation(t)

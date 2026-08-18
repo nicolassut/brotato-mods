@@ -42,14 +42,25 @@
    guarded runtime prune + an extension export default; the pause.tscn diff
    (blobfish margins) is patched from the pause.gd extension. The 8 mod-ADDED
    scenes ship as files.
-5. **Extensions are now GENERATED** (extensions/ + AUDIT.md, per-function diff
-   vs the pristine tree; dict merges at _init, verified-safe inner-class
-   redeclarations). Remaining before the clone gate can pass:
-   - the 109 bare service references must be rewritten to the Utils accessors
-     (extensions currently inherit whatever game-src has)
-   - pack payload assembly: art/scripts/tres at their true res:// paths +
-     .import/.stex entries, per-pack translations
-   - end-to-end disposable-clone gate (check_workshop.sh)
+5. ~~Service references~~ **RESOLVED**: all 109 bare references rewritten to
+   the Utils accessors (lazy /root/<Name> lookup, identical in both worlds).
+6. ~~Payloads + translations~~ **RESOLVED**: payload_manifest.json per mod -
+   the mod-added-file UNIVERSE is measured against the pristine tree and every
+   file lands in exactly one payload (PAYLOAD_AUDIT.md records shared/pinned/
+   dead/deregistered); per-mod translations.csv split from the sacred CSV and
+   runtime-loaded in mod_main; `asset-dev/pack_workshop_zips.py` assembles
+   workshop/dist/*.zip (payload at true res:// paths + .import/.stex).
+7. **Remaining**: the end-to-end disposable-clone gate (check_workshop.sh).
+
+## Known gaps (accepted, documented)
+- The dlcs/ tree is the decompiled PAID DLC and never ships. Its one script
+  edit (Freeloader curse hook) ships as a DLC-guarded late extension; the
+  local cursed_chest_data.tres icon edit does NOT ship - Workshop DLC owners
+  see the vanilla cursed-chest icon.
+- The clone gate materializes payloads by copying (load_resource_pack of a
+  zip WIPES res:// in editor mode - engine limitation); the zip overlay path
+  is only exercised on the real exported game. Final zip validation happens
+  on a Steam install.
 
 ## Law
 Regenerate this report after any engine change: `python3 asset-dev/build_workshop.py`.

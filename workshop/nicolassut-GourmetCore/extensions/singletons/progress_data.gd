@@ -6,6 +6,7 @@ extends "res://singletons/progress_data.gd"
 func _ready() -> void :
 	init_save_paths()
 	load_dlc_pcks()
+	_gourmet_install_dlc_extension()
 	check_for_available_dlcs()
 	init_settings()
 	load_settings()
@@ -156,3 +157,9 @@ func _set_loader_properties(loader_v3: ProgressDataLoaderV3, run_state: Dictiona
 	loader_v3.killed_enemies = killed_enemies.duplicate()
 	loader_v3.killed_by_enemies = killed_by_enemies.duplicate()
 	loader_v3.items_bought = items_bought.duplicate()
+
+# --- GourmetCore: late script extension for the Abyssal Terrors DLC ---
+func _gourmet_install_dlc_extension() -> void :
+	if not ResourceLoader.exists("res://dlcs/dlc_1/dlc_1_data.gd"):
+		return
+	ModLoaderMod.install_script_extension("res://mods-unpacked/nicolassut-GourmetCore/extensions/dlcs/dlc_1/dlc_1_data.gd")

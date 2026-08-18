@@ -1,0 +1,20 @@
+{
+ "files": [
+  ".import/chest.png-65d859896d4633ed52d1cb0dbb64a837.stex",
+  ".import/p2w_face.png-2bc4d6e92aa072f73621aa9102062738.stex",
+  ".import/p2w_icon.png-b2c5cf3aa9831f943fd8d99d7edd614a.stex",
+  "items/custom/p2w/chest.png",
+  "items/custom/p2w/chest.png.import",
+  "items/custom_characters/p2w/p2w_data.tres",
+  "items/custom_characters/p2w/p2w_effect_0.tres",
+  "items/custom_characters/p2w/p2w_effect_1.tres",
+  "items/custom_characters/p2w/p2w_face.png",
+  "items/custom_characters/p2w/p2w_face.png.import",
+  "items/custom_characters/p2w/p2w_face_appearance.tres",
+  "items/custom_characters/p2w/p2w_icon.png",
+  "items/custom_characters/p2w/p2w_icon.png.import",
+  "packs/fortune/pack_data.tres",
+  "packs/synergies/mystery_meal/synergy_data.tres",
+  "packs/synergy_data.gd"
+ ]
+}

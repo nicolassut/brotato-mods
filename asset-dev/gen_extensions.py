@@ -53,6 +53,28 @@ DICT_MERGE_DECLS = {
     "singletons/text.gd": {"keys_needing_operator": "_init"},
 }
 
+# Extensions with NO pristine baseline: the Abyssal Terrors DLC pck is not
+# part of the vanilla reference, so dlc_1_data.gd cannot be diffed. The listed
+# segments are the hand-identified Gourmet edits, emitted verbatim from
+# game-src. A guard errors if any OTHER segment of the file carries a Gourmet
+# marker (keeps future edits honest). These do NOT go into mod_main's install
+# list - the DLC pck mounts inside ProgressData._ready (load_dlc_pcks), so the
+# progress_data extension installs them LATE, guarded on the DLC being present
+# (ModLoaderMod.install_script_extension applies immediately outside the init
+# phase - verified against addons/mod_loader/api/mod.gd).
+HAND_EXTENSIONS = {
+    "dlcs/dlc_1/dlc_1_data.gd": ["FREELOADER_CURSE_CHANCE",
+                                 "update_item_effects"],
+}
+
+# {file: {func: [(anchor_line_stripped, [lines to insert after it])]}} -
+# mid-function insertion into an emitted function body.
+INSERT_AFTER = {
+    "singletons/progress_data.gd": {
+        "_ready": [("load_dlc_pcks()", ["\t_gourmet_install_dlc_extension()"])],
+    },
+}
+
 # {file: [inner class names]} - verified safe to redeclare (see gen() check)
 SAFE_REDECLARED_CLASSES = {
     "ui/menus/ingame/upgrades_ui.gd": ["ConsumableToProcess"],
@@ -85,6 +107,16 @@ func _gourmet_core_remove_vanilla_items() -> void :
 \t\tif not GOURMET_REMOVED_VANILLA_ITEMS.has(i.my_id):
 \t\t\tkept.push_back(i)
 \titems = kept
+''',
+    # the Gourmet edits to the Abyssal Terrors DLC script can only install
+    # AFTER load_dlc_pcks() mounts the DLC pck, and only for DLC owners (the
+    # child script cannot even parse without its base)
+    "singletons/progress_data.gd": '''
+# --- GourmetCore: late script extension for the Abyssal Terrors DLC ---
+func _gourmet_install_dlc_extension() -> void :
+\tif not ResourceLoader.exists("res://dlcs/dlc_1/dlc_1_data.gd"):
+\t\treturn
+\tModLoaderMod.install_script_extension("res://mods-unpacked/nicolassut-GourmetCore/extensions/dlcs/dlc_1/dlc_1_data.gd")
 ''',
     # pause.tscn's only diff: the blobfish easter-egg Control re-anchored from
     # (940,520)..(980,560) to centered -20..20 - patched at runtime instead
@@ -350,6 +382,8 @@ def gen_one(rel, src_root, audit):
         return None, problems
 
     out_segs = []
+    inserts = INSERT_AFTER.get(rel, {})
+    emitted_funcs = set()
     for s in msegs:
         if s["kind"] in ("extends", "tool", "class_name"):
             continue
@@ -366,6 +400,16 @@ def gen_one(rel, src_root, audit):
                                          "in %s" % (s["name"], rel))
                     for j, extra in enumerate(inject.pop(s["name"])):
                         lines.insert(hdr + 1 + j, extra)
+                for anchor, extra_lines in inserts.get(s["name"], []):
+                    hits = [i for i, l in enumerate(lines)
+                            if l.strip() == anchor]
+                    if len(hits) != 1:
+                        raise SystemExit(
+                            "INSERT_AFTER anchor %r in %s.%s matched %d lines"
+                            % (anchor, rel, s["name"], len(hits)))
+                    for j, el in enumerate(extra_lines):
+                        lines.insert(hits[0] + 1 + j, el)
+                emitted_funcs.add(s["name"])
                 out_segs.append(lines)
                 if changed and s["name"] in vfun and \
                         re.match(r"^static\s", s["lines"][0]):
@@ -388,6 +432,11 @@ def gen_one(rel, src_root, audit):
         elif s["kind"] == "class":
             if s["name"] not in vdecl or s["name"] in emit_classes:
                 out_segs.append(s["lines"])
+
+    for fname in inserts:
+        if fname not in emitted_funcs:
+            raise SystemExit("INSERT_AFTER target %s.%s was not emitted"
+                             % (rel, fname))
 
     # synthesize any inject-target funcs that exist in neither tree
     for fname, calls in inject.items():
@@ -415,10 +464,55 @@ def gen_one(rel, src_root, audit):
     return "\n".join(body).rstrip("\n") + "\n", None
 
 
+def gen_hand(rel, seg_names, src_root, audit):
+    """Emit an extension with no pristine baseline: the named segments are
+    copied verbatim from the modified tree. Guard: every segment carrying a
+    Gourmet marker must be in the list."""
+    segs = segment(os.path.join(src_root, rel))
+    picked, problems = [], []
+    for s in segs:
+        text = "\n".join(s["lines"])
+        if s["name"] in seg_names:
+            picked.append(s)
+        elif s["kind"] in ("func", "decl", "enum", "class") \
+                and "Gourmet" in text:
+            problems.append("segment %s %s carries a Gourmet marker but is "
+                            "not in HAND_EXTENSIONS - list it or revert it"
+                            % (s["kind"], s["name"]))
+    missing = set(seg_names) - {s["name"] for s in picked}
+    if missing:
+        problems.append("HAND_EXTENSIONS segments not found: %s"
+                        % sorted(missing))
+    if problems:
+        return None, problems
+    body = ['# generated by asset-dev/gen_extensions.py - DO NOT EDIT',
+            '# HAND extension (no pristine baseline - Abyssal Terrors DLC pck '
+            'is not in the reference);',
+            '# segments hand-listed in HAND_EXTENSIONS, emitted verbatim from '
+            'game-src. Installed LATE',
+            '# by the progress_data extension, only when the DLC is mounted.',
+            'extends "res://%s"' % rel, '']
+    for s in picked:
+        body.extend(s["lines"])
+        body.append("")
+    audit.append((rel, "hand extension (no pristine baseline): segments %s, "
+                  "installed late, DLC-guarded" % seg_names))
+    return "\n".join(body).rstrip("\n") + "\n", None
+
+
 def generate(targets, src_root, out_root):
     """targets: rel paths of modified vanilla .gd. Returns (installed, errors,
-    audit). Writes extensions/ + AUDIT.md under out_root."""
+    audit). Writes extensions/ + AUDIT.md under out_root. HAND_EXTENSIONS are
+    emitted too but NOT included in `installed` (they install late, guarded)."""
     audit, errors, installed = [], [], []
+    for rel, seg_names in HAND_EXTENSIONS.items():
+        text, problems = gen_hand(rel, seg_names, src_root, audit)
+        if problems:
+            errors.append((rel, problems))
+            continue
+        dst = os.path.join(out_root, "extensions", rel)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        open(dst, "w").write(text)
     for rel in targets:
         text, problems = gen_one(rel, src_root, audit)
         if problems:

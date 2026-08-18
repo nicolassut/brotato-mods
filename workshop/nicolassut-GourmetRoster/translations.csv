@@ -1,0 +1,31 @@
+key,en
+EFFECT_FREELOADER_CURSE,Every shop offering has a 25% chance to be cursed
+EFFECT_FREELOADER_FREE,Everything in the shop is free
+EFFECT_FREELOADER_MATERIALS,Materials grant XP but no money
+EFFECT_FREELOADER_MENU,Shops show 8 items and level ups offer 8 upgrades
+EFFECT_FREELOADER_NO_CRATES,Crates never contain items
+EFFECT_FREELOADER_NO_REROLL,Cannot reroll or lock
+EFFECT_FREELOADER_ONE_PICK,Can only take one thing per shop
+EFFECT_FREELOADER_WEAPON_TIER,Weapons in the shop are always Tier II or better
+EFFECT_JUGGLER_COMBO,"Each weapon that already fired this cycle makes the shot +8% stronger, up to +{0}% on the last one"
+EFFECT_JUGGLER_CYCLE,Weapons attack one at a time cycling left to right
+EFFECT_JUGGLER_TEMPO,"A weapon fires every {0}s ({1}s), left to right: 0.3s divided by (100% + Attack Speed), ignoring weapon cooldowns"
+EFFECT_MIME_MIRROR_SHOP,A Magic Mirror appears in every shop
+EFFECT_MIME_MIRROR_WEAPONS,Magic Mirrors also work on weapons
+EFFECT_MINIMALIST_ALL,Items give +2/+4/+6/+8 All Stats by their tier [+{0}]
+EFFECT_MINIMALIST_ALL12,They all give +12 instead while your 6 items are all max tier
+EFFECT_MINIMALIST_CAP,You can hold a maximum of 6 items
+EFFECT_MINIMALIST_SELL,You can recycle items by pressing them in the shop
+EFFECT_MOLE_FOG,Fog of war covers every wave
+EFFECT_SPECIAL_PREVIEW,The shop shows you what is coming next wave
+EFFECT_SPECIAL_ROLL,Every wave rolls random modifiers that rewrite the rules
+EFFECT_SPECIAL_SKEW,More modifiers are bad than good
+EFFECT_SPECIAL_TEMPORARY,Modifiers last one wave only
+EFFECT_TOURIST_ENEMY,+5% enemy health and enemy attack speed per Danger level
+EFFECT_TOURIST_MODS,+10% to all stat modifications per Danger level
+EFFECT_TOURIST_XP,"-15% XP Gain, or +15% instead on Danger 0"
+EFFECT_ZOMBIE_DODGE_CAP,Dodge is capped at 10%. Anything raising the cap is 50% less effective
+EFFECT_ZOMBIE_NO_SUSTAIN,"Life Steal, HP Regeneration and consumable-healing items never appear in his shop"
+EFFECT_ZOMBIE_REANIMATE,A hit that leaves him on 1 HP heals him back to full
+MIME_DUPLICATIONS,Items duplicated: {0}
+ZOMBIE_REANIMATIONS,Reanimations: {0}

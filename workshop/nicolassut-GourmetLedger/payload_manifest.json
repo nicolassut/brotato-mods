@@ -1,0 +1,31 @@
+{
+ "files": [
+  ".import/bank_loan.png-e74cd7a779765888aeee72e2f34eb392.stex",
+  ".import/credit_card.png-ac2bbd2184d118fa1cfe34f02c0ca541.stex",
+  ".import/test_debt_face.png-947bf14f9eb8e927a8258b8451e92009.stex",
+  ".import/test_debt_icon.png-9680d78b53958927e4e2f90f7eeb4d6e.stex",
+  "items/custom/bank_loan/bank_loan.png",
+  "items/custom/bank_loan/bank_loan.png.import",
+  "items/custom/bank_loan/bank_loan_data.tres",
+  "items/custom/bank_loan/bank_loan_effect_0.tres",
+  "items/custom/bank_loan/bank_loan_effect_1.tres",
+  "items/custom/bank_loan/bank_loan_effect_2.tres",
+  "items/custom/credit_card/credit_card.png",
+  "items/custom/credit_card/credit_card.png.import",
+  "items/custom/credit_card/credit_card_data.tres",
+  "items/custom/credit_card/credit_card_effect_0.tres",
+  "items/custom/credit_card/credit_card_effect_1.tres",
+  "items/custom_characters/test_debt/test_debt_data.tres",
+  "items/custom_characters/test_debt/test_debt_effect_0.tres",
+  "items/custom_characters/test_debt/test_debt_effect_1.tres",
+  "items/custom_characters/test_debt/test_debt_effect_2.tres",
+  "items/custom_characters/test_debt/test_debt_effect_3.tres",
+  "items/custom_characters/test_debt/test_debt_effect_4.tres",
+  "items/custom_characters/test_debt/test_debt_face.png",
+  "items/custom_characters/test_debt/test_debt_face.png.import",
+  "items/custom_characters/test_debt/test_debt_face_appearance.tres",
+  "items/custom_characters/test_debt/test_debt_icon.png",
+  "items/custom_characters/test_debt/test_debt_icon.png.import",
+  "packs/ledger/pack_data.tres"
+ ]
+}

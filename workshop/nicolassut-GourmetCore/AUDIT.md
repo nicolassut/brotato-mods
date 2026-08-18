@@ -1,6 +1,7 @@
 # GourmetCore extension AUDIT (generated - encode resolutions in gen_extensions.py)
 
 ## Flags (emitted, verify once)
+- `dlcs/dlc_1/dlc_1_data.gd`: hand extension (no pristine baseline): segments ['FREELOADER_CURSE_CHANCE', 'update_item_effects'], installed late, DLC-guarded
 - `singletons/item_service.gd`: dict item_groups entry "lifesteal" CHANGED value: '["item_butterfly", "item_bat", "item_whetstone", "item_decomposing_flesh", "item_bloody_hand", "item_fresh_meat"]' -> '["item_butterfly", "item_bat", "item_whetstone", "item_decomposing_flesh", "item_bloody_hand", "item_fresh_meat", "item_vampire_fang"]'
 - `singletons/item_service.gd`: dict item_groups entry "lifesteal_and_hp_regeneration" CHANGED value: '["item_blood_leech"]' -> '["item_blood_leech", "item_mosquito_jar"]'
 - `singletons/item_service.gd`: dict item_groups entry "hp_regeneration" CHANGED value: '["item_mushroom", "item_plant", "item_sad_tomato", "item_medikit", "item_fairy", "item_potion", "item_fried_rice", "item_baby_squid", "item_coral", "item_penguin"]' -> '["item_mushroom", "item_plant", "item_sad_tomato", "item_medikit", "item_fairy", "item_potion", "item_fried_rice", "item_baby_squid", "item_coral", "item_penguin", "item_iron_lung", "item_meal_in_a_pill"]'

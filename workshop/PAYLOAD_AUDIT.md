@@ -1,0 +1,308 @@
+# Payload assignment audit (generated)
+
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/pizza_cutter/pizza_cutter_food.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/rolling_pin/rolling_pin_icon.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/rolling_pin/rolling_pin_food.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/corn_cannon/corn_cannon_explode.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/whisk/whisk_food.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/ice_cream_scoop/ice_cream_scoop_food.tres
+- shared by packs ['food', 'fortune', 'roster'] -> core: weapons/ranged/pizza_cutter/1/pizza_cutter_1_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/ice_cream_scoop/2/ice_cream_scoop_2_effect_0.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/2/frying_pan_2_stats.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/galley_cannon/4/galley_cannon_4_effect_0.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/cheese_grater/2/cheese_grater_2_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/cleaver/3/cleaver_3_stats.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/champagne_popper/3/champagne_popper_3_data.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/skewer/3/skewer_3_stats.tres
+- shared by packs ['food', 'fortune', 'roster'] -> core: weapons/ranged/champagne_popper/1/champagne_popper_1_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/whisk/3/whisk_3_stats.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/galley_cannon/4/galley_cannon_4_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/golden_spatula/golden_spatula_food.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/ice_cream_scoop/4/ice_cream_scoop_4_fooddrop.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/fish_slapper/4/fish_slapper_4_effect_0.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/meat_tenderizer/3/meat_tenderizer_3_stats.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/skewer/1/skewer_1_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/ice_cream_scoop/3/ice_cream_scoop_3_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/ice_cream_scoop/2/ice_cream_scoop_2_fooddrop.tres
+- DEAD (unreferenced by any shippable file) - not shipped: weapons/ranged/pizza_cutter/2/pizza_cutter_2_effect.tres
+- DEAD (unreferenced by any shippable file) - not shipped: weapons/melee/golden_spatula/golden_spatula_effect_0.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/galley_cannon/galley_bounce_projectile.gd
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/skewer/skewer.tscn
+- shared by packs ['food', 'forge'] -> core: weapons/melee/dinner_bell/dinner_bell_icon.png
+- shared by packs ['food', 'roster'] -> core: weapons/melee/cheese_grater/1/cheese_grater_1_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/rolling_pin/2/rolling_pin_2_fooddrop.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/frying_pan_icon.png
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/pizza_cutter/4/pizza_cutter_4_stats.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/skewer/4/skewer_4_data.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: items/sets/culinary/culinary_set_data.tres
+- DEAD (unreferenced by any shippable file) - not shipped: items/custom_characters/butcher/raw_steak.png
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/galley_cannon/galley_cannon.tscn
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/skewer/skewer_icon.png
+- DEAD (unreferenced by any shippable file) - not shipped: weapons/ranged/galley_cannon/galley_cannon_explode.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/skewer/skewer.png
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/pizza_cutter/pizza_cutter_icon.png
+- shared by packs ['food', 'roster'] -> core: weapons/ranged/galley_cannon/1/galley_cannon_1_data.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/pizza_cutter/3/pizza_cutter_3_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/cleaver/1/cleaver_1_effect_0.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/sauce_blaster/2/sauce_blaster_2_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/2/frying_pan_2_fooddrop.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/cheese_grater/3/cheese_grater_3_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/1/frying_pan_1_effect_0.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/pizza_cutter/4/pizza_cutter_4_data.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/skewer/1/skewer_1_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/rolling_pin/rolling_pin.tscn
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/sauce_blaster/sauce_blaster.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/meat_tenderizer/meat_tenderizer_icon.png
+- DEAD (unreferenced by any shippable file) - not shipped: weapons/melee/dinner_bell/dinner_bell_effect_0.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/golden_spatula/golden_spatula_icon.png
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/ice_cream_scoop/4/ice_cream_scoop_4_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/ladle/ladle_icon.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/cleaver/cleaver.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/dinner_bell/3/dinner_bell_3_effect_0.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/fish_slapper/4/fish_slapper_4_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/frying_pan.tscn
+- shared by packs ['food', 'forge'] -> core: weapons/melee/cleaver/2/cleaver_2_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/ladle/4/ladle_4_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/meat_tenderizer/2/meat_tenderizer_2_effect_0.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: items/sets/culinary/culinary_bonus_4.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/champagne_popper/champagne_popper_projectile.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/rolling_pin/4/rolling_pin_4_fooddrop.tres
+- DEAD (unreferenced by any shippable file) - not shipped: weapons/ranged/pizza_cutter/3/pizza_cutter_3_effect.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/fish_slapper/3/fish_slapper_3_effect_0.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/cleaver/cleaver.tscn
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/galley_cannon/2/galley_cannon_2_data.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/corn_cannon/corn_cannon.tscn
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/3/frying_pan_3_effect_0.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/cleaver/2/cleaver_2_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/cleaver/4/cleaver_4_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/sauce_blaster/1/sauce_blaster_1_fooddrop.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/cleaver/1/cleaver_1_stats.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/galley_cannon/3/galley_cannon_3_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/fish_slapper/fish_slapper_food.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/butchers_saw/butchers_saw.tscn
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/cheese_grater/3/cheese_grater_3_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/rolling_pin/rolling_pin.png
+- DEAD (unreferenced by any shippable file) - not shipped: items/custom_characters/test_debt/test_debt_effect_5.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/corn_cannon/4/corn_cannon_4_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/whisk/whisk.tscn
+- DEAD (unreferenced by any shippable file) - not shipped: weapons/melee/fish_slapper/fish_slapper_effect_0.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/pizza_cutter/pizza_cutter_projectile.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/trident_fork/3/trident_fork_3_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/whisk/3/whisk_3_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/meat_tenderizer/4/meat_tenderizer_4_stats.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/corn_cannon/3/corn_cannon_3_stats.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/corn_cannon/3/corn_cannon_3_fooddrop.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/meat_tenderizer/3/meat_tenderizer_3_data.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: items/sets/culinary/culinary_bonus_3.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/champagne_popper/champagne_popper_projectile.tscn
+- shared by packs ['food', 'forge'] -> core: weapons/melee/fish_slapper/2/fish_slapper_2_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/cleaver/3/cleaver_3_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/fish_slapper/2/fish_slapper_2_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/2/frying_pan_2_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/cleaver/4/cleaver_4_effect_0.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/dinner_bell/2/dinner_bell_2_stats.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/skewer/2/skewer_2_stats.tres
+- DEAD (unreferenced by any shippable file) - not shipped: weapons/melee/meat_tenderizer/meat_tenderizer_effect_0.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/corn_cannon/corn_cannon_icon.png
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/cheese_grater/4/cheese_grater_4_data.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/corn_cannon/corn_cannon_projectile.tscn
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/2/frying_pan_2_effect_1.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/galley_cannon/galley_cannon_icon.png
+- shared by packs ['food', 'forge', 'fortune', 'ledger', 'roster'] -> core: packs/pack_data.gd
+- shared by packs ['food', 'forge'] -> core: weapons/melee/trident_fork/3/trident_fork_3_data.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/champagne_popper/2/champagne_popper_2_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/dinner_bell/4/dinner_bell_4_data.tres
+- DEAD (unreferenced by any shippable file) - not shipped: weapons/ranged/ice_cream_scoop/ice_cream_scoop_effect_0.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/sauce_blaster/2/sauce_blaster_2_fooddrop.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/rolling_pin/3/rolling_pin_3_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/baguette/baguette.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/meat_tenderizer/meat_tenderizer.tscn
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/1/frying_pan_1_effect_1.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/baguette/baguette_icon.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/3/frying_pan_3_fooddrop.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/ladle/4/ladle_4_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/golden_spatula/4/golden_spatula_4_effect_0.tres
+- DEAD (unreferenced by any shippable file) - not shipped: items/custom_characters/test_debt/test_debt_effect_7.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/whisk/whisk_icon.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/fish_slapper/fish_slapper.png
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/galley_cannon/2/galley_cannon_2_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/rolling_pin/2/rolling_pin_2_data.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/galley_cannon/3/galley_cannon_3_effect_0.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/ice_cream_scoop/3/ice_cream_scoop_3_effect_0.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/corn_cannon/corn_cannon.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/4/frying_pan_4_effect_1.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/galley_cannon/3/galley_cannon_3_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/fish_slapper/2/fish_slapper_2_effect_0.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/dinner_bell/3/dinner_bell_3_data.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/corn_cannon/3/corn_cannon_3_data.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/pizza_cutter/2/pizza_cutter_2_fooddrop.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/pizza_cutter/2/pizza_cutter_2_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/whisk/4/whisk_4_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/butchers_saw/4/butchers_saw_4_effect_0.tres
+- shared by packs ['food', 'roster'] -> core: weapons/ranged/corn_cannon/1/corn_cannon_1_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/trident_fork/trident_fork.png
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/pizza_cutter/pizza_cutter_projectile.tscn
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/champagne_popper/3/champagne_popper_3_stats.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/corn_cannon/corn_cannon_food.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/fish_slapper/1/fish_slapper_1_effect_0.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/rolling_pin/4/rolling_pin_4_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/rolling_pin/1/rolling_pin_1_fooddrop.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/corn_cannon/1/corn_cannon_1_fooddrop.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/3/frying_pan_3_effect_1.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/galley_cannon/1/galley_cannon_1_effect_0.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/dinner_bell/1/dinner_bell_1_effect_0.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: items/sets/culinary/culinary_bonus_5.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/2/frying_pan_2_effect_0.tres
+- shared by packs ['food', 'roster'] -> core: weapons/ranged/galley_cannon/1/galley_cannon_1_stats.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/corn_cannon/corn_cannon_projectile.png
+- DEAD (unreferenced by any shippable file) - not shipped: items/custom/sunscreen/sunscreen_effect_2.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/ladle/ladle.tscn
+- shared by packs ['food', 'forge'] -> core: weapons/melee/dinner_bell/2/dinner_bell_2_effect_0.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/cleaver/cleaver_icon.png
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/sauce_blaster/2/sauce_blaster_2_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/whisk/2/whisk_2_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/frying_pan_food.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/ice_cream_scoop/ice_cream_scoop_projectile.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/dinner_bell/2/dinner_bell_2_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/golden_spatula/golden_spatula.png
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/corn_cannon/4/corn_cannon_4_fooddrop.tres
+- DEAD (unreferenced by any shippable file) - not shipped: weapons/melee/frying_pan/frying_pan_effect_0.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/cheese_grater/cheese_grater.tscn
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/3/frying_pan_3_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/dinner_bell/4/dinner_bell_4_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/ice_cream_scoop/scoop_swing_behavior.gd
+- shared by packs ['food', 'forge'] -> core: weapons/melee/whisk/2/whisk_2_data.tres
+- core-pinned (referenced by Core code) despite pack claim food: items/custom/street_vendor/street_vendor.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/trident_fork/4/trident_fork_4_data.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/champagne_popper/champagne_popper_icon.png
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/ice_cream_scoop/4/ice_cream_scoop_4_stats.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/champagne_popper/2/champagne_popper_2_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/sauce_blaster/3/sauce_blaster_3_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/meat_tenderizer/3/meat_tenderizer_3_effect_0.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/sauce_blaster/4/sauce_blaster_4_data.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/corn_cannon/2/corn_cannon_2_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/trident_fork/trident_fork.tscn
+- shared by packs ['food', 'roster'] -> core: weapons/ranged/corn_cannon/1/corn_cannon_1_stats.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/cheese_grater/cheese_grater.png
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/champagne_popper/champagne_popper.png
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/ice_cream_scoop/3/ice_cream_scoop_3_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/ladle/3/ladle_3_data.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/cheese_grater/4/cheese_grater_4_stats.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/skewer/4/skewer_4_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/ladle/2/ladle_2_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/rolling_pin/3/rolling_pin_3_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/fish_slapper/3/fish_slapper_3_data.tres
+- DEAD (unreferenced by any shippable file) - not shipped: weapons/melee/frying_pan/frying_pan_effect_1.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/sauce_blaster/4/sauce_blaster_4_fooddrop.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/golden_spatula/4/golden_spatula_4_fooddrop.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/4/frying_pan_4_stats.tres
+- DEAD (unreferenced by any shippable file) - not shipped: items/custom_characters/test_debt/test_debt_effect_6.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/meat_tenderizer/4/meat_tenderizer_4_data.tres
+- DEAD (unreferenced by any shippable file) - not shipped: weapons/ranged/galley_cannon/galley_cannon_effect_0.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/pizza_cutter/2/pizza_cutter_2_data.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/galley_cannon/2/galley_cannon_2_effect_0.tres
+- shared by packs ['food', 'fortune', 'roster'] -> core: weapons/ranged/pizza_cutter/1/pizza_cutter_1_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/cleaver/1/cleaver_1_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/fish_slapper/4/fish_slapper_4_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/ice_cream_scoop/3/ice_cream_scoop_3_fooddrop.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/champagne_popper/champagne_popper.tscn
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: items/sets/culinary/culinary_bonus_2.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/corn_cannon/2/corn_cannon_2_stats.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/skewer/3/skewer_3_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/dinner_bell/4/dinner_bell_4_effect_0.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/1/frying_pan_1_fooddrop.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/trident_fork/2/trident_fork_2_data.tres
+- shared by packs ['food', 'roster'] -> core: weapons/melee/cheese_grater/1/cheese_grater_1_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/fish_slapper/2/fish_slapper_2_fooddrop.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/baguette/baguette.tscn
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/cheese_grater/cheese_grater_icon.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/dinner_bell/3/dinner_bell_3_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/3/frying_pan_3_stats.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/cheese_grater/2/cheese_grater_2_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/4/frying_pan_4_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/whisk/3/whisk_3_fooddrop.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/ice_cream_scoop/4/ice_cream_scoop_4_effect_0.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/rolling_pin/2/rolling_pin_2_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/sauce_blaster/sauce_blaster.tscn
+- shared by packs ['food', 'forge'] -> core: weapons/melee/meat_tenderizer/4/meat_tenderizer_4_effect_0.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/pizza_cutter/3/pizza_cutter_3_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/butchers_saw/butchers_saw_icon.png
+- DEAD (unreferenced by any shippable file) - not shipped: weapons/melee/butchers_saw/butchers_saw_effect_0.tres
+- core-pinned (referenced by Core code) despite pack claim roster: items/custom_characters/special/special_icon.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/butchers_saw/butchers_saw.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/4/frying_pan_4_effect_0.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/pizza_cutter/pizza_cutter.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/ladle/2/ladle_2_data.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/pizza_cutter/3/pizza_cutter_3_fooddrop.tres
+- DEAD (unreferenced by any shippable file) - not shipped: weapons/ranged/pizza_cutter/1/pizza_cutter_1_effect.tres
+- DEAD (unreferenced by any shippable file) - not shipped: weapons/ranged/sauce_blaster/sauce_blaster_projectile.tscn
+- shared by packs ['food', 'forge'] -> core: weapons/melee/fish_slapper/3/fish_slapper_3_fooddrop.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/sauce_blaster/sauce_blaster_icon.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/whisk/whisk.png
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/pizza_cutter/pizza_cutter.tscn
+- shared by packs ['food', 'forge'] -> core: weapons/melee/cleaver/3/cleaver_3_effect_0.tres
+- DEAD (unreferenced by any shippable file) - not shipped: weapons/melee/cleaver/cleaver_effect_0.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/corn_cannon/4/corn_cannon_4_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/whisk/1/whisk_1_fooddrop.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/dinner_bell/dinner_bell.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/whisk/4/whisk_4_fooddrop.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: items/sets/culinary/culinary_bonus_6.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/trident_fork/trident_fork_icon.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/ladle/3/ladle_3_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/frying_pan.png
+- DEAD (unreferenced by any shippable file) - not shipped: weapons/ranged/pizza_cutter/4/pizza_cutter_4_effect.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/rolling_pin/3/rolling_pin_3_fooddrop.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/champagne_popper/4/champagne_popper_4_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/fish_slapper/fish_slapper_icon.png
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/sauce_blaster/3/sauce_blaster_3_fooddrop.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/whisk/4/whisk_4_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/fish_slapper/4/fish_slapper_4_fooddrop.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/frying_pan/4/frying_pan_4_fooddrop.tres
+- unclaimed -> core (leftover): weapons/ranged/sauce_blaster/sauce_blaster_projectile.png
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/sauce_blaster/sauce_blaster_food.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/fish_slapper/fish_slapper.tscn
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/ice_cream_scoop/ice_cream_scoop_projectile.tscn
+- shared by packs ['food', 'forge'] -> core: weapons/melee/fish_slapper/3/fish_slapper_3_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/ladle/ladle.png
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/melee/skewer/2/skewer_2_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/ice_cream_scoop/ice_cream_scoop.png
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/ice_cream_scoop/ice_cream_scoop_icon.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/golden_spatula/golden_spatula.tscn
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/corn_cannon/2/corn_cannon_2_fooddrop.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/galley_cannon/4/galley_cannon_4_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/dinner_bell/dinner_bell.tscn
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/sauce_blaster/3/sauce_blaster_3_stats.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/galley_cannon/galley_cannon_projectile.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/cleaver/4/cleaver_4_data.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/fish_slapper/1/fish_slapper_1_fooddrop.tres
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/galley_cannon/galley_cannon.png
+- shared by packs ['food', 'forge'] -> core: weapons/melee/trident_fork/4/trident_fork_4_stats.tres
+- shared by packs ['food', 'fortune', 'roster'] -> core: weapons/ranged/champagne_popper/1/champagne_popper_1_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/trident_fork/2/trident_fork_2_stats.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/ice_cream_scoop/ice_cream_scoop.tscn
+- shared by packs ['food', 'forge'] -> core: weapons/melee/cleaver/2/cleaver_2_effect_0.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/whisk/2/whisk_2_fooddrop.tres
+- shared by packs ['food', 'forge'] -> core: weapons/ranged/sauce_blaster/4/sauce_blaster_4_stats.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/pizza_cutter/1/pizza_cutter_1_fooddrop.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/meat_tenderizer/meat_tenderizer.png
+- shared by packs ['food', 'forge', 'roster'] -> core: weapons/ranged/galley_cannon/galley_cannon_projectile.tscn
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/pizza_cutter/4/pizza_cutter_4_fooddrop.tres
+- shared by packs ['food', 'forge'] -> core: weapons/melee/rolling_pin/4/rolling_pin_4_data.tres
+- shared by packs ['food', 'forge', 'fortune', 'roster'] -> core: weapons/ranged/champagne_popper/4/champagne_popper_4_stats.tres
+- deliberately unshipped (deregistered content): 41 files; dead unreferenced files: 21
+- food overlays (modified vanilla tag-edit tres): 25
+- translation row WEAPON_FRYING_PAN claimed by ['food', 'forge'] -> core
+- translation row WEAPON_ROLLING_PIN claimed by ['food', 'forge'] -> core
+- translation row WEAPON_WHISK claimed by ['food', 'forge'] -> core
+- translation row WEAPON_LADLE claimed by ['food', 'forge'] -> core
+- translation row WEAPON_DINNER_BELL claimed by ['food', 'forge'] -> core
+- translation row WEAPON_BAGUETTE claimed by ['food', 'forge'] -> core
+- translation row WEAPON_BUTCHERS_SAW claimed by ['food', 'forge'] -> core
+- translation row WEAPON_MEAT_TENDERIZER claimed by ['food', 'forge'] -> core
+- translation row WEAPON_GOLDEN_SPATULA claimed by ['food', 'forge'] -> core
+- translation row WEAPON_TRIDENT_FORK claimed by ['food', 'forge'] -> core
+- translation row WEAPON_FISH_SLAPPER claimed by ['food', 'forge'] -> core
+- translation row WEAPON_SAUCE_BLASTER claimed by ['food', 'forge'] -> core
+- translation row WEAPON_ICE_CREAM_SCOOP claimed by ['food', 'forge'] -> core
+- translation row FRYING_PAN_LUCK claimed by ['food', 'forge'] -> core
+- translation rows: core:159, food:139, forge:13, fortune:2, ledger:11, roster:30
