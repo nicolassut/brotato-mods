@@ -90,7 +90,11 @@ heavy post-process; NEVER outline ground).
 | 17 | plaza decals x6 | decal_[crack/cables/stain/crates/barrels/scrap].png 128x128 | G | scattered, fixed seeds | each: single ground detail, top-down, muted, no outline |
 | 18 | deck edge lip | deck_lip.png 256x32, tiles | G | deck/cliff boundary | "thin metal edge trim with hazard stripe, tileable" |
 
-*standard [O] suffix: "isolated object on transparent background". Every
+*standard [O] suffix (probe-tested 2026-08-18 on the shuttle): "drawn like a
+sticker illustration with smooth flat color areas, no dithering, no texture
+noise, very thick solid black outline, minimal cel shading, isolated on
+transparent background" - the no-dithering/sticker phrasing is what flips
+PixelLab from crunchy pixel-art into Brotato's clean cartoon fields. Every
 generation judged against 3-4 REAL neighbors per the handover before
 acceptance. STYLE-ANCHOR LAW (user, 2026-08-18): reference/style images and
 judging neighbors must be VANILLA assets only (~/brotato-vanilla-reference) -
