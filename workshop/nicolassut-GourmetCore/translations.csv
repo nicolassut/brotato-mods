@@ -121,14 +121,26 @@ ITEM_MEAT_LOCKER,Meat Locker
 ITEM_MEAT_RACK,Meat Rack
 ITEM_MYSTERY_SEASONING,Mystery Seasoning
 ITEM_TEST_ARSENAL,Test Arsenal
+LOBBY_BANK_L1,The bank extends credit: overspend in the shop and the debt rides with you.
+LOBBY_BANK_L2,Every point of debt costs 2 materials to clear - all income goes to repayment first.
+LOBBY_BANK_L3,Credit Card raises your limit. Bank Loan pays now and hurts later.
 LOBBY_BLDG_GREMLIN,The Gremlin's Den
+LOBBY_BLDG_PROMPT,[E] Look inside
 LOBBY_BLDG_RESERVED,Coming Soon
 LOBBY_BLDG_VACANT,Vacant
+LOBBY_BOARD,Unlock board
+LOBBY_BOARD_DONE,%d / %d challenges complete
+LOBBY_BOARD_NEXT,Still to do:
+LOBBY_BOARD_PROMPT,[E] Progress
 LOBBY_BOOTH,Changing booth
 LOBBY_BOOTH_PROMPT,[E] Change character
+LOBBY_DINER_INTRO,%d foods on the menu:
 LOBBY_DOOR,Departure
 LOBBY_DOOR_PROMPT,[E] Start a run
+LOBBY_FORGE_LADDER,The 8-tier ladder:
+LOBBY_FORGE_ODDS,Chest odds:
 LOBBY_HUB,Hub
+LOBBY_LOCKED,Locked
 LOBBY_MODE_OFF,OFF
 LOBBY_MODE_ON,ON
 LOBBY_SHRINE,Mode Shrine
@@ -137,6 +149,7 @@ LOBBY_SHRINE_PROMPT,[E] Run modes (%d on)
 LOBBY_SHRINE_TITLE,Choose run modes
 LOBBY_SHUTTLE,Departure shuttle
 LOBBY_SHUTTLE_PROMPT,[E] Take off
+LOBBY_UNLOCKED,Unlocked
 MODE_NONE,No mode
 NO_HEAL,Cannot heal in any way
 P2W_CONTINUE,Continue

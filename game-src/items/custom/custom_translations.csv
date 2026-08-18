@@ -368,3 +368,16 @@ LOBBY_SHRINE_TITLE,Choose run modes
 LOBBY_SHRINE_EMPTY,No modes available yet
 LOBBY_MODE_ON,ON
 LOBBY_MODE_OFF,OFF
+LOBBY_BLDG_PROMPT,[E] Look inside
+LOBBY_BOARD,Unlock board
+LOBBY_BOARD_PROMPT,[E] Progress
+LOBBY_BOARD_DONE,%d / %d challenges complete
+LOBBY_BOARD_NEXT,Still to do:
+LOBBY_FORGE_LADDER,The 8-tier ladder:
+LOBBY_FORGE_ODDS,Chest odds:
+LOBBY_DINER_INTRO,%d foods on the menu:
+LOBBY_BANK_L1,The bank extends credit: overspend in the shop and the debt rides with you.
+LOBBY_BANK_L2,Every point of debt costs 2 materials to clear - all income goes to repayment first.
+LOBBY_BANK_L3,Credit Card raises your limit. Bank Loan pays now and hurts later.
+LOBBY_UNLOCKED,Unlocked
+LOBBY_LOCKED,Locked

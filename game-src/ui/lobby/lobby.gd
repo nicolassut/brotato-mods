@@ -132,12 +132,14 @@ func _build_slot_buildings() -> void :
 		if pack == null or not Utils.packs.is_pack_enabled(pack_id):
 			_spawn_building_placeholder(slot_rect, tr("LOBBY_BLDG_VACANT"), "", false)
 			continue
-		_spawn_building_placeholder(slot_rect, tr(str(pack.lobby_building_name)),
+		var bldg = _spawn_building_placeholder(slot_rect, tr(str(pack.lobby_building_name)),
 				str(pack.lobby_building_icon), true)
+		bldg.set_prompt(tr("LOBBY_BLDG_PROMPT"))
+		var _eb = bldg.connect("interacted", self, "_on_building_interacted", [pack_id, str(pack.lobby_building_name)])
 
 
 func _spawn_building_placeholder(slot_rect: Rect2, display_name: String,
-		icon_path: String, active: bool) -> void :
+		icon_path: String, active: bool):
 	# placeholder-law rendering: the EXACT final footprint as a flat rect,
 	# an existing icon, and the station name plate. Interactions arrive in
 	# step 3; the real carnival-register art is a pure texture swap later.
@@ -151,6 +153,7 @@ func _spawn_building_placeholder(slot_rect: Rect2, display_name: String,
 	if active:
 		npc.add_to_group("lobby_buildings")
 	add_child(npc)
+	return npc
 
 
 func _build_slots() -> void :
@@ -234,6 +237,11 @@ func _build_npcs() -> void :
 	var booth = _spawn_npc("res://items/custom/espresso_machine/espresso_machine.png",
 			BOOTH_POS, tr("LOBBY_BOOTH"), tr("LOBBY_BOOTH_PROMPT"))
 	var _e1 = booth.connect("interacted", self, "_on_booth_interacted")
+
+	# the unlock board (deck east) - challenge progress
+	var board = _spawn_npc("res://items/all/pile_of_books/pile_of_books_icon.png",
+			BOARD_RECT.position + BOARD_RECT.size / 2.0, tr("LOBBY_BOARD"), tr("LOBBY_BOARD_PROMPT"))
+	var _e3 = board.connect("interacted", self, "_on_board_interacted")
 
 	# the game-mode shrine (deck) - interact cycles the mode
 	_shrine = _spawn_npc("res://items/custom_characters/special/special_icon.png",
@@ -366,6 +374,101 @@ func _close_mode_popup() -> void :
 func _update_shrine_prompt() -> void :
 	var count: int = Utils.game_modes.selected_mode_ids().size()
 	_shrine.set_prompt(tr("LOBBY_SHRINE_PROMPT") % count)
+
+
+func _open_info_popup(title_text: String, lines: Array) -> void :
+	if _mode_popup != null:
+		return
+	var layer: = CanvasLayer.new()
+	var panel: = Panel.new()
+	panel.anchor_left = 0.5
+	panel.anchor_top = 0.5
+	panel.anchor_right = 0.5
+	panel.anchor_bottom = 0.5
+	layer.add_child(panel)
+	var box: = VBoxContainer.new()
+	box.rect_position = Vector2(20, 20)
+	panel.add_child(box)
+	var title: = Label.new()
+	title.text = title_text
+	box.add_child(title)
+	var scroll: = ScrollContainer.new()
+	scroll.rect_min_size = Vector2(620, 0)
+	box.add_child(scroll)
+	var body: = VBoxContainer.new()
+	scroll.add_child(body)
+	for line in lines:
+		var label: = Label.new()
+		label.text = str(line)
+		body.add_child(label)
+	var close: = Button.new()
+	close.text = tr("MENU_BACK")
+	var _e = close.connect("pressed", self, "_close_mode_popup")
+	box.add_child(close)
+	close.call_deferred("grab_focus")
+	var height: = int(min(60 + lines.size() * 28, 760))
+	scroll.rect_min_size = Vector2(620, height - 100)
+	panel.rect_size = Vector2(660, height)
+	panel.margin_left = - 330
+	panel.margin_top = - height / 2.0
+	_mode_popup = layer
+	add_child(layer)
+
+
+func _on_building_interacted(pack_id: String, name_key: String) -> void :
+	var lines: = []
+	match pack_id:
+		"forge":
+			var p2w = load("res://items/custom/p2w/p2w_data.gd")
+			lines.push_back(tr("LOBBY_FORGE_LADDER"))
+			for rung in range(1, 9):
+				var tier_value: int = int(p2w.RUNG_TIERS[rung])
+				var count: = 0
+				for weapon in ItemService.weapons:
+					if int(weapon.tier) == tier_value:
+						count += 1
+				lines.push_back("  %d. %s - %d weapons" % [rung, str(p2w.RUNG_NAMES[rung]), count])
+			lines.push_back("")
+			lines.push_back(tr("LOBBY_FORGE_ODDS"))
+			for chest in range(1, 9):
+				var parts: = []
+				for pair in p2w.CHEST_ODDS[chest]:
+					parts.push_back("%s %d%%" % [str(p2w.RUNG_NAMES[int(pair[0])]), int(pair[1])])
+				lines.push_back("  Chest %d: %s" % [chest, PoolStringArray(parts).join(", ")])
+		"food":
+			lines.push_back(tr("LOBBY_DINER_INTRO") % ItemService.foods.size())
+			for food in ItemService.foods:
+				lines.push_back("  " + tr(str(food.name)))
+		"ledger":
+			lines.push_back(tr("LOBBY_BANK_L1"))
+			lines.push_back(tr("LOBBY_BANK_L2"))
+			lines.push_back(tr("LOBBY_BANK_L3"))
+		"roster":
+			var pack = Utils.packs.available_packs.get("roster")
+			for character in pack.characters:
+				var unlocked: bool = ProgressData.characters_unlocked.has(character.my_id_hash)
+				lines.push_back("  %s - %s" % [tr(str(character.name)),
+						tr("LOBBY_UNLOCKED") if unlocked else tr("LOBBY_LOCKED")])
+		_:
+			return
+	_open_info_popup(tr(name_key), lines)
+
+
+func _on_board_interacted() -> void :
+	var total: int = ChallengeService.challenges.size()
+	var done: = 0
+	var todo: = []
+	for challenge in ChallengeService.challenges:
+		if ProgressData.challenges_completed.has(challenge.my_id_hash):
+			done += 1
+		elif todo.size() < 8:
+			todo.push_back("  " + tr(str(challenge.name)))
+	var lines: = [tr("LOBBY_BOARD_DONE") % [done, total], ""]
+	if not todo.empty():
+		lines.push_back(tr("LOBBY_BOARD_NEXT"))
+		for entry in todo:
+			lines.push_back(entry)
+	_open_info_popup(tr("LOBBY_BOARD"), lines)
 
 
 func _unhandled_input(event: InputEvent) -> void :

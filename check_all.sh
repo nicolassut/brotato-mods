@@ -52,7 +52,7 @@ LSMOKE="$(mktemp)"
 if grep -qiE "parse error|script error" "$LSMOKE"; then
   echo "LOBBY ERRORS:"; grep -iE "parse error|script error" "$LSMOKE" | head -10; exit 1
 fi
-grep -q "Lobby ready: 3 station(s), 4 building(s), 6 slots" "$LSMOKE" || { echo "FAIL: lobby ready line wrong (want 3 stations, 4 pack buildings all-on (fortune merged into forge), 6 slot anchors)"; grep "Lobby ready" "$LSMOKE" || tail -10 "$LSMOKE"; exit 1; }
+grep -q "Lobby ready: 4 station(s), 4 building(s), 6 slots" "$LSMOKE" || { echo "FAIL: lobby ready line wrong (want 4 stations (shuttle+booth+shrine+board), 4 pack buildings all-on (fortune merged into forge), 6 slot anchors)"; grep "Lobby ready" "$LSMOKE" || tail -10 "$LSMOKE"; exit 1; }
 grep "Lobby ready:" "$LSMOKE"
 
 echo ""
