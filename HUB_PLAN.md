@@ -29,25 +29,39 @@ waiting for rescue. The Hub is the outpost the survivors built from wreckage:
         +--------------------------------------------------+
         |  UPPER DECK (drawn north, behind a scrap ledge)   |
         |  [Mode shrine]   [DEPARTURE SHUTTLE]  [Unlock bd] |
-        +--[stairs L]----------------------------[stairs R]-+
+        +--[stairs L]--[CHANGING BOOTH]----------[stairs R]-+
         |  LOWER PLAZA                                      |
-        |  [Smithy ]                            [Diner   ]  |
-        |  [Bank   ]        (FOUNTAIN)          [Gremlin ]  |
-        |  [Bar    ]     [roster idlers]        [Entrance]  |
-        |                [Changing booth]                   |
+        |  [slot: smithy ]                  [slot: diner  ] |
+        |  [slot: bank   ]    (FOUNTAIN)    [slot: gremlin] |
+        |  [slot: RESERVED]                 [slot: bunkhs ] |
+        |                  [HUB ENTRANCE]                   |
         +--------------------------------------------------+
 ```
 
 - Elevation is FAKED, Brotato-style: the deck is a raised band at the top of
   the map behind a wall edge; stairs are walkable ramps gated by collision.
-  No new visual language beyond that - the game is flat top-down everywhere.
-- Scene ~1.5 screens tall; Camera2D follows the players (solo: the player;
-  coop: midpoint of all avatars, clamped to map bounds).
-- Stations pair across the plaza (smithy/bank left, diner/gremlin right) so no
-  single disabled pack empties a side. A disabled pack's station is replaced by
-  a VACANT STALL sprite (boarded-up) - one extra asset that makes every install
-  combo look intentional instead of leaving holes. Hidden-when-disabled law
-  applies to the NPC + interaction; the vacant prop is scenery, not UI.
+- The CHANGING BOOTH sits against the back wall between the two staircases
+  (PvZ Garden Warfare 2 style) - visible from the whole plaza.
+- The ENTRANCE is at the bottom center; you walk in facing the fountain with
+  the shuttle visible at the top - the whole pre-flight path reads at a glance.
+- Scene ~1.5 screens tall; Camera2D follows (solo: the player; coop: midpoint
+  of all avatars, clamped to map bounds).
+
+### The SLOT SYSTEM (expandability law)
+
+Pack buildings are NOT hardcoded set-dressing. The plaza has FIXED SLOT
+ANCHORS (Position2D markers in lobby.tscn, slot_1..slot_6 today, trivially
+extensible). A registry maps pack_id -> slot index; at hub load each slot:
+- pack installed + enabled  -> that pack's building scene (via
+  PackData.lobby_npcs: building scene + interaction)
+- pack missing/disabled     -> VACANT BUILDING art (boarded-up)
+- unassigned slot           -> RESERVED building art (future content)
+
+Current assignment: slot 1 smithy (forge), slot 2 bank (ledger),
+slot 3 RESERVED, slot 4 diner (food), slot 5 gremlin den (fortune),
+slot 6 bunkhouse (roster). New packs claim free slots by registry entry only -
+no scene surgery. Buildings must fit a COMMON FOOTPRINT (uniform anchor size)
+so any building drops into any slot.
 
 ## 3. Run flow (amends the 2026-08-18 flow law - user-approved)
 
@@ -77,67 +91,79 @@ The Hub is functionally ETG's Breach: your hub character IS your run character.
 | Station | Pack | Interaction | Coop behavior | Despawn |
 |---|---|---|---|---|
 | Departure shuttle | core | enter run flow at weapon select | any player triggers; vanilla coop weapon/difficulty UIs carry consensus | never |
-| Changing booth | core | opens vanilla character select (all players) | the select screen is the coop join point, as vanilla | never |
+| Changing booth (back wall) | core | opens vanilla character select (all players) | the select screen is the coop join point, as vanilla | never |
 | Mode shrine | core | per-player game-mode pages (dialog) | one page per active player, FocusEmulator base per popup | never |
 | Unlock board | core | read-only unlock/challenge progress (reads challenges_completed, reuses unlock ceremony art) | opener controls; others keep walking | never |
-| Chef's diner | food | food/spawner showcase dialog | opener controls | vacant stall |
-| Chest gremlin | fortune | chest odds preview (RUNG_BY_ID live data) | opener controls | vacant stall |
-| The smithy | forge | tier-ladder gallery (8 rungs) | opener controls | vacant stall |
-| The bank | ledger | debt economy explainer / stats | opener controls | vacant stall |
-| Roster corner | roster | ambient idlers around the fountain, small barks | n/a (scenery) | absent |
-| The bar / Proprietor | core (capstone: all six) | barkeep dialog; with all six packs enabled gains the capstone unlock line; later becomes playable (ECOSYSTEM) | opener controls | never (dialog degrades) |
+| Chef's diner (slot 4) | food | food/spawner showcase dialog | opener controls | vacant building |
+| Chest gremlin den (slot 5) | fortune | chest odds preview (RUNG_BY_ID live data) | opener controls | vacant building |
+| The smithy (slot 1) | forge | tier-ladder gallery (8 rungs) | opener controls | vacant building |
+| The bank (slot 2) | ledger | debt economy explainer / stats | opener controls | vacant building |
+| The bunkhouse (slot 6) | roster | roster cast showcase; cast members idle around it, small barks | opener controls | vacant building |
+| Reserved (slot 3) | - | none yet ("something else in the future" - user) | - | reserved building art |
 | Fountain | core | scenery (maybe a gag interact later) | n/a | never |
+
+No bar in v1 (user call). The Proprietor full-collection capstone still exists
+as a CONCEPT (ECOSYSTEM) but has no home yet - candidate for the reserved slot
+or a fountain-side NPC later; parked in open decisions.
 
 Coop popup policy (default, user can veto): a station dialog captures ONLY the
 opening player's input; other players keep walking. Mode shrine is the
 exception (per-player pages). Every popup registers as a FocusEmulator focus
 base - the controller-nav law is non-negotiable.
 
-## 5. Art asset inventory (generation comes AFTER this plan is approved)
+## 5. Art - PLACEHOLDER LAW first, generation last
 
-Ordered roughly by size/importance. All through the existing PixelLab pipeline
-+ bake/install scripts; style anchors: codex UI, title background, turret and
-crate sprites.
+**PLACEHOLDER LAW (user, 2026-08-18): nothing is generated until the hub works
+end-to-end on placeholders.** Placeholders are, in preference order:
+1. existing in-game sprites (street_vendor, crates, turret stands, codex
+   panels - the current lobby already does this for door/shrine)
+2. simple authored SVG/PNG shapes (flat fills in the target palette, correct
+   FOOTPRINT SIZES so real art swaps in without layout changes)
+Placeholders must respect the final footprint dimensions - they are stand-ins,
+not throwaways: every collision shape, slot anchor and interaction area is
+final from step 1.
 
-1. Ground/background: lower plaza floor + upper deck band + scrap wall edge +
-   map border walls (one large background painting OR tile set - decide at art
-   time based on pipeline results; Brotato zones suggest big flat areas + props)
+Generation inventory (only at step 6, art handovers read first; style anchors:
+codex UI, title background, turret/crate sprites):
+1. Ground/background: plaza floor + deck band + scrap wall edge + borders
 2. Twin staircases (L/R mirrored)
-3. Departure shuttle (the flying craft; idle anim nice-to-have: engine flicker)
-4. Fountain/statue centerpiece (idle anim nice-to-have: liquid dribble)
-5. Changing booth (curtained booth / pod)
-6. Station stalls x5: smithy, bank, diner, gremlin den, bar counter
-7. Vacant stall variant (boarded-up)
-8. Mode shrine (exists as placeholder - real art pass)
-9. Unlock board (billboard; reuses unlock-ceremony iconography)
-10. NPC sprites x5: chef, chest gremlin, blacksmith, banker, the Proprietor
-    (roster idlers REUSE existing character bodies - zero new art)
-11. Signage/props: neon signs per stall, crates, wreckage bits, benches
-12. Optional: ambient alien critter for life
+3. Departure shuttle (a FLYING craft; idle engine-flicker nice-to-have)
+4. Fountain/statue centerpiece (subject TBD)
+5. Changing booth (curtained booth/pod against the wall)
+6. Pack buildings x5 on a COMMON FOOTPRINT: smithy, bank, diner, gremlin den,
+   bunkhouse
+7. Vacant building + reserved building variants (same footprint)
+8. Mode shrine + unlock board (real art pass over placeholders)
+9. NPC sprites x4: chef, chest gremlin, blacksmith, banker (roster idlers
+   REUSE existing character bodies - zero new art)
+10. Signage/props: neon signs, crates, wreckage, benches
 
 ## 6. Build order (each step ends with gates green, game shippable)
 
-1. FLOW REWORK first, placeholder art: last_played_characters persistence +
+1. FLOW REWORK on placeholders: last_played_characters[4] persistence +
    well_rounded default; booth -> character_selection wiring (+ coop join
    verified); shuttle -> weapon-select entry; Back paths; camera follow +
    clamp; coop avatars (2-4). Extend check_all gate 6 (lobby smoke) to assert
-   station count + booth/shuttle presence.
-2. STATION FRAMEWORK: PackData.lobby_npcs registration (scene + spawn marker +
-   requires_packs), vacant-stall fallback, dialogs via popin_manager with
-   FocusEmulator bases, mode shrine per-player pages, unlock board data flow.
-3. PACK STATION CONTENT: the five pack dialogs (diner/gremlin/smithy/bank) +
-   Proprietor dialog + roster idlers.
-4. ART PASS: generate per inventory above (art handovers first), install via
+   booth/shuttle/slot-anchor presence.
+2. SLOT SYSTEM: slot anchors in lobby.tscn, registry, PackData.lobby_npcs
+   building registration, vacant/reserved fallbacks - all placeholder art.
+3. STATION CONTENT: the five pack dialogs + mode shrine pages + unlock board
+   data flow - still placeholder art.
+4. LAYOUT PROOF: full walkthrough (solo + 4p coop) on placeholders; user
+   signs off the map feel BEFORE any generation.
+5. COOP POLISH PASS: every station 2-4 players.
+6. ART PASS: generate per section 5 inventory (handovers first), install via
    builders, two-tree sync, check_sync green.
-5. COOP POLISH PASS: full 2-4 player walkthrough of every station.
-6. Workshop packaging: the hub already ships in Core; regenerate workshop +
+7. Workshop packaging: hub ships in Core; regenerate workshop +
    check_workshop.sh after every engine-touching step.
 
 ## 7. Open micro-decisions (defaults chosen, user can veto any time)
 
 - Statue subject/gag for the fountain (default: heroic First Potato statue)
-- Station display names (working names above are placeholders-ish)
+- What eventually fills the RESERVED slot 3 ("something else in the future")
+- The Proprietor capstone's new home (bar was cut) - reserved slot? fountain?
+- Bunkhouse name + exact roster interaction
+- Station display names generally (working names)
 - Coop popup policy (default: opener-controls, others walk)
-- Drop-in join directly in the hub world (v2 idea; v1 joins via booth screen)
-- Vacant stall flavor (boarded-up vs "for rent" sign gag)
-- Fountain gag interact (v2)
+- Drop-in join directly in the hub world (v2; v1 joins via booth screen)
+- Vacant building flavor (boarded-up vs "for rent" gag)
