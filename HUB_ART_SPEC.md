@@ -75,8 +75,12 @@ heavy post-process; NEVER outline ground).
 | 18 | deck edge lip | deck_lip.png 256x32, tiles | G | deck/cliff boundary | "thin metal edge trim with hazard stripe, tileable" |
 
 *standard [O] suffix: "isolated object on transparent background". Every
-generation judged against 3-4 REAL neighbors (street_vendor, turret stands,
-tree) per the handover before acceptance.
+generation judged against 3-4 REAL neighbors per the handover before
+acceptance. STYLE-ANCHOR LAW (user, 2026-08-18): reference/style images and
+judging neighbors must be VANILLA assets only (~/brotato-vanilla-reference) -
+never our own modded art, which may itself drift from the dev style. Vanilla
+anchors: turret.png, landmine.png, parachute.png, tree.png, item icons,
+crash_zone_background.png.
 
 Explicitly NOT generated (reuse/none): avatar bodies (real player pieces),
 roster idlers (existing character appearances), floor colors (flat fills),
