@@ -48,6 +48,22 @@ Stairs are LONG on purpose: a 576px run (96 top landing + 384 cliff descent +
 96 bottom apron) - over 5 player-heights of staircase, reads as a real
 climb. The cliff strip exists so the stairs have something to descend.
 
+## 1b. PALETTE & REGISTER LAW (user-picked, 2026-08-18 - BINDING)
+
+Foundation = board 1, CRASH-SITE CANON. Two dressing registers on top:
+SILLY SHOPS, SERIOUS SPACEPORT.
+
+| register | applies to | anchors (vanilla files) | language |
+|---|---|---|---|
+| FOUNDATION | ground, cliff, stairs, perimeter walls, entrance gate | ui/menus/shop/crash_zone_background.png, entities/structures/turret/turret.png, entities/structures/landmine/landmine.png, entities/units/player/parachute/parachute.png | warm dark dirt, gunmetal scrap, bone/canvas cream, brass-yellow tech details |
+| TECH (codex-like: serious with a wink) | shuttle, shuttle pad, mode shrine, unlock board, booth FRAME | ui/menus/pages/menu_codex/codex_menu_shelf.png, codex_menu_cable.png, grid_graph.png, items/all/cyberball/cyberball_icon.png, items/all/power_generator/power_generator_icon.png | dark panels, visible cables, small screens with grid graphs, hazard brass accents, riveted frames - functional first, one silly beat max |
+| CARNIVAL (silly) | the 6 pack buildings' identities + signage, fountain statue gag, booth CURTAIN/marquee | items/all/gummy_berserker/gummy_berserker_icon.png, candy_bag_icon.png, jelly_icon.png, lucky_charm_icon.png, adrenaline_icon.png | saturated candy colors, wonky hand-painted signs, faces on things that should not have faces |
+
+Register rules: a TECH asset may carry ONE carnival wink (a sticker, a dumb
+warning label) - never candy colors on its body. A CARNIVAL building sits on
+FOUNDATION materials (scrap frame) with carnival dressing on top. Judging
+neighbors come from the SAME register's anchor list.
+
 ## 2. Asset inventory - the complete generation list
 
 Ground rule from the base game: GROUND is flat color + sparse decals (no
@@ -59,18 +75,18 @@ heavy post-process; NEVER outline ground).
 
 | # | asset | file (final px) | class | placement | prompt core (+ standard suffix*) |
 |---|---|---|---|---|---|
-| 1 | cliff face segment | cliff_seg.png 256x256, tiles horizontally | G | cliff strip, ~8 tiles + stairs replace 2 each side | "sheer retaining wall built from riveted scrap metal plates and girders, seen front-on, dark rusted steel, horizontal seam lines, subtle top edge lip, tileable left-right, muted colors, no outline" |
-| 2 | staircase west | stairs_w.png 256x576 (east = mirror) | O | STAIR rects | "long straight industrial staircase descending toward viewer, wide flat metal steps with scrap plate risers, side rails of welded pipes, seen front-on slight top-down, thick black outline on rails and step edges" |
-| 3 | shuttle pad | shuttle_pad.png 560x384 | G | deck center | "circular rocket landing pad painted on metal deck, worn yellow-black hazard ring, scorch marks radiating from center, bolt seams, seen from above, flat muted colors, no outline" |
-| 4 | the shuttle | shuttle.png 420x300 | O | on pad, nose up-right | "small stout cartoon spaceship shuttle parked at an angle, round cockpit window, dented hull plates with rivets, two stubby landing legs, slight three-quarter view, wonky hand-drawn shape, thick chunky black outline, flat cartoon colors" |
-| 5 | changing booth | booth.png 224x256 | O | cliff base center | "narrow fairground changing booth with drawn curtain, scrap metal frame, small marquee light bulbs on top, front-facing slight top-down, wonky hand-drawn, thick black outline, flat cartoon colors" |
-| 6 | mode shrine | shrine.png 192x224 | O | deck west | "small strange alien altar made of stacked scrap and one glowing dial, front-facing, wonky, thick black outline, flat cartoon colors" |
-| 7 | unlock board | board.png 384x224 | O | deck east | "wide notice board made of welded scrap with pinned papers and one cracked screen, on two girder legs, front-facing, thick black outline, flat cartoon colors" |
-| 8 | fountain | fountain.png 384x320 | O | plaza center | "round scrap-metal fountain basin, heroic cartoon potato statue on pedestal in the center holding a tiny flag, dribbling liquid, slight three-quarter view, wonky, thick black outline, flat cartoon colors" |
-| 9-13 | pack buildings x5 | bldg_smithy/bank/diner/gremlin/bunkhouse.png each 416x352 | O | slots per registry | shared frame: "squat front-facing shack built from ship wreckage, [IDENTITY], big hand-painted sign, slight top-down, wonky hand-drawn, thick chunky black outline, flat cartoon colors". IDENTITY per pack: smithy "open forge glow, anvil, chimney"; bank "barred teller window, vault door, coin sign"; diner "serving hatch, steam, giant fork sign"; gremlin den "purple tent-shack, stacked lootboxes, keyhole sign"; bunkhouse "triple bunk visible through door, laundry line with tiny capes" |
-| 14 | vacant building | bldg_vacant.png 416x352 | O | any empty pack slot | same frame: "boarded-up shack, planks over window, faded FOR RENT sign" |
-| 15 | reserved building | bldg_reserved.png 416x352 | O | slot 3 | same frame: "shack under construction, scaffolding, tarp, COMING SOON sign" |
-| 16 | entrance gate | gate.png 384x160 | O | bottom wall center | "wide open gate frame of two girder pylons and a battered arch sign, front-facing, thick black outline, flat cartoon colors" |
+| 1 | cliff face segment | cliff_seg.png 256x256, tiles horizontally | G/FOUNDATION | cliff strip, ~8 tiles + stairs replace 2 each side | "sheer retaining wall built from riveted scrap metal plates and girders, seen front-on, dark rusted steel, horizontal seam lines, subtle top edge lip, tileable left-right, muted colors, no outline" |
+| 2 | staircase west | stairs_w.png 256x576 (east = mirror) | O/FOUNDATION | STAIR rects | "long straight industrial staircase descending toward viewer, wide flat metal steps with scrap plate risers, side rails of welded pipes, seen front-on slight top-down, thick black outline on rails and step edges" |
+| 3 | shuttle pad | shuttle_pad.png 560x384 | G/TECH | deck center | "circular rocket landing pad painted on metal deck, worn yellow-black hazard ring, scorch marks radiating from center, bolt seams, seen from above, flat muted colors, no outline" |
+| 4 | the shuttle | shuttle.png 420x300 | O/TECH | on pad, nose up-right | "small stout cartoon spaceship shuttle parked at an angle, round cockpit window, dented hull plates with rivets, two stubby landing legs, slight three-quarter view, wonky hand-drawn shape, thick chunky black outline, flat cartoon colors" |
+| 5 | changing booth | booth.png 224x256 | O/TECH frame + CARNIVAL curtain | cliff base center | "narrow fairground changing booth with drawn curtain, scrap metal frame, small marquee light bulbs on top, front-facing slight top-down, wonky hand-drawn, thick black outline, flat cartoon colors" |
+| 6 | mode shrine | shrine.png 192x224 | O/TECH | deck west | "small strange alien altar made of stacked scrap and one glowing dial, front-facing, wonky, thick black outline, flat cartoon colors" |
+| 7 | unlock board | board.png 384x224 | O/TECH | deck east | "wide notice board made of welded scrap with pinned papers and one cracked screen, on two girder legs, front-facing, thick black outline, flat cartoon colors" |
+| 8 | fountain | fountain.png 384x320 | O/CARNIVAL | plaza center | "round scrap-metal fountain basin, heroic cartoon potato statue on pedestal in the center holding a tiny flag, dribbling liquid, slight three-quarter view, wonky, thick black outline, flat cartoon colors" |
+| 9-13 | pack buildings x5 | bldg_smithy/bank/diner/gremlin/bunkhouse.png each 416x352 | O/CARNIVAL on FOUNDATION frames | slots per registry | shared frame: "squat front-facing shack built from ship wreckage, [IDENTITY], big hand-painted sign, slight top-down, wonky hand-drawn, thick chunky black outline, flat cartoon colors". IDENTITY per pack: smithy "open forge glow, anvil, chimney"; bank "barred teller window, vault door, coin sign"; diner "serving hatch, steam, giant fork sign"; gremlin den "purple tent-shack, stacked lootboxes, keyhole sign"; bunkhouse "triple bunk visible through door, laundry line with tiny capes" |
+| 14 | vacant building | bldg_vacant.png 416x352 | O/FOUNDATION | any empty pack slot | same frame: "boarded-up shack, planks over window, faded FOR RENT sign" |
+| 15 | reserved building | bldg_reserved.png 416x352 | O/FOUNDATION | slot 3 | same frame: "shack under construction, scaffolding, tarp, COMING SOON sign" |
+| 16 | entrance gate | gate.png 384x160 | O/FOUNDATION | bottom wall center | "wide open gate frame of two girder pylons and a battered arch sign, front-facing, thick black outline, flat cartoon colors" |
 | 17 | plaza decals x6 | decal_[crack/cables/stain/crates/barrels/scrap].png 128x128 | G | scattered, fixed seeds | each: single ground detail, top-down, muted, no outline |
 | 18 | deck edge lip | deck_lip.png 256x32, tiles | G | deck/cliff boundary | "thin metal edge trim with hazard stripe, tileable" |
 
