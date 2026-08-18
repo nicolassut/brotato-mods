@@ -379,6 +379,7 @@ func init_gameplay_options() -> Dictionary:
 		"deactivated_dlcs": [], 
 		"disabled_packs": [], 
 		"selected_game_mode": "", 
+		"last_played_characters": ["", "", "", ""], 
 		"deactivated_skin_sets": [], 
 		"no_item_appearance": false, 
 		"holding_button": true, 

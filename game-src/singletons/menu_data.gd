@@ -14,5 +14,8 @@ var character_selection_scene: String = "res://ui/menus/run/character_selection.
 # begun at the Hub's Departure door so Back returns there.
 var lobby_scene: String = "res://ui/lobby/lobby.tscn"
 var run_flow_from_lobby: bool = false
+# set by the Hub's changing booth: character select stores the picks as hub
+# characters and returns to the Hub instead of continuing to weapon select
+var character_select_for_lobby: bool = false
 var weapon_selection_scene: String = "res://ui/menus/run/weapon_selection.tscn"
 var difficulty_selection_scene: String = "res://ui/menus/run/difficulty_selection/difficulty_selection.tscn"

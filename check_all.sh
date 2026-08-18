@@ -29,6 +29,11 @@ done < <(find game-src -type f)
 [ "$DRIFT" = "0" ] || { echo "FAIL: mirror drift"; exit 1; }
 echo "mirror clean"
 
+echo "== gate 4b: parse every hand-edited script (lazily-loaded scenes included) =="
+PARSE_LIST=$(cd "$REPO/game-src" && find . -name '*.gd' | sed 's|^\./||' | grep -v '^README')
+GOURMET_PARSE_LIST="$PARSE_LIST" "$GODOT" --path "$LIVE" -s "$REPO/asset-dev/check_parse.gd" 2>&1 | grep "PARSE" | tee /tmp/parse_gate.out
+grep -q "PARSE GATE: all" /tmp/parse_gate.out || { echo "FAIL: parse gate"; exit 1; }
+
 echo "== gate 5/6: runtime boot (loads the real save) =="
 SMOKE="$(mktemp)"
 "$GODOT" --path "$LIVE" --quit > "$SMOKE" 2>&1 || { echo "BOOT FAILED"; tail -30 "$SMOKE"; exit 1; }
@@ -44,7 +49,7 @@ LSMOKE="$(mktemp)"
 if grep -qiE "parse error|script error" "$LSMOKE"; then
   echo "LOBBY ERRORS:"; grep -iE "parse error|script error" "$LSMOKE" | head -10; exit 1
 fi
-grep -q "Lobby ready:" "$LSMOKE" || { echo "FAIL: lobby did not reach ready"; tail -10 "$LSMOKE"; exit 1; }
+grep -q "Lobby ready: 3 station(s), 6 slots" "$LSMOKE" || { echo "FAIL: lobby ready line wrong (want 3 stations: shuttle+booth+shrine, 6 slot anchors)"; grep "Lobby ready" "$LSMOKE" || tail -10 "$LSMOKE"; exit 1; }
 grep "Lobby ready:" "$LSMOKE"
 
 echo ""

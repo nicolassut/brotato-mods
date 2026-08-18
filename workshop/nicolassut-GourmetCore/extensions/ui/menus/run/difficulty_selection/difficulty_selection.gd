@@ -20,16 +20,31 @@ func _on_element_pressed(element: InventoryElement, _inventory_player_index: int
 		RunData.init_elites_spawn()
 		RunData.init_events_nightmare()
 		RunData.enabled_dlcs = ProgressData.get_active_dlc_ids()
-	# Gourmet ecosystem - stamp the selected game mode onto every player (the
-	# pre-lobby selector is global; per-player selection arrives with the lobby
-	# mode shrine). Validated against the live registry + pack availability.
-	var selected_mode: String = str(ProgressData.settings.get("selected_game_mode", ""))
-	for mode_player_index in RunData.get_player_count():
-		RunData.players_data[mode_player_index].game_mode_ids = []
-		if selected_mode != "" and not Utils.game_modes.mode_by_id(selected_mode).empty():
-			for available_mode in Utils.game_modes.available_modes():
-				if str(available_mode["id"]) == selected_mode:
-					RunData.players_data[mode_player_index].game_mode_ids.push_back(selected_mode)
+		# (2026-08-18: this block and the one below sat at 1-tab depth, OUTSIDE
+		# the else: branch - a parse error no boot gate ever saw because this
+		# scene only parses when a run starts. Caught by the workshop gate.)
+		# Gourmet ecosystem - stamp the selected game mode onto every player (the
+		# pre-lobby selector is global; per-player selection arrives with the lobby
+		# mode shrine). Validated against the live registry + pack availability.
+		var selected_mode: String = str(ProgressData.settings.get("selected_game_mode", ""))
+		for mode_player_index in RunData.get_player_count():
+			RunData.players_data[mode_player_index].game_mode_ids = []
+			if selected_mode != "" and not Utils.game_modes.mode_by_id(selected_mode).empty():
+				for available_mode in Utils.game_modes.available_modes():
+					if str(available_mode["id"]) == selected_mode:
+						RunData.players_data[mode_player_index].game_mode_ids.push_back(selected_mode)
+		# Gourmet ecosystem - remember each player's character across sessions: the
+		# Hub avatars wear these (HUB_PLAN step 1). This is the single run-start
+		# choke point, so the vanilla Start path keeps them fresh too.
+		var hub_last_played: Array = ProgressData.settings.get("last_played_characters", ["", "", "", ""])
+		while hub_last_played.size() < 4:
+			hub_last_played.push_back("")
+		for lp_index in RunData.get_player_count():
+			var lp_character = RunData.get_player_character(lp_index)
+			if lp_character != null and lp_index < 4:
+				hub_last_played[lp_index] = str(lp_character.my_id)
+		ProgressData.settings.last_played_characters = hub_last_played
+		ProgressData.save_settings()
 		ProgressData.save()
 		for effect in element.item.effects:
 			effect.apply(0)

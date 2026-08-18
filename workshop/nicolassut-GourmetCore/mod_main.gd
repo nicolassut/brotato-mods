@@ -69,6 +69,7 @@ const EXTENSIONS = [
 	"ui/menus/ingame/character_panel_ui.gd",
 	"ui/menus/run/character_selection.gd",
 	"ui/menus/run/difficulty_selection/difficulty_selection.gd",
+	"ui/menus/run/weapon_selection.gd",
 	"ui/menus/shop/button_with_icon.gd",
 	"ui/menus/shop/coop_shop.gd",
 	"ui/menus/shop/item_popup.gd",

@@ -353,3 +353,7 @@ LOBBY_DOOR_PROMPT,[E] Start a run
 LOBBY_SHRINE,Mode Shrine
 LOBBY_SHRINE_PROMPT,[E] Mode: %s
 LOBBY_HUB,Hub
+LOBBY_SHUTTLE,Departure shuttle
+LOBBY_SHUTTLE_PROMPT,[E] Take off
+LOBBY_BOOTH,Changing booth
+LOBBY_BOOTH_PROMPT,[E] Change character

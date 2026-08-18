@@ -70,7 +70,7 @@
   },
   {
    "file": "singletons/progress_data.gd",
-   "diff_lines": 44
+   "diff_lines": 45
   },
   {
    "file": "items/global/item_parent_data.gd",
@@ -93,7 +93,15 @@
    "diff_lines": 31
   },
   {
+   "file": "ui/menus/run/difficulty_selection/difficulty_selection.gd",
+   "diff_lines": 27
+  },
+  {
    "file": "items/global/weapon_data.gd",
+   "diff_lines": 25
+  },
+  {
+   "file": "ui/menus/run/character_selection.gd",
    "diff_lines": 25
   },
   {
@@ -137,10 +145,6 @@
    "diff_lines": 14
   },
   {
-   "file": "ui/menus/run/difficulty_selection/difficulty_selection.gd",
-   "diff_lines": 11
-  },
-  {
    "file": "ui/menus/shop/shop.gd",
    "diff_lines": 11
   },
@@ -165,15 +169,19 @@
    "diff_lines": 8
   },
   {
+   "file": "singletons/menu_data.gd",
+   "diff_lines": 8
+  },
+  {
    "file": "ui/menus/ingame/character_panel_ui.gd",
    "diff_lines": 8
   },
   {
-   "file": "ui/menus/run/character_selection.gd",
-   "diff_lines": 8
+   "file": "entities/units/enemies/enemy.gd",
+   "diff_lines": 7
   },
   {
-   "file": "entities/units/enemies/enemy.gd",
+   "file": "ui/menus/run/weapon_selection.gd",
    "diff_lines": 7
   },
   {
@@ -183,10 +191,6 @@
   {
    "file": "ui/menus/shop/coop_shop_player_container.gd",
    "diff_lines": 6
-  },
-  {
-   "file": "singletons/menu_data.gd",
-   "diff_lines": 5
   },
   {
    "file": "singletons/weapon_service.gd",

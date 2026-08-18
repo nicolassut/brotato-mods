@@ -154,9 +154,10 @@ func _init_players() -> void :
 func _go_back() -> void :
 	RunData.reload_music = false
 	# Gourmet ecosystem - back returns to wherever the run flow started:
-	# the Hub if its Departure door led here, the title screen otherwise
+	# the Hub if its booth/shuttle led here, the title screen otherwise
 	if MenuData.run_flow_from_lobby:
 		MenuData.run_flow_from_lobby = false
+		MenuData.character_select_for_lobby = false
 		var _error = get_tree().change_scene(MenuData.lobby_scene)
 	else:
 		var _error = get_tree().change_scene(MenuData.title_screen_scene)
@@ -215,6 +216,22 @@ func _on_element_pressed(element: InventoryElement, _inventory_player_index: int
 
 
 func _on_selections_completed() -> void :
+	# Gourmet ecosystem - the Hub's changing booth (HUB_PLAN flow law): store
+	# the picks as the hub characters (= last played, persisted) and walk back
+	# out. The run does NOT start here; the shuttle reads this state later.
+	# Coop joins made on this screen persist in RunData play state.
+	if MenuData.character_select_for_lobby:
+		MenuData.character_select_for_lobby = false
+		MenuData.run_flow_from_lobby = false
+		var lobby_last_played: Array = ProgressData.settings.get("last_played_characters", ["", "", "", ""])
+		for player_index in RunData.get_player_count():
+			if player_index < lobby_last_played.size() and _player_characters[player_index] != null:
+				lobby_last_played[player_index] = str(_player_characters[player_index].my_id)
+		ProgressData.settings.last_played_characters = lobby_last_played
+		ProgressData.save_settings()
+		RunData.revert_all_selections()
+		_change_scene(MenuData.lobby_scene)
+		return
 	if (ProgressData.settings.zone_is_random):
 		_setup_zone(ProgressData.settings.zone_selected)
 	for player_index in RunData.get_player_count():
