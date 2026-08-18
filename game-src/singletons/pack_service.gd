@@ -6,7 +6,7 @@ extends Node
 # item_service.tscn); this service applies every enabled pack at boot in a
 # fixed order, then runs the same unlock+pool pairing ProgressData.activate_dlc
 # uses for DLCs. The cached boolean facade below is the guard surface future
-# seams read (`if Packs.food:`).
+# seams read (`if Utils.packs.food:`).
 #
 # Phase 3: persistence (ProgressData.settings.disabled_packs, DLC opt-out
 # pattern), the options-menu toggle UI, the RunData.enabled_packs run snapshot

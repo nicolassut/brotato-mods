@@ -21,7 +21,7 @@ func init():
 func _init_mode_selector() -> void :
 	if _mode_button != null:
 		return
-	var modes: Array = GameModes.available_modes()
+	var modes: Array = Utils.game_modes.available_modes()
 	if modes.empty():
 		return
 	_mode_button = OptionButton.new()

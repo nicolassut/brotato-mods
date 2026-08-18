@@ -18,7 +18,7 @@ func _ready() -> void :
 	# Gourmet ecosystem - packs register HERE, alongside the vanilla DLCs, so
 	# every custom id exists before load_game_file() resolves the saved run.
 	# (Packs' own _ready is only a safety fallback and runs much later.)
-	Packs.apply_at_boot()
+	Utils.packs.apply_at_boot()
 	RunData.reset()
 	if DebugService.generate_full_unlocked_save_file:
 		unlock_all()
@@ -64,7 +64,7 @@ func check_dlc_valid_for_saved_run_state() -> bool:
 	# Gourmet ecosystem - a saved run also needs every PACK it was started with
 	# (old saves without the key were made with everything on and pass vacuously)
 	for saved_pack_id in saved_run_state.get("enabled_packs", []):
-		if not Packs.is_pack_enabled(str(saved_pack_id)):
+		if not Utils.packs.is_pack_enabled(str(saved_pack_id)):
 			return false
 	if saved_run_state.has("current_zone"):
 		var current_zone = saved_run_state.current_zone

@@ -490,24 +490,24 @@ func _init_pack_toggles() -> void :
 	if _pack_buttons.empty():
 		var packs_parent = abyssal_terrors_dlc_button.get_parent()
 		var insert_index: int = abyssal_terrors_dlc_button.get_index() + 1
-		for pack_id in Packs.available_packs:
+		for pack_id in Utils.packs.available_packs:
 			var pack_button: = CheckButton.new()
-			pack_button.text = str(Packs.available_packs[pack_id].display_name) + " pack"
+			pack_button.text = str(Utils.packs.available_packs[pack_id].display_name) + " pack"
 			pack_button.connect("toggled", self, "_on_pack_toggled", [pack_id])
 			packs_parent.add_child(pack_button)
 			packs_parent.move_child(pack_button, insert_index)
 			insert_index += 1
 			_pack_buttons[pack_id] = pack_button
 	for pack_id in _pack_buttons:
-		_pack_buttons[pack_id].set_pressed_no_signal(Packs.is_pack_enabled(pack_id))
+		_pack_buttons[pack_id].set_pressed_no_signal(Utils.packs.is_pack_enabled(pack_id))
 		_pack_buttons[pack_id].disabled = not packs_allowed
 
 
 func _on_pack_toggled(button_pressed: bool, pack_id: String) -> void :
 	if button_pressed:
-		Packs.activate_pack(pack_id)
+		Utils.packs.activate_pack(pack_id)
 	else:
-		Packs.deactivate_pack(pack_id)
+		Utils.packs.deactivate_pack(pack_id)
 
 
 func _on_AbyssalTerrorsDLCButton_toggled(button_pressed):

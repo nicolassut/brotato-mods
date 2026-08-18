@@ -194,21 +194,21 @@ func _refresh_rules_list(player_index: int) -> void :
 	# waves only special_next_mods is populated (so the shop previews what is coming). The
 	# active set is filtered to wave-scoped ids, because the shop-scoped ones in that roll
 	# already did their job in the shop and would be misleading listed under "this wave".
-	var active: Array = SpecialModifiers.stored_ids(Keys.special_active_mods_hash, player_index)
+	var active: Array = Utils.special_modifiers.stored_ids(Keys.special_active_mods_hash, player_index)
 	var ids: Array
 	var heading_text: String
 	if not active.empty():
-		ids = SpecialModifiers.ids_of_life(active, SpecialModifiers.LIFE_WAVE)
+		ids = Utils.special_modifiers.ids_of_life(active, Utils.special_modifiers.LIFE_WAVE)
 		heading_text = "THIS WAVE" if not ids.empty() else "THIS WAVE IS CLEAR"
 	else:
-		ids = SpecialModifiers.stored_ids(Keys.special_next_mods_hash, player_index)
+		ids = Utils.special_modifiers.stored_ids(Keys.special_next_mods_hash, player_index)
 		heading_text = "NEXT WAVE" if not ids.empty() else "NEXT WAVE IS CLEAR"
 	var heading: = Label.new()
 	heading.text = heading_text
 	heading.add_color_override("font_color", Color(0.72, 0.72, 0.72))
 	_rules_list.add_child(heading)
 	for id_hash in ids:
-		var mod: Dictionary = SpecialModifiers.get_by_hash(id_hash)
+		var mod: Dictionary = Utils.special_modifiers.get_by_hash(id_hash)
 		if mod.empty():
 			continue
 		var name_label: = Label.new()

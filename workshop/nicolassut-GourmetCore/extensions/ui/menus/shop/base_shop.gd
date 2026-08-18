@@ -227,7 +227,7 @@ func _on_RerollButton_pressed(player_index: int) -> void :
 	# Gourmet DLC - Farmers' Market banks every reroll for next wave's Fruit Salads,
 	# capped at 10 (each market converts up to 10 banked rerolls into Fruit Salads)
 	RunData.get_player_effects(player_index)[Keys.banked_rerolls_hash] = min(10, RunData.get_player_effects(player_index)[Keys.banked_rerolls_hash] + 1)
-	GourmetTracker.ev("reroll", {"p": player_index, "bank": RunData.get_player_effect(Keys.banked_rerolls_hash, player_index)})
+	Utils.gourmet_tracker.ev("reroll", {"p": player_index, "bank": RunData.get_player_effect(Keys.banked_rerolls_hash, player_index)})
 	for gain_stats in RunData.get_player_effect(Keys.gain_stats_on_reroll_hash, player_index):
 		assert (gain_stats[0] is int)
 		var chance: int = gain_stats[2]
@@ -328,7 +328,7 @@ func _p2w_run_reel_and_open(shop_item: ShopItem, player_index: int) -> void :
 			RunData.add_gold(drop_data.value, player_index)
 	else:
 		buy_item(drop_data, player_index)
-	GourmetTracker.ev("p2w_chest_open", {"p": player_index, "outcome": outcome, "got": drop_data.my_id, "cursed_chest": p2w_entry.get("cursed", false)})
+	Utils.gourmet_tracker.ev("p2w_chest_open", {"p": player_index, "outcome": outcome, "got": drop_data.my_id, "cursed_chest": p2w_entry.get("cursed", false)})
 	# a mirror-duplicated purchase has more chests queued: the next ceremony
 	# opens immediately on the same card
 	if not shop_item.p2w_extra_uids.empty():
@@ -387,7 +387,7 @@ func on_shop_item_bought(shop_item: ShopItem, player_index: int) -> void :
 					shop_item.p2w_extra_uids.push_back(int(p2w_extra.uid))
 			if p2w_mirrors_used > 0:
 				_get_gear_container(player_index).set_items_data(RunData.get_player_items(player_index))
-			GourmetTracker.ev("p2w_chest_buy", {"p": player_index, "rung": p2w_rung, "cursed": p2w_entry.cursed, "paid": shop_item.value, "mirrored": p2w_mirrors_used})
+			Utils.gourmet_tracker.ev("p2w_chest_buy", {"p": player_index, "rung": p2w_rung, "cursed": p2w_entry.cursed, "paid": shop_item.value, "mirrored": p2w_mirrors_used})
 			# the ceremony opens immediately (user spec); cancelling it leaves the
 			# armed card behind, whose next press re-enters the ceremony above
 			_p2w_run_reel_and_open(shop_item, player_index)
@@ -420,7 +420,7 @@ func on_shop_item_bought(shop_item: ShopItem, player_index: int) -> void :
 	if picky_char != null and picky_char.my_id == "character_picky_eater" and shop_item.item_data is ItemData and shop_item.item_data.tags.has("spawner"):
 		if RunData.get_player_effect(Keys.selected_spawner_hash, player_index) == 0:
 			select_spawner(shop_item.item_data, player_index)
-	GourmetTracker.ev("purchase", {"p": player_index, "id": shop_item.item_data.my_id, "paid": shop_item.value, "base": shop_item.item_data.value, "n": RunData.get_player_effect(Keys.shop_purchases_hash, player_index)})
+	Utils.gourmet_tracker.ev("purchase", {"p": player_index, "id": shop_item.item_data.my_id, "paid": shop_item.value, "base": shop_item.item_data.value, "n": RunData.get_player_effect(Keys.shop_purchases_hash, player_index)})
 	# Gourmet DLC - Loyalty Card: record the materials its discount saved (coupon pattern)
 	if shop_item.loyalty_saving > 0:
 		RunData.add_tracked_value(player_index, Keys.generate_hash("item_loyalty_card"), shop_item.loyalty_saving)
@@ -543,7 +543,7 @@ func buy_weapon(item_data: WeaponData, player_index: int) -> void :
 					break  # nothing of this line left to shed; leave the rest to the caller
 				player_gear_container.weapons_container._elements.remove_element(overflow, 1, true)
 				var _dropped = RunData.remove_weapon(overflow, player_index)
-				GourmetTracker.ev("mime_copy_dropped", {"p": player_index, "id": overflow.my_id})
+				Utils.gourmet_tracker.ev("mime_copy_dropped", {"p": player_index, "id": overflow.my_id})
 			_update_stats(player_index)
 			_get_shop_items_container(player_index).reload_shop_items()
 			_on_player_focus_lost(player_index)
@@ -701,7 +701,7 @@ func _forge_weapon(weapon_data: WeaponData, partner: WeaponData, player_index: i
 				forged = dlc_data.curse_item(forged, player_index, false, forge_curse_factor)
 	var new_weapon = RunData.add_weapon(forged, player_index)
 	RunData.add_tracked_value(player_index, Keys.generate_hash("character_blacksmith"), 1)
-	GourmetTracker.ev("blacksmith_forge", {"p": player_index, "a": weapon_data.my_id, "b": partner.my_id, "out": forged.my_id})
+	Utils.gourmet_tracker.ev("blacksmith_forge", {"p": player_index, "a": weapon_data.my_id, "b": partner.my_id, "out": forged.my_id})
 	_update_stats(player_index)
 	_get_shop_items_container(player_index).reload_shop_items()
 	weapons_container._elements.add_element(new_weapon)
@@ -740,7 +740,7 @@ func _auto_merge_to_fit(weapon_id: String, player_index: int) -> void :
 		merges += 1
 		_combine_weapon(pair_seed, player_index, false)
 	if merges > 0:
-		GourmetTracker.ev("mime_cascade_merge", {"p": player_index, "id": weapon_id, "n": merges})
+		Utils.gourmet_tracker.ev("mime_cascade_merge", {"p": player_index, "id": weapon_id, "n": merges})
 
 
 
@@ -880,7 +880,7 @@ func select_spawner(item_data: ItemData, player_index: int) -> void :
 	for selection_effect in item_data.effects:
 		if selection_effect.custom_key.begins_with("consumable_food_"):
 			RunData.get_player_effects(player_index)[Keys.selected_spawner_hash] = Keys.generate_hash(selection_effect.custom_key)
-			GourmetTracker.ev("spawner_selected", {"p": player_index, "id": item_data.my_id})
+			Utils.gourmet_tracker.ev("spawner_selected", {"p": player_index, "id": item_data.my_id})
 			# Gourmet DLC - Set Menu is consumed on use; Picky Eater picks for free via his trait
 			var spawner_char = RunData.get_player_character(player_index)
 			var picks_for_free: bool = spawner_char != null and spawner_char.my_id == "character_picky_eater"
@@ -1016,9 +1016,9 @@ func _on_tree_exited() -> void :
 		if not RunData.has_wildcard_flow(special_index):
 			continue
 		var sp_effects: Dictionary = RunData.get_player_effects(special_index)
-		var shop_ids: Array = SpecialModifiers.stored_ids(Keys.special_shop_mods_hash, special_index)
+		var shop_ids: Array = Utils.special_modifiers.stored_ids(Keys.special_shop_mods_hash, special_index)
 		if not shop_ids.empty():
-			SpecialModifiers.unapply_ids(shop_ids, special_index)
+			Utils.special_modifiers.unapply_ids(shop_ids, special_index)
 			sp_effects[Keys.special_shop_mods_hash] = []
 	for player_index in range(RunData.get_player_count()):
 		var curse_locked_items: int = RunData.get_player_effect(Keys.curse_locked_items_hash, player_index)

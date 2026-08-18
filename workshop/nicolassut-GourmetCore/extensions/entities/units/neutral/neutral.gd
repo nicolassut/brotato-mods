@@ -21,8 +21,8 @@ func _apply_butcher_meat_rack() -> void :
 		return
 	if not has_meta("orig_tree_tex"):
 		set_meta("orig_tree_tex", spr.texture)
-	if ButcherSkin.is_butcher_in_run():
-		var meat = ButcherSkin.world_texture("meat_rack_ingame")
+	if Utils.butcher_skin.is_butcher_in_run():
+		var meat = Utils.butcher_skin.world_texture("meat_rack_ingame")
 		if meat != null:
 			spr.texture = meat
 	else:

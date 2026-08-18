@@ -23,7 +23,7 @@ var overtime_pay_gold_this_wave: int = 0
 # can show real progress instead of a weapon count.
 var active_set_points = {}
 
-# Gourmet ecosystem - game modes active for this player (GameModes.REGISTRY ids)
+# Gourmet ecosystem - game modes active for this player (Utils.game_modes.REGISTRY ids)
 var game_mode_ids: = []
 
 
@@ -215,7 +215,7 @@ func deserialize(data: Dictionary) -> PlayerRunData:
 	game_mode_ids = []
 	for saved_mode_id in data.get("game_mode_ids", []):
 		# defensive: strip ids no longer registered (old saves, renamed modes)
-		if not GameModes.mode_by_id(str(saved_mode_id)).empty():
+		if not Utils.game_modes.mode_by_id(str(saved_mode_id)).empty():
 			game_mode_ids.push_back(str(saved_mode_id))
 	if data.has("banned_items"):
 		banned_items = data.banned_items.duplicate()

@@ -615,7 +615,7 @@ func reset(restart: bool = false) -> void :
 		set_coop_run(false)
 		is_endless_run = false
 		enabled_dlcs = ProgressData.get_active_dlc_ids()
-		enabled_packs = Packs.enabled_pack_ids()
+		enabled_packs = Utils.packs.enabled_pack_ids()
 		current_difficulty = 0
 		ProgressData.reset_dlc_resources_to_active_dlcs()
 	else:
@@ -1130,7 +1130,7 @@ func add_item(item: ItemData, player_index: int, is_selection: bool = false) -> 
 				add_gold(500, player_index, true)
 				add_debt(300, player_index)
 				loan_effect.value = 0
-				GourmetTracker.ev("bank_loan_used", {"p": player_index})
+				Utils.gourmet_tracker.ev("bank_loan_used", {"p": player_index})
 				break
 
 	players_data[player_index].items.push_back(item)
@@ -1760,7 +1760,7 @@ func _mime_copies_fit(shop_weapon: WeaponData, player_index: int, copies: int) -
 
 
 # Gourmet DLC - The Special (character #18): every wave rolls random modifiers.
-# Gourmet ecosystem - game modes (GameModes.REGISTRY ids per player)
+# Gourmet ecosystem - game modes (Utils.game_modes.REGISTRY ids per player)
 func is_game_mode_active(mode_id: String, player_index: int) -> bool:
 	if player_index < 0 or player_index >= players_data.size():
 		return false

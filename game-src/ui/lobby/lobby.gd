@@ -88,7 +88,7 @@ func _on_door_interacted() -> void :
 func _on_shrine_interacted() -> void :
 	# cycle: none -> each available mode -> none. Persisted immediately; the
 	# run start stamps it per player (difficulty_selection).
-	var modes: Array = GameModes.available_modes()
+	var modes: Array = Utils.game_modes.available_modes()
 	var current: String = str(ProgressData.settings.get("selected_game_mode", ""))
 	var cycle: Array = [""]
 	for mode in modes:
@@ -101,7 +101,7 @@ func _on_shrine_interacted() -> void :
 
 func _update_shrine_prompt() -> void :
 	var current: String = str(ProgressData.settings.get("selected_game_mode", ""))
-	var mode: Dictionary = GameModes.mode_by_id(current)
+	var mode: Dictionary = Utils.game_modes.mode_by_id(current)
 	var mode_name: String = tr("MODE_NONE") if mode.empty() else str(mode["name"])
 	_shrine.set_prompt(tr("LOBBY_SHRINE_PROMPT") % mode_name)
 

@@ -32,7 +32,7 @@ func available_modes() -> Array:
 	for mode in REGISTRY:
 		var packs_ok: bool = true
 		for required_id in mode["requires_packs"]:
-			if not Packs.is_pack_enabled(str(required_id)):
+			if not Utils.packs.is_pack_enabled(str(required_id)):
 				packs_ok = false
 		if packs_ok:
 			result.push_back(mode)

@@ -55,7 +55,7 @@ var banned_items: = []
 var chal_recycling_current: = 0
 var consumables_picked_up_this_run: = 0
 var curse_locked_shop_items_pity: = 0
-# Gourmet ecosystem - game modes active for this player (GameModes.REGISTRY ids)
+# Gourmet ecosystem - game modes active for this player (Utils.game_modes.REGISTRY ids)
 var game_mode_ids: = []
 var chal_will_o_the_wisp: = 0
 
@@ -283,7 +283,7 @@ func deserialize(data: Dictionary) -> PlayerRunData:
 	game_mode_ids = []
 	for saved_mode_id in data.get("game_mode_ids", []):
 		# defensive: strip ids no longer registered (old saves, renamed modes)
-		if not GameModes.mode_by_id(str(saved_mode_id)).empty():
+		if not Utils.game_modes.mode_by_id(str(saved_mode_id)).empty():
 			game_mode_ids.push_back(str(saved_mode_id))
 
 	if data.has("banned_items"):

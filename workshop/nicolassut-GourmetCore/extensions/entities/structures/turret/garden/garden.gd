@@ -12,8 +12,8 @@ func _ready() -> void :
 		return
 	if not has_meta("orig_garden_tex"):
 		set_meta("orig_garden_tex", spr.texture)
-	if ButcherSkin.is_butcher_in_run():
-		var meat = ButcherSkin.world_texture("meat_locker_ingame")
+	if Utils.butcher_skin.is_butcher_in_run():
+		var meat = Utils.butcher_skin.world_texture("meat_locker_ingame")
 		if meat != null:
 			spr.texture = meat
 	else:

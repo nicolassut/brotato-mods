@@ -65,6 +65,10 @@
    "diff_lines": 57
   },
   {
+   "file": "singletons/utils.gd",
+   "diff_lines": 50
+  },
+  {
    "file": "items/global/item_parent_data.gd",
    "diff_lines": 37
   },
@@ -166,10 +170,6 @@
   },
   {
    "file": "entities/units/enemies/enemy.gd",
-   "diff_lines": 7
-  },
-  {
-   "file": "singletons/utils.gd",
    "diff_lines": 7
   },
   {

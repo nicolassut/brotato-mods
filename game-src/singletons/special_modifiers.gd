@@ -360,7 +360,7 @@ func roll_for_wave(wave: int, player_index: int, blocked_axes: Array = []) -> Ar
 		ids.push_back(Keys.generate_hash(m.id))
 		roll_names.push_back(m.id)
 	if not roll_names.empty():
-		GourmetTracker.ev("wildcard_roll", {"wave": wave, "mods": roll_names})
+		Utils.gourmet_tracker.ev("wildcard_roll", {"wave": wave, "mods": roll_names})
 	return ids
 
 

@@ -11,6 +11,11 @@
 - `singletons/run_data.gd`: synthesized _init() to host injected calls ['_gourmet_merge_init_tracked_items()']
 - `singletons/text.gd`: dict keys_needing_operator: 19 added / 0 changed entries merged at _init
 - `singletons/text.gd`: synthesized _init() to host injected calls ['_gourmet_merge_keys_needing_operator()']
+- `singletons/utils.gd`: new setget declaration packs in extension
+- `singletons/utils.gd`: new setget declaration game_modes in extension
+- `singletons/utils.gd`: new setget declaration gourmet_tracker in extension
+- `singletons/utils.gd`: new setget declaration special_modifiers in extension
+- `singletons/utils.gd`: new setget declaration butcher_skin in extension
 - `ui/menus/ingame/upgrades_ui.gd`: inner class ConsumableToProcess redeclared in child - safe: all reference sites [] ship in the extension
 - `ui/menus/pages/menu_codex.gd`: inner class SortItem redeclared in child - safe: all reference sites ['_pop'] ship in the extension
 - `ui/menus/pages/sort_inventory_button.gd`: inner class SortInventory redeclared in child - safe: all reference sites ['_sort_inventory'] ship in the extension
