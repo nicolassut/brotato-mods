@@ -25,24 +25,27 @@ const DEFAULT_CHARACTER: = "character_well_rounded"
 
 # ALL rects come from HUB_ART_SPEC.md section 1 - placeholder footprints are
 # the FINAL art footprints (placeholder law). Change the spec first.
-const DECK_RECT: = Rect2(-1216, -936, 2432, 420)
-const CLIFF_RECT: = Rect2(-1216, -516, 2432, 256)
-const PLAZA_RECT: = Rect2(-1216, -260, 2432, 1140)
-const STAIR_WEST: = Rect2(-896, -580, 256, 384)
-const STAIR_EAST: = Rect2(640, -580, 256, 384)
-const SHUTTLE_PAD_RECT: = Rect2(-280, -940, 560, 420)
-const SHUTTLE_POS: = Vector2(0, -730)
-const SHRINE_POS: = Vector2(-640, -700)
-const BOARD_RECT: = Rect2(448, -812, 384, 224)
-const BOOTH_POS: = Vector2(0, -240)
-const FOUNTAIN_RECT: = Rect2(-192, 80, 384, 320)
-const GATE_RECT: = Rect2(-192, 864, 384, 160)
+const DECK_RECT: = Rect2(-1216, -936, 2432, 376)
+const CLIFF_RECT: = Rect2(-1216, -560, 2432, 320)
+const PLAZA_RECT: = Rect2(-1216, -240, 2432, 1120)
+const STAIR_WEST: = Rect2(-672, -656, 256, 512)
+const STAIR_EAST: = Rect2(416, -656, 256, 512)
+const SHUTTLE_PAD_RECT: = Rect2(-280, -880, 560, 320)
+const SHUTTLE_POS: = Vector2(0, -720)
+const SHRINE_POS: = Vector2(-880, -700)
+const SHRINE_RECT: = Rect2(-976, -812, 192, 224)
+const BOARD_RECT: = Rect2(688, -812, 384, 224)
+const BOOTH_POS: = Vector2(0, -220)
+const BOOTH_RECT: = Rect2(-112, -348, 224, 256)
+const FOUNTAIN_RECT: = Rect2(-192, 100, 384, 320)
+const GATE_RECT: = Rect2(-192, 832, 384, 160)
 const SLOT_SIZE: = Vector2(416, 352)
+# 2+2+2: two per side column, two flanking the entrance (slot RECT centers)
 const SLOT_POSITIONS: = [
-	Vector2(-880, -20), Vector2(-880, 320), Vector2(-880, 660),
-	Vector2(880, -20), Vector2(880, 320), Vector2(880, 660),
+	Vector2(-980, 40), Vector2(-980, 460), Vector2(-550, 660),
+	Vector2(980, 40), Vector2(980, 460), Vector2(550, 660),
 ]
-const SPAWN_POINT: = Vector2(0, 800)
+const SPAWN_POINT: = Vector2(0, 780)
 
 var _players: = []
 var _camera: Camera2D = null
@@ -71,6 +74,8 @@ func _build_floor() -> void :
 	_rect(SHUTTLE_PAD_RECT, PAD_COLOR)
 	_rect(FOUNTAIN_RECT, SLOT_COLOR)
 	_rect(BOARD_RECT, SLOT_COLOR)
+	_rect(SHRINE_RECT, SLOT_COLOR)
+	_rect(BOOTH_RECT, SLOT_COLOR)
 	_rect(GATE_RECT, CLIFF_COLOR)
 	for slot_pos in SLOT_POSITIONS:
 		_rect(Rect2(slot_pos - SLOT_SIZE / 2.0, SLOT_SIZE), SLOT_COLOR)

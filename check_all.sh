@@ -29,6 +29,9 @@ done < <(find game-src -type f)
 [ "$DRIFT" = "0" ] || { echo "FAIL: mirror drift"; exit 1; }
 echo "mirror clean"
 
+echo "== gate 4a: hub geometry =="
+python3 asset-dev/check_hub_geometry.py
+
 echo "== gate 4b: parse every hand-edited script (lazily-loaded scenes included) =="
 PARSE_LIST=$(cd "$REPO/game-src" && find . -name '*.gd' | sed 's|^\./||' | grep -v '^README')
 GOURMET_PARSE_LIST="$PARSE_LIST" "$GODOT" --path "$LIVE" -s "$REPO/asset-dev/check_parse.gd" 2>&1 | grep "PARSE" | tee /tmp/parse_gate.out

@@ -22,27 +22,30 @@ placeholder layout built from these exact footprints is signed off in play
 ```
 canvas: 2560 x 2000  (x -1280..1280, y -1000..1000)
 perimeter wall ring: 64px thick, all four sides
-DECK        floor: -1216,-936 .. 1216,-516   (2432 x 420, metal)
-CLIFF FACE  strip: -1216,-516 .. 1216,-260   (2432 x 256) <- stairs run this
-PLAZA       floor: -1216,-260 .. 1216, 880   (2432 x 1140, alien dirt)
-bottom wall: y 880..944, ENTRANCE GATE opening 320 wide at x 0 (visual)
-STAIR WEST : rect -896,-580 .. -640,-196  (256 x 384: landing+run+apron)
-STAIR EAST : rect  640,-580 ..  896,-196  (mirrored)
-SHUTTLE PAD: rect -280,-940 ..  280,-520  (560 x 420, floor decal)
-SHUTTLE    : 420 x 300, parked on the pad, center (0,-730)
-MODE SHRINE: 192 x 224 at center (-640,-700)
-UNLOCK BOARD: 384 x 224 against top wall at center (640,-700)
-BOOTH      : 224 x 256 against cliff base, center (0,-240)
-FOUNTAIN   : 384 x 320 at center (0, 240)
-SLOTS (common footprint 416 x 352, buildings face inward):
-  slot_1 (-880, -20)  slot_2 (-880, 320)  slot_3 (-880, 660)   west column
-  slot_4 ( 880, -20)  slot_5 ( 880, 320)  slot_6 ( 880, 660)   east column
-SPAWN      : (0, 800), avatars fan out +-90px per player
+DECK        floor: -1216,-936 .. 1216,-560   (2432 x 376, metal)
+CLIFF FACE  strip: -1216,-560 .. 1216,-240   (2432 x 320) <- stairs run this
+PLAZA       floor: -1216,-240 .. 1216, 880   (2432 x 1120, alien dirt)
+bottom wall: y 880..944, ENTRANCE GATE 384x160 at (-192,832)
+STAIR WEST : rect -672,-656 .. -416,-144  (256 x 512: 96 landing + 320 run + 96 apron)
+STAIR EAST : rect  416,-656 ..  672,-144  (mirrored)
+SHUTTLE PAD: rect -280,-880 ..  280,-560  (560 x 320, flush with deck bottom)
+SHUTTLE    : 420 x 300, parked on the pad, center (0,-720)
+MODE SHRINE: 192 x 224 rect (-976,-812)
+UNLOCK BOARD: 384 x 224 rect (688,-812)
+BOOTH      : 224 x 256 rect (-112,-348), backs onto the cliff face
+FOUNTAIN   : 384 x 320 rect (-192,100)
+SLOTS (common footprint 416 x 352, 2+2+2):
+  slot_1 (-980, 40)  slot_2 (-980, 460)  slot_3 (-550, 660)   west + southwest
+  slot_4 ( 980, 40)  slot_5 ( 980, 460)  slot_6 ( 550, 660)   east + southeast
+SPAWN      : (0, 780), avatars fan out +-90px per player
 camera limits: x +-1280, y -1000..944
+GEOMETRY LAW: rect changes re-run the overlap/alignment checker
+(asset-dev/check_hub_geometry.py) - zero overlaps, band continuity, stairs
+exactly landing+run+apron, everything inside the playable area.
 ```
 
-Stairs are LONG on purpose: a 384px run (64 top landing + 256 cliff descent +
-64 bottom apron) - about 3.5 player-heights of staircase, reads as a real
+Stairs are LONG on purpose: a 512px run (96 top landing + 320 cliff descent +
+96 bottom apron) - nearly 5 player-heights of staircase, reads as a real
 climb. The cliff strip exists so the stairs have something to descend.
 
 ## 2. Asset inventory - the complete generation list
@@ -57,8 +60,8 @@ heavy post-process; NEVER outline ground).
 | # | asset | file (final px) | class | placement | prompt core (+ standard suffix*) |
 |---|---|---|---|---|---|
 | 1 | cliff face segment | cliff_seg.png 256x256, tiles horizontally | G | cliff strip, ~8 tiles + stairs replace 2 each side | "sheer retaining wall built from riveted scrap metal plates and girders, seen front-on, dark rusted steel, horizontal seam lines, subtle top edge lip, tileable left-right, muted colors, no outline" |
-| 2 | staircase west | stairs_w.png 256x384 (east = mirror) | O | STAIR rects | "long straight industrial staircase descending toward viewer, wide flat metal steps with scrap plate risers, side rails of welded pipes, seen front-on slight top-down, thick black outline on rails and step edges" |
-| 3 | shuttle pad | shuttle_pad.png 560x420 | G | deck center | "circular rocket landing pad painted on metal deck, worn yellow-black hazard ring, scorch marks radiating from center, bolt seams, seen from above, flat muted colors, no outline" |
+| 2 | staircase west | stairs_w.png 256x512 (east = mirror) | O | STAIR rects | "long straight industrial staircase descending toward viewer, wide flat metal steps with scrap plate risers, side rails of welded pipes, seen front-on slight top-down, thick black outline on rails and step edges" |
+| 3 | shuttle pad | shuttle_pad.png 560x320 | G | deck center | "circular rocket landing pad painted on metal deck, worn yellow-black hazard ring, scorch marks radiating from center, bolt seams, seen from above, flat muted colors, no outline" |
 | 4 | the shuttle | shuttle.png 420x300 | O | on pad, nose up-right | "small stout cartoon spaceship shuttle parked at an angle, round cockpit window, dented hull plates with rivets, two stubby landing legs, slight three-quarter view, wonky hand-drawn shape, thick chunky black outline, flat cartoon colors" |
 | 5 | changing booth | booth.png 224x256 | O | cliff base center | "narrow fairground changing booth with drawn curtain, scrap metal frame, small marquee light bulbs on top, front-facing slight top-down, wonky hand-drawn, thick black outline, flat cartoon colors" |
 | 6 | mode shrine | shrine.png 192x224 | O | deck west | "small strange alien altar made of stacked scrap and one glowing dial, front-facing, wonky, thick black outline, flat cartoon colors" |
