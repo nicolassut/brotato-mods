@@ -111,6 +111,16 @@ opening player's input; other players keep walking. Mode shrine is the
 exception (per-player pages). Every popup registers as a FocusEmulator focus
 base - the controller-nav law is non-negotiable.
 
+## 4b. Dialog follow-ups (user, 2026-08-18 walkthrough - build AFTER art starts)
+- Dialogs become INTERACTIVE: per-menu activate/deactivate toggles - e.g. the
+  Diner can turn OFF food items appearing in the pool (play vanilla item pool
+  while keeping the pack installed). Effectively per-content-class toggles on
+  top of pack enable/disable - needs design (what is toggleable per station).
+- Unlock board grows toward a codex-like browser (stylish variant of the
+  codex, its own interaction flow), not just a text list.
+- Dialog CONTENTS are a baseline; layout/wording to be redesigned with the
+  codex-register UI skin.
+
 ## 5. Art - PLACEHOLDER LAW first, generation last
 
 **PLACEHOLDER LAW (user, 2026-08-18): nothing is generated until the hub works

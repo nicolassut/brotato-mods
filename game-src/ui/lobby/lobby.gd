@@ -462,7 +462,7 @@ func _on_board_interacted() -> void :
 		if ProgressData.challenges_completed.has(challenge.my_id_hash):
 			done += 1
 		elif todo.size() < 8:
-			todo.push_back("  " + tr(str(challenge.name)))
+			todo.push_back("  " + str(challenge.get_name_text()))
 	var lines: = [tr("LOBBY_BOARD_DONE") % [done, total], ""]
 	if not todo.empty():
 		lines.push_back(tr("LOBBY_BOARD_NEXT"))
