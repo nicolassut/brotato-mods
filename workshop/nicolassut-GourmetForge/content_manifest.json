@@ -281,6 +281,8 @@
   "weapons/ranged/wand/bs2/wand_bs2_data.tres",
   "weapons/ranged/wand/bs4/wand_bs4_data.tres",
   "weapons/ranged/wand/bs7/wand_bs7_data.tres",
-  "weapons/ranged/wand/bs8/wand_bs8_data.tres"
+  "weapons/ranged/wand/bs8/wand_bs8_data.tres",
+  "items/custom_characters/p2w/p2w_data.tres",
+  "packs/synergies/mystery_meal/synergy_data.tres"
  ]
 }

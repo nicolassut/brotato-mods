@@ -1,7 +1,0 @@
-{
- "pack_id": "fortune",
- "resources": [
-  "items/custom_characters/p2w/p2w_data.tres",
-  "packs/synergies/mystery_meal/synergy_data.tres"
- ]
-}

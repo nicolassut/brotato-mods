@@ -21,7 +21,7 @@ import gen_extensions
 import gen_payloads
 REPO = os.path.dirname(HERE)
 OUT = os.path.join(REPO, "workshop")
-PACKS = ["food", "fortune", "forge", "ledger", "roster"]
+PACKS = ["food", "forge", "ledger", "roster"]  # fortune merged into forge (2026-08-18)
 GAME_VERSION = "1.1.15.4"
 
 # files that are PACK data or generated, not Core engine surface

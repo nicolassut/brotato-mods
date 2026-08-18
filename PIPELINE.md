@@ -32,7 +32,7 @@ The mod is becoming an ecosystem of optional packs (`core`, `food`, `fortune`, `
    | 1006-1007 | ledger (credit_card, bank_loan) |
    | 1009-1012 | food (Appetite upgrades) |
    | 1013-1292 | forge (Blacksmith ladder weapons) |
-   | 1293-1295 | fortune (P2W char) + food (gumball colours) |
+   | 1293-1295 | forge (P2W char - fortune merged in) + food (gumball colours) |
    | **1296+** | NEW content: claim the next id AND note the owning pack in the builder |
 
    Known hazard: 824/825 collision (documented in build_characters.py) - never assume

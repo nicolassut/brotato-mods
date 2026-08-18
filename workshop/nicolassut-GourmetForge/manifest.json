@@ -2,7 +2,7 @@
 	"name": "GourmetForge",
 	"namespace": "nicolassut",
 	"version_number": "0.1.0",
-	"description": "Gourmet ecosystem pack: forge (281 resources). Requires GourmetCore.",
+	"description": "Gourmet ecosystem pack: forge (283 resources). Requires GourmetCore.",
 	"website_url": "https://github.com/nicolassut/brotato-mods",
 	"dependencies": [
 		"nicolassut-GourmetCore"

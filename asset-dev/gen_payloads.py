@@ -72,7 +72,7 @@ UNSHIPPED_PREFIXES = tuple(
 OWNER_OVERRIDES = {
     "items/custom/butcher_skin/": "food",
     "items/foods/": "food",
-    "items/custom/p2w/": "fortune",
+    "items/custom/p2w/": "forge",  # fortune merged into forge
 }
 # modified VANILLA files handled by other strategies (never payload)
 MODIFIED_VANILLA_HANDLED = {

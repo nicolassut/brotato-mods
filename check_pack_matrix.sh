@@ -7,10 +7,11 @@ LIVE="$HOME/brotato-decompiled"
 GODOT="$HOME/Applications/Godot3.app/Contents/MacOS/Godot"
 expect_for() {
   case "$1" in
-    all)           echo 'enabled=\[food, forge, fortune, ledger, roster\]' ;;
+    all)           echo 'enabled=\[food, forge, ledger, roster\]' ;;
     none)          echo 'enabled=\[\]' ;;
     food)          echo 'enabled=\[food\]' ;;
-    fortune,forge) echo 'enabled=\[forge, fortune\]' ;;
+    forge)         echo 'enabled=\[forge\]' ;;
+    fortune)       echo 'enabled=\[forge\]' ;;
   esac
 }
 expect_synergy() {
@@ -18,10 +19,13 @@ expect_synergy() {
     all)           echo 'active=\[mystery_meal\] hidden=\[\]' ;;
     none)          echo 'active=\[\] hidden=\[mystery_meal\]' ;;
     food)          echo 'active=\[\] hidden=\[mystery_meal\]' ;;
-    fortune,forge) echo 'active=\[\] hidden=\[mystery_meal\]' ;;
+    forge)         echo 'active=\[\] hidden=\[mystery_meal\]' ;;
+    fortune)       echo 'active=\[\] hidden=\[mystery_meal\]' ;;
   esac
 }
-for COMBO in all none food fortune,forge; do
+# "fortune" combo boots the MERGED-ID ALIAS path (--packs=fortune must
+# resolve to forge - saved runs and settings carry the old id)
+for COMBO in all none food forge fortune; do
   SMOKE="$(mktemp)"
   "$GODOT" --path "$LIVE" --packs="$COMBO" --quit > "$SMOKE" 2>&1 || { echo "FAIL($COMBO): boot died"; tail -20 "$SMOKE"; exit 1; }
   if grep -qiE "parse error|script error" "$SMOKE"; then
@@ -38,4 +42,4 @@ for COMBO in all none food fortune,forge; do
   fi
   echo "PASS($COMBO): $(grep 'PackService:' "$SMOKE" | head -1)"
 done
-echo "PACK MATRIX PASSED (all, none, food, fortune+forge)"
+echo "PACK MATRIX PASSED (all, none, food, forge, fortune-alias)"

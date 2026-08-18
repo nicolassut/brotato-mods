@@ -115,7 +115,7 @@ func _add_wall(rect: Rect2) -> void :
 # slots show the RESERVED building; an assigned-but-unavailable/disabled
 # pack shows the VACANT building. New packs claim a free slot here only.
 const SLOT_ASSIGNMENT: = {
-	1: "forge", 2: "ledger", 4: "food", 5: "fortune", 6: "roster",
+	1: "forge", 2: "ledger", 4: "food", 6: "roster",
 }
 
 

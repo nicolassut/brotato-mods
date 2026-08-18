@@ -22,7 +22,7 @@ Three locked laws (user, 2026-08-17):
    never degraded - unregistered content simply does not exist.
 3. **The lobby is fully specced (below) but built AFTER modularization.**
 
-## Pack partition - 6 packs + core
+## Pack partition - 5 packs + core (originally 6; fortune merged into forge 2026-08-18)
 
 A pack = one feature system plus every piece of content that is worthless without it.
 System-defining characters ship inside their system's pack.
@@ -31,12 +31,11 @@ System-defining characters ship inside their system's pack.
 |---|---|---|
 | `core` | Gourmet Core | Framework only, never user-facing content: PackService/PackData, engine seam hooks, tier-ladder registry, telemetry tracker, (later) game-mode service + lobby framework, translation merge. |
 | `food` | Gourmet | The flagship. Food/spawner/Appetite/buff engine (24 spawners, 27 foods, 21 trigger buckets), Appetite stat + upgrades, pantry items, **culinary weapons** (their set grants Appetite - worthless standalone, so they live here), Butcher meat reskin, food characters: Gourmet, Butcher, Ruminant, Competitive Eater, Picky Eater, Dishwasher, Sweet Potato, Slug (the spawner-biased roster). |
-| `fortune` | Fortune | P2W lootboxes: 8 chests (to be formally registered), reel ceremony, rarity spread (RUNG_BY_ID), The P2W, **Magic Mirror** (its identity is chest duplication). |
-| `forge` | Forge | Blacksmith 8-tier system: 280 ladder weapons, forge logic + UI, Blacksmith. |
+| `forge` | Forge & Fortune | The 8-tier system, both faces (MERGED 2026-08-18, user: Blacksmith and P2W both live on the tier ladder). Forging: 280 ladder weapons, forge logic + UI, Blacksmith. Gambling: P2W lootboxes - 8 chests, reel ceremony, rarity spread (RUNG_BY_ID), The P2W, **Magic Mirror**. Old id `fortune` stays valid via MERGED_PACK_ALIASES (saved runs, settings). |
 | `ledger` | Ledger | Debt economy: global enemy debt scaling, Credit Card / Bank Loan, The Debtor. |
 | `roster` | Party Roster | System-agnostic characters (the "co-op DLC characters" pack): Mime, Mole, Zombie, Tourist, Juggler, Minimalist, Freeloader, Wildcard. Wildcard's 63 modifiers ship here as content; the modifier ENGINE (`special_modifiers.gd`) is core. |
 
-**Full Collection** = a meta-pack whose activation enables all six. No content of its own.
+**Full Collection** = a meta-pack whose activation enables all five. No content of its own.
 
 ## Architecture (near-term, inside the decompile)
 
@@ -87,7 +86,7 @@ Starter synergy ideas (frameworks first, content later; user invents more):
   Unlock: end a run with 0 debt and 20+ Appetite.
 - `food+fortune` -> **Mystery Meal** chest variant + small item set. Unlock: eat 10
   chest-dropped foods.
-- All six -> **The Proprietor**: the lobby barkeep becomes playable. Full-collection capstone.
+- All five -> **The Proprietor**: the lobby barkeep becomes playable. Full-collection capstone.
 
 ## Lobby spec (build in Phase 7, after modularization)
 

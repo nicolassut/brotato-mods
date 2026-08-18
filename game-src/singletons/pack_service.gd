@@ -19,7 +19,11 @@ signal pack_deactivated(pack_id)
 
 const PACKS_DIR: = "res://packs"
 # apply order is fixed so the character-select roster groups deterministically
-const PACK_APPLY_ORDER: = ["food", "fortune", "forge", "ledger", "roster"]
+const PACK_APPLY_ORDER: = ["food", "forge", "ledger", "roster"]
+# Merged pack ids (user, 2026-08-18: Blacksmith + P2W share the 8-tier system,
+# so fortune folded into forge as "Forge & Fortune"). Old ids stay valid in
+# SAVED RUNS (enabled_packs snapshots) and settings.disabled_packs.
+const MERGED_PACK_ALIASES: = {"fortune": "forge"}
 # The character-select order (historical, pre-split). Pack apply order groups
 # customs by pack, which reshuffled the roster (user 2026-08-18) - after every
 # apply the custom characters are re-sorted into THIS order. New characters
@@ -71,7 +75,9 @@ func apply_at_boot() -> void :
 	# enabled = available minus the persisted opt-out list (DLC pattern:
 	# settings.deactivated_dlcs). Settings are loaded before this runs
 	# (ProgressData._ready calls load_settings() before the pack hook).
-	var disabled: Array = ProgressData.settings.get("disabled_packs", [])
+	var disabled: Array = []
+	for disabled_id in ProgressData.settings.get("disabled_packs", []):
+		disabled.push_back(resolve_pack_id(str(disabled_id)))  # merged-id alias
 	for pack_id in available_packs:
 		enabled[pack_id] = not disabled.has(pack_id)
 	# test-only override: --packs=food,forge / --packs=none / --packs=all
@@ -85,7 +91,10 @@ func apply_at_boot() -> void :
 				elif wanted == "none":
 					enabled[pack_id] = false
 				else:
-					enabled[pack_id] = wanted.split(",").has(pack_id)
+					var wanted_ids: = []
+					for wanted_id in wanted.split(","):
+						wanted_ids.push_back(resolve_pack_id(str(wanted_id)))
+					enabled[pack_id] = wanted_ids.has(pack_id)
 	_apply_enabled()
 	_refresh_flags()
 	# greppable boot line - the smoke-test gate for the pack system. States the
@@ -261,7 +270,12 @@ func _scan_available() -> void :
 	dir.list_dir_end()
 
 
+func resolve_pack_id(pack_id: String) -> String:
+	return str(MERGED_PACK_ALIASES.get(pack_id, pack_id))
+
+
 func is_pack_enabled(pack_id: String) -> bool:
+	pack_id = resolve_pack_id(pack_id)
 	return bool(enabled.get(pack_id, false))
 
 
@@ -307,7 +321,7 @@ func deactivate_pack(pack_id: String) -> void :
 func _refresh_flags() -> void :
 	core = true
 	food = is_pack_enabled("food")
-	fortune = is_pack_enabled("fortune")
+	fortune = is_pack_enabled("forge")  # alias facade: fortune merged into forge
 	forge = is_pack_enabled("forge")
 	ledger = is_pack_enabled("ledger")
 	roster = is_pack_enabled("roster")

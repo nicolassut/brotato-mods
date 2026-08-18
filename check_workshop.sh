@@ -91,11 +91,11 @@ boot_combo() { # $1 = label, $2 = expected mods loaded, $3 = expected PackServic
 # core-only line prints before that, cosmetic), chars 50, weapons 205. Deltas
 # per pack verified exact vs the pack manifests. The live-tree matrix numbers
 # differ by exactly the Abyssal DLC content (+14 chars/+33 items/+52 weapons).
-# combo 1: full collection - all six mods
-boot_combo "all" 6 \
-  "PackService: 5 available, enabled=[food, forge, fortune, ledger, roster] | chars=69 items=286 weapons=556 foods=27" \
+# combo 1: full collection - all five mods (fortune merged into GourmetForge)
+boot_combo "all" 5 \
+  "PackService: 4 available, enabled=[food, forge, ledger, roster] | chars=69 items=286 weapons=556 foods=27" \
   nicolassut-GourmetCore nicolassut-GourmetFood nicolassut-GourmetForge \
-  nicolassut-GourmetFortune nicolassut-GourmetLedger nicolassut-GourmetRoster
+  nicolassut-GourmetLedger nicolassut-GourmetRoster
 
 # combo 2: Core + Food only (the modularity promise: any subset works)
 boot_combo "core+food" 2 \
