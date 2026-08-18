@@ -2,7 +2,7 @@
  "script_extension_targets": [
   {
    "file": "main.gd",
-   "diff_lines": 1201
+   "diff_lines": 1211
   },
   {
    "file": "singletons/run_data.gd",
@@ -10,11 +10,11 @@
   },
   {
    "file": "entities/units/player/player.gd",
-   "diff_lines": 670
+   "diff_lines": 672
   },
   {
    "file": "ui/menus/shop/base_shop.gd",
-   "diff_lines": 577
+   "diff_lines": 625
   },
   {
    "file": "singletons/item_service.gd",
@@ -38,7 +38,7 @@
   },
   {
    "file": "singletons/player_run_data.gd",
-   "diff_lines": 161
+   "diff_lines": 167
   },
   {
    "file": "ui/menus/shop/shop_item.gd",
@@ -61,16 +61,20 @@
    "diff_lines": 85
   },
   {
+   "file": "singletons/utils.gd",
+   "diff_lines": 57
+  },
+  {
    "file": "ui/menus/shop/item_popup.gd",
    "diff_lines": 57
   },
   {
-   "file": "singletons/utils.gd",
-   "diff_lines": 50
+   "file": "singletons/progress_data.gd",
+   "diff_lines": 44
   },
   {
    "file": "items/global/item_parent_data.gd",
-   "diff_lines": 37
+   "diff_lines": 43
   },
   {
    "file": "ui/menus/pages/menu_options.gd",
@@ -90,15 +94,11 @@
   },
   {
    "file": "items/global/weapon_data.gd",
-   "diff_lines": 23
+   "diff_lines": 25
   },
   {
    "file": "ui/menus/pages/main_menu.gd",
    "diff_lines": 22
-  },
-  {
-   "file": "ui/menus/ingame/upgrades_ui.gd",
-   "diff_lines": 21
   },
   {
    "file": "ui/menus/pages/sort_inventory_button.gd",
@@ -113,16 +113,16 @@
    "diff_lines": 20
   },
   {
+   "file": "ui/menus/ingame/upgrades_ui.gd",
+   "diff_lines": 20
+  },
+  {
    "file": "ui/menus/shop/button_with_icon.gd",
    "diff_lines": 20
   },
   {
    "file": "singletons/progress_data_loader_v3.gd",
    "diff_lines": 18
-  },
-  {
-   "file": "singletons/progress_data.gd",
-   "diff_lines": 17
   },
   {
    "file": "entities/structures/turret/garden/garden.gd",
@@ -138,6 +138,10 @@
   },
   {
    "file": "ui/menus/run/difficulty_selection/difficulty_selection.gd",
+   "diff_lines": 11
+  },
+  {
+   "file": "ui/menus/shop/shop.gd",
    "diff_lines": 11
   },
   {
@@ -173,6 +177,10 @@
    "diff_lines": 7
   },
   {
+   "file": "ui/menus/shop/coop_shop.gd",
+   "diff_lines": 6
+  },
+  {
    "file": "ui/menus/shop/coop_shop_player_container.gd",
    "diff_lines": 6
   },
@@ -201,31 +209,7 @@
    "diff_lines": 4
   },
   {
-   "file": "ui/menus/shop/shop.gd",
-   "diff_lines": 4
-  },
-  {
-   "file": "challenges/global/challenge_data.gd",
-   "diff_lines": 2
-  },
-  {
    "file": "items/characters/character_data.gd",
-   "diff_lines": 2
-  },
-  {
-   "file": "items/difficulties/difficulty_data.gd",
-   "diff_lines": 2
-  },
-  {
-   "file": "items/upgrades/upgrade_data.gd",
-   "diff_lines": 2
-  },
-  {
-   "file": "singletons/item_service_get_shop_items_args.gd",
-   "diff_lines": 2
-  },
-  {
-   "file": "ui/menus/shop/coop_shop.gd",
    "diff_lines": 2
   },
   {
@@ -260,10 +244,14 @@
   "weapons/ranged/ice_cream_scoop/scoop_swing_behavior.gd"
  ],
  "precautionary_mirrors_identical": [
+  "challenges/global/challenge_data.gd",
   "global/dlc_data.gd",
   "global/stats_manager.gd",
+  "items/difficulties/difficulty_data.gd",
+  "items/upgrades/upgrade_data.gd",
   "pause.gd",
   "singletons/challenge_service.gd",
+  "singletons/item_service_get_shop_items_args.gd",
   "ui/menus/debug/debug_menu.gd"
  ],
  "non_script_surface": [

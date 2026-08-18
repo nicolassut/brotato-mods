@@ -2,6 +2,10 @@ class_name PlayerRunData
 extends Reference
 
 const DEFAULT_MAX_HP: = 10
+# Gourmet ecosystem - mirror of DEFAULT_MAX_HP for STATIC functions: a script
+# extension's static funcs cannot see parent consts, and init_stats is emitted
+# into the GourmetCore extension. Keep both values identical.
+const GOURMET_DEFAULT_MAX_HP: = 10
 
 var current_character: CharacterData = null
 var current_health: = 10
@@ -446,7 +450,7 @@ func _unsorted_dictionary_hash(dictionary: Dictionary) -> int:
 
 static func init_stats(all_null_values: bool = false) -> Dictionary:
 	var stats: = {
-		Keys.stat_max_hp_hash: DEFAULT_MAX_HP if not all_null_values else 0, 
+		Keys.stat_max_hp_hash: GOURMET_DEFAULT_MAX_HP if not all_null_values else 0, 
 		Keys.stat_armor_hash: 0, 
 		Keys.stat_crit_chance_hash: 0, 
 		Keys.stat_luck_hash: 0, 

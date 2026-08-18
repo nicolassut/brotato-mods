@@ -8,12 +8,12 @@
   data side of packaging is already mechanical.
 
 ## Core surface (what GourmetCore must carry) - MEASURED against pristine vanilla
-- 59 vanilla .gd files actually modified (extension targets, ranked by
-  diff-line count in `core_surface.json`; top: main.gd at 1201 lines).
+- 55 vanilla .gd files actually modified (extension targets, ranked by
+  diff-line count in `core_surface.json`; top: main.gd at 1211 lines).
 - 20 mod-ADDED scripts (ship as files, no extension machinery needed).
-- 5 precautionary mirrors identical to vanilla (not Core surface).
+- 9 precautionary mirrors identical to vanilla (not Core surface).
 - 11 non-script files (scenes/config/art) needing other strategies.
-- 66/84 .gd files carry Gourmet-marked edits.
+- 68/84 .gd files carry Gourmet-marked edits.
 
 ## Blockers before real packaging (ordered)
 1. ~~Pristine decompile~~ **RESOLVED 2026-08-18**: `~/brotato-vanilla-reference/` is a
@@ -50,7 +50,31 @@
    dead/deregistered); per-mod translations.csv split from the sacred CSV and
    runtime-loaded in mod_main; `asset-dev/pack_workshop_zips.py` assembles
    workshop/dist/*.zip (payload at true res:// paths + .import/.stex).
-7. **Remaining**: the end-to-end disposable-clone gate (check_workshop.sh).
+7. ~~End-to-end gate~~ **RESOLVED - GATE PASSES**: `bash check_workshop.sh`
+   boots a disposable no-DLC clone of the pristine reference with the mods in
+   three install combos (all six / Core+Food / Core-only), asserting exact
+   registered counts + PackService VERIFY OK per combo. Hard-won laws baked
+   into the generator+mod_main (all measured 2026-08-18):
+   - EXTENSION SANDWICH: an extension may never change a vanilla function's
+     signature (vanilla children override the old one) - resolved via
+     delegate funcs (get_name_text_for, _on_gourmet_item_discard_pressed)
+   - pre-ModLoader autoloads (Keys, #4) keep the vanilla script; Core swaps
+     it via set_script in _ready
+   - services CANNOT be added to /root during the autoload cascade - they
+     live under the Core mod node; Utils' accessor searches both
+   - ModLoader's sorter force-loads extensions against half-loaded chains;
+     mod_main PRE-WARMS all vanilla targets first and RETRIES failed installs
+     in _ready (world stable there)
+   - a child script cannot forward vanilla _init args (Godot 3 quirk) - the
+     generator synthesizes forwarding constructors
+   - cross-extension global-class bindings compile stale (ModLoader sort
+     order) - creation sites use load-by-path; the generator hard-errors on
+     new hazards
+   - baked res://dlcs/ refs are fatal on DLC-less installs - DLC weapon sets
+     attach at runtime (PackService._attach_dlc_sets)
+   - the missing GUT test sources (in _global_script_classes but not the
+     pck) abort ModLoader's child-reload helper - errors whitelisted, retry
+     pass compensates.
 
 ## Known gaps (accepted, documented)
 - The dlcs/ tree is the decompiled PAID DLC and never ships. Its one script

@@ -81,8 +81,14 @@ func _on_item_combine_button_pressed(weapon_data: WeaponData, player_index: int)
 	_get_coop_player_container(player_index).on_hide_focused_inventory_popup()
 
 
-func _on_item_discard_button_pressed(weapon_data: ItemParentData, player_index: int) -> void :
+func _on_item_discard_button_pressed(weapon_data: WeaponData, player_index: int) -> void :
 	._on_item_discard_button_pressed(weapon_data, player_index)
+	_get_coop_player_container(player_index).on_hide_focused_inventory_popup()
+
+
+# Gourmet ecosystem - the any-item discard path (see base_shop)
+func _on_gourmet_item_discard_pressed(weapon_data: ItemParentData, player_index: int) -> void :
+	._on_gourmet_item_discard_pressed(weapon_data, player_index)
 	_get_coop_player_container(player_index).on_hide_focused_inventory_popup()
 
 

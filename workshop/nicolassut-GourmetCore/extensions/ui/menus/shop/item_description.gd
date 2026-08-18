@@ -8,7 +8,7 @@ func set_item(item_data: ItemParentData, player_index: int, item_count: = 1) -> 
 	_player_index = player_index
 	icon_panel.set_count(item_count)
 	_category.show()
-	_name.text = item_data.get_name_text(player_index)
+	_name.text = item_data.get_name_text_for(player_index)
 	_icon.texture = item_data.get_icon()
 	_name.modulate = ItemService.get_color_from_tier(item_data.tier)
 	icon_panel._update_stylebox(item_data.is_cursed, item_data.tier)

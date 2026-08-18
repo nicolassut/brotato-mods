@@ -172,7 +172,7 @@ func _ready() -> void :
 		var item_popup = _get_item_popup(player_index)
 		item_popup.item_steals = _item_steals[player_index]
 		_error_connect = item_popup.connect("item_cancel_button_pressed", self, "_on_item_cancel_button_pressed", [player_index])
-		_error_connect = item_popup.connect("item_discard_button_pressed", self, "_on_item_discard_button_pressed", [player_index])
+		_error_connect = item_popup.connect("item_discard_button_pressed", self, "_on_gourmet_item_discard_pressed", [player_index])
 		_error_connect = item_popup.connect("item_combine_button_pressed", self, "_on_item_combine_button_pressed", [player_index])
 
 		_popup_manager.add_item_popup(item_popup, player_index)
@@ -385,6 +385,10 @@ func fill_shop_items(player_locked_items: Array, player_index: int, just_entered
 
 	if new_item_count > 0:
 		var args: = ItemServiceGetShopItemsArgs.new(_shop_items, player_index)
+		# Gourmet ecosystem - Freeloader 8-slot / Wildcard slot-delta shop size.
+		# Set here, NOT in the args class' _init: extending a Reference with a
+		# required-arg _init cannot be done from a script extension.
+		args.count = ItemService.get_nb_shop_items(player_index)
 		args.count = new_item_count
 		args.prev_items = prev_items
 		args.locked_items = player_locked_items
@@ -1211,7 +1215,51 @@ func recycle_minimalist_item(item_data: ItemData, player_index: int) -> void :
 	_get_shop_items_container(player_index).reload_shop_items()
 
 
-func _on_item_discard_button_pressed(weapon_data: ItemParentData, player_index: int) -> void :
+func _on_item_discard_button_pressed(weapon_data: WeaponData, player_index: int) -> void :
+	if RunData.get_player_effect_bool(Keys.lock_current_weapons_hash, player_index):
+		return
+
+	_popup_manager.reset_focus(player_index)
+	RunData.add_recycled(player_index)
+
+	var weapons_container: = _get_gear_container(player_index).weapons_container
+	weapons_container._elements.remove_element(weapon_data, 1, true)
+
+	var _weapon = RunData.remove_weapon(weapon_data, player_index)
+	var base_recycling_value = weapon_data.value
+	var specific_recycling_price_factor = 1.0
+
+	for specific_item_price in RunData.get_player_effect(Keys.specific_items_price_hash, player_index):
+		assert (specific_item_price[0] is int)
+		if Keys.hash_to_string[specific_item_price[0]] in weapon_data.my_id:
+			specific_recycling_price_factor = specific_item_price[1]
+			break
+
+	base_recycling_value *= specific_recycling_price_factor
+
+	var recycling_value = ItemService.get_recycling_value(RunData.current_wave, base_recycling_value, player_index, true)
+	RunData.add_gold(recycling_value, player_index)
+	RunData.update_recycling_tracking_value(weapon_data, player_index)
+
+	var nb_coupons = RunData.get_nb_item(Keys.item_coupon_hash, player_index)
+
+	if nb_coupons > 0:
+		var base_value = ItemService.get_recycling_value(RunData.current_wave, weapon_data.value, player_index, true, false)
+		var actual_value = ItemService.get_recycling_value(RunData.current_wave, weapon_data.value, player_index, true)
+		var val_lost = (base_value - actual_value) as int
+		RunData.add_tracked_value(player_index, Keys.item_coupon_hash, - val_lost)
+
+	_update_stats(player_index)
+	_get_shop_items_container(player_index).reload_shop_items()
+	var reroll_button = _get_reroll_button(player_index)
+	reroll_button.set_color_from_currency(RunData.get_player_gold(player_index))
+	SoundManager.play(Utils.get_rand_element(recycle_sounds), 0, 0.1, true)
+
+
+# Gourmet ecosystem - discard works on ANY item, not just weapons. New name +
+# new signature: the vanilla _on_item_discard_button_pressed(WeaponData, int)
+# stays untouched (extension-sandwich rule), the popup connect targets this.
+func _on_gourmet_item_discard_pressed(weapon_data: ItemParentData, player_index: int) -> void :
 	# Gourmet DLC - spawner selection (Set Menu / Picky Eater) rides the same button;
 	# Minimalist keeps recycling instead
 	var selection_char = RunData.get_player_character(player_index)

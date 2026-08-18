@@ -124,7 +124,7 @@ func _ready() -> void :
 		var item_popup = _get_item_popup(player_index)
 		item_popup.item_steals = _item_steals[player_index]
 		_error_connect = item_popup.connect("item_cancel_button_pressed", self, "_on_item_cancel_button_pressed", [player_index])
-		_error_connect = item_popup.connect("item_discard_button_pressed", self, "_on_item_discard_button_pressed", [player_index])
+		_error_connect = item_popup.connect("item_discard_button_pressed", self, "_on_gourmet_item_discard_pressed", [player_index])
 		_error_connect = item_popup.connect("item_combine_button_pressed", self, "_on_item_combine_button_pressed", [player_index])
 		_popup_manager.add_item_popup(item_popup, player_index)
 		var weapons_container = player_gear_container.weapons_container
@@ -166,6 +166,10 @@ func fill_shop_items(player_locked_items: Array, player_index: int, just_entered
 	var new_item_count = ItemService.get_nb_shop_items(player_index) - player_locked_items.size()
 	if new_item_count > 0:
 		var args: = ItemServiceGetShopItemsArgs.new(_shop_items, player_index)
+		# Gourmet ecosystem - Freeloader 8-slot / Wildcard slot-delta shop size.
+		# Set here, NOT in the args class' _init: extending a Reference with a
+		# required-arg _init cannot be done from a script extension.
+		args.count = ItemService.get_nb_shop_items(player_index)
 		args.count = new_item_count
 		args.prev_items = prev_items
 		args.locked_items = player_locked_items
@@ -928,7 +932,16 @@ func recycle_minimalist_item(item_data: ItemData, player_index: int) -> void :
 
 
 
-func _on_item_discard_button_pressed(weapon_data: ItemParentData, player_index: int) -> void :
+
+
+
+
+
+
+# Gourmet ecosystem - discard works on ANY item, not just weapons. New name +
+# new signature: the vanilla _on_item_discard_button_pressed(WeaponData, int)
+# stays untouched (extension-sandwich rule), the popup connect targets this.
+func _on_gourmet_item_discard_pressed(weapon_data: ItemParentData, player_index: int) -> void :
 	# Gourmet DLC - spawner selection (Set Menu / Picky Eater) rides the same button;
 	# Minimalist keeps recycling instead
 	var selection_char = RunData.get_player_character(player_index)

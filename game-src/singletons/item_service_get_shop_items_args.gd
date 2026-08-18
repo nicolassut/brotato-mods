@@ -17,7 +17,7 @@ func _set_owned_and_shop_items(_v: Array) -> void :
 func _init(shop_items_by_player: Array, p_player_index: int):
 	player_index = p_player_index
 
-	count = ItemService.get_nb_shop_items(p_player_index)
+	count = ItemService.NB_SHOP_ITEMS
 	owned_and_shop_items = RunData.get_player_items(p_player_index)
 	for shop_item in shop_items_by_player[p_player_index]:
 		if shop_item[0] is ItemData:

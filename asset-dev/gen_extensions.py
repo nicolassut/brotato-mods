@@ -77,10 +77,15 @@ INSERT_AFTER = {
 
 # {file: [inner class names]} - verified safe to redeclare (see gen() check)
 SAFE_REDECLARED_CLASSES = {
-    "ui/menus/ingame/upgrades_ui.gd": ["ConsumableToProcess"],
     "ui/menus/pages/sort_inventory_button.gd": ["SortInventory"],
     "ui/menus/pages/menu_codex.gd": ["SortItem"],
 }
+
+# (file, ClassName) stale-binding references verified HARMLESS: the referenced
+# member is byte-identical between vanilla and extension, so binding the
+# vanilla class object early changes nothing. main.gd/UpgradesUI: only the
+# vanilla inner classes are referenced (p2w rung rides in meta, 2026-08-18).
+STALE_BINDING_OK = {("main.gd", "UpgradesUI")}
 
 # Hand-written code appended to specific extensions (runtime patches for the
 # two scene diffs - ZERO vanilla scenes ship in Core).
@@ -398,8 +403,16 @@ def gen_one(rel, src_root, audit):
                     if not _strip_code(lines[hdr]).rstrip().endswith(":"):
                         raise SystemExit("cannot inject into one-line func %s "
                                          "in %s" % (s["name"], rel))
+                    # match the function's OWN body indentation (some GDRE
+                    # output opens bodies at two tabs; a one-tab injected line
+                    # there is a parse error)
+                    body_indent = "\t"
+                    for l in lines[hdr + 1:]:
+                        if l.strip() and not l.strip().startswith("#"):
+                            body_indent = l[:len(l) - len(l.lstrip())]
+                            break
                     for j, extra in enumerate(inject.pop(s["name"])):
-                        lines.insert(hdr + 1 + j, extra)
+                        lines.insert(hdr + 1 + j, body_indent + extra.lstrip())
                 for anchor, extra_lines in inserts.get(s["name"], []):
                     hits = [i for i, l in enumerate(lines)
                             if l.strip() == anchor]
@@ -407,8 +420,10 @@ def gen_one(rel, src_root, audit):
                         raise SystemExit(
                             "INSERT_AFTER anchor %r in %s.%s matched %d lines"
                             % (anchor, rel, s["name"], len(hits)))
+                    a_line = lines[hits[0]]
+                    a_indent = a_line[:len(a_line) - len(a_line.lstrip())]
                     for j, el in enumerate(extra_lines):
-                        lines.insert(hits[0] + 1 + j, el)
+                        lines.insert(hits[0] + 1 + j, a_indent + el.lstrip())
                 emitted_funcs.add(s["name"])
                 out_segs.append(lines)
                 if changed and s["name"] in vfun and \
@@ -438,6 +453,28 @@ def gen_one(rel, src_root, audit):
             raise SystemExit("INSERT_AFTER target %s.%s was not emitted"
                              % (rel, fname))
 
+    # Forwarding constructor: a child script without an explicit _init cannot
+    # be .new(args)'d when the vanilla base has required _init args (Godot 3
+    # quirk - "Invalid call to 'new'. Expected 0 arguments"). Synthesize one.
+    if "_init" in vfun and "_init" not in emitted_funcs:
+        vsig = _func_sig(vfun["_init"])
+        args, req = _sig_args(vsig)
+        # even fully-defaulted parent args are lost: the implicit child
+        # constructor takes ZERO arguments
+        if args:
+            names = [a.split(":")[0].split("=")[0].strip() for a in args]
+            arg_decl = ", ".join(a for a in args)
+            out_segs.append([
+                "# forwarding constructor (vanilla base has required _init "
+                "args; a child",
+                "# script without an explicit _init cannot forward them - "
+                "Godot 3 quirk)",
+                "func _init(%s).(%s) -> void :" % (arg_decl,
+                                                   ", ".join(names)),
+                "	pass"])
+            audit.append((rel, "synthesized forwarding _init(%s)"
+                          % arg_decl))
+
     # synthesize any inject-target funcs that exist in neither tree
     for fname, calls in inject.items():
         if fname in mfun:
@@ -462,6 +499,215 @@ def gen_one(rel, src_root, audit):
         body.append(EXTRA_SNIPPETS[rel].strip("\n"))
         body.append("")
     return "\n".join(body).rstrip("\n") + "\n", None
+
+
+def _func_sig(seg):
+    """Normalized 'func name(args)' header text of a func segment."""
+    txt = " ".join(l.strip() for l in seg["lines"]
+                   if not l.strip().startswith("#"))
+    m = re.search(r'((?:static\s+)?func\s+\w+\s*\([^)]*\))', txt)
+    return re.sub(r"\s+", " ", m.group(1)) if m else None
+
+
+def _sig_args(sig):
+    """(arg_specs, n_required) from a normalized signature."""
+    inner = sig[sig.index("(") + 1:sig.rindex(")")].strip()
+    if not inner:
+        return [], 0
+    args = [a.strip() for a in re.split(r",(?![^\[\(]*[\]\)])", inner)]
+    required = sum(1 for a in args if "=" not in a)
+    return args, required
+
+
+def _vanilla_parent_map():
+    """{vanilla rel path: parent rel path} resolving extends-by-path and
+    extends-by-class_name (builtin bases absent)."""
+    by_class, extends_of, all_gd = {}, {}, []
+    for root, dirs, files in os.walk(VAN):
+        dirs[:] = [d for d in dirs if d not in (".git", ".import")]
+        for f in files:
+            if not f.endswith(".gd"):
+                continue
+            rel = os.path.relpath(os.path.join(root, f), VAN)
+            all_gd.append(rel)
+            head = open(os.path.join(VAN, rel), errors="ignore").read(4096)
+            m = re.search(r'^class_name\s+(\w+)', head, re.M)
+            if m:
+                by_class[m.group(1)] = rel
+            m = re.search(r'^extends\s+(.+)$', head, re.M)
+            if m:
+                extends_of[rel] = m.group(1).strip()
+    parent_of = {}
+    for rel, tgt in extends_of.items():
+        m = re.match(r'"res://([^"]+)"', tgt)
+        if m:
+            parent_of[rel] = m.group(1)
+        elif tgt in by_class:
+            parent_of[rel] = by_class[tgt]
+    return parent_of, all_gd
+
+
+def inheritance_order(rels):
+    """Sort target files base-classes-first (a child extension must install
+    AFTER its ancestors' extensions, or it reloads against a still-vanilla
+    parent), ties alphabetical."""
+    parent_of, _all = _vanilla_parent_map()
+
+    def depth(rel):
+        d, p, seen = 0, parent_of.get(rel), set()
+        while p and p not in seen:
+            seen.add(p)
+            d += 1
+            p = parent_of.get(p)
+        return d
+    return sorted(rels, key=lambda r: (depth(r), r))
+
+
+def _vanilla_descendants():
+    """{vanilla rel path: [rel paths of vanilla scripts extending it,
+    transitively]} - resolves both extends-by-path and extends-by-class_name."""
+    by_class, extends_of, all_gd = {}, {}, []
+    for root, dirs, files in os.walk(VAN):
+        dirs[:] = [d for d in dirs if d not in (".git", ".import")]
+        for f in files:
+            if not f.endswith(".gd"):
+                continue
+            rel = os.path.relpath(os.path.join(root, f), VAN)
+            all_gd.append(rel)
+            head = open(os.path.join(VAN, rel), errors="ignore").read(4096)
+            m = re.search(r'^class_name\s+(\w+)', head, re.M)
+            if m:
+                by_class[m.group(1)] = rel
+            m = re.search(r'^extends\s+(.+)$', head, re.M)
+            if m:
+                extends_of[rel] = m.group(1).strip()
+    parent_of = {}
+    for rel, tgt in extends_of.items():
+        m = re.match(r'"res://([^"]+)"', tgt)
+        if m:
+            parent_of[rel] = m.group(1)
+        elif tgt in by_class:
+            parent_of[rel] = by_class[tgt]
+    down = {}
+    for rel in all_gd:
+        p, seen = parent_of.get(rel), set()
+        while p and p not in seen:
+            seen.add(p)
+            down.setdefault(p, []).append(rel)
+            p = parent_of.get(p)
+    return down
+
+
+def check_extension_hazards(targets, src_root):
+    """The extension-sandwich rules, checked mechanically:
+    1. a modified func may not change its vanilla signature in a way that
+       breaks a vanilla DESCENDANT override (type/required changes always
+       break; added trailing defaulted args break only overriding children)
+    2. an emitted STATIC func may not reference a parent (vanilla) const it
+       does not redeclare - extension statics cannot see them
+    3. _init cannot be emitted when the vanilla _init has required args (the
+       implicit parent constructor call fails at parse)
+    Returns a list of problem strings (empty = clean)."""
+    problems = []
+    down = _vanilla_descendants()
+    # ModLoader re-sorts extensions lexicographically by vanilla inheritance
+    # stack (InheritanceSorting) - our install list order is IGNORED. Any
+    # emitted code referencing the class_name of a target that takes over
+    # LATER in that sort binds the STALE vanilla class at compile (measured:
+    # progress_data's loader, main.gd's UpgradesUI inner classes). Such sites
+    # must use load-by-path in game-src.
+    parent_of, _all = _vanilla_parent_map()
+
+    def ml_stack(rel):
+        chain, p, seen = [rel], parent_of.get(rel), set()
+        while p and p not in seen:
+            seen.add(p)
+            chain.append(p)
+            p = parent_of.get(p)
+        return ["res://" + x for x in reversed(chain)]
+    ml_pos = {r: i for i, r in enumerate(sorted(targets, key=ml_stack))}
+    cls_of = {}
+    for rel in targets:
+        m = re.search(r'^class_name\s+(\w+)',
+                      open(os.path.join(VAN, rel), errors="ignore").read(4096),
+                      re.M)
+        if m:
+            cls_of[rel] = m.group(1)
+    for rel in targets:
+        msegs = segment(os.path.join(src_root, rel))
+        vsegs = segment(os.path.join(VAN, rel))
+        vfun = by_name(vsegs, ("func",))
+        emitted_text = []
+        for s in msegs:
+            if s["kind"] == "func" and (s["name"] not in vfun or
+                    norm(vfun[s["name"]]["lines"]) != norm(s["lines"])):
+                emitted_text.extend(_strip_code(l) for l in s["lines"])
+        text = chr(10).join(emitted_text)
+        for b, cn in cls_of.items():
+            if b == rel or ml_pos[b] < ml_pos[rel] or \
+                    (rel, cn) in STALE_BINDING_OK:
+                continue
+            for m in re.finditer(r'%s\s*\.\s*\w+' % cn, text):
+                problems.append(
+                    "%s :: emitted code references %s (%s) which takes over "
+                    "LATER in ModLoader's sort - STALE class binding; use "
+                    "load-by-path in game-src (%r)"
+                    % (rel, cn, b, m.group(0)[:60]))
+    for rel in targets:
+        vsegs = segment(os.path.join(VAN, rel))
+        msegs = segment(os.path.join(src_root, rel))
+        vfun = by_name(vsegs, ("func",))
+        vdecl_consts = {s["name"] for s in vsegs if s["kind"] == "decl"
+                        and any(re.match(r"const\s", l) for l in s["lines"])}
+        mdecl = {s["name"] for s in msegs if s["kind"] in ("decl", "enum")}
+        new_decls = mdecl - {s["name"] for s in vsegs
+                             if s["kind"] in ("decl", "enum")}
+        for s in msegs:
+            if s["kind"] != "func" or s["name"] not in vfun:
+                continue
+            changed = norm(vfun[s["name"]]["lines"]) != norm(s["lines"])
+            if not changed:
+                continue
+            vsig, msig = _func_sig(vfun[s["name"]]), _func_sig(s)
+            if vsig != msig:
+                vargs, vreq = _sig_args(vsig)
+                margs, mreq = _sig_args(msig)
+                compatible_extras = (margs[:len(vargs)] == vargs
+                                     and mreq <= vreq)
+                overriders = [d for d in down.get(rel, [])
+                              if re.search(r'^(static\s+)?func\s+%s\b'
+                                           % s["name"],
+                                           open(os.path.join(VAN, d),
+                                                errors="ignore").read(),
+                                           re.M)]
+                if not compatible_extras:
+                    problems.append(
+                        "%s :: %s changes the vanilla signature "
+                        "incompatibly\n    van: %s\n    mod: %s"
+                        % (rel, s["name"], vsig, msig))
+                elif overriders:
+                    problems.append(
+                        "%s :: %s adds args but vanilla descendants override "
+                        "it with the OLD signature (%s) - extension sandwich"
+                        % (rel, s["name"], overriders))
+            if re.match(r"^static\s", s["lines"][
+                    next(i for i, l in enumerate(s["lines"])
+                         if FUNC_NAME.match(l))]):
+                body = "\n".join(s["lines"])
+                bad = [c for c in vdecl_consts if c not in new_decls
+                       and re.search(r"\b%s\b" % c, body)]
+                if bad:
+                    problems.append(
+                        "%s :: static %s references parent consts %s - "
+                        "invisible to extension statics" % (rel, s["name"],
+                                                            bad))
+            if s["name"] == "_init":
+                _a, vreq = _sig_args(_func_sig(vfun["_init"]) or "f()")
+                if vreq > 0:
+                    problems.append(
+                        "%s :: _init override with required-arg vanilla "
+                        "_init - implicit parent ctor call fails" % rel)
+    return problems
 
 
 def gen_hand(rel, seg_names, src_root, audit):
@@ -505,6 +751,11 @@ def generate(targets, src_root, out_root):
     audit). Writes extensions/ + AUDIT.md under out_root. HAND_EXTENSIONS are
     emitted too but NOT included in `installed` (they install late, guarded)."""
     audit, errors, installed = [], [], []
+    hazards = check_extension_hazards(targets, src_root)
+    if hazards:
+        raise SystemExit("EXTENSION HAZARDS (fix game-src, see the "
+                         "extension-sandwich rule):\n" +
+                         "\n".join("- " + h for h in hazards))
     for rel, seg_names in HAND_EXTENSIONS.items():
         text, problems = gen_hand(rel, seg_names, src_root, audit)
         if problems:
@@ -513,7 +764,7 @@ def generate(targets, src_root, out_root):
         dst = os.path.join(out_root, "extensions", rel)
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         open(dst, "w").write(text)
-    for rel in targets:
+    for rel in inheritance_order(targets):
         text, problems = gen_one(rel, src_root, audit)
         if problems:
             errors.append((rel, problems))

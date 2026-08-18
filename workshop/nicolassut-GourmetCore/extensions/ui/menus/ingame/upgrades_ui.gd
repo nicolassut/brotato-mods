@@ -2,12 +2,6 @@
 # GourmetCore extension of the vanilla file (full modified/new functions + new members)
 extends "res://ui/menus/ingame/upgrades_ui.gd"
 
-
-class ConsumableToProcess:
-	var consumable_data: ConsumableData
-	var player_index: int
-	var p2w_rung: int = - 1  # Gourmet DLC - P2W lootbox rarity, -1 for vanilla crates
-
 # Gourmet DLC - upgrade picks the player still owes for the current level-up draft. 1 for
 # everyone; the Freeloader gets 2 (ItemService.get_nb_upgrade_picks), so after his first pick
 # we re-show the remaining cards instead of advancing.
@@ -34,7 +28,7 @@ func _show_next_player_options() -> bool:
 		var option_to_process = player_options_to_process.pop_front()
 		if do_process_consumables:
 			_check_extra_items_in_crate_effect(player_index)
-			player_container.show_consumable_data(option_to_process.consumable_data, option_to_process.p2w_rung)
+			player_container.show_consumable_data(option_to_process.consumable_data, int(option_to_process.get_meta("p2w_rung")) if option_to_process.has_meta("p2w_rung") else - 1)
 		else:
 			player_container.show_upgrades_for_level(option_to_process.level)
 			_freeloader_upgrade_picks_left[player_index] = ItemService.get_nb_upgrade_picks(player_index)

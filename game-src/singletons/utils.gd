@@ -874,6 +874,13 @@ func _gourmet_service(service_name: String) -> Node:
 	var svc = _gourmet_services.get(service_name)
 	if svc == null or not is_instance_valid(svc):
 		svc = get_node_or_null("/root/" + service_name)
+		if svc == null:
+			# Workshop build: services cannot be added to /root during the
+			# autoload cascade (add_node fails while root is busy), so
+			# GourmetCore parents them under its own mod node instead
+			var mod_loader = get_node_or_null("/root/ModLoader")
+			if mod_loader != null:
+				svc = mod_loader.find_node(service_name, true, false)
 		_gourmet_services[service_name] = svc
 	return svc
 

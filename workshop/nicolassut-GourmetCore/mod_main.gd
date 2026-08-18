@@ -27,29 +27,12 @@ const SERVICES = [
 ]
 
 const EXTENSIONS = [
-	"challenges/global/challenge_data.gd",
-	"effects/consumables/consumable_healing_effect.gd",
-	"entities/structures/structure.gd",
-	"entities/structures/turret/garden/garden.gd",
-	"entities/units/enemies/attack_behaviors/shooting_attack_behavior.gd",
-	"entities/units/enemies/enemy.gd",
-	"entities/units/movement_behaviors/follow_rand_pos_around_player_movement_behavior.gd",
-	"entities/units/movement_behaviors/follow_target_movement_behavior.gd",
-	"entities/units/neutral/neutral.gd",
-	"entities/units/player/player.gd",
-	"entities/units/unit/unit.gd",
-	"items/characters/character_data.gd",
-	"items/consumables/consumable.gd",
-	"items/difficulties/difficulty_data.gd",
 	"items/global/effect.gd",
 	"items/global/item_parent_data.gd",
-	"items/global/weapon_data.gd",
-	"items/upgrades/upgrade_data.gd",
 	"main.gd",
 	"singletons/announcement_manager.gd",
 	"singletons/entity_service.gd",
 	"singletons/item_service.gd",
-	"singletons/item_service_get_shop_items_args.gd",
 	"singletons/keys.gd",
 	"singletons/linked_stats.gd",
 	"singletons/menu_data.gd",
@@ -63,54 +46,107 @@ const EXTENSIONS = [
 	"ui/hud/player_ui_elements.gd",
 	"ui/hud/ui_gold.gd",
 	"ui/menus/global/popup_manager.gd",
-	"ui/menus/ingame/character_panel_ui.gd",
 	"ui/menus/ingame/upgrades_ui.gd",
 	"ui/menus/ingame/upgrades_ui_player_container.gd",
 	"ui/menus/pages/main_menu.gd",
 	"ui/menus/pages/menu_codex.gd",
 	"ui/menus/pages/menu_options.gd",
 	"ui/menus/pages/sort_inventory_button.gd",
-	"ui/menus/run/character_selection.gd",
-	"ui/menus/run/difficulty_selection/difficulty_selection.gd",
 	"ui/menus/run/run_options_panel.gd",
 	"ui/menus/shop/base_shop.gd",
-	"ui/menus/shop/button_with_icon.gd",
-	"ui/menus/shop/coop_shop.gd",
 	"ui/menus/shop/coop_shop_player_container.gd",
 	"ui/menus/shop/item_description.gd",
-	"ui/menus/shop/item_popup.gd",
-	"ui/menus/shop/shop.gd",
 	"ui/menus/shop/shop_item.gd",
 	"ui/menus/shop/shop_items_container.gd",
 	"ui/menus/shop/stats_container.gd",
 	"ui/menus/shop/synergy_panel.gd",
 	"visual_effects/fog_viewport.gd",
 	"weapons/weapon.gd",
+	"entities/structures/structure.gd",
+	"entities/units/unit/unit.gd",
+	"items/consumables/consumable.gd",
+	"items/global/weapon_data.gd",
+	"ui/menus/ingame/character_panel_ui.gd",
+	"ui/menus/run/character_selection.gd",
+	"ui/menus/run/difficulty_selection/difficulty_selection.gd",
+	"ui/menus/shop/button_with_icon.gd",
+	"ui/menus/shop/coop_shop.gd",
+	"ui/menus/shop/item_popup.gd",
+	"ui/menus/shop/shop.gd",
+	"effects/consumables/consumable_healing_effect.gd",
+	"entities/units/enemies/attack_behaviors/shooting_attack_behavior.gd",
+	"entities/units/enemies/enemy.gd",
+	"entities/units/movement_behaviors/follow_rand_pos_around_player_movement_behavior.gd",
+	"entities/units/movement_behaviors/follow_target_movement_behavior.gd",
+	"entities/units/neutral/neutral.gd",
+	"entities/units/player/player.gd",
+	"items/characters/character_data.gd",
+	"entities/structures/turret/garden/garden.gd",
 ]
 
 
-func _init(modLoader = ModLoader):
-	ModLoaderUtils.log_info("Init", LOG_NAME)
+func _init():
+	ModLoaderLog.info("Init", LOG_NAME)
 	_load_translations()
+	# PRE-WARM: fully load every vanilla target (parents first) BEFORE
+	# ModLoader's sorter force-loads the extension scripts. Without this, the
+	# sorter compiles extensions against half-loaded vanilla chains and caches
+	# them broken - reload at apply time does not always recover (measured
+	# 2026-08-18: 3 extensions failed to install).
+	for ext in EXTENSIONS:
+		var _warm = load("res://" + ext)
 	for ext in EXTENSIONS:
 		ModLoaderMod.install_script_extension(EXT_ROOT.plus_file(ext))
 
 
 func _ready():
-	ModLoaderUtils.log_info("Ready", LOG_NAME)
+	ModLoaderLog.info("Ready", LOG_NAME)
+	_retry_failed_extensions()
 	_register_interact_action()
-	# IMMEDIATE add_child - call_deferred lands after the autoload phase, too
-	# late (probe-proven 2026-08-18). The service NODES must exist at /root
-	# before ProgressData._ready drives Packs.apply_at_boot; their own _ready
-	# fires after every vanilla autoload's, same relative order as the live
-	# tree where they are the last autoloads.
+	_swap_early_autoload_scripts()
+	# The service NODES must exist (findable by name) before ProgressData's
+	# _ready drives Packs.apply_at_boot. Root itself rejects add_child during
+	# the autoload cascade ("parent busy setting up children" - measured
+	# 2026-08-18), so the services live under THIS mod node; Utils' accessor
+	# falls back to searching the ModLoader subtree by node name.
 	var tree_root = get_tree().get_root()
 	for svc in SERVICES:
 		if tree_root.has_node(svc[0]):
 			continue
 		var node = load(svc[1]).new()
 		node.name = svc[0]
-		tree_root.add_child(node)
+		add_child(node)
+
+
+func _swap_early_autoload_scripts() -> void :
+	# Autoloads that instantiate BEFORE ModLoader (Keys is autoload #4) keep
+	# their vanilla script even after the path is taken over - swap the live
+	# node's script so the extension's members exist. set_script re-runs the
+	# member initializers (vanilla + extension); nothing has cached Keys state
+	# this early (later autoloads have not run _ready yet).
+	var keys = get_node_or_null("/root/Keys")
+	if keys == null:
+		return
+	var ext_script = load("res://singletons/keys.gd")
+	if keys.get_script() != ext_script:
+		keys.set_script(ext_script)
+
+
+func _retry_failed_extensions() -> void :
+	# ModLoader's sorter force-loads extensions before any install; a compile
+	# that fails there (transient half-loaded chains, class-identity flux) can
+	# leave that one extension uninstalled. By _ready the world is stable:
+	# reload the vanilla resident (rebinding class identities against the now-
+	# extended scripts) and re-install - install_script_extension applies
+	# immediately outside the init phase.
+	for ext in EXTENSIONS:
+		var resident: Script = load("res://" + ext)
+		if resident != null and resident.has_meta("extension_script_path"):
+			continue
+		if resident != null:
+			resident.reload()
+		ModLoaderLog.info("Retrying failed extension: %s" % ext, LOG_NAME)
+		ModLoaderMod.install_script_extension(EXT_ROOT.plus_file(ext))
 
 
 func _register_interact_action() -> void :

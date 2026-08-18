@@ -14,6 +14,6 @@ func _generate_hashes() -> void :
 	upgrade_id_hash = Keys.generate_hash(upgrade_id)
 
 
-func get_name_text(_player_index: int = - 1) -> String:
+func get_name_text() -> String:
 	var tier_number = ItemService.get_tier_number(tier)
 	return tr(name) + (" " + tier_number if tier_number != "" else "")

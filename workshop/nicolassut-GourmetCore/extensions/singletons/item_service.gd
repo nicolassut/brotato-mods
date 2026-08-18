@@ -216,7 +216,7 @@ func _ready() -> void :
 
 
 func reset_tiers_data() -> void :
-	_gourmet_core_remove_vanilla_items()
+		_gourmet_core_remove_vanilla_items()
 		_tiers_data = [
 		[[], [], [], [], [], 0, 1.0, 0.0, 1.0], 
 		[[], [], [], [], [], 0, 0.0, 0.06, 0.6], 

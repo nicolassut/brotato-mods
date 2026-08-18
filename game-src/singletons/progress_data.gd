@@ -113,6 +113,15 @@ func get_pending_dlc_change() -> bool:
 		return OS_Seaven.has_dlc_updates();
 	return false
 
+# Gourmet ecosystem - ALL v3 loader construction goes through here. In the
+# Workshop build this script compiles BEFORE the loader extension takes over
+# its path (ModLoader sorts extensions by inheritance stack), so a bound
+# ProgressDataLoaderV3 reference would create VANILLA loader instances without
+# systems_unlocked. load-by-path resolves the taken-over script at call time.
+func _gourmet_loader_v3(profile_id: int):
+	return load("res://singletons/progress_data_loader_v3.gd").new(SAVE_DIR, profile_id)
+
+
 func _ready() -> void :
 	init_save_paths()
 	load_dlc_pcks()
@@ -237,7 +246,7 @@ func reset_save_profile(id: int) -> void :
 		if current_profile_id == id:
 			load_with_generic_loader(loader_beta)
 	else:
-		var loader = ProgressDataLoaderV3.new(SAVE_DIR, id)
+		var loader = _gourmet_loader_v3(id)
 		loader.add_unlocked_by_default_from_blank_save()
 		loader.run_state_deserialized = _get_empty_run_state()
 		loader.save()
@@ -254,7 +263,7 @@ func unlock_all_save_profile(id: int) -> void :
 		if current_profile_id == id:
 			load_with_generic_loader(loader_beta)
 	else:
-		var loader = ProgressDataLoaderV3.new(SAVE_DIR, id)
+		var loader = _gourmet_loader_v3(id)
 		loader.load_game_file()
 		loader.unlock_all()
 		loader.run_state_deserialized = _get_empty_run_state()
@@ -298,13 +307,13 @@ func copy_save_profile(from_id: int, to_id: int) -> void :
 		if current_profile_id == to_id:
 			load_with_generic_loader(to_loader_beta)
 	else:
-		var from_loader = ProgressDataLoaderV3.new(SAVE_DIR, from_id)
+		var from_loader = _gourmet_loader_v3(from_id)
 		from_loader.load_game_file()
 		if from_loader.load_status != LoadStatus.SAVE_OK:
 			printerr("Could not copy save profile from id %s because it could not be loaded" % from_id)
 			return
 
-		var to_loader = ProgressDataLoaderV3.new(SAVE_DIR, to_id)
+		var to_loader = _gourmet_loader_v3(to_id)
 		to_loader.zones_unlocked = from_loader.zones_unlocked.duplicate()
 		to_loader.characters_unlocked = from_loader.characters_unlocked.duplicate()
 		to_loader.upgrades_unlocked = from_loader.upgrades_unlocked.duplicate()
@@ -612,7 +621,7 @@ func init_save_paths(user_dir_override: = "user://") -> void :
 	if BETA:
 		SAVE_PATH = ProgressDataLoaderBeta.new(SAVE_DIR, current_profile_id).save_path
 	else:
-		SAVE_PATH = ProgressDataLoaderV3.new(SAVE_DIR, current_profile_id).save_path
+		SAVE_PATH = _gourmet_loader_v3(current_profile_id).save_path
 	LOG_PATH = dir_path + "/log.txt"
 	print("LOG_PATH: " + str(LOG_PATH))
 	var file = File.new()
@@ -730,7 +739,7 @@ func load_game_file(try_fallback: = true) -> void :
 
 	print("--- Load game file ---")
 	print("Try to load save v3")
-	var loader_v3 = ProgressDataLoaderV3.new(SAVE_DIR, current_profile_id)
+	var loader_v3 = _gourmet_loader_v3(current_profile_id)
 	load_with_generic_loader(loader_v3)
 	if load_status == LoadStatus.SAVE_OK:
 		return
@@ -888,7 +897,7 @@ func save() -> void :
 		loader_beta.show_main_title_beta_save_warning_popup = show_main_title_beta_save_warning_popup
 		loader_beta.save()
 	else:
-		var loader_v3 = ProgressDataLoaderV3.new(SAVE_DIR, current_profile_id)
+		var loader_v3 = _gourmet_loader_v3(current_profile_id)
 		_set_loader_properties(loader_v3, saved_run_state)
 		loader_v3.save()
 
@@ -900,7 +909,7 @@ func get_current_save_object() -> Dictionary:
 		_set_loader_properties_beta(loader_beta, _get_current_run_state())
 		return loader_beta.get_save_object()
 
-	var loader_v3 = ProgressDataLoaderV3.new(SAVE_DIR, current_profile_id)
+	var loader_v3 = _gourmet_loader_v3(current_profile_id)
 	_set_loader_properties(loader_v3, _get_current_run_state())
 	return loader_v3.get_save_object()
 
@@ -1386,7 +1395,7 @@ func get_profile_stats() -> Array:
 			var stats = loader_beta.load_profile_stats()
 			result.push_back(stats)
 		else:
-			var loader = ProgressDataLoaderV3.new(SAVE_DIR, i)
+			var loader = _gourmet_loader_v3(i)
 			var stats = loader.load_profile_stats()
 			result.push_back(stats)
 	return result

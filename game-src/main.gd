@@ -1465,7 +1465,9 @@ func on_consumable_picked_up(consumable: Node, player_index: int) -> void :
 
 	var consumable_data = consumable.consumable_data
 	if consumable_data.to_be_processed_at_end_of_wave:
-		var consumable_to_process = UpgradesUI.ConsumableToProcess.new()
+		# load-by-path: a bound UpgradesUI reference compiles STALE in the Workshop
+		# build (main.gd's extension compiles before upgrades_ui's takeover)
+		var consumable_to_process = load("res://ui/menus/ingame/upgrades_ui.gd").ConsumableToProcess.new()
 		consumable_to_process.consumable_data = consumable_data
 
 		var player_index_to_add_to = player_index
@@ -1484,9 +1486,11 @@ func on_consumable_picked_up(consumable: Node, player_index: int) -> void :
 		# vanilla green box (display duplicate; the data is otherwise identical)
 		var display_consumable = consumable_data
 		if consumable.has_meta("p2w_rung") and int(consumable.get_meta("p2w_rung")) > 0:
-			consumable_to_process.p2w_rung = int(consumable.get_meta("p2w_rung"))
+			# p2w rung rides in META, not a redeclared inner class - an extension
+			# cannot change ConsumableToProcess without breaking its type checks
+			consumable_to_process.set_meta("p2w_rung", int(consumable.get_meta("p2w_rung")))
 			display_consumable = consumable_data.duplicate()
-			display_consumable.icon = load("res://items/custom/p2w/chest_%d/chest_%d.png" % [consumable_to_process.p2w_rung, consumable_to_process.p2w_rung])
+			display_consumable.icon = load("res://items/custom/p2w/chest_%d/chest_%d.png" % [int(consumable.get_meta("p2w_rung")), int(consumable.get_meta("p2w_rung"))])
 			consumable_to_process.consumable_data = display_consumable
 		_consumables_to_process[player_index_to_add_to].push_back(consumable_to_process)
 		_things_to_process_player_containers[player_index_to_add_to].consumables.add_element(display_consumable)
@@ -1734,7 +1738,7 @@ func on_levelled_up(player_index: int) -> void :
 	var level = RunData.get_player_level(player_index)
 	_things_to_process_player_containers[player_index].upgrades.add_element(ItemService.get_icon(Keys.icon_upgrade_to_process_hash), level)
 
-	var upgrade_to_process = UpgradesUI.UpgradeToProcess.new()
+	var upgrade_to_process = load("res://ui/menus/ingame/upgrades_ui.gd").UpgradeToProcess.new()
 	upgrade_to_process.level = level
 	upgrade_to_process.player_index = player_index
 	_upgrades_to_process[player_index].push_back(upgrade_to_process)
@@ -2319,7 +2323,7 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void :
 	for i in _players.size():
 		var effects = RunData.get_player_effects(i)
 
-		var player_ui: = PlayerUIElements.new()
+		var player_ui = load("res://ui/hud/player_ui_elements.gd").new()
 		var player_idx_string = str(i + 1)
 
 		player_ui.player_index = i

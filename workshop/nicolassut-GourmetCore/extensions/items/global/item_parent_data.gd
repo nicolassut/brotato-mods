@@ -65,8 +65,12 @@ func _get_tracking_text(player_index: int) -> String:
 
 
 
-func get_name_text(player_index: int = - 1) -> String:
-	return tr(name)
+# Gourmet ecosystem - per-player naming entry point. Vanilla get_name_text()
+# keeps its exact signature (an extension changing a parent signature breaks
+# every vanilla child override - the extension-sandwich rule); callers that
+# know the owner use this instead, and WeaponData overrides it for the ladder.
+func get_name_text_for(_player_index: int = - 1) -> String:
+	return get_name_text()
 
 
 

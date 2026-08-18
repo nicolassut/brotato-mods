@@ -87,7 +87,11 @@ func on_tracked_value_set(value := 1) -> void:
 	tracked_value_added_this_wave = value
 
 
-func get_name_text(player_index: int = - 1) -> String:
+func get_name_text() -> String:
+	return get_name_text_for(- 1)
+
+
+func get_name_text_for(player_index: int = - 1) -> String:
 	# Gourmet DLC - both halves of the ladder-naming rule, merged:
 	#   player_index : the ladder belongs to the card's OWNER, so a Blacksmith or P2W in coop
 	#                  never renames another player's weapons.

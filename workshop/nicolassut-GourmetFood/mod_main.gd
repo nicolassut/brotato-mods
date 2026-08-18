@@ -11,8 +11,8 @@ const LOG_NAME = "nicolassut-GourmetFood"
 const TRANSLATIONS_CSV = "res://mods-unpacked/nicolassut-GourmetFood/translations.csv"
 
 
-func _init(modLoader = ModLoader):
-	ModLoaderUtils.log_info("Init", LOG_NAME)
+func _init():
+	ModLoaderLog.info("Init", LOG_NAME)
 	_load_translations()
 
 

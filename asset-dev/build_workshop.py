@@ -69,8 +69,8 @@ const LOG_NAME = "%(mod)s"
 const TRANSLATIONS_CSV = "res://mods-unpacked/%(mod)s/translations.csv"
 
 
-func _init(modLoader = ModLoader):
-	ModLoaderUtils.log_info("Init", LOG_NAME)
+func _init():
+	ModLoaderLog.info("Init", LOG_NAME)
 	_load_translations()
 
 """ + TRANSLATION_LOADER
@@ -84,7 +84,7 @@ def manifest(name, description, dependencies):
         "dependencies": dependencies,
         "extra": {"godot": {
             "incompatibilities": [], "authors": ["nicolassut"],
-            "compatible_mod_loader_version": "6.x",
+            "compatible_mod_loader_version": ["6.3.0"],
             "compatible_game_version": [GAME_VERSION],
             "config_defaults": {},
         }},
@@ -190,28 +190,68 @@ const EXTENSIONS = [
 ]
 
 
-func _init(modLoader = ModLoader):
-	ModLoaderUtils.log_info("Init", LOG_NAME)
+func _init():
+	ModLoaderLog.info("Init", LOG_NAME)
 	_load_translations()
+	# PRE-WARM: fully load every vanilla target (parents first) BEFORE
+	# ModLoader's sorter force-loads the extension scripts. Without this, the
+	# sorter compiles extensions against half-loaded vanilla chains and caches
+	# them broken - reload at apply time does not always recover (measured
+	# 2026-08-18: 3 extensions failed to install).
+	for ext in EXTENSIONS:
+		var _warm = load("res://" + ext)
 	for ext in EXTENSIONS:
 		ModLoaderMod.install_script_extension(EXT_ROOT.plus_file(ext))
 
 
 func _ready():
-	ModLoaderUtils.log_info("Ready", LOG_NAME)
+	ModLoaderLog.info("Ready", LOG_NAME)
+	_retry_failed_extensions()
 	_register_interact_action()
-	# IMMEDIATE add_child - call_deferred lands after the autoload phase, too
-	# late (probe-proven 2026-08-18). The service NODES must exist at /root
-	# before ProgressData._ready drives Packs.apply_at_boot; their own _ready
-	# fires after every vanilla autoload's, same relative order as the live
-	# tree where they are the last autoloads.
+	_swap_early_autoload_scripts()
+	# The service NODES must exist (findable by name) before ProgressData's
+	# _ready drives Packs.apply_at_boot. Root itself rejects add_child during
+	# the autoload cascade ("parent busy setting up children" - measured
+	# 2026-08-18), so the services live under THIS mod node; Utils' accessor
+	# falls back to searching the ModLoader subtree by node name.
 	var tree_root = get_tree().get_root()
 	for svc in SERVICES:
 		if tree_root.has_node(svc[0]):
 			continue
 		var node = load(svc[1]).new()
 		node.name = svc[0]
-		tree_root.add_child(node)
+		add_child(node)
+
+
+func _swap_early_autoload_scripts() -> void :
+	# Autoloads that instantiate BEFORE ModLoader (Keys is autoload #4) keep
+	# their vanilla script even after the path is taken over - swap the live
+	# node's script so the extension's members exist. set_script re-runs the
+	# member initializers (vanilla + extension); nothing has cached Keys state
+	# this early (later autoloads have not run _ready yet).
+	var keys = get_node_or_null("/root/Keys")
+	if keys == null:
+		return
+	var ext_script = load("res://singletons/keys.gd")
+	if keys.get_script() != ext_script:
+		keys.set_script(ext_script)
+
+
+func _retry_failed_extensions() -> void :
+	# ModLoader's sorter force-loads extensions before any install; a compile
+	# that fails there (transient half-loaded chains, class-identity flux) can
+	# leave that one extension uninstalled. By _ready the world is stable:
+	# reload the vanilla resident (rebinding class identities against the now-
+	# extended scripts) and re-install - install_script_extension applies
+	# immediately outside the init phase.
+	for ext in EXTENSIONS:
+		var resident: Script = load("res://" + ext)
+		if resident != null and resident.has_meta("extension_script_path"):
+			continue
+		if resident != null:
+			resident.reload()
+		ModLoaderLog.info("Retrying failed extension: %%s" %% ext, LOG_NAME)
+		ModLoaderMod.install_script_extension(EXT_ROOT.plus_file(ext))
 
 
 func _register_interact_action() -> void :
@@ -338,7 +378,31 @@ func _register_interact_action() -> void :
    dead/deregistered); per-mod translations.csv split from the sacred CSV and
    runtime-loaded in mod_main; `asset-dev/pack_workshop_zips.py` assembles
    workshop/dist/*.zip (payload at true res:// paths + .import/.stex).
-7. **Remaining**: the end-to-end disposable-clone gate (check_workshop.sh).
+7. ~~End-to-end gate~~ **RESOLVED - GATE PASSES**: `bash check_workshop.sh`
+   boots a disposable no-DLC clone of the pristine reference with the mods in
+   three install combos (all six / Core+Food / Core-only), asserting exact
+   registered counts + PackService VERIFY OK per combo. Hard-won laws baked
+   into the generator+mod_main (all measured 2026-08-18):
+   - EXTENSION SANDWICH: an extension may never change a vanilla function's
+     signature (vanilla children override the old one) - resolved via
+     delegate funcs (get_name_text_for, _on_gourmet_item_discard_pressed)
+   - pre-ModLoader autoloads (Keys, #4) keep the vanilla script; Core swaps
+     it via set_script in _ready
+   - services CANNOT be added to /root during the autoload cascade - they
+     live under the Core mod node; Utils' accessor searches both
+   - ModLoader's sorter force-loads extensions against half-loaded chains;
+     mod_main PRE-WARMS all vanilla targets first and RETRIES failed installs
+     in _ready (world stable there)
+   - a child script cannot forward vanilla _init args (Godot 3 quirk) - the
+     generator synthesizes forwarding constructors
+   - cross-extension global-class bindings compile stale (ModLoader sort
+     order) - creation sites use load-by-path; the generator hard-errors on
+     new hazards
+   - baked res://dlcs/ refs are fatal on DLC-less installs - DLC weapon sets
+     attach at runtime (PackService._attach_dlc_sets)
+   - the missing GUT test sources (in _global_script_classes but not the
+     pck) abort ModLoader's child-reload helper - errors whitelisted, retry
+     pass compensates.
 
 ## Known gaps (accepted, documented)
 - The dlcs/ tree is the decompiled PAID DLC and never ships. Its one script

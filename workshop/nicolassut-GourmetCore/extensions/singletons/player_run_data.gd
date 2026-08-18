@@ -2,6 +2,11 @@
 # GourmetCore extension of the vanilla file (full modified/new functions + new members)
 extends "res://singletons/player_run_data.gd"
 
+# Gourmet ecosystem - mirror of DEFAULT_MAX_HP for STATIC functions: a script
+# extension's static funcs cannot see parent consts, and init_stats is emitted
+# into the GourmetCore extension. Keep both values identical.
+const GOURMET_DEFAULT_MAX_HP: = 10
+
 # Gourmet DLC - debt (Credit Card / Bank Loan). `debt` is the displayed debt in POINTS (the
 # negative number shown next to materials); each point costs 2 materials to clear. `debt_progress`
 # is the 0-or-1 half-material carry so 1-at-a-time gold pickups still repay at the true 2:1 rate.
@@ -303,7 +308,7 @@ func _deserialize_effects(p_effects: Dictionary, weapon_effect_hashes: Dictionar
 
 static func init_stats(all_null_values: bool = false) -> Dictionary:
 	var stats: = {
-		Keys.stat_max_hp_hash: DEFAULT_MAX_HP if not all_null_values else 0, 
+		Keys.stat_max_hp_hash: GOURMET_DEFAULT_MAX_HP if not all_null_values else 0, 
 		Keys.stat_armor_hash: 0, 
 		Keys.stat_crit_chance_hash: 0, 
 		Keys.stat_luck_hash: 0, 

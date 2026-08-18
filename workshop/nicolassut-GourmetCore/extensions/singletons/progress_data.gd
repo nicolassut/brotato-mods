@@ -3,6 +3,16 @@
 extends "res://singletons/progress_data.gd"
 
 
+# Gourmet ecosystem - ALL v3 loader construction goes through here. In the
+# Workshop build this script compiles BEFORE the loader extension takes over
+# its path (ModLoader sorts extensions by inheritance stack), so a bound
+# ProgressDataLoaderV3 reference would create VANILLA loader instances without
+# systems_unlocked. load-by-path resolves the taken-over script at call time.
+func _gourmet_loader_v3(profile_id: int):
+	return load("res://singletons/progress_data_loader_v3.gd").new(SAVE_DIR, profile_id)
+
+
+
 func _ready() -> void :
 	init_save_paths()
 	load_dlc_pcks()
@@ -34,6 +44,99 @@ func _ready() -> void :
 	if Utils.on_ps5:
 		print("PS5 platform : activate activity")
 		need_activity = true
+
+
+func reset_save_profile(id: int) -> void :
+	if BETA:
+		var loader_beta = ProgressDataLoaderBeta.new(SAVE_DIR, id)
+		loader_beta.add_unlocked_by_default_from_blank_save()
+		loader_beta.run_state_deserialized = _get_empty_run_state()
+		loader_beta.save()
+		if current_profile_id == id:
+			load_with_generic_loader(loader_beta)
+	else:
+		var loader = _gourmet_loader_v3(id)
+		loader.add_unlocked_by_default_from_blank_save()
+		loader.run_state_deserialized = _get_empty_run_state()
+		loader.save()
+		if current_profile_id == id:
+			load_with_generic_loader(loader)
+
+
+func unlock_all_save_profile(id: int) -> void :
+	if BETA:
+		var loader_beta = ProgressDataLoaderBeta.new(SAVE_DIR, id)
+		loader_beta.load_game_file()
+		loader_beta.unlock_all()
+		loader_beta.run_state_deserialized = _get_empty_run_state()
+		loader_beta.save()
+		if current_profile_id == id:
+			load_with_generic_loader(loader_beta)
+	else:
+		var loader = _gourmet_loader_v3(id)
+		loader.load_game_file()
+		loader.unlock_all()
+		loader.run_state_deserialized = _get_empty_run_state()
+		loader.save()
+		if current_profile_id == id:
+			load_with_generic_loader(loader)
+
+
+func copy_save_profile(from_id: int, to_id: int) -> void :
+	if BETA:
+		var from_loader_beta = ProgressDataLoaderBeta.new(SAVE_DIR, from_id)
+		from_loader_beta.load_game_file()
+		if from_loader_beta.load_status != LoadStatus.SAVE_OK:
+			printerr("Could not copy save profile from id %s because it could not be loaded" % from_id)
+			return
+		var to_loader_beta = ProgressDataLoaderBeta.new(SAVE_DIR, to_id)
+		to_loader_beta.zones_unlocked = from_loader_beta.zones_unlocked.duplicate()
+		to_loader_beta.characters_unlocked = from_loader_beta.characters_unlocked.duplicate()
+		to_loader_beta.upgrades_unlocked = from_loader_beta.upgrades_unlocked.duplicate()
+		to_loader_beta.consumables_unlocked = from_loader_beta.consumables_unlocked.duplicate()
+		to_loader_beta.weapons_unlocked = from_loader_beta.weapons_unlocked.duplicate()
+		to_loader_beta.items_unlocked = from_loader_beta.items_unlocked.duplicate()
+		to_loader_beta.challenges_completed = from_loader_beta.challenges_completed.duplicate()
+		to_loader_beta.difficulties_unlocked_serialized.clear()
+		for difficulty_unlocked in from_loader_beta.difficulties_unlocked_serialized:
+			to_loader_beta.difficulties_unlocked_serialized.push_back(difficulty_unlocked)
+		to_loader_beta.inactive_mods = from_loader_beta.inactive_mods.duplicate()
+		to_loader_beta.read_announcements = from_loader_beta.read_announcements.duplicate()
+		to_loader_beta.run_state_deserialized = from_loader_beta.run_state_deserialized.duplicate()
+		to_loader_beta.data = from_loader_beta.data.duplicate()
+		to_loader_beta.killed_enemies = from_loader_beta.killed_enemies.duplicate()
+		to_loader_beta.killed_by_enemies = from_loader_beta.killed_by_enemies.duplicate()
+		to_loader_beta.items_bought = from_loader_beta.items_bought.duplicate()
+		to_loader_beta.save()
+		if current_profile_id == to_id:
+			load_with_generic_loader(to_loader_beta)
+	else:
+		var from_loader = _gourmet_loader_v3(from_id)
+		from_loader.load_game_file()
+		if from_loader.load_status != LoadStatus.SAVE_OK:
+			printerr("Could not copy save profile from id %s because it could not be loaded" % from_id)
+			return
+		var to_loader = _gourmet_loader_v3(to_id)
+		to_loader.zones_unlocked = from_loader.zones_unlocked.duplicate()
+		to_loader.characters_unlocked = from_loader.characters_unlocked.duplicate()
+		to_loader.upgrades_unlocked = from_loader.upgrades_unlocked.duplicate()
+		to_loader.consumables_unlocked = from_loader.consumables_unlocked.duplicate()
+		to_loader.weapons_unlocked = from_loader.weapons_unlocked.duplicate()
+		to_loader.items_unlocked = from_loader.items_unlocked.duplicate()
+		to_loader.challenges_completed = from_loader.challenges_completed.duplicate()
+		to_loader.difficulties_unlocked_serialized.clear()
+		for difficulty_unlocked in from_loader.difficulties_unlocked_serialized:
+			to_loader.difficulties_unlocked_serialized.push_back(difficulty_unlocked)
+		to_loader.inactive_mods = from_loader.inactive_mods.duplicate()
+		to_loader.read_announcements = from_loader.read_announcements.duplicate()
+		to_loader.run_state_deserialized = from_loader.run_state_deserialized.duplicate()
+		to_loader.data = from_loader.data.duplicate()
+		to_loader.killed_enemies = from_loader.killed_enemies.duplicate()
+		to_loader.killed_by_enemies = from_loader.killed_by_enemies.duplicate()
+		to_loader.items_bought = from_loader.items_bought.duplicate()
+		to_loader.save()
+		if current_profile_id == to_id:
+			load_with_generic_loader(to_loader)
 
 
 
@@ -84,6 +187,91 @@ func check_dlc_valid_for_saved_run_state() -> bool:
 					print("couldn't find player in list, probably in dlc, disable save")
 					return false
 	return true
+
+
+
+
+func init_save_paths(user_dir_override: = "user://") -> void :
+	var dir = Directory.new()
+	var dir_path = user_dir_override + Platform.get_user_id()
+	var directory_exists = dir.dir_exists(dir_path)
+	if not directory_exists:
+		var err = dir.make_dir(dir_path)
+		if err != OK:
+			printerr("Could not create the directory %s. Error code: %s" % [dir_path, err])
+			return
+	SAVE_DIR = dir_path
+	if BETA:
+		SAVE_PATH = ProgressDataLoaderBeta.new(SAVE_DIR, current_profile_id).save_path
+	else:
+		SAVE_PATH = _gourmet_loader_v3(current_profile_id).save_path
+	LOG_PATH = dir_path + "/log.txt"
+	print("LOG_PATH: " + str(LOG_PATH))
+	var file = File.new()
+	file.open(LOG_PATH, File.WRITE)
+	file.close()
+	if not Utils.is_on_console() and not directory_exists:
+		_copy_files_from_fallback_dir(user_dir_override)
+
+
+
+
+
+func load_game_file(try_fallback: = true) -> void :
+	if DebugService.reinitialize_save:
+		save()
+		return
+	if BETA:
+		var loader_beta = ProgressDataLoaderBeta.new(SAVE_DIR, current_profile_id)
+		load_with_generic_loader(loader_beta)
+		show_main_title_beta_save_warning_popup = loader_beta.show_main_title_beta_save_warning_popup
+		if load_status == LoadStatus.SAVE_OK:
+			return
+		if load_status != LoadStatus.SAVE_MISSING:
+			return
+	print("--- Load game file ---")
+	print("Try to load save v3")
+	var loader_v3 = _gourmet_loader_v3(current_profile_id)
+	load_with_generic_loader(loader_v3)
+	if load_status == LoadStatus.SAVE_OK:
+		return
+	if load_status != LoadStatus.SAVE_MISSING:
+		return
+	if current_profile_id > 0:
+		load_status = LoadStatus.SAVE_OK
+		save()
+		return
+	print("No save v3. Try to load save v2")
+	var loader_v2 = ProgressDataLoaderV2.new(SAVE_DIR)
+	load_with_generic_loader(loader_v2)
+	if load_status == LoadStatus.SAVE_OK:
+		print("Save v2 OK, try to merge old V1")
+		merge_old_v1_save()
+		return
+	if load_status != LoadStatus.SAVE_MISSING:
+		print("Save v2 corrupted. Not trying v1")
+		return
+	var loader_v1 = null
+	print("No save v2. Try to load save v1")
+	if Utils.is_on_console():
+		loader_v1 = ProgressDataLoaderV1.new("user:/")
+	else:
+		loader_v1 = ProgressDataLoaderV1.new(SAVE_DIR)
+	load_with_generic_loader(loader_v1)
+	if load_status == LoadStatus.SAVE_OK:
+		print("Migrating v1 save to v3")
+		save()
+		return
+	elif load_status != LoadStatus.SAVE_MISSING:
+		print("Save v1 corrupted")
+	else:
+		if try_fallback and not Utils.is_on_console():
+			print("No save found, trying to copy from fallback")
+			_use_fallback_save()
+			return
+		print("No save found, creating new save")
+		load_status = LoadStatus.SAVE_OK
+		save()
 
 
 
@@ -138,6 +326,40 @@ func load_with_generic_loader(loader, path: = "") -> void :
 			items_bought[k] = int(items_bought[k])
 
 
+
+
+
+func save() -> void :
+	if DebugService.disable_saving:
+		return
+	if load_status == LoadStatus.CORRUPTED_ALL_SAVES_NO_STEAM or load_status == LoadStatus.CORRUPTED_ALL_SAVES_NO_EPIC:
+		printerr("Aborting save due to unrecoverable corruption")
+		return
+	save_settings()
+	if BETA:
+		var loader_beta = ProgressDataLoaderBeta.new(SAVE_DIR, current_profile_id)
+		_set_loader_properties_beta(loader_beta, saved_run_state)
+		loader_beta.show_main_title_beta_save_warning_popup = show_main_title_beta_save_warning_popup
+		loader_beta.save()
+	else:
+		var loader_v3 = _gourmet_loader_v3(current_profile_id)
+		_set_loader_properties(loader_v3, saved_run_state)
+		loader_v3.save()
+
+
+
+
+
+func get_current_save_object() -> Dictionary:
+	if BETA:
+		var loader_beta = ProgressDataLoaderBeta.new(SAVE_DIR, current_profile_id)
+		_set_loader_properties_beta(loader_beta, _get_current_run_state())
+		return loader_beta.get_save_object()
+	var loader_v3 = _gourmet_loader_v3(current_profile_id)
+	_set_loader_properties(loader_v3, _get_current_run_state())
+	return loader_v3.get_save_object()
+
+
 func _set_loader_properties(loader_v3: ProgressDataLoaderV3, run_state: Dictionary) -> void :
 	loader_v3.zones_unlocked = zones_unlocked.duplicate()
 	loader_v3.characters_unlocked = Utils.convert_to_hash_array(characters_unlocked.duplicate())
@@ -157,6 +379,20 @@ func _set_loader_properties(loader_v3: ProgressDataLoaderV3, run_state: Dictiona
 	loader_v3.killed_enemies = killed_enemies.duplicate()
 	loader_v3.killed_by_enemies = killed_by_enemies.duplicate()
 	loader_v3.items_bought = items_bought.duplicate()
+
+
+func get_profile_stats() -> Array:
+	var result = []
+	for i in range(3):
+		if BETA:
+			var loader_beta = ProgressDataLoaderBeta.new(SAVE_DIR, i)
+			var stats = loader_beta.load_profile_stats()
+			result.push_back(stats)
+		else:
+			var loader = _gourmet_loader_v3(i)
+			var stats = loader.load_profile_stats()
+			result.push_back(stats)
+	return result
 
 # --- GourmetCore: late script extension for the Abyssal Terrors DLC ---
 func _gourmet_install_dlc_extension() -> void :

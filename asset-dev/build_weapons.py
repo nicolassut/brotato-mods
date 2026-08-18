@@ -597,13 +597,15 @@ def build_weapon(wpn, next_id):
         for set_name in wpn["sets"]:
             path = None
             set_dir = {"elemental": "fire"}.get(set_name, set_name)
-            for cand in (f"res://items/sets/{set_dir}/{set_dir}_set_data.tres",
-                         f"res://dlcs/dlc_1/sets/{set_dir}/{set_dir}_set_data.tres"):
-                if os.path.exists(f"{DEC}/{cand[6:]}"):
-                    path = cand
-                    break
+            # DLC sets are NEVER baked into the tres: on an install without the
+            # DLC the ext_resource fails and takes the whole pack down (clone
+            # gate, 2026-08-18). PackService._attach_dlc_sets adds them at
+            # runtime when the DLC is present - keep its table in sync.
+            cand = f"res://items/sets/{set_dir}/{set_dir}_set_data.tres"
+            if os.path.exists(f"{DEC}/{cand[6:]}"):
+                path = cand
             if path is None:
-                print(f"  ! set missing on disk, skipped: {set_name} ({slug})")
+                print(f"  ! set not bakeable (DLC or missing) - runtime attach: {set_name} ({slug})")
                 continue
             exts.append(f'[ext_resource path="{path}" type="Resource" id={next_ext}]')
             set_refs.append(f"ExtResource( {next_ext} )")

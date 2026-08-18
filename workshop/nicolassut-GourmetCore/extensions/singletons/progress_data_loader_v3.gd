@@ -190,3 +190,8 @@ func get_save_object() -> Dictionary:
 		"items_bought": items_bought, 
 		"version": 3
 	}
+
+# forwarding constructor (vanilla base has required _init args; a child
+# script without an explicit _init cannot forward them - Godot 3 quirk)
+func _init(save_dir: = "", current_profile_id: int = 0).(save_dir, current_profile_id) -> void :
+	pass

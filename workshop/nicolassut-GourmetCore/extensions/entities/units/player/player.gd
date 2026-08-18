@@ -94,9 +94,11 @@ func _ready() -> void :
 # Gourmet DLC - Girly panic-teleport (driven by main.gd girly_panic_teleport).
 # begin: freeze move+shoot, go invincible, hold chasers on `origin`, fade out.
 func begin_panic_teleport(origin: Vector2) -> void :
-	_panic_frozen = true
+	# self-qualified: members live in unit.gd's EXTENSION; a bare identifier
+	# parse-fails when ModLoader's sorter preloads this file against vanilla unit
+	self._panic_frozen = true
 	_current_movement = Vector2.ZERO
-	panic_target_override = origin
+	self.panic_target_override = origin
 	disable_hurtbox()
 	_panic_fade(1.0, 0.0, 0.5)
 
@@ -109,8 +111,8 @@ func panic_fade_in() -> void :
 
 
 func end_panic_teleport() -> void :
-	_panic_frozen = false
-	panic_target_override = null
+	self._panic_frozen = false
+	self.panic_target_override = null
 	modulate = Color(1, 1, 1, 1)
 	enable_hurtbox()
 
@@ -379,7 +381,7 @@ func on_healing_effect(value: int, tracking_key: int = Keys.empty_hash, from_tor
 func _on_InvincibilityTimer_timeout() -> void :
 	# Gourmet DLC - don't re-enable the hurtbox mid panic-teleport (Girly is invincible
 	# for the full second); end_panic_teleport re-enables it when control returns.
-	if not cleaning_up and not _panic_frozen:
+	if not cleaning_up and not self._panic_frozen:
 		enable_hurtbox()
 
 

@@ -96,6 +96,7 @@ func apply_at_boot() -> void :
 		available_packs.size(), str(enabled_ids),
 		ItemService.characters.size(), ItemService.items.size(),
 		ItemService.weapons.size(), ItemService.foods.size()])
+	_attach_dlc_sets()
 	# full self-test AFTER the whole boot settles (save loaded, pools built)
 	call_deferred("_verify_registration")
 
@@ -283,6 +284,7 @@ func activate_pack(pack_id: String) -> void :
 	ProgressData.settings.disabled_packs.erase(pack_id)
 	ProgressData.save_settings()
 	evaluate_synergies()
+	_attach_dlc_sets()
 	_reorder_roster()
 	_refresh_flags()
 	emit_signal("pack_activated", pack_id)
@@ -309,3 +311,27 @@ func _refresh_flags() -> void :
 	forge = is_pack_enabled("forge")
 	ledger = is_pack_enabled("ledger")
 	roster = is_pack_enabled("roster")
+
+
+# Gourmet ecosystem - culinary weapons that belong to Abyssal Terrors DLC
+# weapon sets (naval, musical). The set refs are NOT baked into the weapon
+# tres: on an install without the DLC a baked ext_resource fails to load and
+# takes the whole pack tres cascade down (Workshop clone gate, 2026-08-18).
+# Attached here at runtime instead, only when the DLC data is present.
+# build_weapons.py deliberately skips DLC sets at bake time - keep in sync.
+const DLC_SET_ATTACH = {
+	"res://dlcs/dlc_1/sets/naval/naval_set_data.tres":
+		["/fish_slapper/", "/trident_fork/", "/galley_cannon/"],
+	"res://dlcs/dlc_1/sets/musical/musical_set_data.tres": ["/dinner_bell/"],
+}
+
+
+func _attach_dlc_sets() -> void :
+	for set_path in DLC_SET_ATTACH:
+		if not ResourceLoader.exists(set_path):
+			continue
+		var set_res = load(set_path)
+		for weapon in ItemService.weapons:
+			for marker in DLC_SET_ATTACH[set_path]:
+				if weapon.resource_path.find(marker) != - 1 and not weapon.sets.has(set_res):
+					weapon.sets.push_back(set_res)
