@@ -99,6 +99,13 @@ func dress_as(character) -> void :
 	leg_r.position = Vector2(-16, 18)
 	leg_r.show_behind_parent = true
 	legs.add_child(leg_r)
+	# legs tint (green/brown characters) - ALWAYS write it, white by default
+	# (the select-preview taught us skipping the default leaves stale tints)
+	if character != null:
+		for leg in [leg_l, leg_r]:
+			var leg_sprite = leg.get_node_or_null("Sprite")
+			if leg_sprite != null:
+				leg_sprite.self_modulate = character.legs_modulate
 
 	if character != null:
 		var appearances: Array = character.item_appearances
