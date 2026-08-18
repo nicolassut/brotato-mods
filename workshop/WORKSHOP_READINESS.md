@@ -35,12 +35,21 @@
      an extension of an always-present vanilla autoload and rewrite references
      mechanically. Measured burden: Packs. x11, GameModes. x8, GourmetTracker.
      x66, SpecialModifiers. x19, ButcherSkin. x5 = 109 references total.
-3. **project.godot input action**: `interact` must be registered via InputMap at
-   runtime in Core.
-4. **item_service.tscn / scene diffs**: 10 scene files differ; scenes cannot be
-   script-extended - each needs either upstreaming into code or a replacement
-   strategy.
-5. **Art packaging**: pack art ships as .pck loaded via load_resource_pack.
+3. ~~project.godot input action~~ **RESOLVED**: Core's mod_main registers
+   `interact` (E + gamepad button 3) via InputMap at runtime.
+4. ~~item_service.tscn / scene diffs~~ **RESOLVED**: zero vanilla scenes ship.
+   The item_service.tscn diff (5 vanilla item removals + `foods` export) is a
+   guarded runtime prune + an extension export default; the pause.tscn diff
+   (blobfish margins) is patched from the pause.gd extension. The 8 mod-ADDED
+   scenes ship as files.
+5. **Extensions are now GENERATED** (extensions/ + AUDIT.md, per-function diff
+   vs the pristine tree; dict merges at _init, verified-safe inner-class
+   redeclarations). Remaining before the clone gate can pass:
+   - the 109 bare service references must be rewritten to the Utils accessors
+     (extensions currently inherit whatever game-src has)
+   - pack payload assembly: art/scripts/tres at their true res:// paths +
+     .import/.stex entries, per-pack translations
+   - end-to-end disposable-clone gate (check_workshop.sh)
 
 ## Law
 Regenerate this report after any engine change: `python3 asset-dev/build_workshop.py`.
