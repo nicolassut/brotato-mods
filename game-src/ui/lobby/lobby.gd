@@ -102,7 +102,6 @@ func _build_floor() -> void :
 	# fill (2026-08-20: the old DECK_COLOR fill peeked out past the sprite
 	# as gray slivers beside the rails)
 	_rect(SHUTTLE_PAD_RECT, PAD_COLOR)
-	_rect(FOUNTAIN_RECT, SLOT_COLOR)
 	_rect(BOARD_RECT, SLOT_COLOR)
 	_rect(SHRINE_RECT, SLOT_COLOR)
 	_rect(GATE_RECT, CLIFF_COLOR)
@@ -127,8 +126,17 @@ func _build_floor() -> void :
 			STAIR_EAST.position.x - STAIR_WEST.end.x, CLIFF_RECT.size.y))
 	_add_wall(Rect2(STAIR_EAST.end.x, CLIFF_RECT.position.y,
 			CLIFF_RECT.end.x - STAIR_EAST.end.x, CLIFF_RECT.size.y))
-	# the fountain is solid
-	_add_wall(FOUNTAIN_RECT)
+	# the STATUE (plaza centerpiece, classic-pose stone potato) stands on
+	# the fountain anchor: sprite 320x186 base-anchored at (0, 460), solid
+	# at its base band only (2.5D law - walk behind it)
+	_add_wall(Rect2(-105, 405, 210, 55))
+	var statue_path: = "res://ui/lobby/art/statue.png"
+	if ResourceLoader.exists(statue_path):
+		var statue: = Sprite.new()
+		statue.texture = load(statue_path)
+		statue.position = Vector2(0, 460)
+		statue.offset = Vector2(0, -93)
+		_world.add_child(statue)
 	# booth: backed against the cliff (base -150), and NO walk-behind (user
 	# 2026-08-20) - the wall spans from the cliff base to the booth base,
 	# matched to the body width at ground level (159, crown overhangs)
