@@ -384,6 +384,10 @@ def build_stairs():
         run_m = Image.new("L", (W, H), 0)
         run_m.paste(run.split()[3].point(lambda v: 255 if v > 0 else 0),
                     (cx - run_w // 2, 26))
+        # the pole's shadow continues to the stair FOOT - the pole itself
+        # tucks behind the bottom post, but its shadow must not gap there
+        ImageDraw.Draw(run_m).rectangle(
+            [cx - run_w // 2, 500, cx - run_w // 2 + run_w - 1, 614], fill=255)
         run_m = run_m.filter(ImageFilter.MaxFilter(7))   # include the outline
         asm_m = asm.split()[3].point(lambda v: 255 if v > 0 else 0)
         shifted = Image.new("L", (W, H), 0)
@@ -392,12 +396,14 @@ def build_stairs():
         sh_layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         sh_layer.paste(Image.new("RGBA", (W, H), (0, 0, 0, 90)), (0, 0), shm)
         im.alpha_composite(sh_layer)
-        # post shadows (user, exact spec): the v11 strip with its UPPER
-        # part removed - lower half of each post down to the base - and
-        # extended out a touch more (14 -> 20px)
+        # post shadows: lower half of each post, ROUNDED, grounded a touch
+        # past the base (user 2026-08-20)
         for (py0, pbase) in ((8, 96), (524, 620)):
             sy = py0 + (pbase - py0) // 2
-            im.alpha_composite(Image.new("RGBA", (20, pbase - sy), (0, 0, 0, 90)), (cx + 27, sy))
+            ph = pbase - sy + 6
+            psh = Image.new("RGBA", (22, ph), (0, 0, 0, 0))
+            ImageDraw.Draw(psh).rounded_rectangle([0, 0, 21, ph - 1], 9, fill=(0, 0, 0, 90))
+            im.alpha_composite(psh, (cx + 26, sy))
         im.alpha_composite(asm)
     rail(60)
     rail(W - 60)
