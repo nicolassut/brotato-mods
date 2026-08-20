@@ -245,8 +245,10 @@ def draw_beam(wx, wide):
                        fill=(26, 26, 28, 255))
     ld.rectangle([bx - 7, 4, bx + bw + 7, 26], fill=(40, 42, 46, 255))
     ld.rectangle([bx - 7, 4, bx + bw + 7, 8], fill=(56, 58, 62, 255))
+    ld.rectangle([bx - 7, 24, bx + bw + 7, 27], fill=(16, 14, 12, 255))
     ld.rectangle([bx - 7, 346, bx + bw + 7, 368], fill=(40, 42, 46, 255))
     ld.rectangle([bx - 7, 346, bx + bw + 7, 350], fill=(56, 58, 62, 255))
+    ld.rectangle([bx - 7, 343, bx + bw + 7, 346], fill=(16, 14, 12, 255))
     outline_paste(cliff, layer, (wx + 1376 - LW // 2, 14))
 for wx in beam_wxs:
     draw_beam(wx, False)
@@ -310,25 +312,27 @@ def build_stairs():
     dr.rectangle([FIELD_L, 480, FIELD_R, 486], fill=(46, 42, 39, 255))
     n = scatter(im.crop((FIELD_L, 480, FIELD_R, 576)), pure_rocks, 2, (0.5, 0.5, 0.5))
     def rail(x):
-        # GUARD RAILS (2026-08-19 user: must read as railings, not pillars):
-        # they stand ~60px ABOVE the deck edge with a wide cap - any real
-        # deck opening has guard rails above floor level
+        # GUARD RAILS with BORDERS AT EVERY COMPONENT JUNCTION (user law
+        # 2026-08-19: touching parts keep their separating black line)
         bw = 30
         LW = bw + 20
-        TOP = 36            # canvas y where the rail starts (deck edge = 96)
+        TOP = 36
+        B = (16, 14, 12, 255)
         layer = Image.new("RGBA", (LW, 486 - TOP + 10), (0, 0, 0, 0))
         ld = ImageDraw.Draw(layer)
         bx = 10
         ld.rectangle([bx, 14, bx + bw, 486 - TOP], fill=(46, 48, 52, 255))
         ld.rectangle([bx + 5, 14, bx + 8, 486 - TOP], fill=(58, 60, 64, 255))
-        # wide HANDRAIL CAP on top (what you grab - reads railing)
         ld.rectangle([bx - 9, 0, bx + bw + 9, 20], fill=(52, 54, 58, 255))
         ld.rectangle([bx - 9, 0, bx + bw + 9, 6], fill=(62, 64, 68, 255))
-        # mid plate where it passes the deck edge
-        ld.rectangle([bx - 5, 96 - TOP, bx + bw + 5, 96 - TOP + 16], fill=(40, 42, 46, 255))
-        # foot plate at the apron
-        ld.rectangle([bx - 6, 466 - TOP, bx + bw + 6, 486 - TOP], fill=(40, 42, 46, 255))
-        ld.rectangle([bx - 6, 466 - TOP, bx + bw + 6, 469 - TOP], fill=(56, 58, 62, 255))
+        ld.rectangle([bx - 9, 18, bx + bw + 9, 21], fill=B)          # cap junction
+        mp = 96 - TOP
+        ld.rectangle([bx - 5, mp, bx + bw + 5, mp + 16], fill=(40, 42, 46, 255))
+        ld.rectangle([bx - 5, mp - 3, bx + bw + 5, mp], fill=B)      # mid plate top
+        ld.rectangle([bx - 5, mp + 16, bx + bw + 5, mp + 19], fill=B)  # mid plate bottom
+        fp = 466 - TOP
+        ld.rectangle([bx - 6, fp, bx + bw + 6, fp + 20], fill=(40, 42, 46, 255))
+        ld.rectangle([bx - 6, fp, bx + bw + 6, fp + 3], fill=B)      # foot plate junction
         outline_paste(im, layer, (x - 10, TOP))
     rail(8)
     rail(W - 38)

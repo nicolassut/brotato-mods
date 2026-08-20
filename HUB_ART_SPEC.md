@@ -96,7 +96,10 @@ feet and attachments included as one shape. Borderless metalwork is jarring
 against the game's language. Only walkable GROUND surfaces (floors, treads,
 dirt) go borderless. Procedural assets use `outline_paste()` in
 asset-dev/hub/build_ground.py; PixelLab assets get it via prompt + the
-dilate pass. No asset ships without its border checked. Two render classes: [O] = outlined object (create_1_direction_object,
+dilate pass. No asset ships without its border checked. COROLLARY (2026-08-19): borders
+also exist WHERE COMPONENTS TOUCH - plates, caps and collars carry a black
+junction line where they meet the body or another member; two touching
+surfaces never fuse into one color field. Two render classes: [O] = outlined object (create_1_direction_object,
 view sidescroller, size >=171, style_images = real Brotato props upscaled 192
 nearest), [G] = ground/soft (lineless, low contrast - map_object route or
 heavy post-process; NEVER outline ground).
