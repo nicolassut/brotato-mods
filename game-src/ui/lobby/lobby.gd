@@ -60,6 +60,20 @@ func _ready() -> void :
 	_build_players()
 	_build_camera()
 	_build_npcs()
+	# art build stamp: the mtime of the stairs texture identifies which art
+	# build this running instance loaded (stale-window confusion killer)
+	var art_file: = File.new()
+	var art_stamp: String = "?"
+	if art_file.open("res://ui/lobby/art/stairs.png", File.READ) == OK:
+		art_stamp = str(art_file.get_len())
+		art_file.close()
+	var stamp_label: = Label.new()
+	stamp_label.text = "art build " + art_stamp
+	stamp_label.rect_position = Vector2(8, 8)
+	stamp_label.modulate = Color(1, 1, 1, 0.35)
+	var stamp_layer: = CanvasLayer.new()
+	stamp_layer.add_child(stamp_label)
+	add_child(stamp_layer)
 	print("Lobby ready: %d station(s), %d building(s), %d slots" % [
 		get_tree().get_nodes_in_group("lobby_npcs").size(),
 		get_tree().get_nodes_in_group("lobby_buildings").size(),
