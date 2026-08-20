@@ -313,7 +313,7 @@ def build_stairs():
     # OVERHANGING the 256 footprint (canvas 288, sprite centered on the rect);
     # treads drawn only BETWEEN the rails (no slivers outside); tread color =
     # exact deck base; riser-only variation.
-    W, H = 320, 672   # canvas hangs 96px past the 576 rect (lobby top-aligns it)
+    W, H = 320, 720   # canvas hangs 144px past the 576 rect (lobby top-aligns it)
     FIELD_L, FIELD_R = 46, 274          # tread field between rail inner edges
     im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     dr = ImageDraw.Draw(im)
@@ -330,10 +330,10 @@ def build_stairs():
     # seamlessly onto the staircase, the first separation is the first
     # riser. Straight lines: this is constructed metal, not dirt.
     B3 = (16, 14, 12, 255)
-    # 11 steps: the last THREE land past the cliff base onto the plaza -
+    # 12 steps: the last FOUR land past the cliff base onto the plaza -
     # the staircase visibly protrudes from the cliff face (a stair cannot
     # occupy the plane of a vertical wall)
-    for i in range(11):
+    for i in range(12):
         f = 1.0 - i * 0.02
         tread_c = (int(52 * f), int(55 * f), int(62 * f), 255)
         nose_c = (int(52 * f * 1.22), int(55 * f * 1.22), int(62 * f * 1.18), 255)
@@ -341,11 +341,11 @@ def build_stairs():
         riser_c = (int(33 * rf), int(34 * rf), int(39 * rf), 255)
         if i > 0:
             dr.rectangle([FIELD_L, y, FIELD_R, y + 3], fill=nose_c)
-            dr.rectangle([FIELD_L, y + 3, FIELD_R, y + step_h - 20], fill=tread_c)
+            dr.rectangle([FIELD_L, y + 3, FIELD_R, y + step_h - 16], fill=tread_c)
         else:
-            dr.rectangle([FIELD_L, y, FIELD_R, y + step_h - 20], fill=tread_c)
-        dr.rectangle([FIELD_L, y + step_h - 20, FIELD_R, y + step_h - 17], fill=B3)
-        dr.rectangle([FIELD_L, y + step_h - 17, FIELD_R, y + step_h - 3], fill=riser_c)
+            dr.rectangle([FIELD_L, y, FIELD_R, y + step_h - 16], fill=tread_c)
+        dr.rectangle([FIELD_L, y + step_h - 16, FIELD_R, y + step_h - 13], fill=B3)
+        dr.rectangle([FIELD_L, y + step_h - 13, FIELD_R, y + step_h - 3], fill=riser_c)
         dr.rectangle([FIELD_L, y + step_h - 3, FIELD_R, y + step_h], fill=B3)
         y += step_h
 
@@ -368,14 +368,14 @@ def build_stairs():
         # top newel: base flush with the stair top edge (96)
         block(8, 88)
         # ONE solid pole, a touch darker than the pillar metal, cylindrical
-        run_w, run_h = 28, 512
+        run_w, run_h = 28, 560
         run = Image.new("RGBA", (run_w, run_h), (42, 44, 48, 255))
         rd = ImageDraw.Draw(run)
         rd.rectangle([2, 0, 7, run_h], fill=(52, 54, 58, 255))
         rd.rectangle([21, 0, 27, run_h], fill=(30, 32, 36, 255))
         outline_paste(asm, run, (cx - run_w // 2, 26), r=3)
         # bottom newel: base at the stair FOOT, two steps out on the plaza
-        block(524, 96)
+        block(572, 96)
         # shadows (user 2026-08-20, take 3): the POLE keeps its cast strip
         # on the treads (that read was fine) - but the CORNER POSTS are
         # STANDING pillars, so their shadow POOLS AT THE FOOT only, same
@@ -387,7 +387,7 @@ def build_stairs():
         # the pole's shadow continues to the stair FOOT - the pole itself
         # tucks behind the bottom post, but its shadow must not gap there
         ImageDraw.Draw(run_m).rectangle(
-            [cx - run_w // 2, 500, cx - run_w // 2 + run_w - 1, 614], fill=255)
+            [cx - run_w // 2, 548, cx - run_w // 2 + run_w - 1, 662], fill=255)
         run_m = run_m.filter(ImageFilter.MaxFilter(7))   # include the outline
         asm_m = asm.split()[3].point(lambda v: 255 if v > 0 else 0)
         shifted = Image.new("L", (W, H), 0)
@@ -398,7 +398,7 @@ def build_stairs():
         im.alpha_composite(sh_layer)
         # post shadows: lower half of each post, ROUNDED, grounded a touch
         # past the base (user 2026-08-20)
-        for (py0, pbase) in ((8, 96), (524, 620)):
+        for (py0, pbase) in ((8, 96), (572, 668)):
             sy = py0 + (pbase - py0) // 2
             ph = pbase - sy + 6
             # flush edge where the shadow meets the post (it emanates from

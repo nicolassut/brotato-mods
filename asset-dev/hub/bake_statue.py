@@ -1,11 +1,11 @@
 # Deterministic statue bake: statue_relief_cutout.png -> in-game statue.png.
-# The classic-pose stone potato (user's Gemini relief, cut out + edge-cleaned)
-# stands as the plaza centerpiece on the FOUNTAIN_RECT anchor.
+# The MONUMENT PLAQUE (user's PlatformStatue render: relief carving on a
+# stone platform, white surround cropped off) is the plaza centerpiece.
 from PIL import Image
 
-TARGET_W = 320
+TARGET_W = 340
 
-src = Image.open("statue_relief_cutout.png").convert("RGBA")
+src = Image.open("statue_plaque_cutout.png").convert("RGBA")
 src = src.crop(src.getbbox())
 H = round(src.height * TARGET_W / src.width)
 baked = src.resize((TARGET_W, H), Image.LANCZOS)

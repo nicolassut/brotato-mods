@@ -126,16 +126,16 @@ func _build_floor() -> void :
 			STAIR_EAST.position.x - STAIR_WEST.end.x, CLIFF_RECT.size.y))
 	_add_wall(Rect2(STAIR_EAST.end.x, CLIFF_RECT.position.y,
 			CLIFF_RECT.end.x - STAIR_EAST.end.x, CLIFF_RECT.size.y))
-	# the STATUE (plaza centerpiece, classic-pose stone potato) stands on
-	# the fountain anchor: sprite 320x186 base-anchored at (0, 460), solid
-	# at its base band only (2.5D law - walk behind it)
-	_add_wall(Rect2(-105, 405, 210, 55))
+	# the MONUMENT (plaza centerpiece): relief plaque on its stone platform,
+	# sprite 340x314 base-anchored at (0, 460), solid at its base band only
+	# (2.5D law - walk behind it)
+	_add_wall(Rect2(-170, 405, 340, 55))
 	var statue_path: = "res://ui/lobby/art/statue.png"
 	if ResourceLoader.exists(statue_path):
 		var statue: = Sprite.new()
 		statue.texture = load(statue_path)
 		statue.position = Vector2(0, 460)
-		statue.offset = Vector2(0, -93)
+		statue.offset = Vector2(0, -157)
 		_world.add_child(statue)
 	# booth: backed against the cliff (base -150), and NO walk-behind (user
 	# 2026-08-20) - the wall spans from the cliff base to the booth base,
@@ -149,12 +149,12 @@ func _build_floor() -> void :
 	_add_wall(Rect2(SHUTTLE_POS.x - 86, SHUTTLE_POS.y + 26, 172, 56))
 	# stair railings are solid: posts + pole occupy sprite x 37..83 and
 	# 237..283 (the 320px stairs sprite is centered on the 256px rect), from
-	# the top newel (row 8) down to the bottom newel base (row 624 - the
-	# staircase lands three steps out on the plaza)
+	# the top newel (row 8) down to the bottom newel base (row 672 - the
+	# staircase lands four steps out on the plaza)
 	for stair_rect in [STAIR_WEST, STAIR_EAST]:
 		var sx: float = stair_rect.position.x - 32.0
-		_add_wall(Rect2(sx + 37.0, stair_rect.position.y + 8.0, 46.0, 616.0))
-		_add_wall(Rect2(sx + 237.0, stair_rect.position.y + 8.0, 46.0, 616.0))
+		_add_wall(Rect2(sx + 37.0, stair_rect.position.y + 8.0, 46.0, 664.0))
+		_add_wall(Rect2(sx + 237.0, stair_rect.position.y + 8.0, 46.0, 664.0))
 
 
 func _ground_overlay(path: String, rect: Rect2) -> void :
