@@ -123,111 +123,91 @@ n3 = scatter(deck, rocks, 16, (0.5, 0.52, 0.56), margin=30, scale=0.8)
 deck.save(OUT1 + "ground_deck.png"); deck.save(OUT2 + "ground_deck.png")
 print("deck seams drawn, rocks:", n3)
 
-# CLIFF band 2752x384 v3 - NATURAL rock face first (user 2026-08-19), scrap
-# demoted to sparse repair patches: strata + tone blotches + vertical cracks +
-# protruding boulders + hanging flora from the lip + 4-5 mixed plates.
+# CLIFF band 2752x384 v4 - DESIGN STORY: "the deck is a scrap platform built
+# over the natural rock rise". Clean straight deck-trim edge (no torn lip),
+# evenly spaced support girders holding the deck up (stair openings framed by
+# posts), natural rock face between beams. Patch plates removed (reused on
+# the pad later).
 cliff = Image.new("RGBA", (2752, 384), (34, 29, 26, 255))
 cd = ImageDraw.Draw(cliff)
-strata_y = 26
+# natural face: strata + blotches + cracks + boulders
+strata_y = 30
 band = 0
 rndS = random.Random(510)
-while strata_y < 340:
-    h = rndS.randint(44, 96)
-    tone = (30, 26, 23, 255) if band % 2 == 0 else (38, 33, 29, 255)
-    cd.rectangle([0, strata_y, 2752, min(340, strata_y + h)], fill=tone)
-    wobble_edge(cd, 0, 2752, strata_y, rndS.randint(4, 8), (26, 22, 20, 255), 3, seed=520 + band)
+while strata_y < 344:
+    h = rndS.randint(52, 96)
+    tone = (30, 26, 23, 255) if band % 2 == 0 else (37, 32, 28, 255)
+    cd.rectangle([0, strata_y, 2752, min(344, strata_y + h)], fill=tone)
+    wobble_edge(cd, 0, 2752, strata_y, 4, (26, 22, 20, 255), 3, seed=520 + band)
     strata_y += h
     band += 1
-# large soft tone blotches (organic patchiness)
 rndB = random.Random(560)
 for i in range(10):
     bw = rndB.randint(180, 420); bh = rndB.randint(60, 140)
-    bx = rndB.randint(-60, 2700); by = rndB.randint(40, 320 - bh)
+    bx = rndB.randint(-60, 2700); by = rndB.randint(50, 320 - bh)
     blotch = Image.new("RGBA", (bw, bh), (0, 0, 0, 0))
     bd = ImageDraw.Draw(blotch)
-    lighter = rndB.random() < 0.5
-    col = (46, 40, 35, 38) if lighter else (24, 20, 18, 42)
+    col = (46, 40, 35, 38) if rndB.random() < 0.5 else (24, 20, 18, 42)
     bd.ellipse([0, 0, bw, bh], fill=col)
     cliff.paste(blotch, (bx, by), blotch)
-# vertical cracks: sparse, spread, tapered toward the bottom
 rndC = random.Random(620)
 crack_xs = []
 for i in range(24):
-    x = rndC.randint(30, 2720)
-    if any(abs(x - px) < 220 for px in crack_xs):
+    x = rndC.randint(40, 2710)
+    if any(abs(x - px) < 240 for px in crack_xs):
         continue
     crack_xs.append(x)
     if len(crack_xs) >= 8:
         break
 for x in crack_xs:
-    y = rndC.randint(30, 160)
-    ln = rndC.randint(80, 200)
-    yy = y
-    wdt = 4
-    while yy < y + ln and yy < 350:
+    y = rndC.randint(50, 170)
+    ln = rndC.randint(80, 190)
+    yy = y; wdt = 4
+    while yy < y + ln and yy < 348:
         nx = x + rndC.randint(-6, 6)
         cd.line([(x, yy), (nx, yy + 14)], fill=(20, 17, 15, 220), width=max(2, wdt))
         if rndC.random() < 0.4:
             wdt -= 1
         x = nx; yy += 14
-# drip stains under the lip
-for i in range(40):
-    rndD = random.Random(600 + i)
-    x = rndD.randint(10, 2740)
-    ln = rndD.randint(28, 84)
-    st = Image.new("RGBA", (10, ln), (0, 0, 0, 0))
-    sd = ImageDraw.Draw(st)
-    sd.rectangle([2, 0, 7, ln], fill=(22, 18, 16, 55))
-    cliff.paste(st, (x, 26), st)
-# protruding boulders: more, bigger, brighter than v2
-n4 = scatter(cliff, pure_rocks, 34, (0.46, 0.44, 0.42), margin=40, scale=1.25)
-n4 += scatter(cliff, pure_rocks, 12, (0.40, 0.38, 0.36), margin=40, scale=0.8)
-flora = 0
-# repair plates: probe decals only (flips for variety); the girder strip is
-# lip reinforcement, pinned just under the overhang
-probe_plates = []
-for i in (0, 2):
-    try:
-        probe_plates.append(Image.open("plate_decal_%d.png" % i).convert("RGBA"))
-    except Exception:
-        pass
-girder = None
-try:
-    girder = Image.open("plate_decal_3.png").convert("RGBA")
-except Exception:
-    pass
-rndP = random.Random(700)
+n4 = scatter(cliff, pure_rocks, 30, (0.46, 0.44, 0.42), margin=44, scale=1.2)
+n4 += scatter(cliff, pure_rocks, 10, (0.40, 0.38, 0.36), margin=44, scale=0.8)
+# occlusion shadow under the deck edge (flat 2-step, no gradient)
+ov = Image.new("RGBA", (2752, 26), (0, 0, 0, 60)); cliff.paste(ov, (0, 22), ov)
+ov2 = Image.new("RGBA", (2752, 12), (0, 0, 0, 50)); cliff.paste(ov2, (0, 22), ov2)
+# SUPPORT GIRDERS: evenly spaced columns + posts framing the stair openings.
+# world x -> texture x: tx = wx + 1376
+beam_wxs = [-1226, -926, -150, 150, 926, 1226]
+post_wxs = [-694, -394, 394, 694]
+def draw_beam(wx, wide):
+    bw = 30 if wide else 24
+    x = wx + 1376 - bw // 2
+    cd.rectangle([x, 18, x + bw, 372], fill=(46, 48, 52, 255))
+    cd.rectangle([x, 18, x + 3, 372], fill=(28, 29, 32, 255))
+    cd.rectangle([x + bw - 3, 18, x + bw, 372], fill=(24, 25, 28, 255))
+    cd.rectangle([x + 5, 18, x + 8, 372], fill=(58, 60, 64, 255))
+    rndR2 = random.Random(1000 + wx)
+    for ry in range(40, 350, 46):
+        for rx in (x + 6, x + bw - 10):
+            cd.ellipse([rx, ry + rndR2.randint(-2, 2), rx + 4, ry + 4 + rndR2.randint(-2, 2)],
+                       fill=(24, 24, 26, 255))
+    # foot plate
+    cd.rectangle([x - 6, 352, x + bw + 6, 372], fill=(40, 42, 46, 255))
+    cd.rectangle([x - 6, 352, x + bw + 6, 355], fill=(56, 58, 62, 255))
+for wx in beam_wxs:
+    draw_beam(wx, False)
+for wx in post_wxs:
+    draw_beam(wx, True)
 plates = 0
-for cx in (380, 1120, 1760, 2420):
-    if not probe_plates:
-        break
-    src = probe_plates[plates % len(probe_plates)]
-    pp = tint(src, (0.72, 0.72, 0.72))
-    if rndP.random() < 0.5:
-        pp = pp.transpose(Image.FLIP_LEFT_RIGHT)
-    sc = rndP.uniform(1.25, 1.75)
-    pp = pp.resize((int(pp.width * sc), int(pp.height * sc)), Image.NEAREST)
-    x = cx + rndP.randint(-70, 70)
-    y = rndP.randint(84, 330 - pp.height)
-    cliff.paste(pp, (x, y), pp)
-    plates += 1
-if girder is not None:
-    for gx in (700, 1980):
-        gg = tint(girder, (0.56, 0.57, 0.58))
-        if rndP.random() < 0.5:
-            gg = gg.transpose(Image.FLIP_LEFT_RIGHT)
-        gg = gg.resize((int(gg.width * 1.9), int(gg.height * 1.9)), Image.NEAREST)
-        cliff.paste(gg, (gx + rndP.randint(-50, 50), 30), gg)
-        plates += 1
-# torn overhang lip ON TOP
-for tlayer, (tone, yy, th) in enumerate([((58,52,46,255), 4, 8), ((48,42,38,255), 12, 7), ((38,33,29,255), 20, 6)]):
-    wobble_edge(cd, 0, 2752, yy, 9 - tlayer * 2, tone, th, seed=70 + tlayer)
-# contact shadow
-cd.rectangle([0, 356, 2752, 370], fill=(20, 16, 14, 255))
-cd.rectangle([0, 370, 2752, 384], fill=(13, 11, 10, 255))
-wobble_edge(cd, 0, 2752, 356, 5, (20, 16, 14, 255), 8, seed=140)
+# CLEAN DECK-TRIM EDGE (straight, crisp - the platform's edge, no wobble)
+cd.rectangle([0, 0, 2752, 22], fill=(52, 55, 62, 255))
+cd.rectangle([0, 0, 2752, 3], fill=(34, 36, 41, 255))
+cd.rectangle([0, 6, 2752, 9], fill=(66, 69, 76, 255))
+cd.rectangle([0, 18, 2752, 22], fill=(28, 29, 33, 255))
+# base contact: straight soft band (no scribble)
+cd.rectangle([0, 360, 2752, 372], fill=(20, 16, 14, 255))
+cd.rectangle([0, 372, 2752, 384], fill=(13, 11, 10, 255))
 cliff.save(OUT1 + "ground_cliff.png"); cliff.save(OUT2 + "ground_cliff.png")
-print("cliff v3 built: plates=%d boulders=%d flora=%d" % (plates, n4, flora))
+print("cliff v4 built: beams=%d posts=%d boulders=%d" % (len(beam_wxs), len(post_wxs), n4))
 
 # plaza near-wall rubble: hugs the cliff base, avoids stair aprons and booth
 # (plaza-local coords: x = world_x + 1376, wall base at plaza y 0..)
