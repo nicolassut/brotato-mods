@@ -330,11 +330,14 @@ def build_stairs():
     # seamlessly onto the staircase, the first separation is the first
     # riser. Straight lines: this is constructed metal, not dirt.
     B3 = (16, 14, 12, 255)
-    for i in range(8):
-        f = 1.0 - i * 0.022
+    # 10 steps: the last TWO land past the cliff base onto the plaza -
+    # the staircase visibly protrudes from the cliff face (a stair cannot
+    # occupy the plane of a vertical wall)
+    for i in range(10):
+        f = 1.0 - i * 0.02
         tread_c = (int(52 * f), int(55 * f), int(62 * f), 255)
         nose_c = (int(52 * f * 1.22), int(55 * f * 1.22), int(62 * f * 1.18), 255)
-        rf = 1.0 - i * 0.012
+        rf = 1.0 - i * 0.010
         riser_c = (int(33 * rf), int(34 * rf), int(39 * rf), 255)
         if i > 0:
             dr.rectangle([FIELD_L, y, FIELD_R, y + 3], fill=nose_c)
@@ -345,10 +348,7 @@ def build_stairs():
         dr.rectangle([FIELD_L, y + step_h - 17, FIELD_R, y + step_h - 3], fill=riser_c)
         dr.rectangle([FIELD_L, y + step_h - 3, FIELD_R, y + step_h], fill=B3)
         y += step_h
-    # no painted apron: the real plaza ground shows through below the last
-    # step; just a thin contact shadow so the stair bottom sits on the ground
-    sh = Image.new("RGBA", (FIELD_R - FIELD_L, 8), (0, 0, 0, 70))
-    im.alpha_composite(sh, (FIELD_L, 480))
+
     def rail(cx):
         # RAILING v11: members assemble on their own layer; the cast shadow
         # is the assembly SILHOUETTE shifted right 14px minus itself, so the
@@ -368,14 +368,14 @@ def build_stairs():
         # top newel: base flush with the stair top edge (96)
         block(8, 88)
         # ONE solid pole, a touch darker than the pillar metal, cylindrical
-        run_w, run_h = 28, 386
+        run_w, run_h = 28, 464
         run = Image.new("RGBA", (run_w, run_h), (42, 44, 48, 255))
         rd = ImageDraw.Draw(run)
         rd.rectangle([2, 0, 7, run_h], fill=(52, 54, 58, 255))
         rd.rectangle([21, 0, 27, run_h], fill=(30, 32, 36, 255))
         outline_paste(asm, run, (cx - run_w // 2, 26), r=3)
-        # bottom newel: base 14px past the wall line (stands proud)
-        block(398, 96)
+        # bottom newel: base at the stair FOOT, two steps out on the plaza
+        block(476, 96)
         m = asm.split()[3].point(lambda v: 255 if v > 0 else 0)
         shifted = Image.new("L", (W, H), 0)
         shifted.paste(m, (14, 0))
