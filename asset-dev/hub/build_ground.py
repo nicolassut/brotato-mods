@@ -323,21 +323,27 @@ def build_stairs():
     y = 96
     step_h = 48
     rndT = random.Random(360)
-    # STEP DEPTH (2026-08-20): three cues sell the descent - a bright
-    # NOSING line where each step edge catches the light, taller darker
-    # risers (the vertical faces), and a progressive value ramp: each step
-    # a touch darker than the one above as the stairwell sinks into the
-    # cliff's shadow
+    # STEP DEPTH + BORDER LAW ON STEPS (2026-08-20): every color
+    # separation gets a black line, so each step is nose / tread / BLACK /
+    # riser / BLACK. The value ramp STARTS AT EXACTLY THE DECK COLOR
+    # (f=1.0) and the first tread has no nose line - the deck flows
+    # seamlessly onto the staircase, the first separation is the first
+    # riser. Straight lines: this is constructed metal, not dirt.
+    B3 = (16, 14, 12, 255)
     for i in range(8):
-        f = 1.06 - i * 0.026
+        f = 1.0 - i * 0.022
         tread_c = (int(52 * f), int(55 * f), int(62 * f), 255)
-        nose_c = (int(52 * f * 1.24), int(55 * f * 1.24), int(62 * f * 1.20), 255)
+        nose_c = (int(52 * f * 1.22), int(55 * f * 1.22), int(62 * f * 1.18), 255)
         rf = 1.0 - i * 0.012
         riser_c = (int(33 * rf), int(34 * rf), int(39 * rf), 255)
-        dr.rectangle([FIELD_L, y, FIELD_R, y + 4], fill=nose_c)
-        dr.rectangle([FIELD_L, y + 4, FIELD_R, y + step_h - 14], fill=tread_c)
-        dr.rectangle([FIELD_L, y + step_h - 14, FIELD_R, y + step_h], fill=riser_c)
-        wobble_edge(dr, FIELD_L, FIELD_R, y + step_h - 14, 2, (26, 27, 31, 255), 3, seed=300 + i)
+        if i > 0:
+            dr.rectangle([FIELD_L, y, FIELD_R, y + 3], fill=nose_c)
+            dr.rectangle([FIELD_L, y + 3, FIELD_R, y + step_h - 20], fill=tread_c)
+        else:
+            dr.rectangle([FIELD_L, y, FIELD_R, y + step_h - 20], fill=tread_c)
+        dr.rectangle([FIELD_L, y + step_h - 20, FIELD_R, y + step_h - 17], fill=B3)
+        dr.rectangle([FIELD_L, y + step_h - 17, FIELD_R, y + step_h - 3], fill=riser_c)
+        dr.rectangle([FIELD_L, y + step_h - 3, FIELD_R, y + step_h], fill=B3)
         y += step_h
     # no painted apron: the real plaza ground shows through below the last
     # step; just a thin contact shadow so the stair bottom sits on the ground
