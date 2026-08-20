@@ -127,9 +127,10 @@ func _build_floor() -> void :
 	_add_wall(Rect2(STAIR_EAST.end.x, CLIFF_RECT.position.y,
 			CLIFF_RECT.end.x - STAIR_EAST.end.x, CLIFF_RECT.size.y))
 	# the MONUMENT (plaza centerpiece): relief plaque on its stone platform,
-	# sprite 340x313 base-anchored at (0, 460), solid at its base band only
-	# (2.5D law - walk behind it)
-	_add_wall(Rect2(-170, 405, 340, 55))
+	# sprite 340x313 base-anchored at (0, 460). It is a raised slab seen from
+	# above - the WHOLE footprint is solid (unlike tall buildings, none of
+	# the sprite is "up in the air")
+	_add_wall(Rect2(-170, 147, 340, 313))
 	var statue_path: = "res://ui/lobby/art/statue.png"
 	if ResourceLoader.exists(statue_path):
 		var statue: = Sprite.new()
