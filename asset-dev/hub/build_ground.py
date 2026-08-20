@@ -3,7 +3,7 @@
 the MEASURED vanilla ground language - flat base + sparse extracted vanilla
 decals + wobbly torn edges. Deterministic (seeded); zero PixelLab credits.
 Outputs land in game-src/ui/lobby/art/ and the live tree."""
-import numpy as np, random, os
+import numpy as np, random, os, math
 from PIL import Image, ImageDraw, ImageChops, ImageFilter
 from collections import deque
 
@@ -114,69 +114,65 @@ n2 = scatter(plaza, tufts, 34, (0.55, 0.60, 0.52))
 plaza.save(OUT1 + "ground_plaza.png"); plaza.save(OUT2 + "ground_plaza.png")
 print("plaza decals:", n1 + n2)
 
-# DECK overlay 2752x560 v2 - riveted plate decking (the platform's top):
-# full plate grid, per-plate FLAT tone variation, soft continuous seams with
-# jittered joints, rivets along edges, sparse scuffs + debris.
-deck = Image.new("RGBA", (2752, 560), (0, 0, 0, 0))
+# DECK overlay 2752x560 v3 - SMOOTH ROCK SLABS (user 2026-08-21: the deck
+# is a stone platform held by stone pillars; metal plates retired). Dressed
+# slab courses + the approved crack/moss system from deck_crack_proto.py
+# (tapered branching cracks with lit left rim, pits hugging cracks, vanilla
+# moss-set tufts growing from cracks/seams, chipped corners). The shuttle
+# pad zone stays a flat recessed placeholder for the future launch-pad art.
+import sys as _sys
+_sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import deck_crack_proto as dcp
+
+deck = Image.new("RGBA", (2752, 560), (52, 55, 62, 255))
 dd = ImageDraw.Draw(deck)
-seam = (26, 27, 31, 150)
-rivet = (30, 31, 35, 210)
 rndDk = random.Random(880)
-PW, PH = 344, 187
-cols = 2752 // PW
-rows = 3
-# per-plate tone variation (flat overlays)
-for r in range(rows):
-    for cix in range(cols):
-        tone = rndDk.randint(-4, 5)
-        if tone == 0:
-            continue
-        col = (255, 255, 255, tone * 3) if tone > 0 else (0, 0, 0, -tone * 4)
-        px, py = cix * PW, r * PH
-        plate = Image.new("RGBA", (PW, PH), col)
-        deck.paste(plate, (px, py), plate)
-# seams: continuous, slightly jittered at joints
-for cix in range(1, cols):
-    x = cix * PW
-    yy = 0
-    while yy < 560:
-        seg = rndDk.randint(120, 220)
-        jx = x + rndDk.randint(-2, 2)
-        dd.line([(jx, yy), (jx, min(560, yy + seg))], fill=seam, width=4)
-        yy += seg
-for r in range(1, rows):
-    y = r * PH
-    xx = 0
-    while xx < 2752:
-        seg = rndDk.randint(220, 420)
-        jy = y + rndDk.randint(-2, 2)
-        dd.line([(xx, jy), (min(2752, xx + seg), jy)], fill=seam, width=4)
-        xx += seg
-# rivets along plate edges (corners + midpoints, jittered)
-for r in range(rows + 1):
-    for cix in range(cols + 1):
-        for (ox, oy) in ((10, 10), (PW - 14, 10), (10, PH - 14), (PW // 2, 12)):
-            if rndDk.random() < 0.35:
-                continue
-            x = cix * PW + ox + rndDk.randint(-2, 2)
-            y = r * PH + oy + rndDk.randint(-2, 2)
-            if 4 < x < 2746 and 4 < y < 554:
-                dd.ellipse([x, y, x + 5, y + 5], fill=rivet)
-# scuffs: soft darker ellipses, sparse
-for i in range(9):
-    sw = rndDk.randint(60, 160); sh = rndDk.randint(24, 60)
-    sx = rndDk.randint(30, 2700 - sw); sy = rndDk.randint(30, 520 - sh)
-    sc = Image.new("RGBA", (sw, sh), (0, 0, 0, 0))
-    sd2 = ImageDraw.Draw(sc)
-    sd2.ellipse([0, 0, sw, sh], fill=(0, 0, 0, 22))
-    deck.paste(sc, (sx, sy), sc)
+dcp.slabs(dd, 2752, 560, 880)
+PAD = (1096, 0, 1656, 384)   # SHUTTLE_PAD_RECT in deck coords
+def in_pad(x, y, m=30):
+    return PAD[0]-m < x < PAD[2]+m and PAD[1]-m < y < PAD[3]+m
+n_cracks = 0
+tries = 0
+while n_cracks < 16 and tries < 200:
+    tries += 1
+    x, y = rndDk.randint(40, 2712), rndDk.randint(30, 530)
+    if in_pad(x, y, 70):
+        continue
+    ang = rndDk.uniform(0, 2 * math.pi)
+    pts = dcp.crack_path(rndDk, x, y, ang, rndDk.randint(7, 13), rndDk.randint(9, 16))
+    if any(in_pad(px, py) for (px, py) in pts):
+        continue
+    dcp.draw_crack(dd, pts, rndDk.uniform(4.0, 6.0))
+    for _ in range(rndDk.randint(1, 2)):
+        bi = rndDk.randint(2, len(pts) - 3)
+        bang = math.atan2(pts[bi+1][1]-pts[bi][1], pts[bi+1][0]-pts[bi][0]) + rndDk.choice([-1.4, 1.4])
+        bpts = dcp.crack_path(rndDk, pts[bi][0], pts[bi][1], bang, rndDk.randint(3, 6), rndDk.randint(7, 12))
+        dcp.draw_crack(dd, bpts, rndDk.uniform(1.6, 2.6))
+    for _ in range(rndDk.randint(1, 2)):
+        p = pts[rndDk.randint(1, len(pts) - 2)]
+        dcp.spall(dd, rndDk, p[0] + rndDk.randint(-7, 7), p[1] + rndDk.randint(-7, 7))
+    if rndDk.random() < 0.7:
+        p = pts[rndDk.randint(1, len(pts) - 2)]
+        dcp.moss_tuft(deck, rndDk, p[0], p[1] + 3, big=True)
+    n_cracks += 1
+for _ in range(22):
+    row_y = rndDk.randint(1, 560 // 78) * 78
+    mx = rndDk.randint(30, 2722)
+    if not in_pad(mx, row_y):
+        dcp.moss_tuft(deck, rndDk, mx, row_y + 2)
+for _ in range(12):
+    row_y = rndDk.randint(1, 560 // 78) * 78
+    cx2 = rndDk.randint(40, 2712)
+    if not in_pad(cx2, row_y - 74):
+        dcp.chip_corner(dd, rndDk, cx2, row_y - 74)
+# shuttle pad: flat recessed placeholder (future launch-pad art drops here)
+dd.rectangle([PAD[0]-4, PAD[1], PAD[2]+4, PAD[3]+4], fill=(16, 14, 12, 255))
+dd.rectangle([PAD[0], PAD[1], PAD[2], PAD[3]], fill=(48, 48, 41, 255))
+dd.rectangle([PAD[0], PAD[3]-6, PAD[2], PAD[3]], fill=(40, 40, 34, 255))
 # top-wall junction line
 dd.rectangle([0, 0, 2752, 4], fill=(30, 31, 35, 200))
-# NO debris on the deck (user 2026-08-20): it is clean metal plating -
-# rocks/shrubbery belong to dirt ground only
-n3 = 0
 deck.save(OUT1 + "ground_deck.png"); deck.save(OUT2 + "ground_deck.png")
-print("deck v2 plated: %dx%d grid, rocks=%d" % (2752 // 344, 3, n3))
+print("deck v3 stone slabs: cracks=%d" % n_cracks)
 
 # CLIFF band 2752x384 v4 - DESIGN STORY: "the deck is a scrap platform built
 # over the natural rock rise". Clean straight deck-trim edge (no torn lip),
