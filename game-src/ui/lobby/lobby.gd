@@ -15,8 +15,8 @@ extends Node2D
 const LobbyNpc: = preload("res://ui/lobby/lobby_npc.gd")
 const LobbyPlayer: = preload("res://ui/lobby/lobby_player.gd")
 
-const FLOOR_COLOR: = Color(0.17, 0.14, 0.125, 1.0)      # plaza: alien dirt
-const DECK_COLOR: = Color(0.14, 0.15, 0.17, 1.0)        # deck: metal plating
+const FLOOR_COLOR: = Color(0.259, 0.239, 0.224, 1.0)    # plaza: crash-zone dirt (measured)
+const DECK_COLOR: = Color(0.204, 0.216, 0.243, 1.0)     # deck: metal plating
 const CLIFF_COLOR: = Color(0.08, 0.065, 0.055, 1.0)     # cliff face strip
 const WALL_COLOR: = Color(0.055, 0.045, 0.04, 1.0)      # perimeter
 const PAD_COLOR: = Color(0.19, 0.19, 0.16, 1.0)         # shuttle pad decal
@@ -72,14 +72,20 @@ func _build_floor() -> void :
 	_rect(CLIFF_RECT, CLIFF_COLOR)
 	_rect(PLAZA_RECT, FLOOR_COLOR)
 	# the two long staircases descend the cliff strip (landing + run + apron)
-	for stair in [STAIR_WEST, STAIR_EAST]:
-		_rect(stair, DECK_COLOR)
+	_rect(STAIR_WEST, DECK_COLOR)
+	_rect(STAIR_EAST, DECK_COLOR)
 	_rect(SHUTTLE_PAD_RECT, PAD_COLOR)
 	_rect(FOUNTAIN_RECT, SLOT_COLOR)
 	_rect(BOARD_RECT, SLOT_COLOR)
 	_rect(SHRINE_RECT, SLOT_COLOR)
 	_rect(BOOTH_RECT, SLOT_COLOR)
 	_rect(GATE_RECT, CLIFF_COLOR)
+	# ground overlays (HUB_ART_SPEC 1c: vanilla-language decals/seams/torn lip)
+	_ground_overlay("res://ui/lobby/art/ground_plaza.png", PLAZA_RECT)
+	_ground_overlay("res://ui/lobby/art/ground_deck.png", DECK_RECT)
+	_ground_overlay("res://ui/lobby/art/ground_cliff.png", CLIFF_RECT)
+	_ground_overlay("res://ui/lobby/art/stairs.png", STAIR_WEST)
+	_ground_overlay("res://ui/lobby/art/stairs_e.png", STAIR_EAST)
 	# everything that stands ON the ground y-sorts: lower on screen = in front
 	_world = YSort.new()
 	add_child(_world)
@@ -96,6 +102,15 @@ func _build_floor() -> void :
 	# so are the shuttle body and the booth (2026-08-19 playtest: walk-through)
 	_add_wall(Rect2(SHUTTLE_POS.x - 86, SHUTTLE_POS.y - 70, 172, 130))
 	_add_wall(BOOTH_RECT)
+
+
+func _ground_overlay(path: String, rect: Rect2) -> void :
+	if not ResourceLoader.exists(path):
+		return
+	var sprite: = Sprite.new()
+	sprite.texture = load(path)
+	sprite.position = rect.position + rect.size / 2.0
+	add_child(sprite)
 
 
 func _rect(rect: Rect2, color: Color) -> void :

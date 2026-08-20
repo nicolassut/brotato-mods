@@ -64,6 +64,25 @@ warning label) - never candy colors on its body. A CARNIVAL building sits on
 FOUNDATION materials (scrap frame) with carnival dressing on top. Judging
 neighbors come from the SAME register's anchor list.
 
+## 1c. GROUND - THE EXACT LOOK (measured from vanilla, 2026-08-19)
+
+Measured ground truth: a Brotato floor is ONE flat color (tiles_1.png: RGB
+120,103,88 covers 84% of the tile) plus ~20 sparse hand-drawn decals per
+192x256 (rocks, tufts - soft dark outlines, never pure black), and the map
+edge is a WOBBLY TORN BORDER (tiles_outline.png, ~5% amplitude) tinted per
+zone. No gradients, no noise, no seams, no tiling artifacts. Therefore:
+
+| piece | construction | credits |
+|---|---|---|
+| plaza floor | flat base RGB(66,61,57) (crash-zone measured) + decal overlay: rocks/tufts EXTRACTED from vanilla tiles_1/2, recolored muted, seeded scatter ~30/384px cell | 0 |
+| deck floor | flat gunmetal base + procedural plate-seam lines drawn in the vanilla soft-outline language (wobbly, low contrast) + sparse extracted rocks tinted gray | 0 |
+| cliff face | dark band + wobbly TOP LIP in the torn-border language (amplitude from tiles_outline) + soft base shadow line; scrap-plate decals later | 0 |
+| perimeter wall | keep flat + same wobbly-lip treatment where it meets floors (later polish) | 0 |
+| stairs | the ONE generated ground-adjacent piece: outlined object probe (256x576) | ~20 |
+
+All built by asset-dev/hub/build_ground.py (deterministic, committed, seeded)
+into full-size overlay PNGs - no tiling flags, exact control, ~1MB total.
+
 ## 2. Asset inventory - the complete generation list
 
 Ground rule from the base game: GROUND is flat color + sparse decals (no
