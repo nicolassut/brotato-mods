@@ -272,6 +272,59 @@ print("DONE - bases: plaza RGB(66,61,57) deck RGB(52,55,62) set in lobby.gd")
 # 96 landing + 384 run of steps + 96 apron. Steps = tread band + darker riser
 # shadow, soft wobbly seams, dark side rails.
 def build_stairs():
+    # colors tied to the REAL surfaces they connect (2026-08-19 user: stair
+    # tones drifted from the deck): landing = deck base, treads = deck family,
+    # apron = plaza base. Railings match the cliff pillar recipe exactly.
+    W, H = 256, 576
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    dr = ImageDraw.Draw(im)
+    DECK = (52, 55, 62, 255)
+    tread = (50, 53, 60, 255); riser = (28, 29, 34, 255)
+    PLAZA = (66, 61, 57, 255)
+    dr.rectangle([0, 0, W, 96], fill=DECK)                        # landing
+    dr.line([(6, 92), (W - 6, 92)], fill=(26, 27, 31, 150), width=3)
+    y = 96
+    step_h = 48
+    rndT = random.Random(360)
+    for i in range(8):                                            # 384px run
+        tv = rndT.randint(-2, 2)
+        dr.rectangle([0, y, W, y + step_h - 14],
+                     fill=(tread[0] + tv, tread[1] + tv, tread[2] + tv, 255))
+        dr.rectangle([0, y + step_h - 14, W, y + step_h], fill=riser)
+        wobble_edge(dr, 0, W, y + step_h - 14, 2, (22, 23, 27, 255), 3, seed=300 + i)
+        y += step_h
+    dr.rectangle([0, 480, W, 576], fill=PLAZA)                    # apron
+    dr.rectangle([0, 480, W, 486], fill=(46, 42, 39, 255))        # step shadow
+    n = scatter(im.crop((0, 480, 256, 576)), pure_rocks, 2, (0.5, 0.5, 0.5))
+    # RAILINGS: the cliff pillar recipe (band + edge lines + highlight +
+    # rivets + head/foot plates), one each side, spanning landing + run
+    def rail(x):
+        bw = 26
+        dr.rectangle([x, 0, x + bw, 486], fill=(50, 52, 57, 255))
+        dr.rectangle([x, 0, x + 3, 486], fill=(28, 29, 32, 255))
+        dr.rectangle([x + bw - 3, 0, x + bw, 486], fill=(24, 25, 28, 255))
+        dr.rectangle([x + 5, 0, x + 8, 486], fill=(58, 60, 64, 255))
+        rndR = random.Random(1200 + x)
+        for ry in range(26, 470, 46):
+            for rx in (x + 6, x + bw - 10):
+                dr.ellipse([rx, ry + rndR.randint(-2, 2), rx + 4, ry + 4 + rndR.randint(-2, 2)],
+                           fill=(24, 24, 26, 255))
+        # head plate (top) + foot plate (at the apron), like the pillars
+        dr.rectangle([x - 4, 0, x + bw + 4, 18], fill=(40, 42, 46, 255))
+        dr.rectangle([x - 4, 0, x + bw + 4, 3], fill=(56, 58, 62, 255))
+        dr.rectangle([x - 4, 15, x + bw + 4, 18], fill=(26, 27, 30, 255))
+        dr.rectangle([x - 4, 466, x + bw + 4, 486], fill=(40, 42, 46, 255))
+        dr.rectangle([x - 4, 466, x + bw + 4, 469], fill=(56, 58, 62, 255))
+    rail(2)
+    rail(W - 28)
+    im.save(OUT1 + "stairs.png")
+    im.save(OUT2 + "stairs.png")
+    mirror = im.transpose(Image.FLIP_LEFT_RIGHT)
+    mirror.save(OUT1 + "stairs_e.png")
+    mirror.save(OUT2 + "stairs_e.png")
+    print("stairs v2 built (deck-matched tones + pillar-style railings)")
+
+build_stairs():
     W, H = 256, 576
     im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     dr = ImageDraw.Draw(im)
