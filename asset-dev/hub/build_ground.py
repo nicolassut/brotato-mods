@@ -237,8 +237,12 @@ def draw_beam(wx, wide):
     bx = 10
     ld.rectangle([bx, 4, bx + bw, 368], fill=(46, 48, 52, 255))
     ld.rectangle([bx + 4, 4, bx + 7, 368], fill=(58, 60, 64, 255))
-    ld.rectangle([bx + bw - 4, 4, bx + bw, 368], fill=(36, 38, 42, 255))
-    # head + foot plates (wider than the beam)
+    # rivet holes (the PILLARS keep them - user 2026-08-19)
+    rndR2 = random.Random(1000 + wx)
+    for ry in range(44, 336, 46):
+        for rx in (bx + 5, bx + bw - 9):
+            ld.ellipse([rx, ry + rndR2.randint(-2, 2), rx + 4, ry + 4 + rndR2.randint(-2, 2)],
+                       fill=(26, 26, 28, 255))
     ld.rectangle([bx - 7, 4, bx + bw + 7, 26], fill=(40, 42, 46, 255))
     ld.rectangle([bx - 7, 4, bx + bw + 7, 8], fill=(56, 58, 62, 255))
     ld.rectangle([bx - 7, 346, bx + bw + 7, 368], fill=(40, 42, 46, 255))
@@ -249,11 +253,14 @@ for wx in beam_wxs:
 for wx in post_wxs:
     draw_beam(wx, True)
 plates = 0
-# CLEAN DECK-TRIM EDGE (straight, crisp - the platform's edge, no wobble)
-cd.rectangle([0, 0, 2752, 22], fill=(52, 55, 62, 255))
-cd.rectangle([0, 0, 2752, 3], fill=(34, 36, 41, 255))
-cd.rectangle([0, 6, 2752, 9], fill=(66, 69, 76, 255))
-cd.rectangle([0, 18, 2752, 22], fill=(28, 29, 33, 255))
+# DECK-EDGE BAR: outlined horizontal member in the SAME metal recipe as the
+# pillars (body 46,48,52 + highlight + uniform black border) - it is the top
+# chord the pillars bolt to
+edge_layer = Image.new("RGBA", (2752, 20), (0, 0, 0, 0))
+eld = ImageDraw.Draw(edge_layer)
+eld.rectangle([0, 3, 2752, 17], fill=(46, 48, 52, 255))
+eld.rectangle([0, 5, 2752, 8], fill=(58, 60, 64, 255))
+outline_paste(cliff, edge_layer, (0, 0))
 cliff.save(OUT1 + "ground_cliff.png"); cliff.save(OUT2 + "ground_cliff.png")
 print("cliff v4 built: beams=%d posts=%d boulders=%d" % (len(beam_wxs), len(post_wxs), n4))
 
@@ -308,9 +315,8 @@ def build_stairs():
         layer = Image.new("RGBA", (LW, 396), (0, 0, 0, 0))
         ld = ImageDraw.Draw(layer)
         bx = 8
-        ld.rectangle([bx, 4, bx + bw, 392], fill=(50, 52, 57, 255))
-        ld.rectangle([bx + 5, 4, bx + 8, 392], fill=(60, 62, 66, 255))
-        ld.rectangle([bx + bw - 5, 4, bx + bw, 392], fill=(38, 40, 44, 255))
+        ld.rectangle([bx, 4, bx + bw, 392], fill=(46, 48, 52, 255))
+        ld.rectangle([bx + 5, 4, bx + 8, 392], fill=(58, 60, 64, 255))
         ld.rectangle([bx - 6, 4, bx + bw + 6, 24], fill=(40, 42, 46, 255))
         ld.rectangle([bx - 6, 4, bx + bw + 6, 8], fill=(56, 58, 62, 255))
         ld.rectangle([bx - 6, 372, bx + bw + 6, 392], fill=(40, 42, 46, 255))
