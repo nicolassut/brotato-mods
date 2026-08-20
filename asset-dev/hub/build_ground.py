@@ -401,8 +401,11 @@ def build_stairs():
         for (py0, pbase) in ((8, 96), (524, 620)):
             sy = py0 + (pbase - py0) // 2
             ph = pbase - sy + 6
+            # flush edge where the shadow meets the post (it emanates from
+            # it) - rounding only on the OUTER corners, drawn off-canvas on
+            # the post side
             psh = Image.new("RGBA", (22, ph), (0, 0, 0, 0))
-            ImageDraw.Draw(psh).rounded_rectangle([0, 0, 21, ph - 1], 9, fill=(0, 0, 0, 90))
+            ImageDraw.Draw(psh).rounded_rectangle([-12, 0, 21, ph - 1], 9, fill=(0, 0, 0, 90))
             im.alpha_composite(psh, (cx + 26, sy))
         im.alpha_composite(asm)
     rail(60)
