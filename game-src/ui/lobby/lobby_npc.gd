@@ -18,6 +18,12 @@ var _name_plate: Label = null
 const NEAR_RADIUS: = 110.0
 # per-station override (big buildings need the prompt to reach past their collision)
 var near_radius: float = NEAR_RADIUS
+# half the sprite height; the node origin sits at the sprite BASE (y-sort)
+var _half_h: float = 48.0
+
+
+func base_offset() -> float:
+	return _half_h
 
 
 func setup(texture: Texture, display_name: String, prompt: String) -> void :
@@ -27,12 +33,17 @@ func setup(texture: Texture, display_name: String, prompt: String) -> void :
 	var sprite: = Sprite.new()
 	if texture != null:
 		sprite.texture = texture
+		_half_h = texture.get_height() / 2.0
+	# base-anchored: the node origin is the sprite's BASE, so the lobby's
+	# YSort draws whoever is lower on screen on top (2026-08-19 playtest:
+	# the avatar rendered under the shuttle when standing in front of it)
+	sprite.offset = Vector2(0, - _half_h)
 	add_child(sprite)
 
-	_name_plate = _make_label(display_name, Vector2(0, -78))
+	_name_plate = _make_label(display_name, Vector2(0, - _half_h * 2.0 - 30))
 	add_child(_name_plate)
 
-	_prompt = _make_label(prompt, Vector2(0, 64))
+	_prompt = _make_label(prompt, Vector2(0, 16))
 	_prompt.modulate = Color(1, 0.9, 0.4, 1)
 	_prompt.visible = false
 	add_child(_prompt)

@@ -48,6 +48,7 @@ const SLOT_POSITIONS: = [
 const SPAWN_POINT: = Vector2(0, 1000)
 
 var _players: = []
+var _world: YSort = null
 var _camera: Camera2D = null
 var _shrine = null
 var _mode_popup: CanvasLayer = null
@@ -79,6 +80,9 @@ func _build_floor() -> void :
 	_rect(SHRINE_RECT, SLOT_COLOR)
 	_rect(BOOTH_RECT, SLOT_COLOR)
 	_rect(GATE_RECT, CLIFF_COLOR)
+	# everything that stands ON the ground y-sorts: lower on screen = in front
+	_world = YSort.new()
+	add_child(_world)
 	_build_slot_buildings()
 	# collision: cliff strip blocks deck<->plaza except through the stairs
 	_add_wall(Rect2(CLIFF_RECT.position.x, CLIFF_RECT.position.y,
@@ -154,10 +158,11 @@ func _spawn_building_placeholder(slot_rect: Rect2, display_name: String,
 	if icon_path != "" and ResourceLoader.exists(icon_path):
 		texture = load(icon_path)
 	npc.setup(texture, display_name, "")
-	npc.position = slot_rect.position + Vector2(slot_rect.size.x / 2.0, slot_rect.size.y / 2.0)
+	npc.position = slot_rect.position + Vector2(slot_rect.size.x / 2.0,
+			slot_rect.size.y / 2.0 + npc.base_offset())
 	if active:
 		npc.add_to_group("lobby_buildings")
-	add_child(npc)
+	_world.add_child(npc)
 	return npc
 
 
@@ -194,7 +199,7 @@ func _build_players() -> void :
 			avatar.position = MenuData.lobby_return_positions[player_index]
 		else:
 			avatar.position = SPAWN_POINT + Vector2((player_index - (count - 1) / 2.0) * 90.0, 0)
-		add_child(avatar)
+		_world.add_child(avatar)
 		avatar.dress_as(_resolve_character(str(last_played[player_index]) if player_index < last_played.size() else ""))
 		_players.push_back(avatar)
 	MenuData.lobby_return_positions = []
@@ -263,9 +268,9 @@ func _spawn_npc(texture_path: String, at: Vector2, display_name: String, prompt:
 	if ResourceLoader.exists(texture_path):
 		texture = load(texture_path)
 	npc.setup(texture, display_name, prompt)
-	npc.position = at
+	npc.position = at + Vector2(0, npc.base_offset())
 	npc.add_to_group("lobby_npcs")
-	add_child(npc)
+	_world.add_child(npc)
 	return npc
 
 
