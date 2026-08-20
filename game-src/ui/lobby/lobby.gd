@@ -120,13 +120,13 @@ func _build_floor() -> void :
 	# Shuttle: sprite 171x165 base-anchored at SHUTTLE_POS.y + 82 - the wall
 	# is the bottom 56px of the hull.
 	_add_wall(Rect2(SHUTTLE_POS.x - 86, SHUTTLE_POS.y + 26, 172, 56))
-	# stair railings are solid: posts + fence run occupy sprite x 32..88 and
-	# 232..288 (the 320px stairs sprite is centered on the 256px rect), from
-	# the top newel (row 8) down to the bottom newel base (row 480)
+	# stair railings are solid: posts + pole occupy sprite x 37..83 and
+	# 237..283 (the 320px stairs sprite is centered on the 256px rect), from
+	# the top newel (row 8) down to the bottom newel base (row 494)
 	for stair_rect in [STAIR_WEST, STAIR_EAST]:
 		var sx: float = stair_rect.position.x - 32.0
-		_add_wall(Rect2(sx + 32.0, stair_rect.position.y + 8.0, 56.0, 486.0))
-		_add_wall(Rect2(sx + 232.0, stair_rect.position.y + 8.0, 56.0, 486.0))
+		_add_wall(Rect2(sx + 37.0, stair_rect.position.y + 8.0, 46.0, 486.0))
+		_add_wall(Rect2(sx + 237.0, stair_rect.position.y + 8.0, 46.0, 486.0))
 
 
 func _ground_overlay(path: String, rect: Rect2) -> void :
