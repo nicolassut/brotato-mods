@@ -338,6 +338,16 @@ func _build_npcs() -> void :
 			BOARD_RECT.position + BOARD_RECT.size / 2.0, tr("LOBBY_BOARD"), tr("LOBBY_BOARD_PROMPT"))
 	var _e3 = board.connect("interacted", self, "_on_board_interacted")
 
+	# CAMPFIRE PROOF (Off Duty corner design, 2026-08-20): vanilla's torch
+	# burning particles over a placeholder fire spot - the exact tech the
+	# final break-area campfire will use
+	var torch_scene = load("res://particles/burning/torch_burning_particles.tscn")
+	if torch_scene != null:
+		var fire = torch_scene.instance()
+		fire.position = SHRINE_POS + Vector2(120, 40)
+		fire.scale = Vector2(2.0, 2.0)
+		_world.add_child(fire)
+
 	# the game-mode shrine (deck) - interact cycles the mode
 	_shrine = _spawn_npc("res://items/custom_characters/special/special_icon.png",
 			SHRINE_POS, tr("LOBBY_SHRINE"), "")
