@@ -87,7 +87,16 @@ into full-size overlay PNGs - no tiling flags, exact control, ~1MB total.
 
 Ground rule from the base game: GROUND is flat color + sparse decals (no
 tiles-with-seams anywhere in Brotato); OBJECTS get the thick-outline cartoon
-treatment. Two render classes: [O] = outlined object (create_1_direction_object,
+treatment.
+
+**THE BLACK BORDER LAW (user, 2026-08-19 - applies to EVERY asset, generated
+OR procedural, forever):** every structure/object silhouette carries a true
+black border (~3px at world scale) around its COMPLETE silhouette - plates,
+feet and attachments included as one shape. Borderless metalwork is jarring
+against the game's language. Only walkable GROUND surfaces (floors, treads,
+dirt) go borderless. Procedural assets use `outline_paste()` in
+asset-dev/hub/build_ground.py; PixelLab assets get it via prompt + the
+dilate pass. No asset ships without its border checked. Two render classes: [O] = outlined object (create_1_direction_object,
 view sidescroller, size >=171, style_images = real Brotato props upscaled 192
 nearest), [G] = ground/soft (lineless, low contrast - map_object route or
 heavy post-process; NEVER outline ground).
