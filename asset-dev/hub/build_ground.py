@@ -96,32 +96,67 @@ n2 = scatter(plaza, tufts, 34, (0.55, 0.60, 0.52))
 plaza.save(OUT1 + "ground_plaza.png"); plaza.save(OUT2 + "ground_plaza.png")
 print("plaza decals:", n1 + n2)
 
-# DECK overlay 2752x560: plate seams (soft wobbly lines) + few gray rocks
+# DECK overlay 2752x560 v2 - riveted plate decking (the platform's top):
+# full plate grid, per-plate FLAT tone variation, soft continuous seams with
+# jittered joints, rivets along edges, sparse scuffs + debris.
 deck = Image.new("RGBA", (2752, 560), (0, 0, 0, 0))
 dd = ImageDraw.Draw(deck)
-seam = (22, 24, 28, 110)
-for i, sx in enumerate(range(-1376+344, 1376, 344)):
-    px = sx + 1376
-    rnd = random.Random(900 + i)
-    yy = 8
-    while yy < 552:
-        seg = rnd.randint(60, 140)
-        if rnd.random() > 0.25:
-            dd.line([(px + rnd.randint(-3, 3), yy), (px + rnd.randint(-3, 3), min(552, yy + seg))],
-                    fill=seam, width=4)
-        yy += seg + rnd.randint(10, 30)
-for j, sy in enumerate(range(140, 560, 140)):
-    rnd = random.Random(950 + j)
-    xx = 8
-    while xx < 2744:
-        seg = rnd.randint(120, 260)
-        if rnd.random() > 0.3:
-            dd.line([(xx, sy + rnd.randint(-3, 3)), (min(2744, xx + seg), sy + rnd.randint(-3, 3))],
-                    fill=seam, width=4)
-        xx += seg + rnd.randint(20, 50)
-n3 = scatter(deck, rocks, 16, (0.5, 0.52, 0.56), margin=30, scale=0.8)
+seam = (26, 27, 31, 150)
+rivet = (30, 31, 35, 210)
+rndDk = random.Random(880)
+PW, PH = 344, 187
+cols = 2752 // PW
+rows = 3
+# per-plate tone variation (flat overlays)
+for r in range(rows):
+    for cix in range(cols):
+        tone = rndDk.randint(-4, 5)
+        if tone == 0:
+            continue
+        col = (255, 255, 255, tone * 3) if tone > 0 else (0, 0, 0, -tone * 4)
+        px, py = cix * PW, r * PH
+        plate = Image.new("RGBA", (PW, PH), col)
+        deck.paste(plate, (px, py), plate)
+# seams: continuous, slightly jittered at joints
+for cix in range(1, cols):
+    x = cix * PW
+    yy = 0
+    while yy < 560:
+        seg = rndDk.randint(120, 220)
+        jx = x + rndDk.randint(-2, 2)
+        dd.line([(jx, yy), (jx, min(560, yy + seg))], fill=seam, width=4)
+        yy += seg
+for r in range(1, rows):
+    y = r * PH
+    xx = 0
+    while xx < 2752:
+        seg = rndDk.randint(220, 420)
+        jy = y + rndDk.randint(-2, 2)
+        dd.line([(xx, jy), (min(2752, xx + seg), jy)], fill=seam, width=4)
+        xx += seg
+# rivets along plate edges (corners + midpoints, jittered)
+for r in range(rows + 1):
+    for cix in range(cols + 1):
+        for (ox, oy) in ((10, 10), (PW - 14, 10), (10, PH - 14), (PW // 2, 12)):
+            if rndDk.random() < 0.35:
+                continue
+            x = cix * PW + ox + rndDk.randint(-2, 2)
+            y = r * PH + oy + rndDk.randint(-2, 2)
+            if 4 < x < 2746 and 4 < y < 554:
+                dd.ellipse([x, y, x + 5, y + 5], fill=rivet)
+# scuffs: soft darker ellipses, sparse
+for i in range(9):
+    sw = rndDk.randint(60, 160); sh = rndDk.randint(24, 60)
+    sx = rndDk.randint(30, 2700 - sw); sy = rndDk.randint(30, 520 - sh)
+    sc = Image.new("RGBA", (sw, sh), (0, 0, 0, 0))
+    sd2 = ImageDraw.Draw(sc)
+    sd2.ellipse([0, 0, sw, sh], fill=(0, 0, 0, 22))
+    deck.paste(sc, (sx, sy), sc)
+# top-wall junction line
+dd.rectangle([0, 0, 2752, 4], fill=(30, 31, 35, 200))
+n3 = scatter(deck, pure_rocks, 12, (0.36, 0.40, 0.48), margin=30, scale=0.8)
 deck.save(OUT1 + "ground_deck.png"); deck.save(OUT2 + "ground_deck.png")
-print("deck seams drawn, rocks:", n3)
+print("deck v2 plated: %dx%d grid, rocks=%d" % (2752 // 344, 3, n3))
 
 # CLIFF band 2752x384 v4 - DESIGN STORY: "the deck is a scrap platform built
 # over the natural rock rise". Clean straight deck-trim edge (no torn lip),
