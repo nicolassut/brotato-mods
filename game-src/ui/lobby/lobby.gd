@@ -125,8 +125,8 @@ func _build_floor() -> void :
 	# the top newel (row 8) down to the bottom newel base (row 480)
 	for stair_rect in [STAIR_WEST, STAIR_EAST]:
 		var sx: float = stair_rect.position.x - 32.0
-		_add_wall(Rect2(sx + 32.0, stair_rect.position.y + 8.0, 56.0, 472.0))
-		_add_wall(Rect2(sx + 232.0, stair_rect.position.y + 8.0, 56.0, 472.0))
+		_add_wall(Rect2(sx + 32.0, stair_rect.position.y + 8.0, 56.0, 486.0))
+		_add_wall(Rect2(sx + 232.0, stair_rect.position.y + 8.0, 56.0, 486.0))
 
 
 func _ground_overlay(path: String, rect: Rect2) -> void :

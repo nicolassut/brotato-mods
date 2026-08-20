@@ -345,7 +345,7 @@ def build_stairs():
         block(8, 88)
         # fence run: overlaps the top block (nearer in view), stops under
         # the bottom block
-        run_w, run_h = 28, 374
+        run_w, run_h = 28, 386
         run = Image.new("RGBA", (run_w, run_h), GAP)
         rd = ImageDraw.Draw(run)
         rd.rectangle([0, 0, 7, run_h], fill=METAL)
@@ -359,7 +359,9 @@ def build_stairs():
         outline_paste(im, run, (cx - run_w // 2, 26), r=3)
         # bottom newel: base flush with the stair bottom edge (480), drawn
         # over the run
-        block(384, 96)
+        # nudged 14px past the wall line so the post reads as standing
+        # proud of the cliff base instead of flat against it
+        block(398, 96)
     rail(60)
     rail(W - 60)
     im.save(OUT1 + "stairs.png")
