@@ -172,7 +172,9 @@ for i in range(9):
     deck.paste(sc, (sx, sy), sc)
 # top-wall junction line
 dd.rectangle([0, 0, 2752, 4], fill=(30, 31, 35, 200))
-n3 = scatter(deck, pure_rocks, 12, (0.36, 0.40, 0.48), margin=30, scale=0.8)
+# NO debris on the deck (user 2026-08-20): it is clean metal plating -
+# rocks/shrubbery belong to dirt ground only
+n3 = 0
 deck.save(OUT1 + "ground_deck.png"); deck.save(OUT2 + "ground_deck.png")
 print("deck v2 plated: %dx%d grid, rocks=%d" % (2752 // 344, 3, n3))
 
@@ -256,6 +258,10 @@ def draw_beam(wx, wide):
     ld.rectangle([bx - 7, 346, bx + bw + 7, 350], fill=(56, 58, 62, 255))
     ld.rectangle([bx - 7, 343, bx + bw + 7, 346], fill=(16, 14, 12, 255))
     outline_paste(cliff, layer, (wx + 1376 - LW // 2, 14), allow_clip=True)
+    # hub lighting law (2026-08-20): light comes from the LEFT - every
+    # standing member casts one shadow strip to its RIGHT
+    sh = Image.new("RGBA", (12, 354), (0, 0, 0, 70))
+    cliff.alpha_composite(sh, (wx + 1376 + LW // 2 + 1, 22))
 for wx in beam_wxs:
     draw_beam(wx, False)
 for wx in post_wxs:
@@ -330,9 +336,15 @@ def build_stairs():
         LIGHT = (64, 66, 70, 255)
         GAP = (24, 25, 28, 255)
         B = (16, 14, 12, 255)
-        sh_x = cx + 14 if cx < 160 else cx - 14 - 14
-        shadow = Image.new("RGBA", (14, 384), (0, 0, 0, 90))
-        im.alpha_composite(shadow, (sh_x, 96))
+        # hub lighting law: light from the LEFT - the whole assembly casts
+        # right-side shadows, stepped to its silhouette (posts stick out
+        # further than the run)
+        def rshadow(x, y0, h, w=14, a=90):
+            s = Image.new("RGBA", (w, h), (0, 0, 0, a))
+            im.alpha_composite(s, (x, y0))
+        rshadow(cx + 32, 10, 96)      # top newel
+        rshadow(cx + 17, 104, 294)    # fence run between the newels
+        rshadow(cx + 32, 398, 98)     # bottom newel
         def block(by, tall):
             blk = Image.new("RGBA", (56, tall), (0, 0, 0, 0))
             bd4 = ImageDraw.Draw(blk)
@@ -345,15 +357,12 @@ def build_stairs():
         block(8, 88)
         # fence run: overlaps the top block (nearer in view), stops under
         # the bottom block
+        # ONE solid pole (user 2026-08-20: no chain/slat design), a touch
+        # darker than the pillar metal, faint left edge light (light-from-left)
         run_w, run_h = 28, 386
-        run = Image.new("RGBA", (run_w, run_h), GAP)
+        run = Image.new("RGBA", (run_w, run_h), (40, 42, 46, 255))
         rd = ImageDraw.Draw(run)
-        rd.rectangle([0, 0, 7, run_h], fill=METAL)
-        rd.rectangle([1, 0, 2, run_h], fill=LIGHT)
-        rd.rectangle([run_w - 8, 0, run_w - 1, run_h], fill=METAL)
-        for sy in range(0, run_h - 8, 34):
-            rd.rectangle([0, sy, run_w - 1, sy + 9], fill=METAL)
-            rd.rectangle([0, sy + 1, run_w - 1, sy + 2], fill=LIGHT)
+        rd.rectangle([1, 0, 4, run_h], fill=(50, 52, 56, 255))
         # attach just under the top newel's cap (cap band ends ~y22), so
         # the fence visibly connects near the TOP of the block, not its base
         outline_paste(im, run, (cx - run_w // 2, 26), r=3)
@@ -366,9 +375,8 @@ def build_stairs():
     rail(W - 60)
     im.save(OUT1 + "stairs.png")
     im.save(OUT2 + "stairs.png")
-    mirror = im.transpose(Image.FLIP_LEFT_RIGHT)
-    mirror.save(OUT1 + "stairs_e.png")
-    mirror.save(OUT2 + "stairs_e.png")
+    im.save(OUT1 + "stairs_e.png")
+    im.save(OUT2 + "stairs_e.png")
     print("stairs v4 built (clean rails, overhang, exact deck tread)")
 
 
