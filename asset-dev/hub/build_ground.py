@@ -40,7 +40,24 @@ def extract_decals(path, base_rgb, tol=18):
 
 rocks = extract_decals(V + "tiles_1.png", (120, 103, 88))
 tufts = extract_decals(V + "tiles_2.png", (78, 92, 91))
-print("extracted:", len(rocks), "dirt decals,", len(tufts), "forest decals")
+
+def is_greenish(im):
+    # PLANT detector: fraction of the decal's own pixels that are green-
+    # dominant (the mean is useless - dark outlines dilute it). A gray-tinted
+    # cactus still has a plant silhouette, so the source decal must go.
+    a = np.array(im).astype(int)
+    m = a[..., 3] > 100
+    if m.sum() == 0:
+        return True
+    g_frac = ((a[..., 1] > a[..., 0] + 4) & (a[..., 1] > a[..., 2] + 4) & m).sum() / m.sum()
+    return g_frac > 0.12
+
+# PURE rocks only for the cliff (user 2026-08-19: no grass on the face) -
+# the dirt-tile extraction includes cacti/tufts, filter them out by hue
+pure_rocks = [d for d in rocks if not is_greenish(d)]
+print("extracted:", len(rocks), "dirt decals,", len(tufts), "forest decals,",
+      len(pure_rocks), "pure rocks")
+assert len(pure_rocks) >= 6, "rock filter too aggressive"
 assert len(rocks) >= 8, "too few decals extracted"
 
 def tint(im, mul):
@@ -163,16 +180,9 @@ for i in range(40):
     sd.rectangle([2, 0, 7, ln], fill=(22, 18, 16, 55))
     cliff.paste(st, (x, 26), st)
 # protruding boulders: more, bigger, brighter than v2
-n4 = scatter(cliff, rocks, 34, (0.46, 0.44, 0.42), margin=40, scale=1.25)
-n4 += scatter(cliff, rocks, 12, (0.40, 0.38, 0.36), margin=40, scale=0.8)
-# hanging flora from the lip (flipped tufts, olive-tinted)
-rndF = random.Random(660)
+n4 = scatter(cliff, pure_rocks, 34, (0.46, 0.44, 0.42), margin=40, scale=1.25)
+n4 += scatter(cliff, pure_rocks, 12, (0.40, 0.38, 0.36), margin=40, scale=0.8)
 flora = 0
-for i in range(11):
-    d = tint(random.choice(tufts), (0.5, 0.55, 0.45)).transpose(Image.FLIP_TOP_BOTTOM)
-    x = rndF.randint(20, 2700)
-    cliff.paste(d, (x, 24 + rndF.randint(0, 6)), d)
-    flora += 1
 # repair plates: probe decals only (flips for variety); the girder strip is
 # lip reinforcement, pinned just under the overhang
 probe_plates = []
@@ -229,7 +239,7 @@ while rubble < 26 and tries < 300:
     wx = rndR.randint(-1340, 1340)
     if -700 < wx < -390 or 390 < wx < 700 or -180 < wx < 180:
         continue
-    d = tint(random.choice(rocks), (0.5, 0.48, 0.46))
+    d = tint(random.choice(pure_rocks), (0.5, 0.48, 0.46))
     px = wx + 1376; py = rndR.randint(4, 44)
     plaza.paste(d, (px, py), d)
     rubble += 1
