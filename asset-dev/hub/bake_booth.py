@@ -58,6 +58,40 @@ for dst in ("../../game-src/ui/lobby/art/shuttle_shadow.png",
             "shuttle_shadow.png"):
     ell.save(dst)
 
+# MARQUEE CHASE LIGHTS (user 2026-08-20): two overlay frames - frame A has
+# every odd bulb off, frame B every even bulb off; lobby flips them twice a
+# second. Bulbs = small bright-yellow components on the marquee (y<115).
+from collections import deque
+bulbmask = (a[..., 3] > 128) & (a[..., 0] > 235) & (a[..., 1] > 235) & (a[..., 2] > 170)
+bulbmask[115:, :] = False
+seen = np.zeros_like(bulbmask, dtype=bool)
+comps = []
+for yy in range(115):
+    for xx in range(W):
+        if bulbmask[yy, xx] and not seen[yy, xx]:
+            q = deque([(yy, xx)]); seen[yy, xx] = True; comp = [(yy, xx)]
+            while q:
+                cy2, cx2 = q.popleft()
+                for ny, nx in ((cy2-1, cx2), (cy2+1, cx2), (cy2, cx2-1), (cy2, cx2+1)):
+                    if 0 <= ny < 115 and 0 <= nx < W and bulbmask[ny, nx] and not seen[ny, nx]:
+                        seen[ny, nx] = True; q.append((ny, nx)); comp.append((ny, nx))
+            if 3 <= len(comp) <= 80:
+                comps.append(comp)
+comps.sort(key=lambda c: (sum(p[1] for p in c) / len(c), sum(p[0] for p in c) / len(c)))
+assert len(comps) >= 12, "found only %d bulbs" % len(comps)
+frames = [np.zeros((TARGET_H, W, 4), np.uint8), np.zeros((TARGET_H, W, 4), np.uint8)]
+for i, comp in enumerate(comps):
+    fr = frames[i % 2]
+    for (py, px) in comp:
+        r0, g0, b0 = a[py, px, 0], a[py, px, 1], a[py, px, 2]
+        fr[py, px] = (int(r0 * 0.30), int(g0 * 0.28), int(b0 * 0.25), 255)
+for i, name in enumerate(("booth_bulbs_a.png", "booth_bulbs_b.png")):
+    img = Image.fromarray(frames[i])
+    img.save(name)
+    img.save("../../game-src/ui/lobby/art/" + name)
+    img.save("/Users/nicolassutcliffe/brotato-decompiled/ui/lobby/art/" + name)
+print("bulbs found: %d (chase frames written)" % len(comps))
+
 cx = (sx0 + sx1 + 1) / 2.0 - W / 2.0
 cy = (sy0 + sy1 + 1) / 2.0 - TARGET_H
 print("baked %dx%d" % (W, TARGET_H))

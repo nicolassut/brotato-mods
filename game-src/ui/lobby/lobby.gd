@@ -62,6 +62,9 @@ var _booth_faces: = []
 var _booth_static: = []
 var _booth_tick: int = 0
 var _booth_face_index: int = 0
+var _booth_bulbs: Sprite = null
+var _booth_bulb_frames: = []
+var _booth_bulb_index: int = 0
 
 
 func _ready() -> void :
@@ -354,6 +357,28 @@ func _build_booth_screen(booth) -> void :
 	timer.autostart = true
 	booth.add_child(timer)
 	var _et = timer.connect("timeout", self, "_on_booth_screen_tick")
+	# marquee chase lights: two frames (odd bulbs off / even bulbs off),
+	# flipped twice a second (user 2026-08-20)
+	for path in ["res://ui/lobby/art/booth_bulbs_a.png", "res://ui/lobby/art/booth_bulbs_b.png"]:
+		if ResourceLoader.exists(path):
+			_booth_bulb_frames.push_back(load(path))
+	if _booth_bulb_frames.size() == 2:
+		_booth_bulbs = Sprite.new()
+		_booth_bulbs.position = Vector2(0, -150)
+		_booth_bulbs.texture = _booth_bulb_frames[0]
+		booth.add_child(_booth_bulbs)
+		var bulb_timer: = Timer.new()
+		bulb_timer.wait_time = 0.5
+		bulb_timer.autostart = true
+		booth.add_child(bulb_timer)
+		var _eb = bulb_timer.connect("timeout", self, "_on_booth_bulbs_tick")
+
+
+func _on_booth_bulbs_tick() -> void :
+	if _booth_bulbs == null:
+		return
+	_booth_bulb_index = 1 - _booth_bulb_index
+	_booth_bulbs.texture = _booth_bulb_frames[_booth_bulb_index]
 
 
 func _on_booth_screen_tick() -> void :
