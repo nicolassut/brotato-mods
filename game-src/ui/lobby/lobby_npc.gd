@@ -16,6 +16,8 @@ var _prompt: Label = null
 var _name_plate: Label = null
 
 const NEAR_RADIUS: = 110.0
+# per-station override (big buildings need the prompt to reach past their collision)
+var near_radius: float = NEAR_RADIUS
 
 
 func setup(texture: Texture, display_name: String, prompt: String) -> void :
@@ -38,7 +40,7 @@ func setup(texture: Texture, display_name: String, prompt: String) -> void :
 	var area: = Area2D.new()
 	var shape_owner: = CollisionShape2D.new()
 	var circle: = CircleShape2D.new()
-	circle.radius = NEAR_RADIUS
+	circle.radius = near_radius
 	shape_owner.shape = circle
 	area.add_child(shape_owner)
 	add_child(area)

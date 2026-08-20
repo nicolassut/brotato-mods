@@ -89,6 +89,9 @@ func _build_floor() -> void :
 			CLIFF_RECT.end.x - STAIR_EAST.end.x, CLIFF_RECT.size.y))
 	# the fountain is solid
 	_add_wall(FOUNTAIN_RECT)
+	# so are the shuttle body and the booth (2026-08-19 playtest: walk-through)
+	_add_wall(Rect2(SHUTTLE_POS.x - 86, SHUTTLE_POS.y - 70, 172, 130))
+	_add_wall(BOOTH_RECT)
 
 
 func _rect(rect: Rect2, color: Color) -> void :
@@ -134,6 +137,7 @@ func _build_slot_buildings() -> void :
 			continue
 		var bldg = _spawn_building_placeholder(slot_rect, tr(str(pack.lobby_building_name)),
 				str(pack.lobby_building_icon), true)
+		bldg.near_radius = 300.0
 		bldg.set_prompt(tr("LOBBY_BLDG_PROMPT"))
 		var _eb = bldg.connect("interacted", self, "_on_building_interacted", [pack_id, str(pack.lobby_building_name)])
 
@@ -144,6 +148,7 @@ func _spawn_building_placeholder(slot_rect: Rect2, display_name: String,
 	# an existing icon, and the station name plate. Interactions arrive in
 	# step 3; the real carnival-register art is a pure texture swap later.
 	_rect(slot_rect, SLOT_COLOR if active else Color(0.10, 0.085, 0.075, 1.0))
+	_add_wall(slot_rect)
 	var npc = LobbyNpc.new()
 	var texture: Texture = null
 	if icon_path != "" and ResourceLoader.exists(icon_path):
@@ -231,11 +236,13 @@ func _build_npcs() -> void :
 	# the departure shuttle (deck) - enters the run flow at WEAPON select
 	var shuttle = _spawn_npc("res://ui/lobby/art/shuttle.png",
 			SHUTTLE_POS, tr("LOBBY_SHUTTLE"), tr("LOBBY_SHUTTLE_PROMPT"))
+	shuttle.near_radius = 190.0
 	var _e0 = shuttle.connect("interacted", self, "_on_shuttle_interacted")
 
 	# the changing booth - back wall between the stairs (opens character select)
 	var booth = _spawn_npc("res://items/custom/espresso_machine/espresso_machine.png",
 			BOOTH_POS, tr("LOBBY_BOOTH"), tr("LOBBY_BOOTH_PROMPT"))
+	booth.near_radius = 220.0
 	var _e1 = booth.connect("interacted", self, "_on_booth_interacted")
 
 	# the unlock board (deck east) - challenge progress
