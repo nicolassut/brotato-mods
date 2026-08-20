@@ -85,9 +85,9 @@ func _build_floor() -> void :
 	_rect(DECK_RECT, DECK_COLOR)
 	_rect(CLIFF_RECT, CLIFF_COLOR)
 	_rect(PLAZA_RECT, FLOOR_COLOR)
-	# the two long staircases descend the cliff strip (landing + run + apron)
-	_rect(STAIR_WEST, DECK_COLOR)
-	_rect(STAIR_EAST, DECK_COLOR)
+	# the staircases are drawn ENTIRELY by their sprite overlays - no rect
+	# fill (2026-08-20: the old DECK_COLOR fill peeked out past the sprite
+	# as gray slivers beside the rails)
 	_rect(SHUTTLE_PAD_RECT, PAD_COLOR)
 	_rect(FOUNTAIN_RECT, SLOT_COLOR)
 	_rect(BOARD_RECT, SLOT_COLOR)
