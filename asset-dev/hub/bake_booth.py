@@ -77,7 +77,25 @@ for yy in range(115):
                         seen[ny, nx] = True; q.append((ny, nx)); comp.append((ny, nx))
             if 3 <= len(comp) <= 80:
                 comps.append(comp)
-comps.sort(key=lambda c: (sum(p[1] for p in c) / len(c), sum(p[0] for p in c) / len(c)))
+# order bulbs ALONG THE STRING (nearest-neighbor chain from the leftmost
+# bulb) so on/off truly alternates one-by-one along the trim - a plain
+# x-sort interleaves the crown edges with the bottom row and clumps states
+cents = [(sum(p[1] for p in c) / len(c), sum(p[0] for p in c) / len(c)) for c in comps]
+used = [False] * len(comps)
+cur = min(range(len(comps)), key=lambda i: (cents[i][0], cents[i][1]))
+order = []
+for _ in range(len(comps)):
+    order.append(cur); used[cur] = True
+    nxt, best = None, None
+    for j in range(len(comps)):
+        if not used[j]:
+            d = (cents[j][0] - cents[cur][0]) ** 2 + (cents[j][1] - cents[cur][1]) ** 2
+            if best is None or d < best:
+                best, nxt = d, j
+    if nxt is None:
+        break
+    cur = nxt
+comps = [comps[i] for i in order]
 assert len(comps) >= 12, "found only %d bulbs" % len(comps)
 frames = [np.zeros((TARGET_H, W, 4), np.uint8), np.zeros((TARGET_H, W, 4), np.uint8)]
 for i, comp in enumerate(comps):
