@@ -345,7 +345,7 @@ def build_stairs():
         block(8, 88)
         # fence run: overlaps the top block (nearer in view), stops under
         # the bottom block
-        run_w, run_h = 36, 328
+        run_w, run_h = 36, 374
         run = Image.new("RGBA", (run_w, run_h), GAP)
         rd = ImageDraw.Draw(run)
         rd.rectangle([0, 0, 7, run_h], fill=METAL)
@@ -354,7 +354,9 @@ def build_stairs():
         for sy in range(0, run_h - 8, 34):
             rd.rectangle([0, sy, run_w - 1, sy + 9], fill=METAL)
             rd.rectangle([0, sy + 1, run_w - 1, sy + 2], fill=LIGHT)
-        outline_paste(im, run, (cx - run_w // 2, 76), r=3)
+        # attach just under the top newel's cap (cap band ends ~y22), so
+        # the fence visibly connects near the TOP of the block, not its base
+        outline_paste(im, run, (cx - run_w // 2, 26), r=3)
         # bottom newel: base flush with the stair bottom edge (480), drawn
         # over the run
         block(384, 96)
