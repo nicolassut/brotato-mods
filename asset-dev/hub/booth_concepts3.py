@@ -99,11 +99,22 @@ def body_drum(d, curt):
     d.rectangle([30, 86, 220, 296], fill=METAL)
     d.rectangle([34, 86, 52, 296], fill=HI)
     d.rectangle([202, 86, 220, 296], fill=DK)
-    d.rectangle([18, 30, 232, 72], fill=BAND)
-    d.rectangle([18, 30, 232, 38], fill=BAND_H)
-    for px in (34, 104, 174):
-        d.rectangle([px, 38, px + 56, 66], fill=PANEL)
-        d.rectangle([px + 4, 42, px + 22, 54], fill=PANEL_H)
+    # ONE marquee SCREEN (user 2026-08-20): in-game it cycles Brotato
+    # character faces with a static effect (code-driven; art ships the
+    # empty bezel). Mockup shows a potato face mid-static.
+    d.rectangle([18, 22, 232, 78], fill=BAND)
+    d.rectangle([18, 22, 232, 30], fill=BAND_H)
+    d.rounded_rectangle([58, 28, 192, 72], 8, fill=(30, 34, 38, 255))   # bezel
+    d.rounded_rectangle([64, 32, 186, 68], 6, fill=(70, 130, 150, 255)) # tube
+    d.ellipse([104, 36, 146, 66], fill=(220, 208, 180, 255))            # face
+    d.ellipse([114, 44, 120, 50], fill=(40, 40, 40, 255))
+    d.ellipse([130, 44, 136, 50], fill=(40, 40, 40, 255))
+    d.arc([116, 50, 134, 62], 20, 160, fill=(40, 40, 40, 255), width=2)
+    for sy in (36, 46, 56, 64):                                          # scanlines
+        d.line([64, sy, 186, sy], fill=(50, 100, 118, 255), width=1)
+    d.rectangle([64, 52, 186, 57], fill=(200, 216, 224, 255))            # static bar
+    d.rectangle([70, 38, 96, 41], fill=(160, 190, 200, 255))
+    d.rectangle([150, 60, 182, 63], fill=(160, 190, 200, 255))
     d.rectangle([18, 72, 232, 86], fill=BAND)
     for x in range(34, 226, 38):
         d.ellipse([x - 7, 72, x + 7, 86], fill=BULB)
@@ -128,5 +139,5 @@ for i, (curt, lab) in enumerate(zip([curtain_parachute, curtain_sacks, curtain_t
     x = 20 + i * (W + 20)
     board.alpha_composite(make(curt), (x, 50))
     dd.text((x + 6, 20), lab, fill=(230, 225, 215, 255))
-board.save("booth_concept_board3.png")
-print("board 3 written")
+board.save("booth_concept_board4.png")
+print("board 4 written")
