@@ -174,6 +174,10 @@ n4 += scatter(cliff, pure_rocks, 10, (0.40, 0.38, 0.36), margin=44, scale=0.8)
 # occlusion shadow under the deck edge (flat 2-step, no gradient)
 ov = Image.new("RGBA", (2752, 26), (0, 0, 0, 60)); cliff.paste(ov, (0, 22), ov)
 ov2 = Image.new("RGBA", (2752, 12), (0, 0, 0, 50)); cliff.paste(ov2, (0, 22), ov2)
+# base contact: thin darker-rock band UNDER the beams (not a black bar -
+# 2026-08-19 user: the old full-width band boxed the whole texture)
+cd.rectangle([0, 372, 2752, 384], fill=(24, 20, 18, 255))
+cd.rectangle([0, 380, 2752, 384], fill=(18, 15, 13, 255))
 # SUPPORT GIRDERS: evenly spaced columns + posts framing the stair openings.
 # world x -> texture x: tx = wx + 1376
 beam_wxs = [-1226, -926, -150, 150, 926, 1226]
@@ -181,18 +185,22 @@ post_wxs = [-694, -394, 394, 694]
 def draw_beam(wx, wide):
     bw = 30 if wide else 24
     x = wx + 1376 - bw // 2
-    cd.rectangle([x, 18, x + bw, 372], fill=(46, 48, 52, 255))
-    cd.rectangle([x, 18, x + 3, 372], fill=(28, 29, 32, 255))
-    cd.rectangle([x + bw - 3, 18, x + bw, 372], fill=(24, 25, 28, 255))
-    cd.rectangle([x + 5, 18, x + 8, 372], fill=(58, 60, 64, 255))
+    cd.rectangle([x, 18, x + bw, 382], fill=(46, 48, 52, 255))
+    cd.rectangle([x, 18, x + 3, 382], fill=(28, 29, 32, 255))
+    cd.rectangle([x + bw - 3, 18, x + bw, 382], fill=(24, 25, 28, 255))
+    cd.rectangle([x + 5, 18, x + 8, 382], fill=(58, 60, 64, 255))
     rndR2 = random.Random(1000 + wx)
-    for ry in range(40, 350, 46):
+    for ry in range(58, 336, 46):
         for rx in (x + 6, x + bw - 10):
             cd.ellipse([rx, ry + rndR2.randint(-2, 2), rx + 4, ry + 4 + rndR2.randint(-2, 2)],
                        fill=(24, 24, 26, 255))
-    # foot plate
-    cd.rectangle([x - 6, 352, x + bw + 6, 372], fill=(40, 42, 46, 255))
-    cd.rectangle([x - 6, 352, x + bw + 6, 355], fill=(56, 58, 62, 255))
+    # HEAD plate where the beam meets the deck trim (mirrors the foot plate)
+    cd.rectangle([x - 6, 22, x + bw + 6, 44], fill=(40, 42, 46, 255))
+    cd.rectangle([x - 6, 41, x + bw + 6, 44], fill=(26, 27, 30, 255))
+    cd.rectangle([x - 6, 22, x + bw + 6, 25], fill=(56, 58, 62, 255))
+    # foot plate at the true base
+    cd.rectangle([x - 6, 360, x + bw + 6, 382], fill=(40, 42, 46, 255))
+    cd.rectangle([x - 6, 360, x + bw + 6, 363], fill=(56, 58, 62, 255))
 for wx in beam_wxs:
     draw_beam(wx, False)
 for wx in post_wxs:
@@ -203,9 +211,6 @@ cd.rectangle([0, 0, 2752, 22], fill=(52, 55, 62, 255))
 cd.rectangle([0, 0, 2752, 3], fill=(34, 36, 41, 255))
 cd.rectangle([0, 6, 2752, 9], fill=(66, 69, 76, 255))
 cd.rectangle([0, 18, 2752, 22], fill=(28, 29, 33, 255))
-# base contact: straight soft band (no scribble)
-cd.rectangle([0, 360, 2752, 372], fill=(20, 16, 14, 255))
-cd.rectangle([0, 372, 2752, 384], fill=(13, 11, 10, 255))
 cliff.save(OUT1 + "ground_cliff.png"); cliff.save(OUT2 + "ground_cliff.png")
 print("cliff v4 built: beams=%d posts=%d boulders=%d" % (len(beam_wxs), len(post_wxs), n4))
 
