@@ -310,18 +310,26 @@ def build_stairs():
     dr.rectangle([FIELD_L, 480, FIELD_R, 486], fill=(46, 42, 39, 255))
     n = scatter(im.crop((FIELD_L, 480, FIELD_R, 576)), pure_rocks, 2, (0.5, 0.5, 0.5))
     def rail(x):
+        # GUARD RAILS (2026-08-19 user: must read as railings, not pillars):
+        # they stand ~60px ABOVE the deck edge with a wide cap - any real
+        # deck opening has guard rails above floor level
         bw = 30
-        LW = bw + 16
-        layer = Image.new("RGBA", (LW, 396), (0, 0, 0, 0))
+        LW = bw + 20
+        TOP = 36            # canvas y where the rail starts (deck edge = 96)
+        layer = Image.new("RGBA", (LW, 486 - TOP + 10), (0, 0, 0, 0))
         ld = ImageDraw.Draw(layer)
-        bx = 8
-        ld.rectangle([bx, 4, bx + bw, 392], fill=(46, 48, 52, 255))
-        ld.rectangle([bx + 5, 4, bx + 8, 392], fill=(58, 60, 64, 255))
-        ld.rectangle([bx - 6, 4, bx + bw + 6, 24], fill=(40, 42, 46, 255))
-        ld.rectangle([bx - 6, 4, bx + bw + 6, 8], fill=(56, 58, 62, 255))
-        ld.rectangle([bx - 6, 372, bx + bw + 6, 392], fill=(40, 42, 46, 255))
-        ld.rectangle([bx - 6, 372, bx + bw + 6, 376], fill=(56, 58, 62, 255))
-        outline_paste(im, layer, (x - 8, 92))
+        bx = 10
+        ld.rectangle([bx, 14, bx + bw, 486 - TOP], fill=(46, 48, 52, 255))
+        ld.rectangle([bx + 5, 14, bx + 8, 486 - TOP], fill=(58, 60, 64, 255))
+        # wide HANDRAIL CAP on top (what you grab - reads railing)
+        ld.rectangle([bx - 9, 0, bx + bw + 9, 20], fill=(52, 54, 58, 255))
+        ld.rectangle([bx - 9, 0, bx + bw + 9, 6], fill=(62, 64, 68, 255))
+        # mid plate where it passes the deck edge
+        ld.rectangle([bx - 5, 96 - TOP, bx + bw + 5, 96 - TOP + 16], fill=(40, 42, 46, 255))
+        # foot plate at the apron
+        ld.rectangle([bx - 6, 466 - TOP, bx + bw + 6, 486 - TOP], fill=(40, 42, 46, 255))
+        ld.rectangle([bx - 6, 466 - TOP, bx + bw + 6, 469 - TOP], fill=(56, 58, 62, 255))
+        outline_paste(im, layer, (x - 10, TOP))
     rail(8)
     rail(W - 38)
     im.save(OUT1 + "stairs.png")
