@@ -35,7 +35,7 @@ const SHUTTLE_POS: = Vector2(0, -984)
 const SHRINE_POS: = Vector2(-880, -890)
 const SHRINE_RECT: = Rect2(-976, -1000, 192, 224)
 const BOARD_RECT: = Rect2(688, -1000, 384, 224)
-const BOOTH_POS: = Vector2(0, -274)
+const BOOTH_POS: = Vector2(0, -300)
 const BOOTH_RECT: = Rect2(-112, -340, 224, 256)
 # booth sprite is 221x300 (bake_booth.py); base at -124, backed close to the
 # cliff wall (user 2026-08-20). Screen tube (blanked in the art) consts come
@@ -109,6 +109,10 @@ func _build_floor() -> void :
 	_ground_overlay("res://ui/lobby/art/ground_cliff.png", CLIFF_RECT)
 	_ground_overlay("res://ui/lobby/art/stairs.png", STAIR_WEST)
 	_ground_overlay("res://ui/lobby/art/stairs_e.png", STAIR_EAST)
+	# object ground shadows (drawn under the YSort world): decent ellipse
+	# under the hovering shuttle, subtle silhouette cast right of the booth
+	_object_shadow("res://ui/lobby/art/shuttle_shadow.png", Vector2(0, -898))
+	_object_shadow("res://ui/lobby/art/booth_shadow.png", BOOTH_POS + Vector2(26, 8))
 	# everything that stands ON the ground y-sorts: lower on screen = in front
 	_world = YSort.new()
 	add_child(_world)
@@ -122,10 +126,10 @@ func _build_floor() -> void :
 			CLIFF_RECT.end.x - STAIR_EAST.end.x, CLIFF_RECT.size.y))
 	# the fountain is solid
 	_add_wall(FOUNTAIN_RECT)
-	# booth: base band matched to the BODY at ground level (159 wide - the
-	# marquee crown is wider but overhangs), walk-behind per the 2.5D law;
-	# base at -124 per BOOTH_POS
-	_add_wall(Rect2(-79, -172, 159, 48))
+	# booth: backed against the cliff (base -150), and NO walk-behind (user
+	# 2026-08-20) - the wall spans from the cliff base to the booth base,
+	# matched to the body width at ground level (159, crown overhangs)
+	_add_wall(Rect2(-79, -232, 159, 82))
 	# 2.5D hitbox law (2026-08-20 playtest): standing objects block at their
 	# BASE BAND only - the ground their footprint occupies - never the full
 	# sprite, so you can walk behind them and the YSort draws you behind.
@@ -153,6 +157,15 @@ func _ground_overlay(path: String, rect: Rect2) -> void :
 	sprite.position = Vector2(rect.position.x + rect.size.x / 2.0,
 			rect.position.y + sprite.texture.get_height() / 2.0)
 	add_child(sprite)
+
+
+func _object_shadow(path: String, at: Vector2) -> void :
+	if not ResourceLoader.exists(path):
+		return
+	var s: = Sprite.new()
+	s.texture = load(path)
+	s.position = at
+	add_child(s)
 
 
 func _rect(rect: Rect2, color: Color) -> void :

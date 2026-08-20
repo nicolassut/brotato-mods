@@ -260,16 +260,13 @@ def draw_beam(wx, wide):
     ld.rectangle([bx - 7, 346, bx + bw + 7, 350], fill=(56, 58, 62, 255))
     ld.rectangle([bx - 7, 343, bx + bw + 7, 346], fill=(16, 14, 12, 255))
     outline_paste(cliff, layer, (wx + 1376 - LW // 2, 14), allow_clip=True)
-    # connected cast shadow (light-from-left law): the pillar SILHOUETTE
-    # shifted right 14px minus itself, so plate steps stay attached
-    m = layer.split()[3].point(lambda v: 255 if v > 0 else 0)
-    base_m = Image.new("L", (LW + 14, 372), 0); base_m.paste(m, (0, 0))
-    shift_m = Image.new("L", (LW + 14, 372), 0); shift_m.paste(m, (14, 0))
-    shm = ImageChops.subtract(shift_m, base_m)
-    sh_layer = Image.new("RGBA", (LW + 14, 372), (0, 0, 0, 0))
-    sh_layer.paste(Image.new("RGBA", (LW + 14, 372), (0, 0, 0, 70)), (0, 0), shm)
-    sh_layer = sh_layer.crop((0, 0, LW + 14, 370))
-    cliff.alpha_composite(sh_layer, (wx + 1376 - LW // 2, 14))
+    # GROUND shadow (user 2026-08-20): a standing pillar pools its shadow
+    # at the BASE, extending right from the foot - a full-height strip reads
+    # as the pillar lying on its side. Two steps: long low blob at ground
+    # level, short taper above it.
+    foot_x = wx + 1376 + LW // 2 + 1
+    cliff.alpha_composite(Image.new("RGBA", (26, 18), (0, 0, 0, 70)), (foot_x, 362))
+    cliff.alpha_composite(Image.new("RGBA", (13, 8), (0, 0, 0, 70)), (foot_x, 354))
 for wx in beam_wxs:
     draw_beam(wx, False)
 for wx in post_wxs:
@@ -376,13 +373,13 @@ def build_stairs():
         outline_paste(asm, run, (cx - run_w // 2, 26), r=3)
         # bottom newel: base at the stair FOOT, two steps out on the plaza
         block(524, 96)
-        m = asm.split()[3].point(lambda v: 255 if v > 0 else 0)
-        shifted = Image.new("L", (W, H), 0)
-        shifted.paste(m, (14, 0))
-        shm = ImageChops.subtract(shifted, m)
-        sh_layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        sh_layer.paste(Image.new("RGBA", (W, H), (0, 0, 0, 90)), (0, 0), shm)
-        im.alpha_composite(sh_layer)
+        # GROUND shadows at the newel FEET only (user 2026-08-20): standing
+        # posts pool shadow at the base, extending right - no full-height
+        # strips (they read as the post lying sideways). Top newel foot on
+        # the deck (row 96), bottom newel foot on the plaza (row 620).
+        for (fy, fh) in ((80, 18), (600, 22)):
+            im.alpha_composite(Image.new("RGBA", (26, fh), (0, 0, 0, 80)), (cx + 28, fy))
+            im.alpha_composite(Image.new("RGBA", (13, 8), (0, 0, 0, 80)), (cx + 28, fy - 8))
         im.alpha_composite(asm)
     rail(60)
     rail(W - 60)

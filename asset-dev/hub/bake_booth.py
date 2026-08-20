@@ -40,6 +40,24 @@ for i in range(2):
     st.save("../../game-src/ui/lobby/art/booth_static_%d.png" % i)
     st.save("/Users/nicolassutcliffe/brotato-decompiled/ui/lobby/art/booth_static_%d.png" % i)
 
+# object shadows (user 2026-08-20): booth casts a SUBTLE shadow to its
+# right matching its shape (silhouette at alpha 55, offset applied in
+# lobby.gd); the shuttle gets a decent ground ellipse under the ship.
+sil = a[..., 3] > 128
+shadow_img = np.zeros((TARGET_H, W, 4), np.uint8)
+shadow_img[sil] = (0, 0, 0, 55)
+for dst in ("../../game-src/ui/lobby/art/booth_shadow.png",
+            "/Users/nicolassutcliffe/brotato-decompiled/ui/lobby/art/booth_shadow.png",
+            "booth_shadow.png"):
+    Image.fromarray(shadow_img).save(dst)
+from PIL import ImageDraw
+ell = Image.new("RGBA", (160, 44), (0, 0, 0, 0))
+ImageDraw.Draw(ell).ellipse([0, 0, 159, 43], fill=(0, 0, 0, 70))
+for dst in ("../../game-src/ui/lobby/art/shuttle_shadow.png",
+            "/Users/nicolassutcliffe/brotato-decompiled/ui/lobby/art/shuttle_shadow.png",
+            "shuttle_shadow.png"):
+    ell.save(dst)
+
 cx = (sx0 + sx1 + 1) / 2.0 - W / 2.0
 cy = (sy0 + sy1 + 1) / 2.0 - TARGET_H
 print("baked %dx%d" % (W, TARGET_H))
