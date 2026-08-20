@@ -35,13 +35,13 @@ const SHUTTLE_POS: = Vector2(0, -984)
 const SHRINE_POS: = Vector2(-880, -890)
 const SHRINE_RECT: = Rect2(-976, -1000, 192, 224)
 const BOARD_RECT: = Rect2(688, -1000, 384, 224)
-const BOOTH_POS: = Vector2(0, -250)
+const BOOTH_POS: = Vector2(0, -274)
 const BOOTH_RECT: = Rect2(-112, -340, 224, 256)
-# booth sprite is 246x333 (1.3x, art overflows the rect like the shuttle);
-# its base lands at the rect bottom (-84). Screen tube (blanked in the art)
-# sits at sprite px (98,41) 50x39 -> node coords relative to the base origin.
-const BOOTH_SCREEN_OFFSET: = Vector2(0, -272)
-const BOOTH_SCREEN_SIZE: = Vector2(50, 39)
+# booth sprite is 221x300 (bake_booth.py); base at -124, backed close to the
+# cliff wall (user 2026-08-20). Screen tube (blanked in the art) consts come
+# from bake_booth.py output - node coords relative to the base origin.
+const BOOTH_SCREEN_OFFSET: = Vector2(0, -246)
+const BOOTH_SCREEN_SIZE: = Vector2(45, 35)
 const FOUNTAIN_RECT: = Rect2(-192, 180, 384, 320)
 const GATE_RECT: = Rect2(-192, 1064, 384, 160)
 const SLOT_SIZE: = Vector2(416, 352)
@@ -122,9 +122,10 @@ func _build_floor() -> void :
 			CLIFF_RECT.end.x - STAIR_EAST.end.x, CLIFF_RECT.size.y))
 	# the fountain is solid
 	_add_wall(FOUNTAIN_RECT)
-	# booth (real art, 246 wide): base band only, walk-behind per the 2.5D
-	# hitbox law - base sits at the BOOTH_RECT bottom (-84)
-	_add_wall(Rect2(-123, -140, 246, 56))
+	# booth: base band matched to the BODY at ground level (159 wide - the
+	# marquee crown is wider but overhangs), walk-behind per the 2.5D law;
+	# base at -124 per BOOTH_POS
+	_add_wall(Rect2(-79, -172, 159, 48))
 	# 2.5D hitbox law (2026-08-20 playtest): standing objects block at their
 	# BASE BAND only - the ground their footprint occupies - never the full
 	# sprite, so you can walk behind them and the YSort draws you behind.
