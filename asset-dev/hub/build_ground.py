@@ -330,6 +330,18 @@ def build_stairs():
         ld.rectangle([bx - 6, fp, bx + bw + 6, 480 - TOP], fill=(40, 42, 46, 255))
         ld.rectangle([bx - 6, fp, bx + bw + 6, fp + 3], fill=B)
         outline_paste(im, layer, (x - 10, TOP))
+        # SUPPORT BRACKETS (user 2026-08-19: you should see what HOLDS the
+        # railing up) - a small outlined post standing on every second tread,
+        # on the inner side of the rail
+        inner = (x + bw + 2) if x < 100 else (x - 24)
+        for si in range(0, 8, 2):
+            sy = 96 + si * 48 + 10
+            bracket = Image.new("RGBA", (22, 30), (0, 0, 0, 0))
+            bd2 = ImageDraw.Draw(bracket)
+            bd2.rectangle([4, 0, 18, 24], fill=(40, 42, 46, 255))
+            bd2.rectangle([6, 2, 9, 22], fill=(52, 54, 58, 255))
+            bd2.rectangle([0, 22, 22, 30], fill=(36, 38, 42, 255))
+            outline_paste(im, bracket, (inner, sy), r=3)
     # ONE clean black edge line where the platform ends and the steps begin
     dr.rectangle([FIELD_L, 92, FIELD_R, 96], fill=(16, 14, 12, 255))
     rail(8)
