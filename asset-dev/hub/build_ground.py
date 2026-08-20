@@ -65,6 +65,18 @@ def tint(im, mul):
     a[..., :3] *= np.array(mul)
     return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
 
+def outline_paste(dst, layer, pos, r=3, color=(14, 12, 11, 255)):
+    """Paste layer with a true BLACK BORDER around its silhouette (vanilla
+    thick-outline law - structures are objects, not ground)."""
+    mask = layer.split()[3].point(lambda v: 255 if v > 60 else 0)
+    black = Image.new("RGBA", layer.size, color)
+    for dx in range(-r, r + 1):
+        for dy in range(-r, r + 1):
+            if dx * dx + dy * dy <= r * r:
+                dst.paste(black, (pos[0] + dx, pos[1] + dy), mask)
+    dst.paste(layer, pos, layer)
+
+
 def scatter(canvas, decals, count, mul, margin=24, scale=1.0):
     W, H = canvas.size; placed = []
     for _ in range(count * 8):
@@ -216,26 +228,22 @@ cd.rectangle([0, 380, 2752, 384], fill=(18, 15, 13, 255))
 # SUPPORT GIRDERS: evenly spaced columns + posts framing the stair openings.
 # world x -> texture x: tx = wx + 1376
 beam_wxs = [-1226, -926, -150, 150, 926, 1226]
-post_wxs = [-694, -394, 394, 694]
+post_wxs = [-742, -346, 346, 742]
 def draw_beam(wx, wide):
     bw = 30 if wide else 24
-    x = wx + 1376 - bw // 2
-    cd.rectangle([x, 18, x + bw, 382], fill=(46, 48, 52, 255))
-    cd.rectangle([x, 18, x + 3, 382], fill=(28, 29, 32, 255))
-    cd.rectangle([x + bw - 3, 18, x + bw, 382], fill=(24, 25, 28, 255))
-    cd.rectangle([x + 5, 18, x + 8, 382], fill=(58, 60, 64, 255))
-    rndR2 = random.Random(1000 + wx)
-    for ry in range(58, 336, 46):
-        for rx in (x + 6, x + bw - 10):
-            cd.ellipse([rx, ry + rndR2.randint(-2, 2), rx + 4, ry + 4 + rndR2.randint(-2, 2)],
-                       fill=(24, 24, 26, 255))
-    # HEAD plate where the beam meets the deck trim (mirrors the foot plate)
-    cd.rectangle([x - 6, 22, x + bw + 6, 44], fill=(40, 42, 46, 255))
-    cd.rectangle([x - 6, 41, x + bw + 6, 44], fill=(26, 27, 30, 255))
-    cd.rectangle([x - 6, 22, x + bw + 6, 25], fill=(56, 58, 62, 255))
-    # foot plate at the true base
-    cd.rectangle([x - 6, 360, x + bw + 6, 382], fill=(40, 42, 46, 255))
-    cd.rectangle([x - 6, 360, x + bw + 6, 363], fill=(56, 58, 62, 255))
+    LW = bw + 20
+    layer = Image.new("RGBA", (LW, 372), (0, 0, 0, 0))
+    ld = ImageDraw.Draw(layer)
+    bx = 10
+    ld.rectangle([bx, 4, bx + bw, 368], fill=(46, 48, 52, 255))
+    ld.rectangle([bx + 4, 4, bx + 7, 368], fill=(58, 60, 64, 255))
+    ld.rectangle([bx + bw - 4, 4, bx + bw, 368], fill=(36, 38, 42, 255))
+    # head + foot plates (wider than the beam)
+    ld.rectangle([bx - 7, 4, bx + bw + 7, 26], fill=(40, 42, 46, 255))
+    ld.rectangle([bx - 7, 4, bx + bw + 7, 8], fill=(56, 58, 62, 255))
+    ld.rectangle([bx - 7, 346, bx + bw + 7, 368], fill=(40, 42, 46, 255))
+    ld.rectangle([bx - 7, 346, bx + bw + 7, 350], fill=(56, 58, 62, 255))
+    outline_paste(cliff, layer, (wx + 1376 - LW // 2, 14))
 for wx in beam_wxs:
     draw_beam(wx, False)
 for wx in post_wxs:
@@ -272,53 +280,50 @@ print("DONE - bases: plaza RGB(66,61,57) deck RGB(52,55,62) set in lobby.gd")
 # 96 landing + 384 run of steps + 96 apron. Steps = tread band + darker riser
 # shadow, soft wobbly seams, dark side rails.
 def build_stairs():
-    # v3 (2026-08-19 in-game review): the LANDING is transparent - the real
-    # deck plating shows through and rails no longer jut above the platform
-    # edge; rails start AT the deck edge and descend the run only; tread/riser
-    # ratio rebalanced (38/10) with softer riser contrast.
-    W, H = 256, 576
+    # v4 (2026-08-19 zoom review): no rivets on rails; rails WIDER and
+    # OVERHANGING the 256 footprint (canvas 288, sprite centered on the rect);
+    # treads drawn only BETWEEN the rails (no slivers outside); tread color =
+    # exact deck base; riser-only variation.
+    W, H = 288, 576
+    FIELD_L, FIELD_R = 38, 250          # tread field between rail inner edges
     im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     dr = ImageDraw.Draw(im)
-    tread = (50, 53, 60, 255); riser = (33, 34, 39, 255)
+    DECK = (52, 55, 62, 255)
+    riser = (33, 34, 39, 255)
     PLAZA = (66, 61, 57, 255)
     y = 96
     step_h = 48
     rndT = random.Random(360)
     for i in range(8):
-        tv = rndT.randint(-2, 2)
-        dr.rectangle([0, y, W, y + step_h - 10],
-                     fill=(tread[0] + tv, tread[1] + tv, tread[2] + tv, 255))
-        dr.rectangle([0, y + step_h - 10, W, y + step_h], fill=riser)
-        wobble_edge(dr, 0, W, y + step_h - 10, 2, (26, 27, 31, 255), 3, seed=300 + i)
+        dr.rectangle([FIELD_L, y, FIELD_R, y + step_h - 10], fill=DECK)
+        dr.rectangle([FIELD_L, y + step_h - 10, FIELD_R, y + step_h], fill=riser)
+        wobble_edge(dr, FIELD_L, FIELD_R, y + step_h - 10, 2, (26, 27, 31, 255), 3, seed=300 + i)
         y += step_h
-    dr.rectangle([0, 480, W, 576], fill=PLAZA)
-    dr.rectangle([0, 480, W, 486], fill=(46, 42, 39, 255))
-    n = scatter(im.crop((0, 480, 256, 576)), pure_rocks, 2, (0.5, 0.5, 0.5))
+    dr.rectangle([FIELD_L, 480, FIELD_R, 576], fill=PLAZA)
+    dr.rectangle([FIELD_L, 480, FIELD_R, 486], fill=(46, 42, 39, 255))
+    n = scatter(im.crop((FIELD_L, 480, FIELD_R, 576)), pure_rocks, 2, (0.5, 0.5, 0.5))
     def rail(x):
-        bw = 26
-        dr.rectangle([x, 96, x + bw, 486], fill=(50, 52, 57, 255))
-        dr.rectangle([x, 96, x + 3, 486], fill=(28, 29, 32, 255))
-        dr.rectangle([x + bw - 3, 96, x + bw, 486], fill=(24, 25, 28, 255))
-        dr.rectangle([x + 5, 96, x + 8, 486], fill=(58, 60, 64, 255))
-        rndR = random.Random(1200 + x)
-        for ry in range(122, 470, 46):
-            for rx in (x + 6, x + bw - 10):
-                dr.ellipse([rx, ry + rndR.randint(-2, 2), rx + 4, ry + 4 + rndR.randint(-2, 2)],
-                           fill=(24, 24, 26, 255))
-        # head plate AT the deck edge; foot plate at the apron
-        dr.rectangle([x - 4, 96, x + bw + 4, 114], fill=(40, 42, 46, 255))
-        dr.rectangle([x - 4, 96, x + bw + 4, 99], fill=(56, 58, 62, 255))
-        dr.rectangle([x - 4, 111, x + bw + 4, 114], fill=(26, 27, 30, 255))
-        dr.rectangle([x - 4, 466, x + bw + 4, 486], fill=(40, 42, 46, 255))
-        dr.rectangle([x - 4, 466, x + bw + 4, 469], fill=(56, 58, 62, 255))
-    rail(2)
-    rail(W - 28)
+        bw = 30
+        LW = bw + 16
+        layer = Image.new("RGBA", (LW, 396), (0, 0, 0, 0))
+        ld = ImageDraw.Draw(layer)
+        bx = 8
+        ld.rectangle([bx, 4, bx + bw, 392], fill=(50, 52, 57, 255))
+        ld.rectangle([bx + 5, 4, bx + 8, 392], fill=(60, 62, 66, 255))
+        ld.rectangle([bx + bw - 5, 4, bx + bw, 392], fill=(38, 40, 44, 255))
+        ld.rectangle([bx - 6, 4, bx + bw + 6, 24], fill=(40, 42, 46, 255))
+        ld.rectangle([bx - 6, 4, bx + bw + 6, 8], fill=(56, 58, 62, 255))
+        ld.rectangle([bx - 6, 372, bx + bw + 6, 392], fill=(40, 42, 46, 255))
+        ld.rectangle([bx - 6, 372, bx + bw + 6, 376], fill=(56, 58, 62, 255))
+        outline_paste(im, layer, (x - 8, 92))
+    rail(8)
+    rail(W - 38)
     im.save(OUT1 + "stairs.png")
     im.save(OUT2 + "stairs.png")
     mirror = im.transpose(Image.FLIP_LEFT_RIGHT)
     mirror.save(OUT1 + "stairs_e.png")
     mirror.save(OUT2 + "stairs_e.png")
-    print("stairs v3 built (transparent landing, edge-anchored rails)")
+    print("stairs v4 built (clean rails, overhang, exact deck tread)")
 
 
 
