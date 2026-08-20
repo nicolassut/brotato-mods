@@ -373,13 +373,16 @@ def build_stairs():
         outline_paste(asm, run, (cx - run_w // 2, 26), r=3)
         # bottom newel: base at the stair FOOT, two steps out on the plaza
         block(524, 96)
-        # GROUND shadows at the newel FEET only (user 2026-08-20): standing
-        # posts pool shadow at the base, extending right - no full-height
-        # strips (they read as the post lying sideways). Top newel foot on
-        # the deck (row 96), bottom newel foot on the plaza (row 620).
-        for (fy, fh) in ((80, 18), (600, 22)):
-            im.alpha_composite(Image.new("RGBA", (26, fh), (0, 0, 0, 80)), (cx + 28, fy))
-            im.alpha_composite(Image.new("RGBA", (13, 8), (0, 0, 0, 80)), (cx + 28, fy - 8))
+        # RAILING shadow: connected silhouette-shift (v11) - the user
+        # confirmed this style was right for the staircase; only the CLIFF
+        # pillars use base-pooled ground shadows
+        m = asm.split()[3].point(lambda v: 255 if v > 0 else 0)
+        shifted = Image.new("L", (W, H), 0)
+        shifted.paste(m, (14, 0))
+        shm = ImageChops.subtract(shifted, m)
+        sh_layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        sh_layer.paste(Image.new("RGBA", (W, H), (0, 0, 0, 90)), (0, 0), shm)
+        im.alpha_composite(sh_layer)
         im.alpha_composite(asm)
     rail(60)
     rail(W - 60)
