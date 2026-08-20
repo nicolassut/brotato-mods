@@ -294,7 +294,7 @@ def build_stairs():
     # treads drawn only BETWEEN the rails (no slivers outside); tread color =
     # exact deck base; riser-only variation.
     W, H = 320, 576
-    FIELD_L, FIELD_R = 56, 264          # tread field between rail inner edges
+    FIELD_L, FIELD_R = 46, 278          # tread field between rail inner edges
     im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     dr = ImageDraw.Draw(im)
     DECK = (52, 55, 62, 255)
@@ -312,37 +312,43 @@ def build_stairs():
     dr.rectangle([FIELD_L, 480, FIELD_R, 486], fill=(46, 42, 39, 255))
     n = scatter(im.crop((FIELD_L, 480, FIELD_R, 576)), pure_rocks, 2, (0.5, 0.5, 0.5))
     def rail(x):
-        # guard rails: cap on top, body, foot plate ending AT the cliff base
-        # (no mid collar - it stacked bars at the opening; no overhang stubs)
-        bw = 30
-        LW = bw + 20
-        TOP = 36
+        # RAILING ANATOMY (user 2026-08-19): a thick NEWEL POST at each end -
+        # the top one protrudes ABOVE the deck edge, the bottom one protrudes
+        # PAST the stair bottom onto the plaza - with the thinner FENCE RUN
+        # spanning between them, elevated above the steps.
         B = (16, 14, 12, 255)
-        layer = Image.new("RGBA", (LW, 480 - TOP), (0, 0, 0, 0))
-        ld = ImageDraw.Draw(layer)
+        post_w = 34
+        run_w = 18
+        cx = x + post_w // 2          # shared axis
+        # fence run between the posts (thinner band)
+        run = Image.new("RGBA", (run_w + 8, 340), (0, 0, 0, 0))
+        rd = ImageDraw.Draw(run)
+        rd.rectangle([4, 0, 4 + run_w, 340], fill=(46, 48, 52, 255))
+        rd.rectangle([7, 0, 10, 340], fill=(58, 60, 64, 255))
+        outline_paste(im, run, (cx - run_w // 2 - 4, 128))
+        # TOP newel post: cap above the deck edge, body past the deck line
+        top = Image.new("RGBA", (post_w + 20, 130), (0, 0, 0, 0))
+        td = ImageDraw.Draw(top)
         bx = 10
-        ld.rectangle([bx, 14, bx + bw, 480 - TOP], fill=(46, 48, 52, 255))
-        ld.rectangle([bx + 5, 14, bx + 8, 480 - TOP], fill=(58, 60, 64, 255))
-        ld.rectangle([bx - 9, 0, bx + bw + 9, 20], fill=(52, 54, 58, 255))
-        ld.rectangle([bx - 9, 0, bx + bw + 9, 6], fill=(62, 64, 68, 255))
-        ld.rectangle([bx - 9, 18, bx + bw + 9, 21], fill=B)
-        fp = 456 - TOP
-        ld.rectangle([bx - 6, fp, bx + bw + 6, 480 - TOP], fill=(40, 42, 46, 255))
-        ld.rectangle([bx - 6, fp, bx + bw + 6, fp + 3], fill=B)
-        outline_paste(im, layer, (x - 10, TOP))
-        # SUPPORT BRACKETS (user 2026-08-19: you should see what HOLDS the
-        # railing up) - a small outlined post standing on every second tread,
-        # on the inner side of the rail
-        inner = (x + bw + 2) if x < 100 else (x - 24)
-        for si in range(0, 8, 2):
-            sy = 96 + si * 48 + 10
-            bracket = Image.new("RGBA", (22, 30), (0, 0, 0, 0))
-            bd2 = ImageDraw.Draw(bracket)
-            bd2.rectangle([4, 0, 18, 24], fill=(40, 42, 46, 255))
-            bd2.rectangle([6, 2, 9, 22], fill=(52, 54, 58, 255))
-            bd2.rectangle([0, 22, 22, 30], fill=(36, 38, 42, 255))
-            outline_paste(im, bracket, (inner, sy), r=3)
-    # ONE clean black edge line where the platform ends and the steps begin
+        td.rectangle([bx, 14, bx + post_w, 130], fill=(46, 48, 52, 255))
+        td.rectangle([bx + 5, 14, bx + 9, 130], fill=(58, 60, 64, 255))
+        td.rectangle([bx - 9, 0, bx + post_w + 9, 20], fill=(52, 54, 58, 255))
+        td.rectangle([bx - 9, 0, bx + post_w + 9, 6], fill=(62, 64, 68, 255))
+        td.rectangle([bx - 9, 18, bx + post_w + 9, 21], fill=B)
+        outline_paste(im, top, (cx - post_w // 2 - 10, 36))
+        # BOTTOM newel post: protrudes past the stair bottom onto the plaza
+        bot = Image.new("RGBA", (post_w + 20, 120), (0, 0, 0, 0))
+        bd3 = ImageDraw.Draw(bot)
+        bd3.rectangle([bx, 14, bx + post_w, 100], fill=(46, 48, 52, 255))
+        bd3.rectangle([bx + 5, 14, bx + 9, 100], fill=(58, 60, 64, 255))
+        bd3.rectangle([bx - 9, 0, bx + post_w + 9, 20], fill=(52, 54, 58, 255))
+        bd3.rectangle([bx - 9, 0, bx + post_w + 9, 6], fill=(62, 64, 68, 255))
+        bd3.rectangle([bx - 9, 18, bx + post_w + 9, 21], fill=B)
+        # foot plate on the plaza
+        bd3.rectangle([bx - 7, 98, bx + post_w + 7, 118], fill=(40, 42, 46, 255))
+        bd3.rectangle([bx - 7, 98, bx + post_w + 7, 101], fill=B)
+        outline_paste(im, bot, (cx - post_w // 2 - 10, 436))
+    # ONE black edge line where the platform ends and the steps begin
     dr.rectangle([FIELD_L, 92, FIELD_R, 96], fill=(16, 14, 12, 255))
     rail(24)
     rail(W - 54)
