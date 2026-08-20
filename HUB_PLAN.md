@@ -92,7 +92,7 @@ The Hub is functionally ETG's Breach: your hub character IS your run character.
 |---|---|---|---|---|
 | Departure shuttle | core | enter run flow at weapon select | any player triggers; vanilla coop weapon/difficulty UIs carry consensus | never |
 | Changing booth (back wall) | core | opens vanilla character select (all players) | the select screen is the coop join point, as vanilla | never |
-| Mode shrine | core | RUN-WIDE MULTI-SELECT mode popup (user 2026-08-18): toggle any number of special modes, persisted, stamped to every player at run start | opener controls (run-wide, no per-player pages) | never |
+| OFF DUTY corner (replaces mode shrine) | core | chillout hangout: mode-guy characters lounge around a campfire; talking to one opens their TICK-BOX dialog (see 4c). Run-wide, multi-select, persisted, stamped at run start | opener controls (run-wide) | guys appear only while their pack/DLC is enabled |
 | Unlock board | core | read-only unlock/challenge progress (reads challenges_completed, reuses unlock ceremony art) | opener controls; others keep walking | never |
 | Chef's diner (slot 4) | food | food/spawner showcase dialog | opener controls | vacant building |
 | Chest gremlin den (slot 5) | fortune | chest odds preview (RUNG_BY_ID live data) | opener controls | vacant building |
@@ -110,6 +110,65 @@ Coop popup policy (default, user can veto): a station dialog captures ONLY the
 opening player's input; other players keep walking. Mode shrine is the
 exception (per-player pages). Every popup registers as a FocusEmulator focus
 base - the controller-nav law is non-negotiable.
+
+## 4c. OFF DUTY corner - the mode shrine redesign (user, 2026-08-20)
+
+The shrine stone becomes a crash-site BREAK AREA in the deck's west corner:
+oil-drum campfire (vanilla torch_burning_particles - tech proof committed
+d02a3a8), salvaged seats/crates, sagging work-light string, chalkboard
+showing active mode count. MODE GUYS - characters reusing their existing
+bodies (zero new character art; vanilla hosts wear vanilla appearance
+pieces) - lounge around it. Interact with a guy -> his tick-box dialog.
+
+PURPOSE LAW: modes let you play a character's SIGNATURE SYSTEM while
+playing anyone else. UN-GATE LAW: mode guys never add systems - they
+remove the "that character must be present" gate on systems their pack
+already installs. requires_packs gates the guy's presence: pack disabled ->
+he simply is not at the campfire.
+
+TICK-BOX GRAMMAR (three interaction patterns, reuse for future guys):
+- SUPERSEDE: an "everything" tick greys out its smaller siblings
+- EXCLUSIVE PAIR: two ticks auto-cancel each other (radio-like)
+- LINKED SWITCH: one underlying setting mirrored live across two guys'
+  dialogs (drawn with a chain-link marker)
+
+V1 LINEUP (6 guys + 1 sleeper seat + 1 empty seat):
+1. THE GOURMET "House Menu" (food): [] all fruit becomes steak (Butcher's
+   law) / [] all fruit becomes food (EXCLUSIVE PAIR with steak) / [] 30%
+   chance the shop stocks a food spawner
+2. THE P2W "Lootboxes" (forge): [] all crates are lootboxes / [] lootboxes
+   appear in the shop / [] EVERYTHING is lootboxes (SUPERSEDE) / [] full
+   8-tier ladder (LINKED with Blacksmith)
+3. THE BLACKSMITH "Open Forge" (forge): [] forging enabled for everyone /
+   [] loose forge - merges may ignore class (SUPERSEDE over strict) /
+   [] elites drop a forgeable weapon / [] full 8-tier ladder (LINKED)
+4. THE WILDCARD "Rules" (roster): [] roll a modifier every wave (=existing
+   wildcard_rules) / [] double roll (SUPERSEDE) / [] sticky rules: each
+   boss wave one modifier becomes permanent
+5. THE MOLE "Lights Out" (roster): [] fog on boss waves only / [] fog
+   every wave (SUPERSEDE) / [] thick fog (stacks with either)
+6. THE DEMON "Blood Market" (vanilla): [] short on materials? pay the
+   difference in Max HP / [] everything costs Max HP (SUPERSEDE)
+
+TIER-LADDER LAW (user, 2026-08-20): with the linked ladder switch OFF,
+un-gated forging/lootboxes operate in VANILLA tiers (two blue T2s forge a
+purple T3, ceiling red T4; chests roll vanilla tiers per the ECOSYSTEM
+degrade law). Switch ON -> both ride the full 8-rung ladder (teal
+intermediates, RUNG_BY_ID chest spread). The Blacksmith CHARACTER always
+forges on the ladder - the switch governs mode-borrowed forging only.
+All ticks (ladder included) stamp at run start; never flip mid-run.
+
+BENCH (future seats, in rough priority): King "Royal Visit" (scheduled
+elites + elite loot), Saver "Potato Bank" (interest), Loud "Loud & Proud"
+(+enemies/+materials), Gardener "Orchard" (tree spawns; trees-drop-food
+tick cross-gated on food pack), Zombie "Iron Stomach" (no-heal challenge),
+Mime "Hall of Mirrors" (Abyssal-gated), Cursed "Cursed Cargo"
+(Abyssal-gated). The sleeper seat: a character asleep - interacting gets a
+snore bark - reads as "reserved" diegetically.
+
+RESERVED FOR THE MULTIPLAYER DLC (ecosystem law): the Juggler's "Hot
+Potato" (weapons shuffle between players every wave) ships with the future
+multiplayer pack, not here.
 
 ## 4b. Dialog follow-ups (user, 2026-08-18 walkthrough - build AFTER art starts)
 - Dialogs become INTERACTIVE: per-menu activate/deactivate toggles - e.g. the
