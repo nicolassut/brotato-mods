@@ -350,8 +350,11 @@ def build_stairs():
         outline_paste(im, bot, (cx - post_w // 2 - 10, 436))
     # ONE black edge line where the platform ends and the steps begin
     dr.rectangle([FIELD_L, 92, FIELD_R, 96], fill=(16, 14, 12, 255))
-    rail(24)
-    rail(W - 54)
+    # the staircase slab's OWN outer borders (rails now ride ON the slab)
+    dr.rectangle([FIELD_L, 92, FIELD_L + 4, 480], fill=(16, 14, 12, 255))
+    dr.rectangle([FIELD_R - 4, 92, FIELD_R, 480], fill=(16, 14, 12, 255))
+    rail(43)
+    rail(W - 77)
     # BORDER COMPLETENESS CHECK (machine-enforced black border law): every
     # opaque pixel that touches transparency must have near-black within 2px.
     # Ground-class rows (dirt apron, y>=470) are exempt.
