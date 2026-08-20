@@ -323,10 +323,21 @@ def build_stairs():
     y = 96
     step_h = 48
     rndT = random.Random(360)
+    # STEP DEPTH (2026-08-20): three cues sell the descent - a bright
+    # NOSING line where each step edge catches the light, taller darker
+    # risers (the vertical faces), and a progressive value ramp: each step
+    # a touch darker than the one above as the stairwell sinks into the
+    # cliff's shadow
     for i in range(8):
-        dr.rectangle([FIELD_L, y, FIELD_R, y + step_h - 10], fill=DECK)
-        dr.rectangle([FIELD_L, y + step_h - 10, FIELD_R, y + step_h], fill=riser)
-        wobble_edge(dr, FIELD_L, FIELD_R, y + step_h - 10, 2, (26, 27, 31, 255), 3, seed=300 + i)
+        f = 1.06 - i * 0.026
+        tread_c = (int(52 * f), int(55 * f), int(62 * f), 255)
+        nose_c = (int(52 * f * 1.24), int(55 * f * 1.24), int(62 * f * 1.20), 255)
+        rf = 1.0 - i * 0.012
+        riser_c = (int(33 * rf), int(34 * rf), int(39 * rf), 255)
+        dr.rectangle([FIELD_L, y, FIELD_R, y + 4], fill=nose_c)
+        dr.rectangle([FIELD_L, y + 4, FIELD_R, y + step_h - 14], fill=tread_c)
+        dr.rectangle([FIELD_L, y + step_h - 14, FIELD_R, y + step_h], fill=riser_c)
+        wobble_edge(dr, FIELD_L, FIELD_R, y + step_h - 14, 2, (26, 27, 31, 255), 3, seed=300 + i)
         y += step_h
     # no painted apron: the real plaza ground shows through below the last
     # step; just a thin contact shadow so the stair bottom sits on the ground
