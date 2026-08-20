@@ -4,7 +4,7 @@ the MEASURED vanilla ground language - flat base + sparse extracted vanilla
 decals + wobbly torn edges. Deterministic (seeded); zero PixelLab credits.
 Outputs land in game-src/ui/lobby/art/ and the live tree."""
 import numpy as np, random, os
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageChops
 from collections import deque
 
 V = os.path.expanduser("~/brotato-vanilla-reference/resources/tiles/")
@@ -244,7 +244,9 @@ def draw_beam(wx, wide):
     ld = ImageDraw.Draw(layer)
     bx = 10
     ld.rectangle([bx, 4, bx + bw, 368], fill=(46, 48, 52, 255))
-    ld.rectangle([bx + 4, 4, bx + 7, 368], fill=(58, 60, 64, 255))
+    ld.rectangle([bx + 3, 4, bx + 8, 368], fill=(58, 60, 64, 255))
+    # cylindrical shading (the pillars are ROUND): dark band on the right
+    ld.rectangle([bx + bw - 6, 4, bx + bw, 368], fill=(34, 36, 40, 255))
     # rivet holes (the PILLARS keep them - user 2026-08-19)
     rndR2 = random.Random(1000 + wx)
     for ry in range(44, 336, 46):
@@ -258,10 +260,16 @@ def draw_beam(wx, wide):
     ld.rectangle([bx - 7, 346, bx + bw + 7, 350], fill=(56, 58, 62, 255))
     ld.rectangle([bx - 7, 343, bx + bw + 7, 346], fill=(16, 14, 12, 255))
     outline_paste(cliff, layer, (wx + 1376 - LW // 2, 14), allow_clip=True)
-    # hub lighting law (2026-08-20): light comes from the LEFT - every
-    # standing member casts one shadow strip to its RIGHT
-    sh = Image.new("RGBA", (12, 354), (0, 0, 0, 70))
-    cliff.alpha_composite(sh, (wx + 1376 + LW // 2 + 1, 22))
+    # connected cast shadow (light-from-left law): the pillar SILHOUETTE
+    # shifted right 14px minus itself, so plate steps stay attached
+    m = layer.split()[3].point(lambda v: 255 if v > 0 else 0)
+    base_m = Image.new("L", (LW + 14, 372), 0); base_m.paste(m, (0, 0))
+    shift_m = Image.new("L", (LW + 14, 372), 0); shift_m.paste(m, (14, 0))
+    shm = ImageChops.subtract(shift_m, base_m)
+    sh_layer = Image.new("RGBA", (LW + 14, 372), (0, 0, 0, 0))
+    sh_layer.paste(Image.new("RGBA", (LW + 14, 372), (0, 0, 0, 70)), (0, 0), shm)
+    sh_layer = sh_layer.crop((0, 0, LW + 14, 370))
+    cliff.alpha_composite(sh_layer, (wx + 1376 - LW // 2, 14))
 for wx in beam_wxs:
     draw_beam(wx, False)
 for wx in post_wxs:
@@ -325,52 +333,40 @@ def build_stairs():
     sh = Image.new("RGBA", (FIELD_R - FIELD_L, 8), (0, 0, 0, 70))
     im.alpha_composite(sh, (FIELD_L, 480))
     def rail(cx):
-        # RAILING v6 (2026-08-20, user alignment law): the newel blocks'
-        # BASES sit EXACTLY at the ends of the stairs - top block base at the
-        # stair top edge (y=96, protruding out over the deck), bottom block
-        # base at the stair bottom edge (y=480), not before or after. Z-order
-        # follows view depth: the fence run is NEARER than the top block so
-        # it draws OVER it; the bottom block is nearer than the run so it
-        # draws over the run.
-        METAL = (50, 52, 57, 255)
-        LIGHT = (64, 66, 70, 255)
-        GAP = (24, 25, 28, 255)
+        # RAILING v11: members assemble on their own layer; the cast shadow
+        # is the assembly SILHOUETTE shifted right 14px minus itself, so the
+        # post/pole steps CONNECT seamlessly (light-from-left law). Members
+        # are shaded as CYLINDERS: left highlight band, dark right band.
         B = (16, 14, 12, 255)
-        # hub lighting law: light from the LEFT - the whole assembly casts
-        # right-side shadows, stepped to its silhouette (posts stick out
-        # further than the run)
-        def rshadow(x, y0, h, w=14, a=90):
-            s = Image.new("RGBA", (w, h), (0, 0, 0, a))
-            im.alpha_composite(s, (x, y0))
-        rshadow(cx + 32, 10, 96)      # top newel
-        rshadow(cx + 17, 104, 294)    # fence run between the newels
-        rshadow(cx + 32, 398, 98)     # bottom newel
+        asm = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         def block(by, tall):
             blk = Image.new("RGBA", (56, tall), (0, 0, 0, 0))
             bd4 = ImageDraw.Draw(blk)
             bd4.rectangle([0, 10, 55, tall - 1], fill=(46, 48, 52, 255))
-            bd4.rectangle([4, 10, 9, tall - 1], fill=(58, 60, 64, 255))
+            bd4.rectangle([4, 10, 13, tall - 1], fill=(58, 60, 64, 255))
+            bd4.rectangle([42, 10, 55, tall - 1], fill=(34, 36, 40, 255))
             bd4.rectangle([0, 0, 55, 14], fill=(56, 58, 62, 255))
             bd4.rectangle([0, 12, 55, 15], fill=B)
-            outline_paste(im, blk, (cx - 28, by))
+            outline_paste(asm, blk, (cx - 28, by))
         # top newel: base flush with the stair top edge (96)
         block(8, 88)
-        # fence run: overlaps the top block (nearer in view), stops under
-        # the bottom block
-        # ONE solid pole (user 2026-08-20: no chain/slat design), a touch
-        # darker than the pillar metal, faint left edge light (light-from-left)
+        # ONE solid pole, a touch darker than the pillar metal, cylindrical
         run_w, run_h = 28, 386
-        run = Image.new("RGBA", (run_w, run_h), (40, 42, 46, 255))
+        run = Image.new("RGBA", (run_w, run_h), (42, 44, 48, 255))
         rd = ImageDraw.Draw(run)
-        rd.rectangle([1, 0, 4, run_h], fill=(50, 52, 56, 255))
-        # attach just under the top newel's cap (cap band ends ~y22), so
-        # the fence visibly connects near the TOP of the block, not its base
-        outline_paste(im, run, (cx - run_w // 2, 26), r=3)
-        # bottom newel: base flush with the stair bottom edge (480), drawn
-        # over the run
-        # nudged 14px past the wall line so the post reads as standing
-        # proud of the cliff base instead of flat against it
+        rd.rectangle([2, 0, 7, run_h], fill=(52, 54, 58, 255))
+        rd.rectangle([21, 0, 27, run_h], fill=(30, 32, 36, 255))
+        outline_paste(asm, run, (cx - run_w // 2, 26), r=3)
+        # bottom newel: base 14px past the wall line (stands proud)
         block(398, 96)
+        m = asm.split()[3].point(lambda v: 255 if v > 0 else 0)
+        shifted = Image.new("L", (W, H), 0)
+        shifted.paste(m, (14, 0))
+        shm = ImageChops.subtract(shifted, m)
+        sh_layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        sh_layer.paste(Image.new("RGBA", (W, H), (0, 0, 0, 90)), (0, 0), shm)
+        im.alpha_composite(sh_layer)
+        im.alpha_composite(asm)
     rail(60)
     rail(W - 60)
     im.save(OUT1 + "stairs.png")
