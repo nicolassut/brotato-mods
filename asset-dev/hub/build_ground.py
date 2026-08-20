@@ -392,10 +392,12 @@ def build_stairs():
         sh_layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         sh_layer.paste(Image.new("RGBA", (W, H), (0, 0, 0, 90)), (0, 0), shm)
         im.alpha_composite(sh_layer)
-        # post foot blobs (base + short taper, extending right)
-        for (fy, fh) in ((82, 16), (602, 20)):
-            im.alpha_composite(Image.new("RGBA", (24, fh), (0, 0, 0, 80)), (cx + 27, fy))
-            im.alpha_composite(Image.new("RGBA", (12, 7), (0, 0, 0, 80)), (cx + 27, fy - 7))
+        # post shadows (user, exact spec): the v11 strip with its UPPER
+        # part removed - lower half of each post down to the base - and
+        # extended out a touch more (14 -> 20px)
+        for (py0, pbase) in ((8, 96), (524, 620)):
+            sy = py0 + (pbase - py0) // 2
+            im.alpha_composite(Image.new("RGBA", (20, pbase - sy), (0, 0, 0, 90)), (cx + 27, sy))
         im.alpha_composite(asm)
     rail(60)
     rail(W - 60)
