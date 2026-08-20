@@ -12,7 +12,7 @@
   diff-line count in `core_surface.json`; top: main.gd at 1211 lines).
 - 21 mod-ADDED scripts (ship as files, no extension machinery needed).
 - 10 precautionary mirrors identical to vanilla (not Core surface).
-- 11 non-script files (scenes/config/art) needing other strategies.
+- 13 non-script files (scenes/config/art) needing other strategies.
 - 69/86 .gd files carry Gourmet-marked edits.
 
 ## Blockers before real packaging (ordered)

@@ -267,6 +267,8 @@
   "pause.tscn",
   "project.godot",
   "singletons/item_service.tscn",
+  "ui/lobby/art/shuttle.png",
+  "ui/lobby/art/shuttle.png.import",
   "ui/lobby/lobby.tscn"
  ]
 }

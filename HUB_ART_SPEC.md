@@ -29,7 +29,7 @@ bottom wall: y 1112..1176, ENTRANCE GATE 384x160 at (-192,1064)
 STAIR WEST : rect -672,-712 .. -416,-136  (256 x 576: 96 landing + 384 run + 96 apron)
 STAIR EAST : rect  416,-712 ..  672,-136  (mirrored)
 SHUTTLE PAD: rect -280,-1176 .. 280,-792  (560 x 384, flush with the TOP wall)
-SHUTTLE    : 420 x 300, parked on the pad, center (0,-984)
+SHUTTLE    : 342 x 330 (art-derived, v4), parked on the pad, center (0,-984) - SHIPPED
 MODE SHRINE: 192 x 224 rect (-976,-1000)
 UNLOCK BOARD: 384 x 224 rect (688,-1000)
 BOOTH      : 224 x 256 rect (-112,-340), backs onto the cliff face

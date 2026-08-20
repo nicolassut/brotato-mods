@@ -229,7 +229,7 @@ func _process(_delta: float) -> void :
 
 func _build_npcs() -> void :
 	# the departure shuttle (deck) - enters the run flow at WEAPON select
-	var shuttle = _spawn_npc("res://items/custom/street_vendor/street_vendor.png",
+	var shuttle = _spawn_npc("res://ui/lobby/art/shuttle.png",
 			SHUTTLE_POS, tr("LOBBY_SHUTTLE"), tr("LOBBY_SHUTTLE_PROMPT"))
 	var _e0 = shuttle.connect("interacted", self, "_on_shuttle_interacted")
 
