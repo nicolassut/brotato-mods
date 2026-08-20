@@ -127,7 +127,7 @@ func _build_floor() -> void :
 	_add_wall(Rect2(STAIR_EAST.end.x, CLIFF_RECT.position.y,
 			CLIFF_RECT.end.x - STAIR_EAST.end.x, CLIFF_RECT.size.y))
 	# the MONUMENT (plaza centerpiece): relief plaque on its stone platform,
-	# sprite 340x314 base-anchored at (0, 460), solid at its base band only
+	# sprite 340x313 base-anchored at (0, 460), solid at its base band only
 	# (2.5D law - walk behind it)
 	_add_wall(Rect2(-170, 405, 340, 55))
 	var statue_path: = "res://ui/lobby/art/statue.png"
@@ -135,12 +135,12 @@ func _build_floor() -> void :
 		var statue: = Sprite.new()
 		statue.texture = load(statue_path)
 		statue.position = Vector2(0, 460)
-		statue.offset = Vector2(0, -157)
+		statue.offset = Vector2(0, -156)
 		_world.add_child(statue)
 	# booth: backed against the cliff (base -150), and NO walk-behind (user
 	# 2026-08-20) - the wall spans from the cliff base to the booth base,
 	# matched to the body width at ground level (159, crown overhangs)
-	_add_wall(Rect2(-79, -232, 159, 82))
+	_add_wall(Rect2(-77, -232, 155, 82))
 	# 2.5D hitbox law (2026-08-20 playtest): standing objects block at their
 	# BASE BAND only - the ground their footprint occupies - never the full
 	# sprite, so you can walk behind them and the YSort draws you behind.

@@ -11,6 +11,12 @@ vm = Image.open("booth_vector_master.png").convert("RGBA")
 W = round(vm.width * TARGET_H / vm.height)
 baked = vm.resize((W, TARGET_H), Image.LANCZOS)
 a = np.array(baked)
+# OUTER BORDER THINNING (user 2026-08-20: borders a couple px smaller):
+# erode the silhouette 2px at bake scale - only the outer black rim slims,
+# interior linework untouched
+from PIL import ImageFilter as _IF
+al = Image.fromarray((a[..., 3] > 128).astype(np.uint8) * 255).filter(_IF.MinFilter(5))
+a[np.array(al) == 0] = (0, 0, 0, 0)
 r, g, b = a[..., 0].astype(int), a[..., 1].astype(int), a[..., 2].astype(int)
 blue = (a[..., 3] > 128) & (b > 120) & (b > r + 40) & (b > g + 20)
 ys, xs = np.where(blue)
