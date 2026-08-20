@@ -324,30 +324,5 @@ def build_stairs():
     mirror.save(OUT2 + "stairs_e.png")
     print("stairs v2 built (deck-matched tones + pillar-style railings)")
 
-build_stairs():
-    W, H = 256, 576
-    im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    dr = ImageDraw.Draw(im)
-    tread = (58, 61, 68, 255); riser = (30, 31, 36, 255)
-    rail = (24, 22, 22, 255); rail_hi = (44, 45, 50, 255)
-    dr.rectangle([0, 0, W, 96], fill=(52, 55, 62, 255))          # landing
-    y = 96
-    step_h = 48
-    for i in range(8):                                            # 384px run
-        dr.rectangle([0, y, W, y + step_h - 14], fill=tread)
-        dr.rectangle([0, y + step_h - 14, W, y + step_h], fill=riser)
-        wobble_edge(dr, 0, W, y + step_h - 14, 2, (20, 20, 24, 255), 3, seed=300 + i)
-        y += step_h
-    dr.rectangle([0, 480, W, 576], fill=(60, 55, 50, 255))        # apron: dirt
-    n = scatter(im.crop((0, 480, 256, 576)), rocks, 2, (0.5, 0.5, 0.5))
-    for rx in (0, W - 20):                                        # side rails
-        dr.rectangle([rx, 0, rx + 20, 480], fill=rail)
-        dr.rectangle([rx + 6, 0, rx + 9, 480], fill=rail_hi)
-    im.save(OUT1 + "stairs.png")
-    im.save(OUT2 + "stairs.png")
-    mirror = im.transpose(Image.FLIP_LEFT_RIGHT)
-    mirror.save(OUT1 + "stairs_e.png")
-    mirror.save(OUT2 + "stairs_e.png")
-    print("stairs built (west + mirrored east)")
 
 build_stairs()
