@@ -132,6 +132,18 @@ TICK-BOX GRAMMAR (three interaction patterns, reuse for future guys):
 - LINKED SWITCH: one underlying setting mirrored live across two guys'
   dialogs (drawn with a chain-link marker)
 
+LAYOUT (user pick 2026-08-20): concept C "SCATTER CAMP"
+(offduty_concept_board.png) - micro-spots, not one gathering: fire drum SW
+with Wildcard seated + Mole on the floor, the LINKED PAIR (P2W + Smith)
+playing cards at a crate table NE, the Demon leaning on the wall alone NW,
+the Gourmet at his own crate S, the sleeper in a HAMMOCK strung between two
+posts E, chalkboard near the wall. Future guys = new micro-spots anywhere
+(no ring geometry to preserve). INTERACTION MODEL
+(offduty_interaction_board.png): every guy is his OWN LobbyNpc-style
+station - name plate, [E] Chat prompt, near_radius ~120, opening HIS
+tick-box dialog (portrait + bark line + ticks + grammar annotations:
+"supersedes" / "exclusive" / "linked: <other guy>" with live mirroring).
+
 V1 LINEUP (6 guys + 1 sleeper seat + 1 empty seat):
 1. THE GOURMET "House Menu" (food): [] all fruit becomes steak (Butcher's
    law) / [] all fruit becomes food (EXCLUSIVE PAIR with steak) / [] 30%
