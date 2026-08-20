@@ -122,12 +122,12 @@ func _build_floor() -> void :
 	_add_wall(Rect2(SHUTTLE_POS.x - 86, SHUTTLE_POS.y + 26, 172, 56))
 	# stair railings are solid: posts + pole occupy sprite x 37..83 and
 	# 237..283 (the 320px stairs sprite is centered on the 256px rect), from
-	# the top newel (row 8) down to the bottom newel base (row 576 - the
-	# staircase lands two steps out on the plaza)
+	# the top newel (row 8) down to the bottom newel base (row 624 - the
+	# staircase lands three steps out on the plaza)
 	for stair_rect in [STAIR_WEST, STAIR_EAST]:
 		var sx: float = stair_rect.position.x - 32.0
-		_add_wall(Rect2(sx + 37.0, stair_rect.position.y + 8.0, 46.0, 568.0))
-		_add_wall(Rect2(sx + 237.0, stair_rect.position.y + 8.0, 46.0, 568.0))
+		_add_wall(Rect2(sx + 37.0, stair_rect.position.y + 8.0, 46.0, 616.0))
+		_add_wall(Rect2(sx + 237.0, stair_rect.position.y + 8.0, 46.0, 616.0))
 
 
 func _ground_overlay(path: String, rect: Rect2) -> void :
@@ -135,7 +135,11 @@ func _ground_overlay(path: String, rect: Rect2) -> void :
 		return
 	var sprite: = Sprite.new()
 	sprite.texture = load(path)
-	sprite.position = rect.position + rect.size / 2.0
+	# TOP-aligned to the rect, centered horizontally: an overlay taller than
+	# its rect (the stairs hang 96px past their rect onto the plaza) keeps
+	# its rows pinned to the rect top. Same-size overlays are unaffected.
+	sprite.position = Vector2(rect.position.x + rect.size.x / 2.0,
+			rect.position.y + sprite.texture.get_height() / 2.0)
 	add_child(sprite)
 
 

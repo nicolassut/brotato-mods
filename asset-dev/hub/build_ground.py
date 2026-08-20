@@ -313,7 +313,7 @@ def build_stairs():
     # OVERHANGING the 256 footprint (canvas 288, sprite centered on the rect);
     # treads drawn only BETWEEN the rails (no slivers outside); tread color =
     # exact deck base; riser-only variation.
-    W, H = 320, 576
+    W, H = 320, 672   # canvas hangs 96px past the 576 rect (lobby top-aligns it)
     FIELD_L, FIELD_R = 46, 274          # tread field between rail inner edges
     im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     dr = ImageDraw.Draw(im)
@@ -330,10 +330,10 @@ def build_stairs():
     # seamlessly onto the staircase, the first separation is the first
     # riser. Straight lines: this is constructed metal, not dirt.
     B3 = (16, 14, 12, 255)
-    # 10 steps: the last TWO land past the cliff base onto the plaza -
+    # 11 steps: the last THREE land past the cliff base onto the plaza -
     # the staircase visibly protrudes from the cliff face (a stair cannot
     # occupy the plane of a vertical wall)
-    for i in range(10):
+    for i in range(11):
         f = 1.0 - i * 0.02
         tread_c = (int(52 * f), int(55 * f), int(62 * f), 255)
         nose_c = (int(52 * f * 1.22), int(55 * f * 1.22), int(62 * f * 1.18), 255)
@@ -368,14 +368,14 @@ def build_stairs():
         # top newel: base flush with the stair top edge (96)
         block(8, 88)
         # ONE solid pole, a touch darker than the pillar metal, cylindrical
-        run_w, run_h = 28, 464
+        run_w, run_h = 28, 512
         run = Image.new("RGBA", (run_w, run_h), (42, 44, 48, 255))
         rd = ImageDraw.Draw(run)
         rd.rectangle([2, 0, 7, run_h], fill=(52, 54, 58, 255))
         rd.rectangle([21, 0, 27, run_h], fill=(30, 32, 36, 255))
         outline_paste(asm, run, (cx - run_w // 2, 26), r=3)
         # bottom newel: base at the stair FOOT, two steps out on the plaza
-        block(476, 96)
+        block(524, 96)
         m = asm.split()[3].point(lambda v: 255 if v > 0 else 0)
         shifted = Image.new("L", (W, H), 0)
         shifted.paste(m, (14, 0))
