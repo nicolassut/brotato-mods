@@ -293,8 +293,8 @@ def build_stairs():
     # OVERHANGING the 256 footprint (canvas 288, sprite centered on the rect);
     # treads drawn only BETWEEN the rails (no slivers outside); tread color =
     # exact deck base; riser-only variation.
-    W, H = 288, 576
-    FIELD_L, FIELD_R = 38, 250          # tread field between rail inner edges
+    W, H = 320, 576
+    FIELD_L, FIELD_R = 56, 264          # tread field between rail inner edges
     im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     dr = ImageDraw.Draw(im)
     DECK = (52, 55, 62, 255)
@@ -344,8 +344,34 @@ def build_stairs():
             outline_paste(im, bracket, (inner, sy), r=3)
     # ONE clean black edge line where the platform ends and the steps begin
     dr.rectangle([FIELD_L, 92, FIELD_R, 96], fill=(16, 14, 12, 255))
-    rail(8)
-    rail(W - 38)
+    rail(24)
+    rail(W - 54)
+    # BORDER COMPLETENESS CHECK (machine-enforced black border law): every
+    # opaque pixel that touches transparency must have near-black within 2px.
+    # Ground-class rows (dirt apron, y>=470) are exempt.
+    arr = np.array(im)
+    alpha = arr[..., 3] > 60
+    lum = arr[..., :3].astype(int).sum(axis=2)
+    bad = []
+    for yy in range(0, 470):
+        for xx in range(W):
+            if not alpha[yy, xx]:
+                continue
+            edge = False
+            for ny, nx in ((yy-1,xx),(yy+1,xx),(yy,xx-1),(yy,xx+1)):
+                if 0 <= ny < H and 0 <= nx < W and not alpha[ny, nx]:
+                    edge = True; break
+            if not edge:
+                continue
+            ok = False
+            for dy2 in range(-2, 3):
+                for dx2 in range(-2, 3):
+                    ny, nx = yy+dy2, xx+dx2
+                    if 0 <= ny < H and 0 <= nx < W and alpha[ny, nx] and lum[ny, nx] <= 130:
+                        ok = True
+            if not ok:
+                bad.append((xx, yy))
+    assert not bad, "BORDER LAW VIOLATION at %d px, first: %s" % (len(bad), bad[:8])
     im.save(OUT1 + "stairs.png")
     im.save(OUT2 + "stairs.png")
     mirror = im.transpose(Image.FLIP_LEFT_RIGHT)
