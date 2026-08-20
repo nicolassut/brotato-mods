@@ -314,26 +314,38 @@ def build_stairs():
         dr.rectangle([FIELD_L, y + step_h - 10, FIELD_R, y + step_h], fill=riser)
         wobble_edge(dr, FIELD_L, FIELD_R, y + step_h - 10, 2, (26, 27, 31, 255), 3, seed=300 + i)
         y += step_h
-    dr.rectangle([FIELD_L, 480, FIELD_R, 576], fill=PLAZA)
-    dr.rectangle([FIELD_L, 480, FIELD_R, 486], fill=(46, 42, 39, 255))
-    n = scatter(im.crop((FIELD_L, 480, FIELD_R, 576)), pure_rocks, 2, (0.5, 0.5, 0.5))
+    # no painted apron: the real plaza ground shows through below the last
+    # step; just a thin contact shadow so the stair bottom sits on the ground
+    sh = Image.new("RGBA", (FIELD_R - FIELD_L, 8), (0, 0, 0, 70))
+    im.alpha_composite(sh, (FIELD_L, 480))
     def rail(cx):
-        # RAILING v5 (2026-08-20): the run between the newel blocks is a
-        # slatted FENCE (side members + horizontal slats, dark recessed
-        # gaps), clearly distinct from the solid cliff pillars. Anatomy per
-        # the user: top newel protrudes OUT above the deck, bottom newel
-        # protrudes IN onto the plaza, fence run between. Drop shadow on the
-        # treads sells the elevation.
+        # RAILING v6 (2026-08-20, user alignment law): the newel blocks'
+        # BASES sit EXACTLY at the ends of the stairs - top block base at the
+        # stair top edge (y=96, protruding out over the deck), bottom block
+        # base at the stair bottom edge (y=480), not before or after. Z-order
+        # follows view depth: the fence run is NEARER than the top block so
+        # it draws OVER it; the bottom block is nearer than the run so it
+        # draws over the run.
         METAL = (50, 52, 57, 255)
         LIGHT = (64, 66, 70, 255)
         GAP = (24, 25, 28, 255)
         B = (16, 14, 12, 255)
-        # drop shadow cast onto the treads along the fence's inner side
         sh_x = cx + 18 if cx < 160 else cx - 18 - 14
         shadow = Image.new("RGBA", (14, 384), (0, 0, 0, 90))
         im.alpha_composite(shadow, (sh_x, 96))
-        # fence run: two side members, slats every 34px, recessed gaps
-        run_w, run_h = 36, 336
+        def block(by, tall):
+            blk = Image.new("RGBA", (56, tall), (0, 0, 0, 0))
+            bd4 = ImageDraw.Draw(blk)
+            bd4.rectangle([0, 10, 55, tall - 1], fill=(46, 48, 52, 255))
+            bd4.rectangle([4, 10, 9, tall - 1], fill=(58, 60, 64, 255))
+            bd4.rectangle([0, 0, 55, 14], fill=(56, 58, 62, 255))
+            bd4.rectangle([0, 12, 55, 15], fill=B)
+            outline_paste(im, blk, (cx - 28, by))
+        # top newel: base flush with the stair top edge (96)
+        block(8, 88)
+        # fence run: overlaps the top block (nearer in view), stops under
+        # the bottom block
+        run_w, run_h = 36, 328
         run = Image.new("RGBA", (run_w, run_h), GAP)
         rd = ImageDraw.Draw(run)
         rd.rectangle([0, 0, 7, run_h], fill=METAL)
@@ -342,17 +354,10 @@ def build_stairs():
         for sy in range(0, run_h - 8, 34):
             rd.rectangle([0, sy, run_w - 1, sy + 9], fill=METAL)
             rd.rectangle([0, sy + 1, run_w - 1, sy + 2], fill=LIGHT)
-        outline_paste(im, run, (cx - run_w // 2, 124), r=3)
-        # newel blocks: top OUT over the deck, bottom IN onto the plaza
-        block_w = 56
-        for (by, tall) in ((36, 92), (456, 104)):
-            blk = Image.new("RGBA", (block_w, tall), (0, 0, 0, 0))
-            bd4 = ImageDraw.Draw(blk)
-            bd4.rectangle([0, 10, block_w - 1, tall - 1], fill=(46, 48, 52, 255))
-            bd4.rectangle([4, 10, 9, tall - 1], fill=(58, 60, 64, 255))
-            bd4.rectangle([0, 0, block_w - 1, 14], fill=(56, 58, 62, 255))
-            bd4.rectangle([0, 12, block_w - 1, 15], fill=B)
-            outline_paste(im, blk, (cx - block_w // 2, by))
+        outline_paste(im, run, (cx - run_w // 2, 76), r=3)
+        # bottom newel: base flush with the stair bottom edge (480), drawn
+        # over the run
+        block(384, 96)
     rail(72)
     rail(W - 72)
     im.save(OUT1 + "stairs.png")
