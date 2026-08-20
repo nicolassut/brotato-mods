@@ -88,13 +88,18 @@ def chip_corner(d, rnd, x, y):
     d.line([(x + s, y), (x, y + s)], fill=RIM, width=1)
 
 
-def moss_tuft(d, rnd, x, y, big=False):
-    n = rnd.randint(4, 7) if big else rnd.randint(3, 5)
-    for k in range(n):
-        bx = x + rnd.randint(-9, 9)
-        h = rnd.randint(8, 16) if big else rnd.randint(6, 11)
-        d.polygon([(bx, y), (bx + 3, y - h), (bx + 6, y)], fill=MOSS if k % 2 else MOSS_D)
-        d.line([(bx, y), (bx + 1, y - h + 3)], fill=MOSS_D, width=1)
+import glob
+MOSS_SET = [Image.open(p).convert("RGBA") for p in sorted(glob.glob(
+    __file__.rsplit("/", 1)[0] + "/deck_moss_set/moss_*.png"))]
+
+
+def moss_tuft(im, rnd, x, y, big=False):
+    # vanilla-drawn tuft from the recolored deck moss set (user 2026-08-20:
+    # use Brotato's own grass pieces, recolored - not hand triangles)
+    p = MOSS_SET[rnd.randint(0, len(MOSS_SET) - 1)]
+    if not big and (p.width > 30 or rnd.random() < 0.5):
+        p = p.resize((max(6, int(p.width * 0.7)), max(6, int(p.height * 0.7))), Image.NEAREST)
+    im.alpha_composite(p, (int(x - p.width / 2), int(y - p.height) + 2))
 
 
 def make_swatch(seed, n_cracks, n_spall, n_moss):
@@ -120,12 +125,12 @@ def make_swatch(seed, n_cracks, n_spall, n_moss):
         # moss grows IN the crack (vegetation reclaims the seams)
         if rnd.random() < 0.7:
             p = pts[rnd.randint(1, len(pts) - 2)]
-            moss_tuft(d, rnd, p[0], p[1] + 3, big=True)
+            moss_tuft(im, rnd, p[0], p[1] + 3, big=True)
 
     # moss only where there is a GAP to grow from: along slab seams
     for _ in range(n_moss):
         row_y = rnd.randint(1, H // 78) * 78
-        moss_tuft(d, rnd, rnd.randint(30, W - 30), row_y + 2)
+        moss_tuft(im, rnd, rnd.randint(30, W - 30), row_y + 2)
     # chipped slab corners at seam intersections
     for _ in range(5):
         row_y = rnd.randint(1, H // 78) * 78
