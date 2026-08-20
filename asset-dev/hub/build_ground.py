@@ -300,7 +300,7 @@ def build_stairs():
     # treads drawn only BETWEEN the rails (no slivers outside); tread color =
     # exact deck base; riser-only variation.
     W, H = 320, 576
-    FIELD_L, FIELD_R = 56, 264          # tread field between rail inner edges
+    FIELD_L, FIELD_R = 46, 274          # tread field between rail inner edges
     im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     dr = ImageDraw.Draw(im)
     DECK = (52, 55, 62, 255)
@@ -330,7 +330,7 @@ def build_stairs():
         LIGHT = (64, 66, 70, 255)
         GAP = (24, 25, 28, 255)
         B = (16, 14, 12, 255)
-        sh_x = cx + 18 if cx < 160 else cx - 18 - 14
+        sh_x = cx + 14 if cx < 160 else cx - 14 - 14
         shadow = Image.new("RGBA", (14, 384), (0, 0, 0, 90))
         im.alpha_composite(shadow, (sh_x, 96))
         def block(by, tall):
@@ -345,7 +345,7 @@ def build_stairs():
         block(8, 88)
         # fence run: overlaps the top block (nearer in view), stops under
         # the bottom block
-        run_w, run_h = 36, 374
+        run_w, run_h = 28, 374
         run = Image.new("RGBA", (run_w, run_h), GAP)
         rd = ImageDraw.Draw(run)
         rd.rectangle([0, 0, 7, run_h], fill=METAL)
@@ -360,8 +360,8 @@ def build_stairs():
         # bottom newel: base flush with the stair bottom edge (480), drawn
         # over the run
         block(384, 96)
-    rail(72)
-    rail(W - 72)
+    rail(60)
+    rail(W - 60)
     im.save(OUT1 + "stairs.png")
     im.save(OUT2 + "stairs.png")
     mirror = im.transpose(Image.FLIP_LEFT_RIGHT)

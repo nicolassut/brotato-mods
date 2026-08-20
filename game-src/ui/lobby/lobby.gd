@@ -113,9 +113,20 @@ func _build_floor() -> void :
 			CLIFF_RECT.end.x - STAIR_EAST.end.x, CLIFF_RECT.size.y))
 	# the fountain is solid
 	_add_wall(FOUNTAIN_RECT)
-	# so are the shuttle body and the booth (2026-08-19 playtest: walk-through)
-	_add_wall(Rect2(SHUTTLE_POS.x - 86, SHUTTLE_POS.y - 70, 172, 130))
 	_add_wall(BOOTH_RECT)
+	# 2.5D hitbox law (2026-08-20 playtest): standing objects block at their
+	# BASE BAND only - the ground their footprint occupies - never the full
+	# sprite, so you can walk behind them and the YSort draws you behind.
+	# Shuttle: sprite 171x165 base-anchored at SHUTTLE_POS.y + 82 - the wall
+	# is the bottom 56px of the hull.
+	_add_wall(Rect2(SHUTTLE_POS.x - 86, SHUTTLE_POS.y + 26, 172, 56))
+	# stair railings are solid: posts + fence run occupy sprite x 32..88 and
+	# 232..288 (the 320px stairs sprite is centered on the 256px rect), from
+	# the top newel (row 8) down to the bottom newel base (row 480)
+	for stair_rect in [STAIR_WEST, STAIR_EAST]:
+		var sx: float = stair_rect.position.x - 32.0
+		_add_wall(Rect2(sx + 32.0, stair_rect.position.y + 8.0, 56.0, 472.0))
+		_add_wall(Rect2(sx + 232.0, stair_rect.position.y + 8.0, 56.0, 472.0))
 
 
 func _ground_overlay(path: String, rect: Rect2) -> void :
