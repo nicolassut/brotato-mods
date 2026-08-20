@@ -65,7 +65,7 @@ def tint(im, mul):
     a[..., :3] *= np.array(mul)
     return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
 
-def outline_paste(dst, layer, pos, r=3, color=(14, 12, 11, 255)):
+def outline_paste(dst, layer, pos, r=4, color=(14, 12, 11, 255)):
     """Paste layer with a true BLACK BORDER around its silhouette (vanilla
     thick-outline law - structures are objects, not ground)."""
     mask = layer.split()[3].point(lambda v: 255 if v > 60 else 0)
@@ -312,28 +312,26 @@ def build_stairs():
     dr.rectangle([FIELD_L, 480, FIELD_R, 486], fill=(46, 42, 39, 255))
     n = scatter(im.crop((FIELD_L, 480, FIELD_R, 576)), pure_rocks, 2, (0.5, 0.5, 0.5))
     def rail(x):
-        # GUARD RAILS with BORDERS AT EVERY COMPONENT JUNCTION (user law
-        # 2026-08-19: touching parts keep their separating black line)
+        # guard rails: cap on top, body, foot plate ending AT the cliff base
+        # (no mid collar - it stacked bars at the opening; no overhang stubs)
         bw = 30
         LW = bw + 20
         TOP = 36
         B = (16, 14, 12, 255)
-        layer = Image.new("RGBA", (LW, 486 - TOP + 10), (0, 0, 0, 0))
+        layer = Image.new("RGBA", (LW, 480 - TOP), (0, 0, 0, 0))
         ld = ImageDraw.Draw(layer)
         bx = 10
-        ld.rectangle([bx, 14, bx + bw, 486 - TOP], fill=(46, 48, 52, 255))
-        ld.rectangle([bx + 5, 14, bx + 8, 486 - TOP], fill=(58, 60, 64, 255))
+        ld.rectangle([bx, 14, bx + bw, 480 - TOP], fill=(46, 48, 52, 255))
+        ld.rectangle([bx + 5, 14, bx + 8, 480 - TOP], fill=(58, 60, 64, 255))
         ld.rectangle([bx - 9, 0, bx + bw + 9, 20], fill=(52, 54, 58, 255))
         ld.rectangle([bx - 9, 0, bx + bw + 9, 6], fill=(62, 64, 68, 255))
-        ld.rectangle([bx - 9, 18, bx + bw + 9, 21], fill=B)          # cap junction
-        mp = 96 - TOP
-        ld.rectangle([bx - 5, mp, bx + bw + 5, mp + 16], fill=(40, 42, 46, 255))
-        ld.rectangle([bx - 5, mp - 3, bx + bw + 5, mp], fill=B)      # mid plate top
-        ld.rectangle([bx - 5, mp + 16, bx + bw + 5, mp + 19], fill=B)  # mid plate bottom
-        fp = 466 - TOP
-        ld.rectangle([bx - 6, fp, bx + bw + 6, fp + 20], fill=(40, 42, 46, 255))
-        ld.rectangle([bx - 6, fp, bx + bw + 6, fp + 3], fill=B)      # foot plate junction
+        ld.rectangle([bx - 9, 18, bx + bw + 9, 21], fill=B)
+        fp = 456 - TOP
+        ld.rectangle([bx - 6, fp, bx + bw + 6, 480 - TOP], fill=(40, 42, 46, 255))
+        ld.rectangle([bx - 6, fp, bx + bw + 6, fp + 3], fill=B)
         outline_paste(im, layer, (x - 10, TOP))
+    # ONE clean black edge line where the platform ends and the steps begin
+    dr.rectangle([FIELD_L, 92, FIELD_R, 96], fill=(16, 14, 12, 255))
     rail(8)
     rail(W - 38)
     im.save(OUT1 + "stairs.png")
