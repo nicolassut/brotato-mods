@@ -35,8 +35,13 @@ const SHUTTLE_POS: = Vector2(0, -984)
 const SHRINE_POS: = Vector2(-880, -890)
 const SHRINE_RECT: = Rect2(-976, -1000, 192, 224)
 const BOARD_RECT: = Rect2(688, -1000, 384, 224)
-const BOOTH_POS: = Vector2(0, -212)
+const BOOTH_POS: = Vector2(0, -250)
 const BOOTH_RECT: = Rect2(-112, -340, 224, 256)
+# booth sprite is 246x333 (1.3x, art overflows the rect like the shuttle);
+# its base lands at the rect bottom (-84). Screen tube (blanked in the art)
+# sits at sprite px (98,41) 50x39 -> node coords relative to the base origin.
+const BOOTH_SCREEN_OFFSET: = Vector2(0, -272)
+const BOOTH_SCREEN_SIZE: = Vector2(50, 39)
 const FOUNTAIN_RECT: = Rect2(-192, 180, 384, 320)
 const GATE_RECT: = Rect2(-192, 1064, 384, 160)
 const SLOT_SIZE: = Vector2(416, 352)
@@ -52,6 +57,11 @@ var _world: YSort = null
 var _camera: Camera2D = null
 var _shrine = null
 var _mode_popup: CanvasLayer = null
+var _booth_screen: Sprite = null
+var _booth_faces: = []
+var _booth_static: = []
+var _booth_tick: int = 0
+var _booth_face_index: int = 0
 
 
 func _ready() -> void :
@@ -92,7 +102,6 @@ func _build_floor() -> void :
 	_rect(FOUNTAIN_RECT, SLOT_COLOR)
 	_rect(BOARD_RECT, SLOT_COLOR)
 	_rect(SHRINE_RECT, SLOT_COLOR)
-	_rect(BOOTH_RECT, SLOT_COLOR)
 	_rect(GATE_RECT, CLIFF_COLOR)
 	# ground overlays (HUB_ART_SPEC 1c: vanilla-language decals/seams/torn lip)
 	_ground_overlay("res://ui/lobby/art/ground_plaza.png", PLAZA_RECT)
@@ -113,7 +122,9 @@ func _build_floor() -> void :
 			CLIFF_RECT.end.x - STAIR_EAST.end.x, CLIFF_RECT.size.y))
 	# the fountain is solid
 	_add_wall(FOUNTAIN_RECT)
-	_add_wall(BOOTH_RECT)
+	# booth (real art, 246 wide): base band only, walk-behind per the 2.5D
+	# hitbox law - base sits at the BOOTH_RECT bottom (-84)
+	_add_wall(Rect2(-123, -140, 246, 56))
 	# 2.5D hitbox law (2026-08-20 playtest): standing objects block at their
 	# BASE BAND only - the ground their footprint occupies - never the full
 	# sprite, so you can walk behind them and the YSort draws you behind.
@@ -290,10 +301,11 @@ func _build_npcs() -> void :
 	var _e0 = shuttle.connect("interacted", self, "_on_shuttle_interacted")
 
 	# the changing booth - back wall between the stairs (opens character select)
-	var booth = _spawn_npc("res://items/custom/espresso_machine/espresso_machine.png",
+	var booth = _spawn_npc("res://ui/lobby/art/booth.png",
 			BOOTH_POS, tr("LOBBY_BOOTH"), tr("LOBBY_BOOTH_PROMPT"))
-	booth.near_radius = 220.0
+	booth.near_radius = 260.0
 	var _e1 = booth.connect("interacted", self, "_on_booth_interacted")
+	_build_booth_screen(booth)
 
 	# the unlock board (deck east) - challenge progress
 	var board = _spawn_npc("res://items/all/pile_of_books/pile_of_books_icon.png",
@@ -305,6 +317,46 @@ func _build_npcs() -> void :
 			SHRINE_POS, tr("LOBBY_SHRINE"), "")
 	_update_shrine_prompt()
 	var _e2 = _shrine.connect("interacted", self, "_on_shrine_interacted")
+
+
+func _build_booth_screen(booth) -> void :
+	# the blanked CRT tube broadcasts the roster: every character's select
+	# icon in a loop, with a burst of static between faces (user 2026-08-20).
+	# Modded characters appear automatically - the faces come live from
+	# ItemService.characters.
+	for character in ItemService.characters:
+		if character != null and character.icon != null:
+			_booth_faces.push_back(character.icon)
+	for path in ["res://ui/lobby/art/booth_static_0.png", "res://ui/lobby/art/booth_static_1.png"]:
+		if ResourceLoader.exists(path):
+			_booth_static.push_back(load(path))
+	if _booth_faces.empty() or _booth_static.empty():
+		return
+	_booth_screen = Sprite.new()
+	_booth_screen.position = BOOTH_SCREEN_OFFSET
+	booth.add_child(_booth_screen)
+	var timer: = Timer.new()
+	timer.wait_time = 0.14
+	timer.autostart = true
+	booth.add_child(timer)
+	var _et = timer.connect("timeout", self, "_on_booth_screen_tick")
+
+
+func _on_booth_screen_tick() -> void :
+	if _booth_screen == null:
+		return
+	_booth_tick += 1
+	var phase: int = _booth_tick % 18
+	if phase < 3:
+		_booth_screen.texture = _booth_static[_booth_tick % _booth_static.size()]
+		_booth_screen.scale = Vector2.ONE
+		if phase == 2:
+			_booth_face_index = (_booth_face_index + 1) % _booth_faces.size()
+	else:
+		var tex: Texture = _booth_faces[_booth_face_index]
+		_booth_screen.texture = tex
+		var s: float = min(BOOTH_SCREEN_SIZE.x / tex.get_width(), BOOTH_SCREEN_SIZE.y / tex.get_height()) * 0.92
+		_booth_screen.scale = Vector2(s, s)
 
 
 func _spawn_npc(texture_path: String, at: Vector2, display_name: String, prompt: String):
