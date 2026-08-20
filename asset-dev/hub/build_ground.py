@@ -65,9 +65,15 @@ def tint(im, mul):
     a[..., :3] *= np.array(mul)
     return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
 
-def outline_paste(dst, layer, pos, r=4, color=(14, 12, 11, 255)):
+def outline_paste(dst, layer, pos, r=4, color=(14, 12, 11, 255), allow_clip=False):
     """Paste layer with a true BLACK BORDER around its silhouette (vanilla
-    thick-outline law - structures are objects, not ground)."""
+    thick-outline law - structures are objects, not ground). Asserts the
+    outlined result fits inside dst: edge clipping was the root cause of
+    every missing-border bug, so it fails loudly instead of shipping."""
+    assert allow_clip or (pos[0] - r >= 0 and pos[1] - r >= 0
+            and pos[0] + layer.width + r <= dst.width
+            and pos[1] + layer.height + r <= dst.height), \
+        "outline CLIPS at dst edge: pos=%s layer=%s dst=%s" % (pos, layer.size, dst.size)
     mask = layer.split()[3].point(lambda v: 255 if v > 60 else 0)
     black = Image.new("RGBA", layer.size, color)
     for dx in range(-r, r + 1):
@@ -249,7 +255,7 @@ def draw_beam(wx, wide):
     ld.rectangle([bx - 7, 346, bx + bw + 7, 368], fill=(40, 42, 46, 255))
     ld.rectangle([bx - 7, 346, bx + bw + 7, 350], fill=(56, 58, 62, 255))
     ld.rectangle([bx - 7, 343, bx + bw + 7, 346], fill=(16, 14, 12, 255))
-    outline_paste(cliff, layer, (wx + 1376 - LW // 2, 14))
+    outline_paste(cliff, layer, (wx + 1376 - LW // 2, 14), allow_clip=True)
 for wx in beam_wxs:
     draw_beam(wx, False)
 for wx in post_wxs:
@@ -262,7 +268,7 @@ edge_layer = Image.new("RGBA", (2752, 20), (0, 0, 0, 0))
 eld = ImageDraw.Draw(edge_layer)
 eld.rectangle([0, 3, 2752, 17], fill=(46, 48, 52, 255))
 eld.rectangle([0, 5, 2752, 8], fill=(58, 60, 64, 255))
-outline_paste(cliff, edge_layer, (0, 0))
+outline_paste(cliff, edge_layer, (0, 0), allow_clip=True)
 cliff.save(OUT1 + "ground_cliff.png"); cliff.save(OUT2 + "ground_cliff.png")
 print("cliff v4 built: beams=%d posts=%d boulders=%d" % (len(beam_wxs), len(post_wxs), n4))
 
@@ -294,7 +300,7 @@ def build_stairs():
     # treads drawn only BETWEEN the rails (no slivers outside); tread color =
     # exact deck base; riser-only variation.
     W, H = 320, 576
-    FIELD_L, FIELD_R = 46, 278          # tread field between rail inner edges
+    FIELD_L, FIELD_R = 56, 264          # tread field between rail inner edges
     im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     dr = ImageDraw.Draw(im)
     DECK = (52, 55, 62, 255)
@@ -311,76 +317,44 @@ def build_stairs():
     dr.rectangle([FIELD_L, 480, FIELD_R, 576], fill=PLAZA)
     dr.rectangle([FIELD_L, 480, FIELD_R, 486], fill=(46, 42, 39, 255))
     n = scatter(im.crop((FIELD_L, 480, FIELD_R, 576)), pure_rocks, 2, (0.5, 0.5, 0.5))
-    def rail(x):
-        # RAILING ANATOMY (user 2026-08-19): a thick NEWEL POST at each end -
-        # the top one protrudes ABOVE the deck edge, the bottom one protrudes
-        # PAST the stair bottom onto the plaza - with the thinner FENCE RUN
-        # spanning between them, elevated above the steps.
+    def rail(cx):
+        # RAILING v5 (2026-08-20): the run between the newel blocks is a
+        # slatted FENCE (side members + horizontal slats, dark recessed
+        # gaps), clearly distinct from the solid cliff pillars. Anatomy per
+        # the user: top newel protrudes OUT above the deck, bottom newel
+        # protrudes IN onto the plaza, fence run between. Drop shadow on the
+        # treads sells the elevation.
+        METAL = (50, 52, 57, 255)
+        LIGHT = (64, 66, 70, 255)
+        GAP = (24, 25, 28, 255)
         B = (16, 14, 12, 255)
-        post_w = 34
-        run_w = 18
-        cx = x + post_w // 2          # shared axis
-        # fence run between the posts (thinner band)
-        run = Image.new("RGBA", (run_w + 8, 340), (0, 0, 0, 0))
+        # drop shadow cast onto the treads along the fence's inner side
+        sh_x = cx + 18 if cx < 160 else cx - 18 - 14
+        shadow = Image.new("RGBA", (14, 384), (0, 0, 0, 90))
+        im.alpha_composite(shadow, (sh_x, 96))
+        # fence run: two side members, slats every 34px, recessed gaps
+        run_w, run_h = 36, 336
+        run = Image.new("RGBA", (run_w, run_h), GAP)
         rd = ImageDraw.Draw(run)
-        rd.rectangle([4, 0, 4 + run_w, 340], fill=(46, 48, 52, 255))
-        rd.rectangle([7, 0, 10, 340], fill=(58, 60, 64, 255))
-        outline_paste(im, run, (cx - run_w // 2 - 4, 128))
-        # TOP newel post: cap above the deck edge, body past the deck line
-        top = Image.new("RGBA", (post_w + 20, 130), (0, 0, 0, 0))
-        td = ImageDraw.Draw(top)
-        bx = 10
-        td.rectangle([bx, 14, bx + post_w, 130], fill=(46, 48, 52, 255))
-        td.rectangle([bx + 5, 14, bx + 9, 130], fill=(58, 60, 64, 255))
-        td.rectangle([bx - 9, 0, bx + post_w + 9, 20], fill=(52, 54, 58, 255))
-        td.rectangle([bx - 9, 0, bx + post_w + 9, 6], fill=(62, 64, 68, 255))
-        td.rectangle([bx - 9, 18, bx + post_w + 9, 21], fill=B)
-        outline_paste(im, top, (cx - post_w // 2 - 10, 36))
-        # BOTTOM newel post: protrudes past the stair bottom onto the plaza
-        bot = Image.new("RGBA", (post_w + 20, 120), (0, 0, 0, 0))
-        bd3 = ImageDraw.Draw(bot)
-        bd3.rectangle([bx, 14, bx + post_w, 100], fill=(46, 48, 52, 255))
-        bd3.rectangle([bx + 5, 14, bx + 9, 100], fill=(58, 60, 64, 255))
-        bd3.rectangle([bx - 9, 0, bx + post_w + 9, 20], fill=(52, 54, 58, 255))
-        bd3.rectangle([bx - 9, 0, bx + post_w + 9, 6], fill=(62, 64, 68, 255))
-        bd3.rectangle([bx - 9, 18, bx + post_w + 9, 21], fill=B)
-        # foot plate on the plaza
-        bd3.rectangle([bx - 7, 98, bx + post_w + 7, 118], fill=(40, 42, 46, 255))
-        bd3.rectangle([bx - 7, 98, bx + post_w + 7, 101], fill=B)
-        outline_paste(im, bot, (cx - post_w // 2 - 10, 436))
-    # ONE black edge line where the platform ends and the steps begin
-    dr.rectangle([FIELD_L, 92, FIELD_R, 96], fill=(16, 14, 12, 255))
-    # the staircase slab's OWN outer borders (rails now ride ON the slab)
-    dr.rectangle([FIELD_L, 92, FIELD_L + 4, 480], fill=(16, 14, 12, 255))
-    dr.rectangle([FIELD_R - 4, 92, FIELD_R, 480], fill=(16, 14, 12, 255))
-    rail(43)
-    rail(W - 77)
-    # BORDER COMPLETENESS CHECK (machine-enforced black border law): every
-    # opaque pixel that touches transparency must have near-black within 2px.
-    # Ground-class rows (dirt apron, y>=470) are exempt.
-    arr = np.array(im)
-    alpha = arr[..., 3] > 60
-    lum = arr[..., :3].astype(int).sum(axis=2)
-    bad = []
-    for yy in range(0, 470):
-        for xx in range(W):
-            if not alpha[yy, xx]:
-                continue
-            edge = False
-            for ny, nx in ((yy-1,xx),(yy+1,xx),(yy,xx-1),(yy,xx+1)):
-                if 0 <= ny < H and 0 <= nx < W and not alpha[ny, nx]:
-                    edge = True; break
-            if not edge:
-                continue
-            ok = False
-            for dy2 in range(-2, 3):
-                for dx2 in range(-2, 3):
-                    ny, nx = yy+dy2, xx+dx2
-                    if 0 <= ny < H and 0 <= nx < W and alpha[ny, nx] and lum[ny, nx] <= 130:
-                        ok = True
-            if not ok:
-                bad.append((xx, yy))
-    assert not bad, "BORDER LAW VIOLATION at %d px, first: %s" % (len(bad), bad[:8])
+        rd.rectangle([0, 0, 7, run_h], fill=METAL)
+        rd.rectangle([1, 0, 2, run_h], fill=LIGHT)
+        rd.rectangle([run_w - 8, 0, run_w - 1, run_h], fill=METAL)
+        for sy in range(0, run_h - 8, 34):
+            rd.rectangle([0, sy, run_w - 1, sy + 9], fill=METAL)
+            rd.rectangle([0, sy + 1, run_w - 1, sy + 2], fill=LIGHT)
+        outline_paste(im, run, (cx - run_w // 2, 124), r=3)
+        # newel blocks: top OUT over the deck, bottom IN onto the plaza
+        block_w = 56
+        for (by, tall) in ((36, 92), (456, 104)):
+            blk = Image.new("RGBA", (block_w, tall), (0, 0, 0, 0))
+            bd4 = ImageDraw.Draw(blk)
+            bd4.rectangle([0, 10, block_w - 1, tall - 1], fill=(46, 48, 52, 255))
+            bd4.rectangle([4, 10, 9, tall - 1], fill=(58, 60, 64, 255))
+            bd4.rectangle([0, 0, block_w - 1, 14], fill=(56, 58, 62, 255))
+            bd4.rectangle([0, 12, block_w - 1, 15], fill=B)
+            outline_paste(im, blk, (cx - block_w // 2, by))
+    rail(72)
+    rail(W - 72)
     im.save(OUT1 + "stairs.png")
     im.save(OUT2 + "stairs.png")
     mirror = im.transpose(Image.FLIP_LEFT_RIGHT)
