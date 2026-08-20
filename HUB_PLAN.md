@@ -144,6 +144,22 @@ station - name plate, [E] Chat prompt, near_radius ~120, opening HIS
 tick-box dialog (portrait + bark line + ticks + grammar annotations:
 "supersedes" / "exclusive" / "linked: <other guy>" with live mirroring).
 
+DECORATIONS (user 2026-08-20; offduty_decor_board.png, numbered): the
+corner is dressed with scattered junk, most of it character-flavored or
+canon-tied: parachute-scrap RUG under the fire (booth-curtain canon), cook
+pot on a stick over the drum, cooler box + empty bottles, Wildcard's
+oversized dice, the Mole's dirt mound (how he arrived), scorch mark on the
+wall behind the Demon, cards + material chips on the P2W/Smith table, the
+Gourmet's skewer rack, lantern on the hammock post, potted alien moss
+(statue-moss canon), crooked OFF DUTY scrap sign, dartboard on hull plate,
+tally graffiti (waves survived), sagging work-light string, MODES
+chalkboard, scrap radio. ART SOURCES: rug/scorch/tallies/sign/cards/
+chips/mound = procedural (build-script decals, same pipeline as ground
+art); fire = vanilla torch particles (proven); bottles/dice/pot/cooler/
+dartboard/lantern/radio/plant/skewers = small PixelLab prop batch (one
+sheet, probe-first); crates possibly vanilla crate sprite reuse - check
+before generating.
+
 V1 LINEUP (6 guys + 1 sleeper seat + 1 empty seat):
 1. THE GOURMET "House Menu" (food): [] all fruit becomes steak (Butcher's
    law) / [] all fruit becomes food (EXCLUSIVE PAIR with steak) / [] 30%
