@@ -40,8 +40,7 @@ func setup(texture: Texture, display_name: String, prompt: String) -> void :
 	sprite.offset = Vector2(0, - _half_h)
 	add_child(sprite)
 
-	_name_plate = _make_label(display_name, Vector2(0, - _half_h * 2.0 - 30))
-	add_child(_name_plate)
+	# no floating name plate (user 2026-08-21) - the prompt alone talks
 
 	_prompt = _make_label(prompt, Vector2(0, 16))
 	_prompt.modulate = Color(1, 0.9, 0.4, 1)

@@ -101,10 +101,8 @@ func _build_floor() -> void :
 	# the staircases are drawn ENTIRELY by their sprite overlays - no rect
 	# fill (2026-08-20: the old DECK_COLOR fill peeked out past the sprite
 	# as gray slivers beside the rails)
-	_rect(SHUTTLE_PAD_RECT, PAD_COLOR)
-	_rect(BOARD_RECT, SLOT_COLOR)
-	_rect(SHRINE_RECT, SLOT_COLOR)
-	_rect(GATE_RECT, CLIFF_COLOR)
+	# (flat placeholder rects for the pad / board / shrine / gate are GONE -
+	# user 2026-08-21; the RECT constants stay as the geometry contract)
 	# ground overlays (HUB_ART_SPEC 1c: vanilla-language decals/seams/torn lip)
 	_ground_overlay("res://ui/lobby/art/ground_plaza.png", PLAZA_RECT)
 	_ground_overlay("res://ui/lobby/art/ground_deck.png", DECK_RECT)
@@ -262,13 +260,6 @@ func _offduty_guy(char_id: String, base: Vector2, face_left: bool = false, sitti
 		guy._visual.scale.x = -1.0
 	if sitting:
 		_offduty_sit(guy)
-	var plate: = Label.new()
-	plate.text = tr(str(character.name))
-	plate.align = Label.ALIGN_CENTER
-	plate.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	plate.rect_position = Vector2(-200, -86)
-	plate.rect_min_size = Vector2(400, 0)
-	guy.add_child(plate)
 
 
 func _build_offduty_corner() -> void :
@@ -392,7 +383,6 @@ func _spawn_building_placeholder(slot_rect: Rect2, display_name: String,
 	# placeholder-law rendering: the EXACT final footprint as a flat rect,
 	# an existing icon, and the station name plate. Interactions arrive in
 	# step 3; the real carnival-register art is a pure texture swap later.
-	_rect(slot_rect, SLOT_COLOR if active else Color(0.10, 0.085, 0.075, 1.0))
 	_add_wall(slot_rect)
 	var npc = LobbyNpc.new()
 	var texture: Texture = null
@@ -500,11 +490,9 @@ func _build_npcs() -> void :
 			BOARD_RECT.position + BOARD_RECT.size / 2.0, tr("LOBBY_BOARD"), tr("LOBBY_BOARD_PROMPT"))
 	var _e3 = board.connect("interacted", self, "_on_board_interacted")
 
-	# the game-mode shrine (deck) - interact cycles the mode
-	_shrine = _spawn_npc("res://items/custom_characters/special/special_icon.png",
-			SHRINE_POS, tr("LOBBY_SHRINE"), "")
-	_update_shrine_prompt()
-	var _e2 = _shrine.connect("interacted", self, "_on_shrine_interacted")
+	# the Mode Shrine placeholder is GONE (user 2026-08-21): mode toggles
+	# move to the Off Duty guys' dialogs (HUB_PLAN 4c); _on_shrine_interacted
+	# stays as the mode-popup entry point for that wiring
 
 
 func _build_booth_screen(booth) -> void :
@@ -691,6 +679,8 @@ func _close_mode_popup() -> void :
 
 
 func _update_shrine_prompt() -> void :
+	if _shrine == null:
+		return
 	var count: int = Utils.game_modes.selected_mode_ids().size()
 	_shrine.set_prompt(tr("LOBBY_SHRINE_PROMPT") % count)
 

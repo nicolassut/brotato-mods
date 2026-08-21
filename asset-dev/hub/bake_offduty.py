@@ -38,13 +38,17 @@ def thicken_outline(im, px=2):
     # around the outer silhouette AFTER resize so every prop lands at a
     # consistent border weight (outer-ring only, like the statue - growing
     # interior lines fuses detail into webs)
-    mask = im.split()[3].point(lambda v: 255 if v > 60 else 0)
+    # PAD FIRST: dilating the un-padded sprite clips the ring flat wherever
+    # the silhouette touches its bounding box (user 2026-08-21: "cut off
+    # edges, not consistent all around")
+    pad = px + 2
+    big = Image.new("RGBA", (im.width + 2 * pad, im.height + 2 * pad), (0, 0, 0, 0))
+    big.alpha_composite(im, (pad, pad))
+    mask = big.split()[3].point(lambda v: 255 if v > 60 else 0)
     sil = mask.filter(ImageFilter.MaxFilter(2 * px + 1))
-    pad = px + 1
-    out = Image.new("RGBA", (im.width + 2 * pad, im.height + 2 * pad), (0, 0, 0, 0))
-    ring = Image.new("RGBA", im.size, (16, 14, 12, 255))
-    out.paste(ring, (pad, pad), sil)
-    out.alpha_composite(im, (pad, pad))
+    out = Image.new("RGBA", big.size, (0, 0, 0, 0))
+    out.paste(Image.new("RGBA", big.size, (16, 14, 12, 255)), (0, 0), sil)
+    out.alpha_composite(big)
     return out.crop(out.getbbox())
 
 
