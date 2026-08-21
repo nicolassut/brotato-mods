@@ -15,14 +15,14 @@ DECALS = [
     ("od_scorch",   (-1270, -786)),   # soot under the burn barrel
     ("od_cards",    (-868, -1022)),
     ("od_chips",    (-832, -1008)),
-    ("od_sign",     (-1040, -1245)),
-    ("od_dartboard",(-925, -1240)),
+    ("od_sign",     (-1040, -1269)),
+    ("od_dartboard",(-830, -1235)),
     ("od_scorch",   (-1330, -1230)),  # wall scorch
-    ("od_tally",    (-1160, -1300)),
+    ("od_tally",    (-1270, -1305)),
 ]
 PROPS = [  # (texture, base position)
     ("od_barrel",   (-1270, -790)),  # BURN BARREL - fire inside it
-    ("od_skewers",  (-1340, -770)),
+    ("od_skewers",  (-1240, -880)),
     ("od_crate2",   (-1330, -880)),
     ("od_cooler",   (-1080, -742)),
     ("od_dice",     (-1090, -640)),

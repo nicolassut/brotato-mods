@@ -122,10 +122,11 @@ func _build_floor() -> void :
 	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1270, -786))
 	_decal("res://ui/lobby/art/od_cards.png", Vector2(-868, -1022))
 	_decal("res://ui/lobby/art/od_chips.png", Vector2(-832, -1008))
-	_decal("res://ui/lobby/art/od_sign.png", Vector2(-1040, -1245))
-	_decal("res://ui/lobby/art/od_dartboard.png", Vector2(-925, -1240))
+	# sign top edge lands at -1354: its rope strands reach the wall top
+	_decal("res://ui/lobby/art/od_sign.png", Vector2(-1040, -1269))
+	_decal("res://ui/lobby/art/od_dartboard.png", Vector2(-830, -1235))
 	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1330, -1230))
-	_decal("res://ui/lobby/art/od_tally.png", Vector2(-1160, -1300))
+	_decal("res://ui/lobby/art/od_tally.png", Vector2(-1270, -1305))
 	# object ground shadows (drawn under the YSort world): decent ellipse
 	# under the hovering shuttle, subtle silhouette cast right of the booth
 	_object_shadow("res://ui/lobby/art/shuttle_shadow.png", Vector2(0, -898))
@@ -277,13 +278,19 @@ func _build_offduty_corner() -> void :
 	# barrel sprite (base -790, sprite h 76)
 	var torch_scene = load("res://particles/burning/torch_burning_particles.tscn")
 	if torch_scene != null:
+		# anchor node YSorts 1px in FRONT of the barrel (base -790) while the
+		# child offset keeps the emission up at the rim - so the flames draw
+		# OVER the barrel, not behind it (user 2026-08-21)
+		var fire_anchor: = Node2D.new()
+		fire_anchor.position = Vector2(-1270, -789)
 		var fire = torch_scene.instance()
-		fire.position = Vector2(-1270, -858)
+		fire.position = Vector2(0, -69)
 		fire.scale = Vector2(1.6, 1.6)
-		_world.add_child(fire)
-	# fire camp (SW): burn barrel + skewer rack + X7 crate
+		fire_anchor.add_child(fire)
+		_world.add_child(fire_anchor)
+	# fire camp (SW): burn barrel, skewer rack to the RIGHT of the X7 crate
 	_offduty_prop("od_barrel", Vector2(-1270, -790))
-	_offduty_prop("od_skewers", Vector2(-1340, -770))
+	_offduty_prop("od_skewers", Vector2(-1240, -880))
 	_offduty_prop("od_crate2", Vector2(-1330, -880))
 	# rug lounge (bottom-left): cooler + dice on the cloth
 	_offduty_prop("od_cooler", Vector2(-1080, -742))
@@ -306,7 +313,7 @@ func _build_offduty_corner() -> void :
 	_offduty_guy("character_demon", Vector2(-740, -680), true)
 	# collision: base bands (2.5D hitbox law) for the solid props
 	_add_wall(Rect2(-1298, -812, 56, 24))
-	_add_wall(Rect2(-1380, -790, 80, 22))
+	_add_wall(Rect2(-1280, -900, 80, 22))
 	_add_wall(Rect2(-1361, -902, 62, 24))
 	_add_wall(Rect2(-955, -1106, 70, 24))
 	_add_wall(Rect2(-818, -1102, 56, 24))
