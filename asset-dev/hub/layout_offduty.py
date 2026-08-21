@@ -77,8 +77,10 @@ def render(out_path):
         layers.append((y, im, (x - im.width // 2 - W0, y - 24 - im.height // 2 - H0), label))
     # sleeper in the hammock: potato lying sideways, 1px behind the hammock
     sl = potato.resize((int(potato.width * 0.95), int(potato.height * 0.95)), Image.LANCZOS).rotate(90, expand=True)
-    hx, hy = -1230, -1056
-    layers.append((hy, sl, (hx - sl.width // 2 - W0, hy - 60 - sl.height // 2 - H0), "sleeper"))
+    hx, hy = -1230, -1054
+    layers.append((hy, sl, (hx - sl.width // 2 - W0, hy - 41 - sl.height // 2 - H0), "sleeper"))
+    fr = Image.open(ART + "od_hammock_front.png").convert("RGBA")
+    layers.append((-1053, fr, (hx - fr.width // 2 - W0, -1053 - fr.height - H0), "hammock_front"))
     # fire marker
     fl = Image.new("RGBA", (36, 52), (0, 0, 0, 0))
     ImageDraw.Draw(fl).polygon([(8, 48), (14, 8), (20, 30), (26, 4), (32, 48)], fill=(238, 150, 40, 230))

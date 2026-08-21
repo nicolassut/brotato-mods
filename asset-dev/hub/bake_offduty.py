@@ -196,4 +196,37 @@ for name, (src, tw) in PROPS.items():
     for dst in (DST1, DST2):
         im.save(os.path.join(dst, name + ".png"))
     print("%-14s %dx%d" % (name, im.width, im.height))
+    if name == "od_hammock":
+        # FRONT FOLD layer (user 2026-08-21: the sleeper must be wedged INTO
+        # the cloth, between the back and front folds): per cloth column,
+        # the lower half of the sag plus its bottom outline, same canvas so
+        # it base-anchors identically and draws over the sleeper
+        px = im.load()
+        front = Image.new("RGBA", im.size, (0, 0, 0, 0))
+        fpx = front.load()
+        # cloth = saturated opaque pixels (orange AND cream), not posts/outline
+        def is_cloth(c):
+            return c[3] > 60 and (max(c[:3]) - min(c[:3])) > 25 and c[0] > 120
+        splits = {}
+        for x in range(im.width):
+            ys = [y for y in range(im.height) if is_cloth(px[x, y])]
+            if len(ys) >= 6:
+                splits[x] = (ys[0] + (ys[-1] - ys[0]) * 0.5, ys[-1])
+        xs = sorted(splits)
+        for x in xs:
+            # smooth the split line over +-6 columns so the fold edge is clean
+            nb = [splits[k][0] for k in range(x - 6, x + 7) if k in splits]
+            split = int(round(sum(nb) / float(len(nb))))
+            yb = splits[x][1]
+            y = split
+            while y < im.height and (px[x, y][3] > 60 or y <= yb):
+                if px[x, y][3] > 60:
+                    c = px[x, y]
+                    if y < split + 2 and is_cloth(c):   # rim shade on the fold edge
+                        c = (int(c[0] * 0.78), int(c[1] * 0.78), int(c[2] * 0.78), c[3])
+                    fpx[x, y] = c
+                y += 1
+        for dst in (DST1, DST2):
+            front.save(os.path.join(dst, "od_hammock_front.png"))
+        print("od_hammock_front baked")
 print("off duty props baked:", len(PROPS))

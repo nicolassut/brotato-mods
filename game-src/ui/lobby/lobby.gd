@@ -204,24 +204,36 @@ func _offduty_prop(name: String, base: Vector2) -> void :
 	_world.add_child(s)
 
 
-func _offduty_sleeper(base: Vector2) -> void :
-	# someone asleep in the hammock (user 2026-08-21): the basic potato
-	# body lying SIDEWAYS, YSorted 1px behind the hammock so the cloth's
-	# front edge covers his lower half; a slow sway rocks him with the cloth
-	var anchor: = Node2D.new()
-	anchor.position = base
-	_world.add_child(anchor)
-	var body: = Sprite.new()
-	body.texture = load("res://entities/units/player/potato.png")
-	body.position = Vector2(0, -60)
-	body.rotation_degrees = -90.0
-	body.scale = Vector2(0.95, 0.95)
-	anchor.add_child(body)
+func _offduty_sleeper(char_id: String, base: Vector2) -> void :
+	# someone asleep in the hammock (user 2026-08-21): a REAL dressed
+	# character body lying sideways, YSorted BETWEEN the hammock's back layer
+	# and its front-fold layer so he is wedged into the cloth; the idle
+	# bounce (now sideways) reads as breathing, plus a slow sway
+	var character = ItemService.get_element_safe(ItemService.characters, char_id)
+	if character == null:
+		return
+	var guy = KinematicBody2D.new()
+	guy.set_script(LobbyPlayer)
+	_world.add_child(guy)
+	guy.position = base
+	guy.dress_as(character)
+	guy.set_physics_process(false)
+	if guy._visual == null:
+		return
+	var shadow = guy._visual.get_node("Animation").get_node_or_null("Shadow")
+	if shadow != null:
+		shadow.visible = false        # he is up in the cloth, no ground shadow
+	# rotated -90, the Animation node's (0,-24) offset turns horizontal: +24 x
+	# re-centers the body on the post midpoint; -41 puts its center at the
+	# cloth's split line so ~40% of him hides behind the front fold
+	guy._visual.position = Vector2(24, -41)
+	guy._visual.rotation_degrees = -90.0
+	guy._visual.scale = Vector2(0.95, 0.95)
 	var tween: = Tween.new()
-	anchor.add_child(tween)
-	var _t1 = tween.interpolate_property(body, "rotation_degrees", -93.0, -87.0, 1.6,
+	guy.add_child(tween)
+	var _t1 = tween.interpolate_property(guy._visual, "rotation_degrees", -93.0, -87.0, 1.6,
 			Tween.TRANS_SINE, Tween.EASE_IN_OUT)
-	var _t2 = tween.interpolate_property(body, "rotation_degrees", -87.0, -93.0, 1.6,
+	var _t2 = tween.interpolate_property(guy._visual, "rotation_degrees", -87.0, -93.0, 1.6,
 			Tween.TRANS_SINE, Tween.EASE_IN_OUT, 1.6)
 	tween.repeat = true
 	var _ts = tween.start()
@@ -333,7 +345,8 @@ func _build_offduty_corner() -> void :
 	_offduty_prop("od_barrel", Vector2(-790, -1080))
 	# hammock by the wall + plant
 	_offduty_prop("od_hammock", Vector2(-1230, -1055))
-	_offduty_sleeper(Vector2(-1230, -1056))
+	_offduty_sleeper("character_old", Vector2(-1230, -1054))
+	_offduty_prop("od_hammock_front", Vector2(-1230, -1053))
 	_offduty_prop("od_plant", Vector2(-720, -1120))
 	# the mode guys, lounging (HUB_PLAN 4c lineup)
 	_offduty_guy("character_gourmet", Vector2(-1180, -835), true)
