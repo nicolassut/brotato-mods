@@ -26,8 +26,8 @@ PROPS = [  # (texture, base position)
     ("od_crate2",   (-1330, -880)),
     ("od_radio",    (-1120, -755)),
     ("od_cooler",   (-965, -748)),
-    ("od_bottles",  (-1110, -650)),
-    ("od_dice",     (-975, -655)),
+    ("od_bottles",  (-1205, -672)),
+    ("od_dice",     (-948, -650)),
     ("od_crate",    (-855, -720)),
     ("od_barrel",   (-745, -715)),
     ("od_hammock",  (-1280, -1055)),
@@ -36,8 +36,8 @@ PROPS = [  # (texture, base position)
 ]
 GUYS = [  # (label, position, face_left)
     ("Gourmet",  (-1150, -860), True),
-    ("Mole",     (-1275, -650), False),
-    ("Wildcard", (-1205, -690), False),
+    ("Mole",     (-1000, -682), True),
+    ("Wildcard", (-1090, -688), False),
     ("P2W",      (-865, -640), False),
     ("Smith",    (-740, -636), True),
     ("Demon",    (-750, -970), True),

@@ -202,7 +202,47 @@ func _offduty_prop(name: String, base: Vector2) -> void :
 	_world.add_child(s)
 
 
-func _offduty_guy(char_id: String, base: Vector2, face_left: bool = false) -> void :
+func _offduty_sit(guy) -> void :
+	# SITTING pose (user 2026-08-21): body lowered, legs splayed to the
+	# side, and the idle bounce at HALF strength (the idle animation's value
+	# tracks are rescaled toward their first key by 0.5 at runtime).
+	if guy._visual == null:
+		return
+	var anim_node = guy._visual.get_node_or_null("Animation")
+	if anim_node == null:
+		return
+	anim_node.position.y = -10
+	var legs = anim_node.get_node_or_null("Legs")
+	if legs != null and legs.get_child_count() >= 2:
+		var leg_a = legs.get_child(0)
+		leg_a.position = Vector2(26, 22)
+		leg_a.rotation_degrees = -58
+		var leg_b = legs.get_child(1)
+		leg_b.position = Vector2(8, 26)
+		leg_b.rotation_degrees = -74
+	if guy._anim_player == null:
+		return
+	var idle: Animation = guy._anim_player.get_animation("idle")
+	if idle == null:
+		return
+	var calm: Animation = idle.duplicate(true)
+	for ti in range(calm.get_track_count()):
+		if calm.track_get_type(ti) != Animation.TYPE_VALUE:
+			continue
+		if calm.track_get_key_count(ti) < 2:
+			continue
+		var base_val = calm.track_get_key_value(ti, 0)
+		for ki in range(1, calm.track_get_key_count(ti)):
+			var v = calm.track_get_key_value(ti, ki)
+			if v is Vector2 and base_val is Vector2:
+				calm.track_set_key_value(ti, ki, base_val + (v - base_val) * 0.5)
+			elif (v is float or v is int) and (base_val is float or base_val is int):
+				calm.track_set_key_value(ti, ki, base_val + (v - base_val) * 0.5)
+	guy._anim_player.add_animation("sit_idle", calm)
+	guy._anim_player.play("sit_idle")
+
+
+func _offduty_guy(char_id: String, base: Vector2, face_left: bool = false, sitting: bool = false) -> void :
 	# a mode guy lounging in the corner: the REAL in-game body (same
 	# dress_as construction as player avatars - potato + legs + appearance
 	# pieces + idle animation), physics disabled so he never reads input.
@@ -218,6 +258,8 @@ func _offduty_guy(char_id: String, base: Vector2, face_left: bool = false) -> vo
 	guy.set_physics_process(false)
 	if face_left and guy._visual != null:
 		guy._visual.scale.x = -1.0
+	if sitting:
+		_offduty_sit(guy)
 	var plate: = Label.new()
 	plate.text = tr(str(character.name))
 	plate.align = Label.ALIGN_CENTER
@@ -243,8 +285,9 @@ func _build_offduty_corner() -> void :
 	# rug lounge: radio / cooler / bottles / dice at the quarters
 	_offduty_prop("od_radio", Vector2(-1120, -755))
 	_offduty_prop("od_cooler", Vector2(-965, -748))
-	_offduty_prop("od_bottles", Vector2(-1110, -650))
-	_offduty_prop("od_dice", Vector2(-975, -655))
+	_offduty_prop("od_dice", Vector2(-948, -650))
+	# bottles moved OFF the carpet - drinks live by the fire now
+	_offduty_prop("od_bottles", Vector2(-1205, -672))
 	# card circle: crate + barrel seats, the game on the ground between
 	_offduty_prop("od_crate", Vector2(-855, -720))
 	_offduty_prop("od_barrel", Vector2(-745, -715))
@@ -254,8 +297,9 @@ func _build_offduty_corner() -> void :
 	_offduty_prop("od_plant", Vector2(-720, -1120))
 	# the mode guys, lounging (HUB_PLAN 4c lineup)
 	_offduty_guy("character_gourmet", Vector2(-1150, -860), true)
-	_offduty_guy("character_mole", Vector2(-1275, -650))
-	_offduty_guy("character_special", Vector2(-1205, -690))
+	# Wildcard + Mole SITTING side by side on the carpet, facing each other
+	_offduty_guy("character_special", Vector2(-1090, -688), false, true)
+	_offduty_guy("character_mole", Vector2(-1000, -682), true, true)
 	_offduty_guy("character_p2w", Vector2(-865, -640))
 	_offduty_guy("character_blacksmith", Vector2(-740, -636), true)
 	_offduty_guy("character_demon", Vector2(-750, -970), true)
