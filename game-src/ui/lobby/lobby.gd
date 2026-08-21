@@ -122,8 +122,9 @@ func _build_floor() -> void :
 	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1270, -786))
 	_decal("res://ui/lobby/art/od_cards.png", Vector2(-868, -1022))
 	_decal("res://ui/lobby/art/od_chips.png", Vector2(-832, -1008))
-	# sign top edge lands at -1354: its rope strands reach the wall top
-	_decal("res://ui/lobby/art/od_sign.png", Vector2(-1040, -1269))
+	# sign texture top lands at -1470, past the camera's top limit: the two
+	# ropes run off the top of the view and get clipped by the screen edge
+	_decal("res://ui/lobby/art/od_sign.png", Vector2(-1040, -1327))
 	_decal("res://ui/lobby/art/od_dartboard.png", Vector2(-830, -1235))
 	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1330, -1230))
 	_decal("res://ui/lobby/art/od_tally.png", Vector2(-1270, -1305))
@@ -465,6 +466,9 @@ func _build_camera() -> void :
 	_camera.limit_right = 1440
 	_camera.limit_top = - 1360
 	_camera.limit_bottom = 1176
+	# smoothing lets the camera overshoot its limits (black void above the
+	# wall); this pulls it back inside instead of lingering out there
+	_camera.limit_smoothed = true
 	add_child(_camera)
 
 

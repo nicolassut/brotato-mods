@@ -49,37 +49,80 @@ def thicken_outline(im, px=2):
 
 
 def extend_sign_ropes(im, ext):
-    # the hanging sign's rope strands stop mid-air; continue each strand
-    # straight up by `ext` px so the ropes reach the top of the wall when
-    # the decal's top edge is placed at the wall top (user 2026-08-21)
+    # replace the master's decorative crossed strands (which stop mid-air)
+    # with TWO straight ropes from the board's bolts running past the top of
+    # the camera view, clipped naturally by the screen edge (user
+    # 2026-08-21: "cut off by the top of the view, naturally, not with
+    # these weird ass lines")
+    from PIL import ImageDraw
     px = im.load()
     w, h = im.size
-    cols = []
+    # the board = the wide rows at the bottom; everything above is strands
+    widths = []
+    for y in range(h):
+        row = [x for x in range(w) if px[x, y][3] > 60]
+        widths.append((row[0], row[-1]) if row else None)
+    board_top = 0
+    for y in range(h):
+        if widths[y] and widths[y][1] - widths[y][0] > 0.75 * w:
+            board_top = y
+            break
+    bl, br = widths[board_top + 6][0], widths[board_top + 6][1]
+    # board-only image: per column, clear everything above the board's own
+    # black top outline (a flat row-clear leaves stubs of the old strands
+    # where the board is tilted)
+    board = im.copy()
+    dd = ImageDraw.Draw(board)
+    dd.rectangle([0, 0, w, board_top - 1], fill=(0, 0, 0, 0))
+    bpx = board.load()
+
+    def is_black(c):
+        return c[3] > 60 and (c[0] + c[1] + c[2]) < 90
+
+    # stubs of the old strands survive the flat clear only inside the tilt
+    # zone (rows board_top..surface); walk each column up from the board
+    # interior and clear everything above its true top outline
     for x in range(w):
-        for y in range(0, 6):
-            if px[x, y][3] > 60:
-                cols.append(x)
-                break
-    clusters = []
-    for x in cols:
-        if clusters and x - clusters[-1][-1] <= 3:
-            clusters[-1].append(x)
+        y = board_top + 14
+        if bpx[x, y][3] <= 60:
+            top = board_top + 14    # column outside the board: clear it all
         else:
-            clusters.append([x])
-    from PIL import ImageDraw
-    out = Image.new("RGBA", (w, h + ext), (0, 0, 0, 0))
-    out.alpha_composite(im, (0, ext))
+            while y < h - 1 and is_black(bpx[x, y]):
+                y += 1              # start in wood, below any seam line
+            top = 0
+            while y >= 0:
+                hit_air = False
+                while y >= 0 and not is_black(bpx[x, y]):
+                    if bpx[x, y][3] <= 60:
+                        top = y     # air mid-wood: a floating stub core -
+                        hit_air = True      # the surface is right here
+                        break
+                    y -= 1
+                if hit_air or y < 0:
+                    break
+                y_start = y
+                while y >= 0 and is_black(bpx[x, y]):
+                    y -= 1          # walk through the black run
+                run = y_start - y
+                if run > 8:
+                    top = y_start - 7   # outline merged with a strand stub:
+                    break               # keep 7px of outline, clear the rest
+                if y < 0 or bpx[x, y][3] <= 60:
+                    top = y         # run ends in air: the true top outline
+                    break
+                # run ends in wood again: a plank seam - keep climbing
+        for yy in range(0, max(0, top + 1)):
+            bpx[x, yy] = (0, 0, 0, 0)
+    out = Image.new("RGBA", (w, ext + h), (0, 0, 0, 0))
     d = ImageDraw.Draw(out)
-    for cl in clusters:
-        cx = sum(cl) // len(cl)
-        core = (188, 152, 104, 255)
-        for yy in range(3, 16):        # sample the strand's own color
-            c = px[cx, yy]
-            if c[3] > 60 and (c[0] + c[1] + c[2]) > 150:
-                core = c
-                break
-        d.rectangle([cx - 4, 0, cx + 4, ext + 3], fill=(16, 14, 12, 255))
-        d.rectangle([cx - 2, 0, cx + 2, ext + 2], fill=core)
+    rope_core = (188, 152, 104, 255)
+    rope_dark = (150, 118, 78, 255)
+    for cx in (bl + 14, br - 14):       # at the bolts, behind the board top
+        bot = ext + board_top + 10
+        d.rectangle([cx - 4, 0, cx + 4, bot], fill=(16, 14, 12, 255))
+        d.rectangle([cx - 2, 0, cx + 2, bot], fill=rope_core)
+        d.rectangle([cx + 1, 0, cx + 2, bot], fill=rope_dark)  # light-left
+    out.alpha_composite(board, (0, ext))
     return out
 
 
@@ -112,7 +155,7 @@ for name, (src, tw) in PROPS.items():
     if name not in NO_OUTLINE:
         im = thicken_outline(im, 2)
     if name == "od_sign":
-        im = extend_sign_ropes(im, 49)
+        im = extend_sign_ropes(im, 165)
     for dst in (DST1, DST2):
         im.save(os.path.join(dst, name + ".png"))
     print("%-14s %dx%d" % (name, im.width, im.height))

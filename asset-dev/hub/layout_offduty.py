@@ -15,7 +15,7 @@ DECALS = [
     ("od_scorch",   (-1270, -786)),   # soot under the burn barrel
     ("od_cards",    (-868, -1022)),
     ("od_chips",    (-832, -1008)),
-    ("od_sign",     (-1040, -1269)),
+    ("od_sign",     (-1040, -1327)),  # top at -1470: ropes exit the view
     ("od_dartboard",(-830, -1235)),
     ("od_scorch",   (-1330, -1230)),  # wall scorch
     ("od_tally",    (-1270, -1305)),
@@ -60,7 +60,11 @@ def render(out_path):
     d.text((-950 - W0, -900 - H0), "SHRINE", fill=(150, 148, 142, 255))
     for (name, (x, y)) in DECALS:
         im = Image.open(ART + name + ".png").convert("RGBA")
-        canvas.alpha_composite(im, (x - im.width // 2 - W0, y - im.height // 2 - H0))
+        dx, dy = x - im.width // 2 - W0, y - im.height // 2 - H0
+        if dy < 0:      # clip decals that extend past the canvas top
+            im = im.crop((0, -dy, im.width, im.height))
+            dy = 0
+        canvas.alpha_composite(im, (dx, dy))
     # YSort: order by base y
     layers = []
     for (name, (x, y)) in PROPS:
