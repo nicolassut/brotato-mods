@@ -11,35 +11,35 @@ ART = os.path.join(HERE, "../../game-src/ui/lobby/art/")
 
 # ---- the layout (world coords) ----
 DECALS = [
-    ("od_rug",      (-1040, -710)),
-    ("od_scorch",   (-1270, -800)),   # under the fire
-    ("od_cards",    (-800, -680)),
-    ("od_chips",    (-772, -672)),
+    ("od_rug",      (-1160, -700)),
+    ("od_scorch",   (-1270, -786)),   # soot under the burn barrel
+    ("od_cards",    (-868, -1022)),
+    ("od_chips",    (-832, -1008)),
     ("od_sign",     (-1040, -1245)),
     ("od_dartboard",(-925, -1240)),
     ("od_scorch",   (-1330, -1230)),  # wall scorch
     ("od_tally",    (-1160, -1300)),
 ]
 PROPS = [  # (texture, base position)
-    ("od_cookpot",  (-1240, -788)),
-    ("od_skewers",  (-1330, -770)),
+    ("od_barrel",   (-1270, -790)),  # BURN BARREL - fire inside it
+    ("od_skewers",  (-1340, -770)),
     ("od_crate2",   (-1330, -880)),
-    ("od_cooler",   (-965, -748)),
-    ("od_dice",     (-948, -650)),
-    ("od_crate",    (-855, -720)),
-    ("od_barrel",   (-745, -715)),
+    ("od_cooler",   (-1080, -742)),
+    ("od_dice",     (-1090, -640)),
+    ("od_crate",    (-920, -1085)),
+    ("od_barrel",   (-790, -1080)),
     ("od_hammock",  (-1280, -1055)),
     ("od_plant",    (-720, -1120)),
 ]
 GUYS = [  # (label, position, face_left)
-    ("Gourmet",  (-1150, -860), True),
-    ("Mole",     (-1000, -682), True),
-    ("Wildcard", (-1090, -688), False),
-    ("P2W",      (-865, -640), False),
-    ("Smith",    (-740, -636), True),
-    ("Demon",    (-750, -970), True),
+    ("Gourmet",  (-1180, -835), True),
+    ("Mole",     (-1120, -675), True),
+    ("Wildcard", (-1210, -680), False),
+    ("P2W",      (-935, -1030), False),
+    ("Smith",    (-775, -1025), True),
+    ("Demon",    (-740, -680), True),
 ]
-FIRE = (-1270, -804)
+FIRE = (-1270, -856)  # at the barrel rim (barrel base -790, h 76)
 
 
 def render(out_path):
@@ -74,7 +74,7 @@ def render(out_path):
     # fire marker
     fl = Image.new("RGBA", (36, 52), (0, 0, 0, 0))
     ImageDraw.Draw(fl).polygon([(8, 48), (14, 8), (20, 30), (26, 4), (32, 48)], fill=(238, 150, 40, 230))
-    layers.append((FIRE[1], fl, (FIRE[0] - 18 - W0, FIRE[1] - 48 - H0), "fire"))
+    layers.append((FIRE[1] + 70, fl, (FIRE[0] - 18 - W0, FIRE[1] - 40 - H0), "fire"))
     layers.sort(key=lambda e: e[0])
     for (_, im, pos, label) in layers:
         canvas.alpha_composite(im, pos)

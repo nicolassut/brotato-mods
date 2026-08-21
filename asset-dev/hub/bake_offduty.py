@@ -1,7 +1,7 @@
 # Bake the OFF DUTY corner props to in-game sizes (2026-08-21).
 # Sources: raw/prop_*.png (PixelLab) + offduty/*.png (procedural/vanilla).
 # Installs flat-named textures to ui/lobby/art/ in BOTH trees.
-from PIL import Image
+from PIL import Image, ImageFilter
 import numpy as np
 import os
 
@@ -14,7 +14,6 @@ PROPS = {
     "od_dartboard": ("raw/prop_dartboard.png", 64),
     "od_cooler":    ("raw/prop_cooler.png", 60),
     "od_dice":      ("raw/prop_dice.png", 48),
-    "od_cookpot":   ("raw/prop_cookpot.png", 90),
     "od_plant":     ("raw/prop_plant.png", 52),
     "od_skewers":   ("raw/prop_skewers.png", 80),
     "od_hammock":   ("raw/prop_hammock.png", 190),
@@ -28,6 +27,25 @@ PROPS = {
     "od_cards":     ("offduty/cards.png", 64),
     "od_chips":     ("offduty/chips.png", 40),
 }
+
+
+# decals that are soot/scratches by design - no outline, no thickening
+NO_OUTLINE = {"od_scorch", "od_tally"}
+
+
+def thicken_outline(im, px=2):
+    # downscaling thins the masters' outlines to ~1px; grow a black ring
+    # around the outer silhouette AFTER resize so every prop lands at a
+    # consistent border weight (outer-ring only, like the statue - growing
+    # interior lines fuses detail into webs)
+    mask = im.split()[3].point(lambda v: 255 if v > 60 else 0)
+    sil = mask.filter(ImageFilter.MaxFilter(2 * px + 1))
+    pad = px + 1
+    out = Image.new("RGBA", (im.width + 2 * pad, im.height + 2 * pad), (0, 0, 0, 0))
+    ring = Image.new("RGBA", im.size, (16, 14, 12, 255))
+    out.paste(ring, (pad, pad), sil)
+    out.alpha_composite(im, (pad, pad))
+    return out.crop(out.getbbox())
 
 
 def recolor_plant(im):
@@ -56,6 +74,8 @@ for name, (src, tw) in PROPS.items():
     if im.width != tw:
         th = round(im.height * tw / im.width)
         im = im.resize((tw, th), Image.LANCZOS)
+    if name not in NO_OUTLINE:
+        im = thicken_outline(im, 2)
     for dst in (DST1, DST2):
         im.save(os.path.join(dst, name + ".png"))
     print("%-14s %dx%d" % (name, im.width, im.height))

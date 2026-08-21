@@ -160,11 +160,7 @@ for _ in range(22):
     mx = rndDk.randint(30, 2722)
     if not in_pad(mx, row_y):
         dcp.moss_tuft(deck, rndDk, mx, row_y + 2)
-for _ in range(12):
-    row_y = rndDk.randint(1, 560 // 78) * 78
-    cx2 = rndDk.randint(40, 2712)
-    if not in_pad(cx2, row_y - 74):
-        dcp.chip_corner(dd, rndDk, cx2, row_y - 74)
+# (corner chips removed 2026-08-21 - they read as floating triangles)
 # shuttle pad: flat recessed placeholder (future launch-pad art drops here)
 dd.rectangle([PAD[0]-4, PAD[1], PAD[2]+4, PAD[3]+4], fill=(16, 14, 12, 255))
 dd.rectangle([PAD[0], PAD[1], PAD[2], PAD[3]], fill=(48, 48, 41, 255))

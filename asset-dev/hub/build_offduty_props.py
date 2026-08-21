@@ -45,10 +45,7 @@ for i in range(8):
         d.polygon([(x0, 14), (x0 + 26, 11), (x0 + 31, 162), (x0 + 5, 166)], fill=CHUTE_C_D)
     else:
         d.polygon([(x0, 14), (x0 + 26, 11), (x0 + 31, 162), (x0 + 5, 166)], fill=CHUTE_O)
-# tattered nicks along the hem
-for _ in range(11):
-    ex = rnd.randint(12, 244)
-    d.polygon([(ex, 166), (ex + 10, 169), (ex + 5, 156)], fill=(0, 0, 0, 0))
+# (tatter nicks removed 2026-08-21 - they read as ugly teeth in game)
 # black outline via dilate-under
 mask = rug.split()[3].point(lambda v: 255 if v > 60 else 0)
 sil = mask.filter(ImageFilter.MaxFilter(5))

@@ -118,10 +118,10 @@ func _build_floor() -> void :
 	# OFF DUTY corner decals (flat on ground/wall, under the YSort world).
 	# Placement tuned VISUALLY in layout_offduty.py (the compositor renders
 	# the corner offline; coordinates here MIRROR it exactly)
-	_decal("res://ui/lobby/art/od_rug.png", Vector2(-1040, -710))
-	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1270, -800))
-	_decal("res://ui/lobby/art/od_cards.png", Vector2(-800, -680))
-	_decal("res://ui/lobby/art/od_chips.png", Vector2(-772, -672))
+	_decal("res://ui/lobby/art/od_rug.png", Vector2(-1160, -700))
+	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1270, -786))
+	_decal("res://ui/lobby/art/od_cards.png", Vector2(-868, -1022))
+	_decal("res://ui/lobby/art/od_chips.png", Vector2(-832, -1008))
 	_decal("res://ui/lobby/art/od_sign.png", Vector2(-1040, -1245))
 	_decal("res://ui/lobby/art/od_dartboard.png", Vector2(-925, -1240))
 	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1330, -1230))
@@ -272,39 +272,45 @@ func _offduty_guy(char_id: String, base: Vector2, face_left: bool = false, sitti
 func _build_offduty_corner() -> void :
 	# OFF DUTY corner v4: coordinates mirror layout_offduty.py exactly
 	# (visually tuned + bbox-checked there before landing here).
+	# BURN BARREL (user 2026-08-21: no cooking pot - a barrel with fire in
+	# it in the middle of the camp): flames emitted at the rim, above the
+	# barrel sprite (base -790, sprite h 76)
 	var torch_scene = load("res://particles/burning/torch_burning_particles.tscn")
 	if torch_scene != null:
 		var fire = torch_scene.instance()
-		fire.position = Vector2(-1270, -804)
-		fire.scale = Vector2(2.0, 2.0)
+		fire.position = Vector2(-1270, -858)
+		fire.scale = Vector2(1.6, 1.6)
 		_world.add_child(fire)
-	# fire camp (bare slabs, SW)
-	_offduty_prop("od_cookpot", Vector2(-1240, -788))
-	_offduty_prop("od_skewers", Vector2(-1330, -770))
+	# fire camp (SW): burn barrel + skewer rack + X7 crate
+	_offduty_prop("od_barrel", Vector2(-1270, -790))
+	_offduty_prop("od_skewers", Vector2(-1340, -770))
 	_offduty_prop("od_crate2", Vector2(-1330, -880))
-	# rug lounge: radio / cooler / bottles / dice at the quarters
-	_offduty_prop("od_cooler", Vector2(-965, -748))
-	_offduty_prop("od_dice", Vector2(-948, -650))
-	# card circle: crate + barrel seats, the game on the ground between
-	_offduty_prop("od_crate", Vector2(-855, -720))
-	_offduty_prop("od_barrel", Vector2(-745, -715))
-	# hammock by the wall + lantern + plant
+	# rug lounge (bottom-left): cooler + dice on the cloth
+	_offduty_prop("od_cooler", Vector2(-1080, -742))
+	_offduty_prop("od_dice", Vector2(-1090, -640))
+	# card circle (up under the wall): crate + barrel seats, the game on
+	# the ground in front of the seated players
+	_offduty_prop("od_crate", Vector2(-920, -1085))
+	_offduty_prop("od_barrel", Vector2(-790, -1080))
+	# hammock by the wall + plant
 	_offduty_prop("od_hammock", Vector2(-1280, -1055))
 	_offduty_prop("od_plant", Vector2(-720, -1120))
 	# the mode guys, lounging (HUB_PLAN 4c lineup)
-	_offduty_guy("character_gourmet", Vector2(-1150, -860), true)
+	_offduty_guy("character_gourmet", Vector2(-1180, -835), true)
 	# Wildcard + Mole SITTING side by side on the carpet, facing each other
-	_offduty_guy("character_special", Vector2(-1090, -688), false, true)
-	_offduty_guy("character_mole", Vector2(-1000, -682), true, true)
-	_offduty_guy("character_p2w", Vector2(-865, -640))
-	_offduty_guy("character_blacksmith", Vector2(-740, -636), true)
-	_offduty_guy("character_demon", Vector2(-750, -970), true)
-	# collision: fire spot, seats, hammock
-	_add_wall(Rect2(-1305, -816, 70, 50))
-	_add_wall(Rect2(-885, -756, 60, 36))
-	_add_wall(Rect2(-771, -749, 52, 34))
-	_add_wall(Rect2(-1360, -916, 60, 36))
-	_add_wall(Rect2(-1360, -1090, 180, 32))
+	_offduty_guy("character_special", Vector2(-1210, -680), false, true)
+	_offduty_guy("character_mole", Vector2(-1120, -675), true, true)
+	# P2W + Smith SEATED against their crate/barrel, cards between them
+	_offduty_guy("character_p2w", Vector2(-935, -1030), false, true)
+	_offduty_guy("character_blacksmith", Vector2(-775, -1025), true, true)
+	_offduty_guy("character_demon", Vector2(-740, -680), true)
+	# collision: base bands (2.5D hitbox law) for the solid props
+	_add_wall(Rect2(-1298, -812, 56, 24))
+	_add_wall(Rect2(-1380, -790, 80, 22))
+	_add_wall(Rect2(-1361, -902, 62, 24))
+	_add_wall(Rect2(-955, -1106, 70, 24))
+	_add_wall(Rect2(-818, -1102, 56, 24))
+	_add_wall(Rect2(-1375, -1078, 190, 24))
 
 
 func _decal(path: String, at: Vector2) -> void :
