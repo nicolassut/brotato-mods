@@ -877,51 +877,21 @@ tracking_item_id = "{f.get('tracking_item', '')}"
 
 
 # ---------- registration ----------
-
-ANCHOR = '[ext_resource path="res://items/custom_stats/stat_appetite.tres" type="Resource" id=825]\n'
+# Ecosystem Phase 2+: spawner items and foods register in the FOOD pack via
+# pack_registry (idempotent by path); item_service.tscn is vanilla-only.
 
 def register(spawner_ids, food_ids):
-    t = open(TSCN).read()
-    assert ANCHOR in t, "appetite stat anchor missing"
+    import sys as _sys
+    _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from pack_registry import register as pack_register
     added = 0
-
-    new_item_ids, new_food_ids = [], []
-    for slug, ext_id in spawner_ids:
-        line = f'[ext_resource path="res://items/custom/{slug}/{slug}_data.tres" type="Resource" id={ext_id}]\n'
-        if line not in t:
-            t = t.replace(ANCHOR, ANCHOR + line)
-            new_item_ids.append(ext_id)
+    for slug, _ext_id in spawner_ids:
+        if pack_register("food", "items", f"items/custom/{slug}/{slug}_data.tres", quiet=True):
             added += 1
-    for slug, ext_id in food_ids:
-        line = f'[ext_resource path="res://items/foods/{slug}/{slug}_data.tres" type="Resource" id={ext_id}]\n'
-        if line not in t:
-            t = t.replace(ANCHOR, ANCHOR + line)
-            new_food_ids.append(ext_id)
+    for slug, _ext_id in food_ids:
+        if pack_register("food", "foods", f"items/foods/{slug}/{slug}_data.tres", quiet=True):
             added += 1
-
-    if new_item_ids:
-        m = re.search(r"^items = \[.*\]$", t, re.M)
-        arr = m.group(0)
-        add = "".join(f", ExtResource( {i} )" for i in new_item_ids)
-        t = t.replace(arr, arr[:arr.rfind("]")].rstrip() + add + " ]", 1)
-
-    if new_food_ids:
-        m = re.search(r"^foods = \[.*\]$", t, re.M)
-        if m:
-            arr = m.group(0)
-            add = "".join(f", ExtResource( {i} )" for i in new_food_ids)
-            t = t.replace(arr, arr[:arr.rfind("]")].rstrip() + add + " ]", 1)
-        else:
-            refs = ", ".join(f"ExtResource( {i} )" for i in new_food_ids)
-            m2 = re.search(r"^consumables = \[.*\]$\n", t, re.M)
-            assert m2, "consumables array line missing"
-            t = t.replace(m2.group(0), m2.group(0) + f"foods = [ {refs} ]\n", 1)
-
-    if added:
-        m3 = re.search(r"load_steps=(\d+)", t)
-        t = t.replace(f"load_steps={m3.group(1)}", f"load_steps={int(m3.group(1)) + added}", 1)
-        open(TSCN, "w").write(t)
-    print(f"registered {added} new ext resources in item_service.tscn")
+    print(f"food pack: +{added} registrations" if added else "food pack registration up to date")
 
 
 def add_csv_rows():

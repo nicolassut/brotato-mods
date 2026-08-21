@@ -172,7 +172,7 @@ func _ready() -> void :
 		var item_popup = _get_item_popup(player_index)
 		item_popup.item_steals = _item_steals[player_index]
 		_error_connect = item_popup.connect("item_cancel_button_pressed", self, "_on_item_cancel_button_pressed", [player_index])
-		_error_connect = item_popup.connect("item_discard_button_pressed", self, "_on_item_discard_button_pressed", [player_index])
+		_error_connect = item_popup.connect("item_discard_button_pressed", self, "_on_gourmet_item_discard_pressed", [player_index])
 		_error_connect = item_popup.connect("item_combine_button_pressed", self, "_on_item_combine_button_pressed", [player_index])
 
 		_popup_manager.add_item_popup(item_popup, player_index)
@@ -385,6 +385,10 @@ func fill_shop_items(player_locked_items: Array, player_index: int, just_entered
 
 	if new_item_count > 0:
 		var args: = ItemServiceGetShopItemsArgs.new(_shop_items, player_index)
+		# Gourmet ecosystem - Freeloader 8-slot / Wildcard slot-delta shop size.
+		# Set here, NOT in the args class' _init: extending a Reference with a
+		# required-arg _init cannot be done from a script extension.
+		args.count = ItemService.get_nb_shop_items(player_index)
 		args.count = new_item_count
 		args.prev_items = prev_items
 		args.locked_items = player_locked_items
@@ -447,7 +451,7 @@ func _on_RerollButton_pressed(player_index: int) -> void :
 	# Gourmet DLC - Farmers' Market banks every reroll for next wave's Fruit Salads,
 	# capped at 10 (each market converts up to 10 banked rerolls into Fruit Salads)
 	RunData.get_player_effects(player_index)[Keys.banked_rerolls_hash] = min(10, RunData.get_player_effects(player_index)[Keys.banked_rerolls_hash] + 1)
-	GourmetTracker.ev("reroll", {"p": player_index, "bank": RunData.get_player_effect(Keys.banked_rerolls_hash, player_index)})
+	Utils.gourmet_tracker.ev("reroll", {"p": player_index, "bank": RunData.get_player_effect(Keys.banked_rerolls_hash, player_index)})
 
 	for gain_stats in RunData.get_player_effect(Keys.gain_stats_on_reroll_hash, player_index):
 		assert (gain_stats[0] is int)
@@ -577,7 +581,7 @@ func _p2w_run_reel_and_open(shop_item: ShopItem, player_index: int) -> void :
 	else:
 		buy_item(drop_data, player_index)
 
-	GourmetTracker.ev("p2w_chest_open", {"p": player_index, "outcome": outcome, "got": drop_data.my_id, "cursed_chest": p2w_entry.get("cursed", false)})
+	Utils.gourmet_tracker.ev("p2w_chest_open", {"p": player_index, "outcome": outcome, "got": drop_data.my_id, "cursed_chest": p2w_entry.get("cursed", false)})
 	# a mirror-duplicated purchase has more chests queued: the next ceremony
 	# opens immediately on the same card
 	if not shop_item.p2w_extra_uids.empty():
@@ -633,7 +637,7 @@ func on_shop_item_bought(shop_item: ShopItem, player_index: int) -> void :
 					shop_item.p2w_extra_uids.push_back(int(p2w_extra.uid))
 			if p2w_mirrors_used > 0:
 				_get_gear_container(player_index).set_items_data(RunData.get_player_items(player_index))
-			GourmetTracker.ev("p2w_chest_buy", {"p": player_index, "rung": p2w_rung, "cursed": p2w_entry.cursed, "paid": shop_item.value, "mirrored": p2w_mirrors_used})
+			Utils.gourmet_tracker.ev("p2w_chest_buy", {"p": player_index, "rung": p2w_rung, "cursed": p2w_entry.cursed, "paid": shop_item.value, "mirrored": p2w_mirrors_used})
 			# the ceremony opens immediately (user spec); cancelling it leaves the
 			# armed card behind, whose next press re-enters the ceremony above
 			_p2w_run_reel_and_open(shop_item, player_index)
@@ -672,7 +676,7 @@ func on_shop_item_bought(shop_item: ShopItem, player_index: int) -> void :
 	if picky_char != null and picky_char.my_id == "character_picky_eater" and shop_item.item_data is ItemData and shop_item.item_data.tags.has("spawner"):
 		if RunData.get_player_effect(Keys.selected_spawner_hash, player_index) == 0:
 			select_spawner(shop_item.item_data, player_index)
-	GourmetTracker.ev("purchase", {"p": player_index, "id": shop_item.item_data.my_id, "paid": shop_item.value, "base": shop_item.item_data.value, "n": RunData.get_player_effect(Keys.shop_purchases_hash, player_index)})
+	Utils.gourmet_tracker.ev("purchase", {"p": player_index, "id": shop_item.item_data.my_id, "paid": shop_item.value, "base": shop_item.item_data.value, "n": RunData.get_player_effect(Keys.shop_purchases_hash, player_index)})
 
 	# Gourmet DLC - Loyalty Card: record the materials its discount saved (coupon pattern)
 	if shop_item.loyalty_saving > 0:
@@ -835,7 +839,7 @@ func buy_weapon(item_data: WeaponData, player_index: int) -> void :
 					break  # nothing of this line left to shed; leave the rest to the caller
 				player_gear_container.weapons_container._elements.remove_element(overflow, 1, true)
 				var _dropped = RunData.remove_weapon(overflow, player_index)
-				GourmetTracker.ev("mime_copy_dropped", {"p": player_index, "id": overflow.my_id})
+				Utils.gourmet_tracker.ev("mime_copy_dropped", {"p": player_index, "id": overflow.my_id})
 			_update_stats(player_index)
 			_get_shop_items_container(player_index).reload_shop_items()
 			_on_player_focus_lost(player_index)
@@ -998,7 +1002,7 @@ func _forge_weapon(weapon_data: WeaponData, partner: WeaponData, player_index: i
 
 	var new_weapon = RunData.add_weapon(forged, player_index)
 	RunData.add_tracked_value(player_index, Keys.generate_hash("character_blacksmith"), 1)
-	GourmetTracker.ev("blacksmith_forge", {"p": player_index, "a": weapon_data.my_id, "b": partner.my_id, "out": forged.my_id})
+	Utils.gourmet_tracker.ev("blacksmith_forge", {"p": player_index, "a": weapon_data.my_id, "b": partner.my_id, "out": forged.my_id})
 
 	_update_stats(player_index)
 	_get_shop_items_container(player_index).reload_shop_items()
@@ -1030,7 +1034,7 @@ func _auto_merge_to_fit(weapon_id: String, player_index: int) -> void :
 		merges += 1
 		_combine_weapon(pair_seed, player_index, false)
 	if merges > 0:
-		GourmetTracker.ev("mime_cascade_merge", {"p": player_index, "id": weapon_id, "n": merges})
+		Utils.gourmet_tracker.ev("mime_cascade_merge", {"p": player_index, "id": weapon_id, "n": merges})
 
 
 # Returns the lowest-tier weapon IN THE BOUGHT WEAPON'S OWN LINE that has an identical
@@ -1166,7 +1170,7 @@ func select_spawner(item_data: ItemData, player_index: int) -> void :
 	for selection_effect in item_data.effects:
 		if selection_effect.custom_key.begins_with("consumable_food_"):
 			RunData.get_player_effects(player_index)[Keys.selected_spawner_hash] = Keys.generate_hash(selection_effect.custom_key)
-			GourmetTracker.ev("spawner_selected", {"p": player_index, "id": item_data.my_id})
+			Utils.gourmet_tracker.ev("spawner_selected", {"p": player_index, "id": item_data.my_id})
 			# Gourmet DLC - Set Menu is consumed on use; Picky Eater picks for free via his trait
 			var spawner_char = RunData.get_player_character(player_index)
 			var picks_for_free: bool = spawner_char != null and spawner_char.my_id == "character_picky_eater"
@@ -1211,7 +1215,51 @@ func recycle_minimalist_item(item_data: ItemData, player_index: int) -> void :
 	_get_shop_items_container(player_index).reload_shop_items()
 
 
-func _on_item_discard_button_pressed(weapon_data: ItemParentData, player_index: int) -> void :
+func _on_item_discard_button_pressed(weapon_data: WeaponData, player_index: int) -> void :
+	if RunData.get_player_effect_bool(Keys.lock_current_weapons_hash, player_index):
+		return
+
+	_popup_manager.reset_focus(player_index)
+	RunData.add_recycled(player_index)
+
+	var weapons_container: = _get_gear_container(player_index).weapons_container
+	weapons_container._elements.remove_element(weapon_data, 1, true)
+
+	var _weapon = RunData.remove_weapon(weapon_data, player_index)
+	var base_recycling_value = weapon_data.value
+	var specific_recycling_price_factor = 1.0
+
+	for specific_item_price in RunData.get_player_effect(Keys.specific_items_price_hash, player_index):
+		assert (specific_item_price[0] is int)
+		if Keys.hash_to_string[specific_item_price[0]] in weapon_data.my_id:
+			specific_recycling_price_factor = specific_item_price[1]
+			break
+
+	base_recycling_value *= specific_recycling_price_factor
+
+	var recycling_value = ItemService.get_recycling_value(RunData.current_wave, base_recycling_value, player_index, true)
+	RunData.add_gold(recycling_value, player_index)
+	RunData.update_recycling_tracking_value(weapon_data, player_index)
+
+	var nb_coupons = RunData.get_nb_item(Keys.item_coupon_hash, player_index)
+
+	if nb_coupons > 0:
+		var base_value = ItemService.get_recycling_value(RunData.current_wave, weapon_data.value, player_index, true, false)
+		var actual_value = ItemService.get_recycling_value(RunData.current_wave, weapon_data.value, player_index, true)
+		var val_lost = (base_value - actual_value) as int
+		RunData.add_tracked_value(player_index, Keys.item_coupon_hash, - val_lost)
+
+	_update_stats(player_index)
+	_get_shop_items_container(player_index).reload_shop_items()
+	var reroll_button = _get_reroll_button(player_index)
+	reroll_button.set_color_from_currency(RunData.get_player_gold(player_index))
+	SoundManager.play(Utils.get_rand_element(recycle_sounds), 0, 0.1, true)
+
+
+# Gourmet ecosystem - discard works on ANY item, not just weapons. New name +
+# new signature: the vanilla _on_item_discard_button_pressed(WeaponData, int)
+# stays untouched (extension-sandwich rule), the popup connect targets this.
+func _on_gourmet_item_discard_pressed(weapon_data: ItemParentData, player_index: int) -> void :
 	# Gourmet DLC - spawner selection (Set Menu / Picky Eater) rides the same button;
 	# Minimalist keeps recycling instead
 	var selection_char = RunData.get_player_character(player_index)
@@ -1405,12 +1453,12 @@ func _on_tree_exited() -> void :
 	# so they are live while shopping, and removed here. Tearing them down at wave end with
 	# the wave-scoped ones would have made every shop modifier silently do nothing.
 	for special_index in RunData.get_player_count():
-		if not RunData.is_special(special_index):
+		if not RunData.has_wildcard_flow(special_index):
 			continue
 		var sp_effects: Dictionary = RunData.get_player_effects(special_index)
-		var shop_ids: Array = SpecialModifiers.stored_ids(Keys.special_shop_mods_hash, special_index)
+		var shop_ids: Array = Utils.special_modifiers.stored_ids(Keys.special_shop_mods_hash, special_index)
 		if not shop_ids.empty():
-			SpecialModifiers.unapply_ids(shop_ids, special_index)
+			Utils.special_modifiers.unapply_ids(shop_ids, special_index)
 			sp_effects[Keys.special_shop_mods_hash] = []
 
 	for player_index in range(RunData.get_player_count()):

@@ -597,13 +597,15 @@ def build_weapon(wpn, next_id):
         for set_name in wpn["sets"]:
             path = None
             set_dir = {"elemental": "fire"}.get(set_name, set_name)
-            for cand in (f"res://items/sets/{set_dir}/{set_dir}_set_data.tres",
-                         f"res://dlcs/dlc_1/sets/{set_dir}/{set_dir}_set_data.tres"):
-                if os.path.exists(f"{DEC}/{cand[6:]}"):
-                    path = cand
-                    break
+            # DLC sets are NEVER baked into the tres: on an install without the
+            # DLC the ext_resource fails and takes the whole pack down (clone
+            # gate, 2026-08-18). PackService._attach_dlc_sets adds them at
+            # runtime when the DLC is present - keep its table in sync.
+            cand = f"res://items/sets/{set_dir}/{set_dir}_set_data.tres"
+            if os.path.exists(f"{DEC}/{cand[6:]}"):
+                path = cand
             if path is None:
-                print(f"  ! set missing on disk, skipped: {set_name} ({slug})")
+                print(f"  ! set not bakeable (DLC or missing) - runtime attach: {set_name} ({slug})")
                 continue
             exts.append(f'[ext_resource path="{path}" type="Resource" id={next_ext}]')
             set_refs.append(f"ExtResource( {next_ext} )")
@@ -697,26 +699,18 @@ set_bonuses = [ {", ".join(refs)} ]
 ANCHOR = '[ext_resource path="res://items/custom_stats/stat_appetite.tres" type="Resource" id=825]\n'
 
 def register(weapon_entries, set_entries):
-    t = open(TSCN).read()
-    assert ANCHOR in t
-    new_w, new_s = [], []
-    for rel, ext_id in weapon_entries + set_entries:
-        line = f'[ext_resource path="res://{rel}" type="Resource" id={ext_id}]\n'
-        if line not in t:
-            t = t.replace(ANCHOR, ANCHOR + line)
-            (new_s if "sets/" in rel else new_w).append(ext_id)
-    for arr_name, ids in (("weapons", new_w), ("sets", new_s)):
-        if ids:
-            m = re.search(rf"^{arr_name} = \[.*\]$", t, re.M)
-            arr = m.group(0)
-            add = "".join(f", ExtResource( {i} )" for i in ids)
-            t = t.replace(arr, arr[:arr.rfind("]")].rstrip() + add + " ]", 1)
-    total_new = len(new_w) + len(new_s)
-    if total_new:
-        m3 = re.search(r"load_steps=(\d+)", t)
-        t = t.replace(f"load_steps={m3.group(1)}", f"load_steps={int(m3.group(1)) + total_new}", 1)
-        open(TSCN, "w").write(t)
-    print(f"registered {len(new_w)} weapon tiers + {len(new_s)} sets")
+    # Ecosystem Phase 2+: culinary weapons + set register in the FOOD pack
+    # (their set grants Appetite); tscn is vanilla-only. Idempotent by path.
+    import sys as _sys
+    _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from pack_registry import register as pack_register
+    added_w, added_s = 0, 0
+    for rel, _ext_id in weapon_entries + set_entries:
+        if "sets/" in rel:
+            added_s += 1 if pack_register("food", "sets", rel, quiet=True) else 0
+        else:
+            added_w += 1 if pack_register("food", "weapons", rel, quiet=True) else 0
+    print(f"food pack: +{added_w} weapon tiers, +{added_s} sets" if (added_w or added_s) else "weapon pack registration up to date")
 
 
 def add_csv_rows():

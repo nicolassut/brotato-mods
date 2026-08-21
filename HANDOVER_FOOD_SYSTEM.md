@@ -48,7 +48,8 @@ outlines are fine). Art comes later in a separate pass.
 ## 2. What already exists (do not rebuild, do not break)
 
 ### Content + registration
-- `singletons/item_service.tscn`: characters ids **811-824**, Appetite stat **825**, four
+- Registration NOTE (ecosystem Phase 2): custom content now registers in `packs/<id>/pack_data.tres`,
+  not the tscn. Historical ids: characters **811-824**, Appetite stat **825**, four
   Appetite items **826/827/829/830-ish** (bib etc. reserved through **839** in
   `asset-dev/build_appetite_items.py` — it skips items whose icon is missing).
   **Next free ext id: 840.** Registration pattern: insert `[ext_resource ...]` lines after an
@@ -154,7 +155,8 @@ LinkedStats extends TempStats; linked scalers recompute on item changes.
   vanilla `decaying_stats_on_consumable` key). Study this BEFORE designing the food-buff
   engine — it may be the chassis, though the DLC spec's shared-timer stacking (below) likely
   needs its own manager (a new singleton or a player-side system).
-- Registered consumables: `item_service.tscn` `consumables` array (3 entries incl. fruit).
+- Registered consumables: `item_service.tscn` `consumables` array (vanilla; 3 entries incl. fruit).
+  Custom foods live in the food pack's `foods` array.
   ConsumableData registration + drop logic: research `item_service.gd get_consumable_to_drop`
   (enemy drops, luck-scaled) and how `consumable_scene` gets instanced/spawned (search
   `consumable` in main.gd / entity spawn code). THIS IS YOUR FIRST RESEARCH TASK — nobody has

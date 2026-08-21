@@ -113,9 +113,18 @@ func _on_item_combine_button_pressed(weapon_data: WeaponData, player_index: int)
 		_focused_shop_item[player_index]._can_be_selected()
 
 
-func _on_item_discard_button_pressed(weapon_data: ItemParentData, player_index: int) -> void :
+func _on_item_discard_button_pressed(weapon_data: WeaponData, player_index: int) -> void :
 	_block_background.hide()
 	._on_item_discard_button_pressed(weapon_data, player_index)
+
+	if _focused_shop_item[player_index] != null:
+		_focused_shop_item[player_index]._can_be_selected()
+
+
+# Gourmet ecosystem - the any-item discard path (see base_shop)
+func _on_gourmet_item_discard_pressed(weapon_data: ItemParentData, player_index: int) -> void :
+	_block_background.hide()
+	._on_gourmet_item_discard_pressed(weapon_data, player_index)
 
 	if _focused_shop_item[player_index] != null:
 		_focused_shop_item[player_index]._can_be_selected()

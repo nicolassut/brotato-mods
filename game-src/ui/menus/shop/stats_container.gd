@@ -114,7 +114,7 @@ func _ensure_rules_ui(player_index: int) -> void :
 	# ONLY The Special. His rules are rerolled every wave, so they cannot live on a static
 	# character card and need a live panel. Every other character's rules are fixed and belong
 	# on the selection card - do not add tabs here for them.
-	if _top_tabs != null or not RunData.is_special(player_index):
+	if _top_tabs != null or not RunData.has_wildcard_flow(player_index):
 		return
 
 	_top_tabs = HBoxContainer.new()
@@ -257,15 +257,15 @@ func _refresh_rules_list(player_index: int) -> void :
 	# waves only special_next_mods is populated (so the shop previews what is coming). The
 	# active set is filtered to wave-scoped ids, because the shop-scoped ones in that roll
 	# already did their job in the shop and would be misleading listed under "this wave".
-	var active: Array = SpecialModifiers.stored_ids(Keys.special_active_mods_hash, player_index)
+	var active: Array = Utils.special_modifiers.stored_ids(Keys.special_active_mods_hash, player_index)
 	var ids: Array
 	var heading_text: String
 
 	if not active.empty():
-		ids = SpecialModifiers.ids_of_life(active, SpecialModifiers.LIFE_WAVE)
+		ids = Utils.special_modifiers.ids_of_life(active, Utils.special_modifiers.LIFE_WAVE)
 		heading_text = "THIS WAVE" if not ids.empty() else "THIS WAVE IS CLEAR"
 	else:
-		ids = SpecialModifiers.stored_ids(Keys.special_next_mods_hash, player_index)
+		ids = Utils.special_modifiers.stored_ids(Keys.special_next_mods_hash, player_index)
 		heading_text = "NEXT WAVE" if not ids.empty() else "NEXT WAVE IS CLEAR"
 
 	var heading: = Label.new()
@@ -274,7 +274,7 @@ func _refresh_rules_list(player_index: int) -> void :
 	_rules_list.add_child(heading)
 
 	for id_hash in ids:
-		var mod: Dictionary = SpecialModifiers.get_by_hash(id_hash)
+		var mod: Dictionary = Utils.special_modifiers.get_by_hash(id_hash)
 		if mod.empty():
 			continue
 

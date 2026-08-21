@@ -853,3 +853,53 @@ func duplicate_and_cast_id(array: Array):
 		else:
 			clone.push_back(e)
 	return clone
+
+
+# Gourmet ecosystem - service accessors (Phase 8). In this tree the five
+# services are real autoloads; in the Workshop build GourmetCore root-injects
+# nodes carrying the SAME names. Either way they live at /root/<Name>, so all
+# engine code reaches them through these accessors instead of the bare
+# autoload identifier - a bare identifier is PARSE-FATAL on installs without
+# the autoload (probe-proven 2026-08-18, 655 cascade errors).
+var _gourmet_services: = {}
+
+var packs setget , get_packs
+var game_modes setget , get_game_modes
+var gourmet_tracker setget , get_gourmet_tracker
+var special_modifiers setget , get_special_modifiers
+var butcher_skin setget , get_butcher_skin
+
+
+func _gourmet_service(service_name: String) -> Node:
+	var svc = _gourmet_services.get(service_name)
+	if svc == null or not is_instance_valid(svc):
+		svc = get_node_or_null("/root/" + service_name)
+		if svc == null:
+			# Workshop build: services cannot be added to /root during the
+			# autoload cascade (add_node fails while root is busy), so
+			# GourmetCore parents them under its own mod node instead
+			var mod_loader = get_node_or_null("/root/ModLoader")
+			if mod_loader != null:
+				svc = mod_loader.find_node(service_name, true, false)
+		_gourmet_services[service_name] = svc
+	return svc
+
+
+func get_packs() -> Node:
+	return _gourmet_service("Packs")
+
+
+func get_game_modes() -> Node:
+	return _gourmet_service("GameModes")
+
+
+func get_gourmet_tracker() -> Node:
+	return _gourmet_service("GourmetTracker")
+
+
+func get_special_modifiers() -> Node:
+	return _gourmet_service("SpecialModifiers")
+
+
+func get_butcher_skin() -> Node:
+	return _gourmet_service("ButcherSkin")

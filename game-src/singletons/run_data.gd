@@ -286,6 +286,9 @@ var is_coop_run = false
 var is_streamplay_run = false
 var play_mode = 0
 var enabled_dlcs = []
+# Gourmet ecosystem - pack set this run was started with (Continue is invalidated
+# if a required pack is disabled later; see ProgressData.check_dlc_valid_for_saved_run_state)
+var enabled_packs = []
 var menu_selection_back: = false
 
 var wave_timer: WaveTimer = null
@@ -612,6 +615,7 @@ func reset(restart: bool = false) -> void :
 		set_coop_run(false)
 		is_endless_run = false
 		enabled_dlcs = ProgressData.get_active_dlc_ids()
+		enabled_packs = Utils.packs.enabled_pack_ids()
 		current_difficulty = 0
 		ProgressData.reset_dlc_resources_to_active_dlcs()
 	else:
@@ -1126,7 +1130,7 @@ func add_item(item: ItemData, player_index: int, is_selection: bool = false) -> 
 				add_gold(500, player_index, true)
 				add_debt(300, player_index)
 				loan_effect.value = 0
-				GourmetTracker.ev("bank_loan_used", {"p": player_index})
+				Utils.gourmet_tracker.ev("bank_loan_used", {"p": player_index})
 				break
 
 	players_data[player_index].items.push_back(item)
@@ -1756,6 +1760,20 @@ func _mime_copies_fit(shop_weapon: WeaponData, player_index: int, copies: int) -
 
 
 # Gourmet DLC - The Special (character #18): every wave rolls random modifiers.
+# Gourmet ecosystem - game modes (Utils.game_modes.REGISTRY ids per player)
+func is_game_mode_active(mode_id: String, player_index: int) -> bool:
+	if player_index < 0 or player_index >= players_data.size():
+		return false
+	return players_data[player_index].game_mode_ids.has(mode_id)
+
+
+# The Wildcard's per-wave modifier lifecycle (roll/preview/apply/teardown) runs
+# for The Wildcard himself AND for any player running the "Wildcard Rules" game
+# mode - every lifecycle gate reads THIS, never is_special directly.
+func has_wildcard_flow(player_index: int) -> bool:
+	return is_special(player_index) or is_game_mode_active("wildcard_rules", player_index)
+
+
 func is_special(player_index: int) -> bool:
 	var character = get_player_character(player_index)
 	return character != null and character.my_id == "character_special"
@@ -2588,6 +2606,7 @@ func get_state() -> Dictionary:
 		"play_mode": PlayMode.SOLO, 
 		"is_streamplay_run": false, 
 		"enabled_dlcs": enabled_dlcs, 
+		"enabled_packs": enabled_packs, 
 
 		"tracked_item_effects": tracked_item_effects.duplicate(true)
 	}
@@ -2662,6 +2681,7 @@ func resume_from_state(state: Dictionary) -> void :
 	play_mode = RunData.PlayMode.COOP if state.is_coop_run else state.get("play_mode", RunData.PlayMode.SOLO)
 	is_streamplay_run = play_mode == RunData.PlayMode.STREAMPLAY_LOCAL or play_mode == RunData.PlayMode.STREAMPLAY_INTERNET
 	enabled_dlcs = state.enabled_dlcs
+	enabled_packs = state.get("enabled_packs", [])
 
 	tracked_item_effects = Utils.convert_to_hash_array(state.tracked_item_effects.duplicate())
 

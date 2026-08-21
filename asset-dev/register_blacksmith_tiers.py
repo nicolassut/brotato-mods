@@ -29,57 +29,18 @@ def main():
                 if os.path.isfile(os.path.join(DEC, rel)):
                     new_paths.append("res://" + rel)
 
-    already = set(re.findall(r'\[ext_resource path="([^"]+)"', txt))
-    todo = [p for p in new_paths if p not in already]
-    if not todo:
-        print(f"all {len(new_paths)} blacksmith tier resources already registered")
-        return
-
-    used_ids = [int(i) for i in re.findall(r'\[ext_resource path="[^"]*"\s+type="[^"]*"\s+id=(\d+)\]', txt)]
-    next_id = max(used_ids) + 1 if used_ids else 1
-
-    block, ids = [], []
-    for p in todo:
-        block.append(f'[ext_resource path="{p}" type="Resource" id={next_id}]')
-        ids.append(next_id)
-        next_id += 1
-
-    # insert the ext_resource block after the last existing one
-    last = None
-    for m in re.finditer(r'^\[ext_resource .*\]$', txt, re.M):
-        last = m
-    if last is None:
-        raise SystemExit("no ext_resource block found - aborting rather than guessing")
-    txt = txt[:last.end()] + "\n" + "\n".join(block) + txt[last.end():]
-
-    # append to the weapons array
-    m = re.search(r'^weapons = \[(.*?)\]$', txt, re.M | re.S)
-    if not m:
-        raise SystemExit("no weapons array found - aborting")
-    inner = m.group(1).rstrip()
-    additions = ", ".join(f"ExtResource( {i} )" for i in ids)
-    joined = (inner + ", " if inner.strip() else "") + additions
-    txt = txt[:m.start()] + f"weapons = [ {joined} ]" + txt[m.end():]
-
-    # load_steps must cover every ext_resource + sub_resource, or Godot truncates
-    n_ext = len(re.findall(r'^\[ext_resource ', txt, re.M))
-    n_sub = len(re.findall(r'^\[sub_resource ', txt, re.M))
-    txt = re.sub(r'^\[gd_scene load_steps=\d+', f"[gd_scene load_steps={n_ext + n_sub + 1}", txt, count=1)
-
-    # re-verify before writing: no dangling ids, every path on disk
-    declared = dict(re.findall(r'\[ext_resource path="([^"]+)"\s+type="[^"]*"\s+id=(\d+)\]', txt))
-    ids_declared = set(declared.values())
-    ids_used = set(re.findall(r'ExtResource\(\s*(\d+)\s*\)', txt))
-    dangling = ids_used - ids_declared
-    if dangling:
-        raise SystemExit(f"refusing to write: dangling ExtResource ids {sorted(dangling)}")
-    for path in declared:
-        if path.startswith("res://") and not os.path.exists(os.path.join(DEC, path[6:])):
-            raise SystemExit(f"refusing to write: missing file {path}")
-
-    open(TSCN, "w", encoding="utf-8", newline="\n").write(txt)
-    print(f"registered {len(todo)} blacksmith tier weapons "
-          f"(load_steps now {n_ext + n_sub + 1})")
+    # Ecosystem Phase 2+: the ladder weapons register in the FORGE pack, never
+    # in item_service.tscn. Idempotent by path - reruns are safe.
+    import sys as _sys
+    _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from pack_registry import register as pack_register
+    added = 0
+    for p in new_paths:
+        rel = p.replace("res://", "")
+        assert os.path.exists(os.path.join(DEC, rel)), f"missing file {p}"
+        if pack_register("forge", "weapons", rel, quiet=True):
+            added += 1
+    print(f"forge pack: +{added} ladder weapons" if added else f"all {len(new_paths)} ladder weapons already pack-registered")
 
 
 main()

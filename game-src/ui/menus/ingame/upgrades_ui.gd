@@ -24,7 +24,6 @@ onready var _player_container4 = get_node_or_null("%UpgradesUIPlayerContainer4")
 class ConsumableToProcess:
 	var consumable_data: ConsumableData
 	var player_index: int
-	var p2w_rung: int = - 1  # Gourmet DLC - P2W lootbox rarity, -1 for vanilla crates
 var _consumables_to_process: Array
 
 class UpgradeToProcess:
@@ -117,7 +116,7 @@ func _show_next_player_options() -> bool:
 		var option_to_process = player_options_to_process.pop_front()
 		if do_process_consumables:
 			_check_extra_items_in_crate_effect(player_index)
-			player_container.show_consumable_data(option_to_process.consumable_data, option_to_process.p2w_rung)
+			player_container.show_consumable_data(option_to_process.consumable_data, int(option_to_process.get_meta("p2w_rung")) if option_to_process.has_meta("p2w_rung") else - 1)
 
 		else:
 			player_container.show_upgrades_for_level(option_to_process.level)

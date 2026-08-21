@@ -16,7 +16,7 @@ orchestrated version). Split by subsystem, verify findings independently, then s
   Testing needs a REPACK (the user does that); you can't easily run the game.
 - Mod builders (git `nicolassut/brotato-mods`, public): `~/brotato-mods/asset-dev/`.
 - Card text: `~/brotato-decompiled/items/custom/custom_translations.csv` (key,en).
-- Content registration: `~/brotato-decompiled/singletons/item_service.tscn`.
+- Content registration (ecosystem Phase 2+): `packs/<id>/pack_data.tres` (tscn is vanilla-only).
 
 ## Read first (context)
 - Memory (auto-loaded index MEMORY.md), esp: `feedback_brotato_formula_and_food_display`,

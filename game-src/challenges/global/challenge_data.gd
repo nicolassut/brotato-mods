@@ -45,7 +45,7 @@ func get_category() -> int:
 	return Category.CHALLENGE
 
 
-func get_name_text(_player_index: int = - 1) -> String:
+func get_name_text() -> String:
 	return Text.text(name, [str(number)])
 
 

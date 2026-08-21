@@ -13,6 +13,40 @@ compositing), `HANDOVER_FOOD_SYSTEM.md` (food internals), `HANDOVER_NEW_ITEMS.md
 
 ---
 
+## 0-bis. THE PACK LAW (ecosystem rule - read ECOSYSTEM.md first)
+
+The mod is becoming an ecosystem of optional packs (`core`, `food`, `fortune`, `forge`,
+`ledger`, `roster` - see `ECOSYSTEM.md` for the partition and architecture). From now on:
+
+1. **Every piece of content declares its pack.** Before building, decide which pack it
+   belongs to (or that it is synergy content with `requires_packs`). State it in the plan,
+   record it in the builder entry. Content with no declared pack does not ship.
+2. **Ext ids come from your pack's range.** Current allocations (formalized from history):
+
+   | range | owner |
+   |---|---|
+   | 800-809 | food (first 10 custom items) |
+   | 811-824 | characters (mixed packs - split lands in ecosystem Phase 2) |
+   | 825-839 | food (Appetite stat + items) |
+   | 840-1003 | food (spawners/foods/pantry/culinary + late characters 998/1004/1005/1008) |
+   | 1006-1007 | ledger (credit_card, bank_loan) |
+   | 1009-1012 | food (Appetite upgrades) |
+   | 1013-1292 | forge (Blacksmith ladder weapons) |
+   | 1293-1295 | fortune (P2W char) + food (gumball colours) |
+   | **1296+** | NEW content: claim the next id AND note the owning pack in the builder |
+
+   Known hazard: 824/825 collision (documented in build_characters.py) - never assume
+   `base+i` is free; check the map.
+3. **New engine hooks are small NAMED functions.** Never inline a feature branch into the
+   middle of a vanilla function; add `_gourmet_<thing>()` (or `if Packs.<id>:` once
+   PackService exists) and call it from one seam line. This is what makes the eventual
+   ModLoader script-extension packaging (ECOSYSTEM.md Phase 8) mechanical instead of a
+   rewrite.
+4. **Synergy content** (requires 2+ packs) must be hidden-when-incomplete: registered only
+   when all required packs are enabled, never grayed out or degraded.
+
+---
+
 ## 0. The two trees + where everything lives (orient first)
 
 - **`~/brotato-decompiled/`** — the LIVE game (Godot 3.6, runs from here). NOT the mod repo.
@@ -21,9 +55,12 @@ compositing), `HANDOVER_FOOD_SYSTEM.md` (food internals), `HANDOVER_NEW_ITEMS.md
 - **Builders write into `~/brotato-decompiled/`.** Every live engine edit MUST also live in
   `game-src/` (the mirror) or a builder/rebuild reverts it. See CLAUDE.md "The two trees" for
   the drift-check one-liner. After editing an engine file: edit one copy, `cmp` the other, sync.
-- **Registration:** `singletons/item_service.tscn` — `characters` / `weapons` / `items` /
-  `foods` arrays, each entry an ext_resource with an explicit ext id. New content takes the next
-  free id (see each builder's `EXT_IDS`).
+- **Registration (ecosystem Phase 2+):** custom content registers at RUNTIME through the
+  pack resources `packs/<id>/pack_data.tres` (applied by the `Packs` autoload at boot), NOT
+  in `item_service.tscn` — the scene file now holds vanilla content only. New content: add
+  its ext_resource + array entry to the OWNING PACK's pack_data.tres (both trees), claim the
+  next free id (1296+), and `check_packs.py` must stay clean. Never re-add custom entries to
+  item_service.tscn.
 - **Card text:** `items/custom/custom_translations.csv` (`KEY,English`).
 - **Codex:** `asset-dev/extract_codex.py` → `codex.json` → `build_codex_html.py` → regenerate
   after any content change (reads the .tres directly, no repack needed).
@@ -91,13 +128,14 @@ Build in this order; tick every box. Files: `asset-dev/characters/build_characte
       so the legs poke out. Installed as `<slug>_face_appearance.tres` (position 0 OTHER, depth
       600). Icon and body come from the SAME source art so they can't drift. LOOK at it on the
       potato with legs.
-- [ ] **Registration** present in `item_service.tscn` `characters` array (the builder does this;
+- [ ] **Registration** present in the owning pack's `packs/<id>/pack_data.tres` `characters`
+      array (the builder does this via `pack_registry.py`;
       confirm it did and did NOT drop or duplicate anything).
 - [ ] **Mechanic code** (if any gimmick): a `RunData.is_<slug>(player_index)` gate + hooks behind
       `character.my_id == "character_<slug>"`. Coop-aware (see §7 coop trap). Boot-safe (§7 `:=`).
 - [ ] **game-src mirror synced** for every engine file you touched (`cmp` each; drift check clean).
 - [ ] **Builders run:** `build_characters.py` (+ any item/food builder you added content to).
-      Confirm `item_service.tscn` did not drift.
+      Confirm `item_service.tscn` did not drift (vanilla-only) and `check_packs.py` is clean.
 - [ ] **Verification gate (§6) passes.**
 
 ---
@@ -118,7 +156,8 @@ Files by type (recipes in §4). Tick every box:
 - [ ] **Icon** delivered per `HANDOVER_ART_PIPELINE.md` (vectorized, thick outline, fit to the
       item frame). Installed; `.png.import` sidecar written.
 - [ ] **Save/resume int rule** (§7) honored for any new %/iterated counter.
-- [ ] **Registration** in `item_service.tscn` (right array) confirmed, no drift.
+- [ ] **Registration** in the owning pack's `pack_data.tres` (right array, via
+      `pack_registry.py`) confirmed; `check_packs.py` clean; tscn untouched.
 - [ ] **game-src mirror synced**; **builders run**; **Verification gate (§6) passes**; **codex
       regenerated.**
 
@@ -161,7 +200,21 @@ Files by type (recipes in §4). Tick every box:
 
 ## 6. VERIFICATION GATE (must ALL pass before "done" / commit)
 
+**One command runs the whole suite: `bash check_all.sh`** (static gates + mirror drift +
+a real boot that must print `PackService VERIFY: OK`). When touching packs, registration,
+or engine seams, ALSO run `bash check_pack_matrix.sh` (4 boots: all/none/food/fortune+forge,
+asserting the exact enabled set and registered counts per combo). Individual gates below.
+
+**THE CONSUMER LAW (2026-08-17, non-negotiable):** before declaring any structural or
+contract change safe, grep-enumerate every READER and WRITER of the thing you changed
+(engine seams, save loader, builders, tools) and verify each one against the new shape.
+Static data-equivalence is not proof - the pack split passed every static gate while
+save-resume, seven builders, and a discovery tool were all broken. Report "verified X, Y;
+NOT verified Z" - never round up to "nothing broke".
+
 1. `cd asset-dev && python3 check_cards.py` → **exits clean** ("card contract OK").
+1a. `python3 asset-dev/check_packs.py` → **exits clean** ("packs OK") — pack registration
+    integrity: every migrated path in exactly one pack, none left in item_service.tscn.
 1b. `python3 asset-dev/check_sync.py` → **no HARD ORPHANS** (every live custom texture's art is
     tracked in the repo). Ideally 0 MISPLACED too — an icon at its canonical `final/` so the builder
     re-installs it on any machine. This is the "nothing gets missed cross-machine" guard.

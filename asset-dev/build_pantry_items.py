@@ -726,26 +726,19 @@ def item_tres(it):
 
 # ---------- registration ----------
 
-ANCHOR = '[ext_resource path="res://items/custom_stats/stat_appetite.tres" type="Resource" id=825]\n'
+# Ecosystem Phase 2+: pantry items register in their pack via pack_registry
+# (credit_card/bank_loan -> ledger, rest -> food); tscn is vanilla-only.
 
 def register(ids):
-    t = open(TSCN).read()
-    assert ANCHOR in t, "appetite stat anchor missing"
-    new_ids = []
-    for slug, ext_id in ids:
-        line = f'[ext_resource path="res://items/custom/{slug}/{slug}_data.tres" type="Resource" id={ext_id}]\n'
-        if line not in t:
-            t = t.replace(ANCHOR, ANCHOR + line)
-            new_ids.append(ext_id)
-    if new_ids:
-        m = re.search(r"^items = \[.*\]$", t, re.M)
-        arr = m.group(0)
-        add = "".join(f", ExtResource( {i} )" for i in new_ids)
-        t = t.replace(arr, arr[:arr.rfind("]")].rstrip() + add + " ]", 1)
-        m3 = re.search(r"load_steps=(\d+)", t)
-        t = t.replace(f"load_steps={m3.group(1)}", f"load_steps={int(m3.group(1)) + len(new_ids)}", 1)
-        open(TSCN, "w").write(t)
-    print(f"registered {len(new_ids)} new ext resources")
+    import sys as _sys
+    _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from pack_registry import register as pack_register, ITEM_PACK_OVERRIDES
+    added = 0
+    for slug, _ext_id in ids:
+        pack = ITEM_PACK_OVERRIDES.get(slug, "food")
+        if pack_register(pack, "items", f"items/custom/{slug}/{slug}_data.tres", quiet=True):
+            added += 1
+    print(f"pack registration: +{added} pantry items" if added else "pantry pack registration up to date")
 
 
 def add_csv_rows():

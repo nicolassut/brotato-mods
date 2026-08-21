@@ -316,9 +316,11 @@ func enable_hurtbox() -> void :
 # Gourmet DLC - Girly panic-teleport (driven by main.gd girly_panic_teleport).
 # begin: freeze move+shoot, go invincible, hold chasers on `origin`, fade out.
 func begin_panic_teleport(origin: Vector2) -> void :
-	_panic_frozen = true
+	# self-qualified: members live in unit.gd's EXTENSION; a bare identifier
+	# parse-fails when ModLoader's sorter preloads this file against vanilla unit
+	self._panic_frozen = true
 	_current_movement = Vector2.ZERO
-	panic_target_override = origin
+	self.panic_target_override = origin
 	disable_hurtbox()
 	_panic_fade(1.0, 0.0, 0.5)
 
@@ -329,8 +331,8 @@ func panic_fade_in() -> void :
 
 
 func end_panic_teleport() -> void :
-	_panic_frozen = false
-	panic_target_override = null
+	self._panic_frozen = false
+	self.panic_target_override = null
 	modulate = Color(1, 1, 1, 1)
 	enable_hurtbox()
 
@@ -527,7 +529,7 @@ func take_damage(value: int, args: TakeDamageArgs) -> Array:
 				RunData.add_tracked_value(player_index, Keys.generate_hash("item_nine_lives"), 1)
 				disable_hurtbox()
 				_invincibility_timer.start(1.0)
-				GourmetTracker.ev("nine_lives_save", {"p": player_index, "used": nine_lives_effects[Keys.nine_lives_used_hash]})
+				Utils.gourmet_tracker.ev("nine_lives_save", {"p": player_index, "used": nine_lives_effects[Keys.nine_lives_used_hash]})
 
 		# Gourmet DLC - Zombie: a hit that leaves him on exactly 1 HP rots him straight back
 		# to full. Fires whether the 1 HP came from Nine Lives or from a plain hit (the Nine
@@ -539,7 +541,7 @@ func take_damage(value: int, args: TakeDamageArgs) -> Array:
 			if undead_character != null and undead_character.my_id == "character_zombie" and max_stats.health > 1:
 				current_stats.health = max_stats.health
 				RunData.add_tracked_value(player_index, undead_character.get_my_id_hash(), 1)
-				GourmetTracker.ev("zombie_reanimate", {"p": player_index})
+				Utils.gourmet_tracker.ev("zombie_reanimate", {"p": player_index})
 
 		emit_signal("health_updated", self, current_stats.health, max_stats.health)
 
@@ -590,13 +592,13 @@ func take_damage(value: int, args: TakeDamageArgs) -> Array:
 					_dodge_damage_args._init(player_index)
 					var caltrops_result: Array = hitbox.from.take_damage(caltrops_dmg, _dodge_damage_args)
 					RunData.add_tracked_value(player_index, Keys.generate_hash("item_caltrops"), caltrops_result[1])
-					GourmetTracker.count("caltrops_hits")
+					Utils.gourmet_tracker.count("caltrops_hits")
 
 			# Gourmet DLC - Pocket Sand: attackers get slowed 20% per stack (max -60%) for 2 seconds
 			var pocket_sand_stacks: int = RunData.get_player_effect(Keys.pocket_sand_slow_hash, player_index)
 			if pocket_sand_stacks > 0 and hitbox != null and is_instance_valid(hitbox.from) and hitbox.from is Unit and not hitbox.from.dead and hitbox.from != self:
 				hitbox.from.apply_gourmet_slow(int(min(60, 20 * pocket_sand_stacks)), 2.0)
-				GourmetTracker.count("pocket_sand_slows")
+				Utils.gourmet_tracker.count("pocket_sand_slows")
 
 			var explode_on_hit_effects = RunData.get_player_effect(Keys.explode_on_hit_hash, player_index)
 			var explode_when_below_hp_effects = RunData.get_player_effect(Keys.explode_when_below_hp_hash, player_index)
@@ -990,7 +992,7 @@ func _clean_up() -> void :
 func _on_InvincibilityTimer_timeout() -> void :
 	# Gourmet DLC - don't re-enable the hurtbox mid panic-teleport (Girly is invincible
 	# for the full second); end_panic_teleport re-enables it when control returns.
-	if not cleaning_up and not _panic_frozen:
+	if not cleaning_up and not self._panic_frozen:
 		enable_hurtbox()
 
 
@@ -1077,7 +1079,7 @@ func on_consumable_picked_up(consumable_data: ConsumableData, food_age: float = 
 			if int(dlc_effects[Keys.gourmet_foods_eaten_hash]) % 10 == 0:
 				RunData.add_stat(Keys.stat_appetite_hash, 1, player_index)
 				RunData.add_tracked_value(player_index, dlc_character.get_my_id_hash(), 1)
-				GourmetTracker.ev("gourmet_app_gain", {"p": player_index})
+				Utils.gourmet_tracker.ev("gourmet_app_gain", {"p": player_index})
 
 			# Gourmet DLC - his fat stacks are driven by how much he has eaten, so reconcile
 			# them here rather than waiting for the next wave to start. main.reconcile_gourmet_
@@ -1263,7 +1265,7 @@ func _apply_food_buff(food_data, food_age: float = - 1.0) -> void :
 		if wine_cellar_bonus > 0:
 			strength_bonus += wine_cellar_bonus
 			RunData.add_tracked_value(player_index, Keys.generate_hash("item_wine_cellar"), 1)
-			GourmetTracker.ev("wine_cellar_aged", {"p": player_index, "f": food_data.my_id})
+			Utils.gourmet_tracker.ev("wine_cellar_aged", {"p": player_index, "f": food_data.my_id})
 
 	# Sugar Rush: eating any food grants a short Speed burst (decaying-stat primitive)
 	if buff_effects[Keys.food_speed_burst_hash] > 0:
@@ -1272,14 +1274,14 @@ func _apply_food_buff(food_data, food_age: float = - 1.0) -> void :
 		_start_decaying_stats_effect_timer(_decaying_stats_on_consumable, Keys.stat_speed_hash, sugar_value, 2)
 		# HUD chip so the burst is visible while it is running, beside the food buffs
 		_set_item_buff_chip("item_sugar_rush", sugar_copies, 2.0)
-		GourmetTracker.count("sugar_bursts")
+		Utils.gourmet_tracker.count("sugar_bursts")
 
 	# Mint ADDS a flat MINT_EXTEND_SECONDS to every active food buff and does nothing else.
 	# It used to reset each timer to that food's BASE duration, which was a nerf the moment a
 	# buff was stacked: three Pizza Slices run one shared timer well past a single slice's
 	# base, so "refreshing" it cut the time left instead of restoring it.
 	if food_data.special_id == "mint":
-		GourmetTracker.ev("mint_extend", {"p": player_index, "n": _food_buffs.size()})
+		Utils.gourmet_tracker.ev("mint_extend", {"p": player_index, "n": _food_buffs.size()})
 		for active_buff in _food_buffs.values():
 			# rest-of-wave buffs have no timer to extend - Mint leaves them untouched
 			if active_buff.has("timer"):
@@ -1288,7 +1290,7 @@ func _apply_food_buff(food_data, food_age: float = - 1.0) -> void :
 
 	# Mystery Meat: 50/50 between its buff and losing 2 HP (Cast-Iron Stomach removes the risk)
 	if food_data.special_id == "mystery_meat" and buff_effects[Keys.mystery_meat_safe_hash] <= 0 and randf() < 0.5:
-		GourmetTracker.ev("mystery_bad", {"p": player_index})
+		Utils.gourmet_tracker.ev("mystery_bad", {"p": player_index})
 		on_damage_effect(2, false, false)
 		return
 
@@ -1296,7 +1298,7 @@ func _apply_food_buff(food_data, food_age: float = - 1.0) -> void :
 	if food_data.special_id == "escargot" and character_id == "character_snail":
 		RunData.add_stat(Keys.stat_armor_hash, 1, player_index)
 		RunData.add_tracked_value(player_index, Keys.generate_hash("character_snail"), 1)
-		GourmetTracker.ev("escargot_snail", {"p": player_index})
+		Utils.gourmet_tracker.ev("escargot_snail", {"p": player_index})
 
 	# Chicken Soup adds flat healing to every food; Gourmet cannot heal from
 	# consumables and several items disable food healing outright
@@ -1395,7 +1397,7 @@ func _apply_food_buff(food_data, food_age: float = - 1.0) -> void :
 				soul_flipped += magnitude[1]
 			buff_effects[Keys.soul_food_streak_hash] = 0
 			RunData.add_tracked_value(player_index, Keys.generate_hash("item_soul_food"), soul_flipped, 1)
-			GourmetTracker.ev("soul_food_negative", {"p": player_index, "f": food_data.my_id, "v": soul_flipped})
+			Utils.gourmet_tracker.ev("soul_food_negative", {"p": player_index, "f": food_data.my_id, "v": soul_flipped})
 			return
 		buff_effects[Keys.soul_food_streak_hash] = int(buff_effects[Keys.soul_food_streak_hash]) + 1
 		if buff_effects[Keys.soul_food_streak_hash] >= 20:
@@ -1405,7 +1407,7 @@ func _apply_food_buff(food_data, food_age: float = - 1.0) -> void :
 				RunData.add_stat(magnitude[0], magnitude[1], player_index)
 				soul_banked += magnitude[1]
 			RunData.add_tracked_value(player_index, Keys.generate_hash("item_soul_food"), soul_banked, 0)
-			GourmetTracker.ev("soul_food_permanent", {"p": player_index, "f": food_data.my_id, "v": soul_banked})
+			Utils.gourmet_tracker.ev("soul_food_permanent", {"p": player_index, "f": food_data.my_id, "v": soul_banked})
 			return
 
 	_grant_food_buff_stack(food_data.my_id, magnitudes, base_duration, food_data.buff_stacks, food_data.buff_total_cap, int(food_data.buff_stack_cap), food_data.icon)
@@ -1422,7 +1424,7 @@ func _apply_food_buff(food_data, food_age: float = - 1.0) -> void :
 		var logged_vals: = []
 		for logged_mag in magnitudes:
 			logged_vals.push_back(logged_mag[1])
-		GourmetTracker.ev("buff_apply", {"f": food_data.my_id, "p": player_index,
+		Utils.gourmet_tracker.ev("buff_apply", {"f": food_data.my_id, "p": player_index,
 			"app": stepify(appetite, 0.1), "str": strength_bonus,
 			"comp": character_id == "character_comp_eater", "vals": logged_vals,
 			"stacks": logged_buff["stacks"], "tl": stepify(logged_buff["timer"].time_left, 0.1),
@@ -1520,7 +1522,7 @@ func _gain_comp_momentum() -> void :
 	TempStats.add_stat(Keys.stat_speed_hash, 5, player_index)
 	var momentum_pickup: int = int(RunData.get_player_effect(Keys.pickup_range_hash, player_index))
 	_item_attract_area.apply_pickup_range_effect(momentum_pickup + 5 * _comp_momentum_stacks)
-	GourmetTracker.count("comp_momentum")
+	Utils.gourmet_tracker.count("comp_momentum")
 
 
 func _food_buff_add_magnitudes(buff: Dictionary, magnitudes: Array, total_cap: int) -> void :
@@ -1549,7 +1551,7 @@ func _on_food_buff_expired(food_id: String) -> void :
 	for stat_hash in buff["applied"]:
 		TempStats.remove_stat(stat_hash, buff["applied"][stat_hash], player_index)
 		removed_total += buff["applied"][stat_hash]
-	GourmetTracker.ev("buff_expire", {"f": food_id, "p": player_index, "stacks": buff["stacks"], "removed": removed_total})
+	Utils.gourmet_tracker.ev("buff_expire", {"f": food_id, "p": player_index, "stacks": buff["stacks"], "removed": removed_total})
 	_food_buffs.erase(food_id)
 	_update_food_buff_bonuses()
 	LinkedStats.reset_player(player_index)
@@ -1565,14 +1567,14 @@ func _update_food_buff_bonuses() -> void :
 	if wanted_belly != _full_belly_applied:
 		TempStats.add_stat(Keys.stat_armor_hash, wanted_belly - _full_belly_applied, player_index)
 		_full_belly_applied = wanted_belly
-		GourmetTracker.ev("belly", {"p": player_index, "a": wanted_belly})
+		Utils.gourmet_tracker.ev("belly", {"p": player_index, "a": wanted_belly})
 
 	var wanted_coma: bool = buff_count >= 5 and bonus_effects[Keys.food_coma_hash] > 0
 	if wanted_coma != _food_coma_active:
 		var coma_sign: int = 1 if wanted_coma else - 1
 		TempStats.add_stat(Keys.stat_percent_damage_hash, 20 * coma_sign, player_index)  # Gourmet DLC - Food Coma: +20% Damage (no speed penalty)
 		_food_coma_active = wanted_coma
-		GourmetTracker.ev("coma", {"p": player_index, "on": wanted_coma})
+		Utils.gourmet_tracker.ev("coma", {"p": player_index, "on": wanted_coma})
 
 	# Picky Eater: -15% Damage while no food buff is active
 	var picky_bonus_char = RunData.get_player_character(player_index)
@@ -1626,7 +1628,7 @@ func _on_ruminant_echo_timeout(food_id: String, magnitudes: Array, total_cap: in
 	_update_food_buff_bonuses()
 	LinkedStats.reset_player(player_index)
 	RunData.add_tracked_value(player_index, Keys.generate_hash("character_ruminant"), 1)
-	GourmetTracker.count("ruminant_echoes")
+	Utils.gourmet_tracker.count("ruminant_echoes")
 
 	if randf() < RUMINANT_ECHO_CHAIN_CHANCE:
 		_schedule_ruminant_echo(food_id, magnitudes, total_cap, stack_cap, chew + 1)

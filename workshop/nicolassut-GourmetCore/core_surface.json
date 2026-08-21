@@ -1,0 +1,270 @@
+{
+ "script_extension_targets": [
+  {
+   "file": "main.gd",
+   "diff_lines": 1211
+  },
+  {
+   "file": "singletons/run_data.gd",
+   "diff_lines": 881
+  },
+  {
+   "file": "entities/units/player/player.gd",
+   "diff_lines": 672
+  },
+  {
+   "file": "ui/menus/shop/base_shop.gd",
+   "diff_lines": 625
+  },
+  {
+   "file": "singletons/item_service.gd",
+   "diff_lines": 484
+  },
+  {
+   "file": "ui/menus/shop/stats_container.gd",
+   "diff_lines": 235
+  },
+  {
+   "file": "ui/menus/shop/shop_items_container.gd",
+   "diff_lines": 232
+  },
+  {
+   "file": "ui/menus/ingame/upgrades_ui_player_container.gd",
+   "diff_lines": 216
+  },
+  {
+   "file": "items/global/effect.gd",
+   "diff_lines": 181
+  },
+  {
+   "file": "singletons/player_run_data.gd",
+   "diff_lines": 167
+  },
+  {
+   "file": "ui/menus/shop/shop_item.gd",
+   "diff_lines": 136
+  },
+  {
+   "file": "singletons/keys.gd",
+   "diff_lines": 105
+  },
+  {
+   "file": "entities/units/unit/unit.gd",
+   "diff_lines": 95
+  },
+  {
+   "file": "ui/menus/shop/item_description.gd",
+   "diff_lines": 86
+  },
+  {
+   "file": "weapons/weapon.gd",
+   "diff_lines": 85
+  },
+  {
+   "file": "singletons/utils.gd",
+   "diff_lines": 57
+  },
+  {
+   "file": "ui/menus/shop/item_popup.gd",
+   "diff_lines": 57
+  },
+  {
+   "file": "singletons/progress_data.gd",
+   "diff_lines": 44
+  },
+  {
+   "file": "items/global/item_parent_data.gd",
+   "diff_lines": 43
+  },
+  {
+   "file": "ui/menus/pages/menu_options.gd",
+   "diff_lines": 32
+  },
+  {
+   "file": "ui/menus/run/run_options_panel.gd",
+   "diff_lines": 32
+  },
+  {
+   "file": "singletons/text.gd",
+   "diff_lines": 31
+  },
+  {
+   "file": "ui/hud/ui_gold.gd",
+   "diff_lines": 31
+  },
+  {
+   "file": "items/global/weapon_data.gd",
+   "diff_lines": 25
+  },
+  {
+   "file": "ui/menus/pages/main_menu.gd",
+   "diff_lines": 22
+  },
+  {
+   "file": "ui/menus/pages/sort_inventory_button.gd",
+   "diff_lines": 21
+  },
+  {
+   "file": "entities/units/neutral/neutral.gd",
+   "diff_lines": 20
+  },
+  {
+   "file": "singletons/entity_service.gd",
+   "diff_lines": 20
+  },
+  {
+   "file": "ui/menus/ingame/upgrades_ui.gd",
+   "diff_lines": 20
+  },
+  {
+   "file": "ui/menus/shop/button_with_icon.gd",
+   "diff_lines": 20
+  },
+  {
+   "file": "singletons/progress_data_loader_v3.gd",
+   "diff_lines": 18
+  },
+  {
+   "file": "entities/structures/turret/garden/garden.gd",
+   "diff_lines": 16
+  },
+  {
+   "file": "ui/menus/shop/synergy_panel.gd",
+   "diff_lines": 14
+  },
+  {
+   "file": "visual_effects/fog_viewport.gd",
+   "diff_lines": 14
+  },
+  {
+   "file": "ui/menus/run/difficulty_selection/difficulty_selection.gd",
+   "diff_lines": 11
+  },
+  {
+   "file": "ui/menus/shop/shop.gd",
+   "diff_lines": 11
+  },
+  {
+   "file": "effects/consumables/consumable_healing_effect.gd",
+   "diff_lines": 9
+  },
+  {
+   "file": "entities/units/movement_behaviors/follow_target_movement_behavior.gd",
+   "diff_lines": 9
+  },
+  {
+   "file": "ui/menus/pages/menu_codex.gd",
+   "diff_lines": 9
+  },
+  {
+   "file": "entities/units/enemies/attack_behaviors/shooting_attack_behavior.gd",
+   "diff_lines": 8
+  },
+  {
+   "file": "singletons/announcement_manager.gd",
+   "diff_lines": 8
+  },
+  {
+   "file": "ui/menus/ingame/character_panel_ui.gd",
+   "diff_lines": 8
+  },
+  {
+   "file": "ui/menus/run/character_selection.gd",
+   "diff_lines": 8
+  },
+  {
+   "file": "entities/units/enemies/enemy.gd",
+   "diff_lines": 7
+  },
+  {
+   "file": "ui/menus/shop/coop_shop.gd",
+   "diff_lines": 6
+  },
+  {
+   "file": "ui/menus/shop/coop_shop_player_container.gd",
+   "diff_lines": 6
+  },
+  {
+   "file": "singletons/menu_data.gd",
+   "diff_lines": 5
+  },
+  {
+   "file": "singletons/weapon_service.gd",
+   "diff_lines": 5
+  },
+  {
+   "file": "entities/units/movement_behaviors/follow_rand_pos_around_player_movement_behavior.gd",
+   "diff_lines": 4
+  },
+  {
+   "file": "items/consumables/consumable.gd",
+   "diff_lines": 4
+  },
+  {
+   "file": "singletons/linked_stats.gd",
+   "diff_lines": 4
+  },
+  {
+   "file": "ui/menus/global/popup_manager.gd",
+   "diff_lines": 4
+  },
+  {
+   "file": "items/characters/character_data.gd",
+   "diff_lines": 2
+  },
+  {
+   "file": "entities/structures/structure.gd",
+   "diff_lines": 1
+  },
+  {
+   "file": "ui/hud/player_ui_elements.gd",
+   "diff_lines": 1
+  }
+ ],
+ "mod_added_scripts": [
+  "dlcs/dlc_1/dlc_1_data.gd",
+  "effects/items/minimalist_all_stats_effect.gd",
+  "entities/structures/turret/beehive/beehive.gd",
+  "entities/structures/turret/cocktail_bar/cocktail_bar.gd",
+  "entities/structures/turret/fancy_restaurant/fancy_restaurant.gd",
+  "entities/structures/turret/food_stand.gd",
+  "entities/structures/turret/ice_cream_truck/ice_cream_truck.gd",
+  "items/foods/food_data.gd",
+  "singletons/butcher_skin.gd",
+  "singletons/game_mode_service.gd",
+  "singletons/gourmet_tracker.gd",
+  "singletons/pack_service.gd",
+  "singletons/special_modifiers.gd",
+  "ui/hud/food_buffs_display.gd",
+  "ui/lobby/lobby.gd",
+  "ui/lobby/lobby_npc.gd",
+  "ui/lobby/lobby_player.gd",
+  "ui/menus/shop/p2w_reel.gd",
+  "weapons/ranged/galley_cannon/galley_bounce_projectile.gd",
+  "weapons/ranged/ice_cream_scoop/scoop_swing_behavior.gd"
+ ],
+ "precautionary_mirrors_identical": [
+  "challenges/global/challenge_data.gd",
+  "global/dlc_data.gd",
+  "global/stats_manager.gd",
+  "items/difficulties/difficulty_data.gd",
+  "items/upgrades/upgrade_data.gd",
+  "pause.gd",
+  "singletons/challenge_service.gd",
+  "singletons/item_service_get_shop_items_args.gd",
+  "ui/menus/debug/debug_menu.gd"
+ ],
+ "non_script_surface": [
+  "entities/structures/turret/bbq_grill/bbq_grill.tscn",
+  "entities/structures/turret/chili_greenhouse/chili_greenhouse.tscn",
+  "entities/structures/turret/farmers_market/farmers_market.tscn",
+  "entities/structures/turret/gumball_machine/gumball_machine.tscn",
+  "entities/structures/turret/hot_dog_cart/hot_dog_cart.tscn",
+  "entities/structures/turret/street_vendor/street_vendor.tscn",
+  "entities/structures/turret/wok_station/wok_station.tscn",
+  "pause.tscn",
+  "project.godot",
+  "singletons/item_service.tscn",
+  "ui/lobby/lobby.tscn"
+ ]
+}

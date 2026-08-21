@@ -158,11 +158,11 @@ def patch_autoload():
 def patch_main():
     p = f"{DEC}/main.gd"
     t = open(p).read()
-    if "ButcherSkin.apply()" in t:
+    if "Utils.butcher_skin.apply()" in t:
         print("main.gd: already patched"); return
     anchor = "func _ready() -> void :\n"
     assert anchor in t
-    t = t.replace(anchor, anchor + "\t# Gourmet DLC - Butcher meat reskin (fruit/tree items show as meat)\n\tButcherSkin.apply()\n", 1)
+    t = t.replace(anchor, anchor + "\t# Gourmet DLC - Butcher meat reskin (fruit/tree items show as meat)\n\tUtils.butcher_skin.apply()\n", 1)
     open(p, "w").write(t)
     print("main.gd: apply() call added")
 
@@ -190,8 +190,8 @@ func _apply_butcher_meat_rack() -> void :
 		return
 	if not has_meta("orig_tree_tex"):
 		set_meta("orig_tree_tex", spr.texture)
-	if ButcherSkin.is_butcher_in_run():
-		var meat = ButcherSkin.world_texture("meat_rack_ingame")
+	if Utils.butcher_skin.is_butcher_in_run():
+		var meat = Utils.butcher_skin.world_texture("meat_rack_ingame")
 		if meat != null:
 			spr.texture = meat
 	else:
@@ -224,8 +224,8 @@ func _ready() -> void :
 		return
 	if not has_meta("orig_garden_tex"):
 		set_meta("orig_garden_tex", spr.texture)
-	if ButcherSkin.is_butcher_in_run():
-		var meat = ButcherSkin.world_texture("meat_locker_ingame")
+	if Utils.butcher_skin.is_butcher_in_run():
+		var meat = Utils.butcher_skin.world_texture("meat_locker_ingame")
 		if meat != null:
 			spr.texture = meat
 	else:

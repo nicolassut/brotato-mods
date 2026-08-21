@@ -192,7 +192,7 @@ var _gold_pool_id: int = Keys.empty_hash
 
 func _ready() -> void :
 	# Gourmet DLC - Butcher meat reskin (fruit/tree items show as meat)
-	ButcherSkin.apply()
+	Utils.butcher_skin.apply()
 	if DebugService.display_fps:
 		_fps_label.show()
 
@@ -257,15 +257,15 @@ func _ready() -> void :
 	# also keeps current health under a reduced max and avoids the stats_manager Nil flush
 	# crash documented on the original block.
 	for special_index in RunData.get_player_count():
-		if not RunData.is_special(special_index):
+		if not RunData.has_wildcard_flow(special_index):
 			continue
-		var sp_pending: Array = SpecialModifiers.stored_ids(Keys.special_next_mods_hash, special_index)
+		var sp_pending: Array = Utils.special_modifiers.stored_ids(Keys.special_next_mods_hash, special_index)
 		if sp_pending.empty():
 			continue
 		var sp_effects: Dictionary = RunData.get_player_effects(special_index)
 		sp_effects[Keys.special_active_mods_hash] = sp_pending.duplicate()
 		sp_effects[Keys.special_next_mods_hash] = []
-		SpecialModifiers.apply_ids(SpecialModifiers.ids_of_life(sp_pending, SpecialModifiers.LIFE_WAVE), special_index)
+		Utils.special_modifiers.apply_ids(Utils.special_modifiers.ids_of_life(sp_pending, Utils.special_modifiers.LIFE_WAVE), special_index)
 
 	var _stats = RunData.connect("stats_updated", self, "on_stats_updated")
 
@@ -408,14 +408,14 @@ func _ready() -> void :
 		var fog_character = RunData.get_player_character(fog_player_index)
 		if fog_character != null and fog_character.my_id == "character_mole":
 			_is_fog_wave = true
-			GourmetTracker.ev("mole_fog", {})
+			Utils.gourmet_tracker.ev("mole_fog", {})
 			break
 
 	# Gourmet DLC - Wildcard (Blackout): the modifier forces fog on, same path as the Mole.
 	# The roll blocks the VISION axis on natural fog waves, so this never doubles one up.
 	if RunData.sum_all_player_effects(Keys.special_force_fog_hash) > 0:
 		_is_fog_wave = true
-		GourmetTracker.ev("wildcard_fog", {})
+		Utils.gourmet_tracker.ev("wildcard_fog", {})
 
 	_fog_viewport._initialize()
 
@@ -429,7 +429,7 @@ func _ready() -> void :
 		# natural bullet-hell waves - this flag was declared but never set before.
 		_is_bullet_hell_wave = true
 		if special_forced_bullet_hell:
-			GourmetTracker.ev("wildcard_bullet_hell", {})
+			Utils.gourmet_tracker.ev("wildcard_bullet_hell", {})
 		if (_wave > 20):
 			_wave = 20
 		var rand_bullet_hell: BulletHell = ZoneService.bullets_hell.pick_random().instance()
@@ -760,7 +760,7 @@ func _on_enemy_died(enemy: Enemy, args: Entity.DieArgs) -> void :
 			var echo_chance: int = RunData.get_player_effect(Keys.echo_chamber_hash, player.player_index)
 			if echo_chance > 0 and randf() < echo_chance / 100.0:
 				RunData.add_tracked_value(player.player_index, Keys.generate_hash("item_echo_chamber"), 1)
-				GourmetTracker.ev("echo_proc", {"p": player.player_index})
+				Utils.gourmet_tracker.ev("echo_proc", {"p": player.player_index})
 				var echo_dmg_when_death = RunData.get_player_effect(Keys.dmg_when_death_hash, player.player_index)
 				if echo_dmg_when_death.size() > 0:
 					var _echo_dmg = handle_stat_damages(echo_dmg_when_death, player.player_index)
@@ -816,7 +816,7 @@ func _on_enemy_took_damage(
 						var cling_result: Array = cling_enemy.take_damage(cling_dmg, cling_args)
 						RunData.add_tracked_value(args.from_player_index, Keys.generate_hash("item_static_cling"), cling_result[1])
 						zapped += 1
-						GourmetTracker.count("static_cling_zaps")
+						Utils.gourmet_tracker.count("static_cling_zaps")
 
 		# Chili Pepper buff: your hits ignite enemies; flat part scales with
 		# Appetite (computed at eat time) and the burn itself carries 0.3x
@@ -836,7 +836,7 @@ func _on_enemy_took_damage(
 				chili_burn.damage = chili_player._food_buffs["consumable_food_chili_pepper"].get("burn_damage", 0)
 				chili_burn.from = chili_player
 				enemy.apply_burning(chili_burn)
-				GourmetTracker.count("chili_ignites")
+				Utils.gourmet_tracker.count("chili_ignites")
 
 
 func _on_neutral_died(neutral: Neutral, args: Entity.DieArgs) -> void :
@@ -881,7 +881,7 @@ func _on_player_took_damage_food(unit: Unit, _value: int, _knockback_direction: 
 			if now - last >= 10000:
 				_food_trigger_cooldowns[unit.player_index][Keys.panic_button_hash] = now
 				knockback_burst(unit.global_position, 30.0, 350.0)
-				GourmetTracker.ev("panic_button", {"p": unit.player_index})
+				Utils.gourmet_tracker.ev("panic_button", {"p": unit.player_index})
 
 
 func on_player_wanted_to_spawn_gold(value: int, pos: Vector2, spread: int) -> void :
@@ -996,7 +996,7 @@ func spawn_consumables(unit: Unit) -> void :
 			for di in RunData.get_player_count():
 				doubling_chance = int(max(doubling_chance, RunData.get_player_effects(di)[Keys.second_helping_hash]))
 			if doubling_chance > 0 and randf() < doubling_chance / 100.0:
-				GourmetTracker.count("enemy_drop_food_doubled")
+				Utils.gourmet_tracker.count("enemy_drop_food_doubled")
 				for shi in RunData.get_player_count():
 					if RunData.get_player_effects(shi)[Keys.second_helping_hash] > 0:
 						RunData.add_tracked_value(shi, Keys.generate_hash("item_second_helping"), 1)
@@ -1030,7 +1030,7 @@ func spawn_food(food_data: ConsumableData, pos: Vector2, angle: float = - 1.0, p
 		if picky_gate_char != null and picky_gate_char.my_id == "character_picky_eater":
 			var picky_selected: int = RunData.get_player_effect(Keys.selected_spawner_hash, player_index)
 			if picky_selected != 0 and picky_selected != Keys.generate_hash(food_data.my_id):
-				GourmetTracker.count("picky_gated_spawns")
+				Utils.gourmet_tracker.count("picky_gated_spawns")
 				return
 
 	# Gourmet DLC - Intermittent Fasting halves spawns; Second Helping can double
@@ -1040,7 +1040,7 @@ func spawn_food(food_data: ConsumableData, pos: Vector2, angle: float = - 1.0, p
 		if spawn_effects[Keys.food_spawns_halved_hash] > 0:
 			_food_fasting_counters[player_index] += 1
 			if _food_fasting_counters[player_index] % 2 == 0:
-				GourmetTracker.count("fasting_skips")
+				Utils.gourmet_tracker.count("fasting_skips")
 				return
 		if spawn_effects[Keys.second_helping_hash] > 0 and randf() < spawn_effects[Keys.second_helping_hash] / 100.0:
 			RunData.add_tracked_value(player_index, Keys.generate_hash("item_second_helping"), 1)
@@ -1053,7 +1053,7 @@ func spawn_food(food_data: ConsumableData, pos: Vector2, angle: float = - 1.0, p
 			var first_food_char = RunData.get_player_character(player_index)
 			if first_food_char != null and first_food_char.my_id == "character_gourmet":
 				_gourmet_first_food_done[player_index] = true
-				GourmetTracker.count("gourmet_doubled_first_food")
+				Utils.gourmet_tracker.count("gourmet_doubled_first_food")
 				spawn_food(food_data, pos, - 1.0, player_index, true)
 
 	var consumable: Consumable = get_node_from_pool(_consumable_pool_id, _consumables_container)
@@ -1078,13 +1078,13 @@ func spawn_food(food_data: ConsumableData, pos: Vector2, angle: float = - 1.0, p
 	consumable.set_meta("food_spawned_at", _food_wave_time)
 	consumable.drop(pos, 0, get_food_spawn_destination(pos, angle))
 	_consumables.push_back(consumable)
-	GourmetTracker.ev("food_spawn", {"f": food_data.my_id, "p": player_index, "b": is_bonus})
+	Utils.gourmet_tracker.ev("food_spawn", {"f": food_data.my_id, "p": player_index, "b": is_bonus})
 
 
 # Gourmet DLC - an uneaten food rots away; players owning a Doggy Bag bank it
 # as a Leftover for the next wave start
 func expire_food(consumable: Consumable) -> void :
-	GourmetTracker.ev("food_expire", {"f": consumable.consumable_data.my_id})
+	Utils.gourmet_tracker.ev("food_expire", {"f": consumable.consumable_data.my_id})
 	# Gourmet DLC - a Leftover must NOT bank another Leftover: the bank never resets and
 	# every bank is served back next wave, so self-feeding would compound into an unbounded
 	# pile of scraps within a few waves. _process_food_expiry already skips Leftovers
@@ -1110,7 +1110,7 @@ func expire_food(consumable: Consumable) -> void :
 		if is_dishwasher:
 			RunData.add_gold(1, i)
 			RunData.add_tracked_value(i, Keys.generate_hash("character_dishwasher"), 1)
-			GourmetTracker.count("dishwasher_refunds")
+			Utils.gourmet_tracker.count("dishwasher_refunds")
 		# Compost Bin turns rot into permanent Harvesting
 		if expiry_effects[Keys.compost_bin_hash] > 0:
 			RunData.add_stat(Keys.stat_harvesting_hash, expiry_effects[Keys.compost_bin_hash], i)
@@ -1198,7 +1198,7 @@ func _process_slime_trail() -> void :
 					# the enemy actually lost, which is what "Damage dealt" should report.
 					var slimed_result: Array = trail_enemy.take_damage(slime_damage, slime_args)
 					RunData.add_tracked_value(_snail_player_index, Keys.generate_hash("character_snail"), slimed_result[1], 1)
-					GourmetTracker.count("slime_ticks")
+					Utils.gourmet_tracker.count("slime_ticks")
 				break
 
 
@@ -1222,7 +1222,7 @@ func count_food_trigger(trigger_hash: int, player_index: int, amount: int = 1) -
 	if trigger_speed != 0:
 		threshold = int(max(1, round(threshold * 100.0 / (100.0 + trigger_speed))))
 	var count: int = _food_trigger_counters[player_index].get(trigger_hash, 0) + amount
-	GourmetTracker.count("prog_" + GourmetTracker.trigger_name(trigger_hash), amount)
+	Utils.gourmet_tracker.count("prog_" + Utils.gourmet_tracker.trigger_name(trigger_hash), amount)
 	while count >= threshold:
 		count -= threshold
 		fire_food_trigger(trigger_hash, player_index)
@@ -1249,7 +1249,7 @@ func fire_food_trigger(trigger_hash: int, player_index: int) -> void :
 	if player.dead:
 		return
 
-	GourmetTracker.ev("trigger_fire", {"tr": GourmetTracker.trigger_name(trigger_hash), "p": player_index})
+	Utils.gourmet_tracker.ev("trigger_fire", {"tr": Utils.gourmet_tracker.trigger_name(trigger_hash), "p": player_index})
 	for entry in RunData.get_player_effect(trigger_hash, player_index):
 		var food_data = ItemService.get_food_from_hash(entry[0])
 		if food_data != null:
@@ -1286,7 +1286,7 @@ func convert_fruit_consumable(consumable_data: ConsumableData) -> ConsumableData
 				if food.my_id != "consumable_food_leftovers":
 					food_pool.push_back(food)
 			if food_pool.size() > 0:
-				GourmetTracker.count("gourmet_fruit_conversions")
+				Utils.gourmet_tracker.count("gourmet_fruit_conversions")
 				return Utils.get_rand_element(food_pool)
 		elif fruit_character.my_id == "character_butcher":
 			has_butcher = true
@@ -1295,7 +1295,7 @@ func convert_fruit_consumable(consumable_data: ConsumableData) -> ConsumableData
 	if has_butcher:
 		var steak = ItemService.get_food_from_hash(Keys.generate_hash("consumable_food_steak"))
 		if steak != null:
-			GourmetTracker.count("butcher_fruit_to_steak")
+			Utils.gourmet_tracker.count("butcher_fruit_to_steak")
 			return steak
 	return consumable_data
 
@@ -1447,7 +1447,7 @@ func _process_food_triggers(delta: float) -> void :
 		if wanted_regen != _space_heater_applied[i]:
 			TempStats.add_stat(Keys.stat_hp_regeneration_hash, wanted_regen - _space_heater_applied[i], i)
 			_space_heater_applied[i] = wanted_regen
-			GourmetTracker.ev("space_heater", {"p": i, "applied": wanted_regen})
+			Utils.gourmet_tracker.ev("space_heater", {"p": i, "applied": wanted_regen})
 
 
 func on_consumable_picked_up(consumable: Node, player_index: int) -> void :
@@ -1465,7 +1465,9 @@ func on_consumable_picked_up(consumable: Node, player_index: int) -> void :
 
 	var consumable_data = consumable.consumable_data
 	if consumable_data.to_be_processed_at_end_of_wave:
-		var consumable_to_process = UpgradesUI.ConsumableToProcess.new()
+		# load-by-path: a bound UpgradesUI reference compiles STALE in the Workshop
+		# build (main.gd's extension compiles before upgrades_ui's takeover)
+		var consumable_to_process = load("res://ui/menus/ingame/upgrades_ui.gd").ConsumableToProcess.new()
 		consumable_to_process.consumable_data = consumable_data
 
 		var player_index_to_add_to = player_index
@@ -1484,9 +1486,11 @@ func on_consumable_picked_up(consumable: Node, player_index: int) -> void :
 		# vanilla green box (display duplicate; the data is otherwise identical)
 		var display_consumable = consumable_data
 		if consumable.has_meta("p2w_rung") and int(consumable.get_meta("p2w_rung")) > 0:
-			consumable_to_process.p2w_rung = int(consumable.get_meta("p2w_rung"))
+			# p2w rung rides in META, not a redeclared inner class - an extension
+			# cannot change ConsumableToProcess without breaking its type checks
+			consumable_to_process.set_meta("p2w_rung", int(consumable.get_meta("p2w_rung")))
 			display_consumable = consumable_data.duplicate()
-			display_consumable.icon = load("res://items/custom/p2w/chest_%d/chest_%d.png" % [consumable_to_process.p2w_rung, consumable_to_process.p2w_rung])
+			display_consumable.icon = load("res://items/custom/p2w/chest_%d/chest_%d.png" % [int(consumable.get_meta("p2w_rung")), int(consumable.get_meta("p2w_rung"))])
 			consumable_to_process.consumable_data = display_consumable
 		_consumables_to_process[player_index_to_add_to].push_back(consumable_to_process)
 		_things_to_process_player_containers[player_index_to_add_to].consumables.add_element(display_consumable)
@@ -1500,7 +1504,7 @@ func on_consumable_picked_up(consumable: Node, player_index: int) -> void :
 	# Fire melee-range ignition, Food Fight projectile, Buffet Insurance tracking
 	if consumable_data.my_id.begins_with("consumable_food_"):
 		_ate_food_this_wave[player_index] = true
-		GourmetTracker.ev("food_pickup", {"f": consumable_data.my_id, "p": player_index})
+		Utils.gourmet_tracker.ev("food_pickup", {"f": consumable_data.my_id, "p": player_index})
 		var eat_effects = RunData.get_player_effects(player_index)
 		var eat_player: Player = _players[player_index]
 
@@ -1508,7 +1512,7 @@ func on_consumable_picked_up(consumable: Node, player_index: int) -> void :
 			if randf() < 0.1:
 				RunData.add_gold(RunData.current_wave, player_index)
 				RunData.add_tracked_value(player_index, Keys.generate_hash("item_snack_break"), RunData.current_wave)
-				GourmetTracker.ev("snack_break", {"p": player_index, "mats": RunData.current_wave})
+				Utils.gourmet_tracker.ev("snack_break", {"p": player_index, "mats": RunData.current_wave})
 
 		if eat_effects[Keys.grease_fire_hash] > 0 and not eat_player.dead:
 			var grease_appetite: float = max(0.0, Utils.get_stat(Keys.stat_appetite_hash, player_index))
@@ -1522,16 +1526,16 @@ func on_consumable_picked_up(consumable: Node, player_index: int) -> void :
 				if is_instance_valid(grease_enemy) and not grease_enemy.dead and eat_player.global_position.distance_to(grease_enemy.global_position) <= 150.0:
 					grease_enemy.apply_burning(grease_burn)
 					RunData.add_tracked_value(player_index, Keys.generate_hash("item_grease_fire"), 1)
-					GourmetTracker.count("grease_ignites")
+					Utils.gourmet_tracker.count("grease_ignites")
 
 		# Burp of Power: eating shoves nearby enemies away
 		if eat_effects[Keys.burp_of_power_hash] > 0 and not eat_player.dead:
 			knockback_burst(eat_player.global_position, eat_effects[Keys.burp_of_power_hash], 250.0)
-			GourmetTracker.count("burp_bursts")
+			Utils.gourmet_tracker.count("burp_bursts")
 
 		var projectiles_on_eat = eat_effects[Keys.projectiles_on_eat_hash]
 		if projectiles_on_eat.size() > 0 and not eat_player.dead:
-			GourmetTracker.count("food_fight_projectiles", projectiles_on_eat[0])
+			Utils.gourmet_tracker.count("food_fight_projectiles", projectiles_on_eat[0])
 			var eat_proj_stats = WeaponService.init_ranged_stats(projectiles_on_eat[1], player_index, true)
 			for _p in projectiles_on_eat[0]:
 				_spawn_projectile_args.damage_tracking_key_hash = Keys.generate_hash("item_food_fight")
@@ -1734,7 +1738,7 @@ func on_levelled_up(player_index: int) -> void :
 	var level = RunData.get_player_level(player_index)
 	_things_to_process_player_containers[player_index].upgrades.add_element(ItemService.get_icon(Keys.icon_upgrade_to_process_hash), level)
 
-	var upgrade_to_process = UpgradesUI.UpgradeToProcess.new()
+	var upgrade_to_process = load("res://ui/menus/ingame/upgrades_ui.gd").UpgradeToProcess.new()
 	upgrade_to_process.level = level
 	upgrade_to_process.player_index = player_index
 	_upgrades_to_process[player_index].push_back(upgrade_to_process)
@@ -1953,10 +1957,10 @@ func get_gold_bag_pos() -> Vector2:
 
 
 func _on_EndWaveTimer_timeout() -> void :
-	GourmetTracker.flush_counters("wave_end")
+	Utils.gourmet_tracker.flush_counters("wave_end")
 	for i in _players.size():
 		var end_effects = RunData.get_player_effects(i)
-		GourmetTracker.ev("wave_end", {"p": i, "ate": _ate_food_this_wave[i], "bank": end_effects[Keys.banked_leftovers_hash], "buys": end_effects[Keys.shop_purchases_hash], "s": GourmetTracker.stat_snapshot(i)})
+		Utils.gourmet_tracker.ev("wave_end", {"p": i, "ate": _ate_food_this_wave[i], "bank": end_effects[Keys.banked_leftovers_hash], "buys": end_effects[Keys.shop_purchases_hash], "s": Utils.gourmet_tracker.stat_snapshot(i)})
 
 		# Gourmet DLC - Butcher: 20% of the temp Damage he built this wave (1% per consumable
 		# eaten) is rendered down into PERMANENT Appetite. His per-wave counter resets with the
@@ -1969,7 +1973,7 @@ func _on_EndWaveTimer_timeout() -> void :
 				if rendered_appetite > 0:
 					RunData.add_stat(Keys.stat_appetite_hash, rendered_appetite, i)
 					RunData.add_tracked_value(i, butcher_character.get_my_id_hash(), rendered_appetite, 1)
-					GourmetTracker.ev("butcher_render", {"p": i, "dmg": butcher_player._butcher_wave_damage, "app": rendered_appetite})
+					Utils.gourmet_tracker.ev("butcher_render", {"p": i, "dmg": butcher_player._butcher_wave_damage, "app": rendered_appetite})
 				butcher_player._butcher_wave_damage = 0
 
 	_coop_upgrades_ui.propagate_call("set_process_input", [true])
@@ -2139,13 +2143,13 @@ func _on_WaveTimer_timeout() -> void :
 	# LIFE_SHOP modifiers are deliberately NOT removed here: they exist to affect the shop that
 	# is about to open, and are stripped when it closes (base_shop).
 	for special_index in RunData.get_player_count():
-		if not RunData.is_special(special_index):
+		if not RunData.has_wildcard_flow(special_index):
 			continue
 
 		var sp_effects: Dictionary = RunData.get_player_effects(special_index)
-		var active: Array = SpecialModifiers.stored_ids(Keys.special_active_mods_hash, special_index)
+		var active: Array = Utils.special_modifiers.stored_ids(Keys.special_active_mods_hash, special_index)
 		if not active.empty():
-			SpecialModifiers.unapply_ids(SpecialModifiers.ids_of_life(active, SpecialModifiers.LIFE_WAVE), special_index)
+			Utils.special_modifiers.unapply_ids(Utils.special_modifiers.ids_of_life(active, Utils.special_modifiers.LIFE_WAVE), special_index)
 			sp_effects[Keys.special_active_mods_hash] = []
 
 		# Never hand the player an event the wave was already going to run: two fog of wars, or
@@ -2173,13 +2177,13 @@ func _on_WaveTimer_timeout() -> void :
 			blocked.push_back("BULLET_HELL")
 		if _is_elite_wave or _is_horde_wave:
 			blocked.push_back("ENEMY_COUNT")
-		var rolled: Array = SpecialModifiers.roll_for_wave(next_wave, special_index, blocked)
+		var rolled: Array = Utils.special_modifiers.roll_for_wave(next_wave, special_index, blocked)
 		sp_effects[Keys.special_next_mods_hash] = rolled
 
 		# shop-scoped ones apply NOW so they are live in the shop that follows this wave
-		var shop_ids: Array = SpecialModifiers.ids_of_life(rolled, SpecialModifiers.LIFE_SHOP)
+		var shop_ids: Array = Utils.special_modifiers.ids_of_life(rolled, Utils.special_modifiers.LIFE_SHOP)
 		if not shop_ids.empty():
-			SpecialModifiers.apply_ids(shop_ids, special_index)
+			Utils.special_modifiers.apply_ids(shop_ids, special_index)
 			sp_effects[Keys.special_shop_mods_hash] = shop_ids.duplicate()
 
 	emit_signal("end_of_the_wave")
@@ -2319,7 +2323,7 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void :
 	for i in _players.size():
 		var effects = RunData.get_player_effects(i)
 
-		var player_ui: = PlayerUIElements.new()
+		var player_ui = load("res://ui/hud/player_ui_elements.gd").new()
 		var player_idx_string = str(i + 1)
 
 		player_ui.player_index = i
@@ -2418,7 +2422,7 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void :
 						break
 			if drone_delivered > 0:
 				RunData.add_tracked_value(i, Keys.generate_hash("item_delivery_drone"), drone_delivered)
-				GourmetTracker.ev("drone_deliveries", {"p": i, "n": drone_delivered})
+				Utils.gourmet_tracker.ev("drone_deliveries", {"p": i, "n": drone_delivered})
 
 		# Gourmet DLC - schedule mid-wave foods (Pizza Delivery once; Street Vendor 1 to 3 times)
 		var food_wave_duration: float = _wave_timer.wait_time
@@ -2457,7 +2461,7 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void :
 				leftovers_due = int(min(leftovers_due, leftovers_serve_cap))
 				for _leftover in range(leftovers_due):
 					_food_scheduled_spawns[i].push_back([rand_range(0.05, 0.9) * food_wave_duration, leftovers_hash, 1])
-				GourmetTracker.ev("leftovers_served", {"p": i, "n": leftovers_due})
+				Utils.gourmet_tracker.ev("leftovers_served", {"p": i, "n": leftovers_due})
 
 		# Gourmet DLC - Grandma's Cookbook needs to know when this player takes damage
 		var _error_food_dmg = _players[i].connect("took_damage", self, "_on_player_took_damage_food")
@@ -2479,8 +2483,8 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void :
 		for owned in RunData.get_player_items(i):
 			tracked_items.push_back(owned.my_id)
 		var wave_char = RunData.get_player_character(i)
-		GourmetTracker.flush_counters("wave_start")
-		GourmetTracker.ev("wave_start", {"p": i, "ch": wave_char.my_id if wave_char != null else "", "items": tracked_items, "s": GourmetTracker.stat_snapshot(i)})
+		Utils.gourmet_tracker.flush_counters("wave_start")
+		Utils.gourmet_tracker.ev("wave_start", {"p": i, "ch": wave_char.my_id if wave_char != null else "", "items": tracked_items, "s": Utils.gourmet_tracker.stat_snapshot(i)})
 
 		_on_player_health_updated(_players[i], _players[i].current_stats.health, _players[i].max_stats.health)
 
@@ -2569,7 +2573,7 @@ func _on_EntitySpawner_structure_spawned(structure: Structure) -> void :
 		if not player_anchors.has(anchor_hash):
 			player_anchors[anchor_hash] = []
 		player_anchors[anchor_hash].push_back(structure)
-		GourmetTracker.ev("structure_anchor", {"f": structure.anchored_food, "p": structure.player_index})
+		Utils.gourmet_tracker.ev("structure_anchor", {"f": structure.anchored_food, "p": structure.player_index})
 
 
 func _on_EntitySpawner_structure_respawned(structure):
@@ -2953,7 +2957,7 @@ func girly_panic_teleport(unit: Unit) -> void :
 		if girly_food != null:
 			spawn_food(girly_food, girly_best + girly_drop[1], - 1.0, girly_index, true)
 	RunData.add_tracked_value(girly_index, Keys.generate_hash("character_girly"), 1)
-	GourmetTracker.ev("girly_panic", {"p": girly_index})
+	Utils.gourmet_tracker.ev("girly_panic", {"p": girly_index})
 
 	# phase 2 (0.5s): still frozen + invincible + fading in, enemies still on the old spot
 	yield(get_tree().create_timer(0.5), "timeout")

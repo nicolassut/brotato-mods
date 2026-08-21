@@ -68,8 +68,17 @@ POOLS = {
                  "frying_pan","rolling_pin","dinner_bell","whisk","corn_cannon"],
  "snail":       ["spiky_shield","rock","plank","stick","cactus_mace","jousting_lance",
                  "screwdriver","trident_fork","fish_slapper","icicle","sauce_blaster"],
- "blacksmith":  ["wrench","hatchet","screwdriver","rock","knife","spear","torch","chopper",
-                 "cactus_mace","skewer","fighting_stick","jousting_lance"],
+ # every weapon class gets 1-2 starting options (his whole kit is class-based, so
+ # the start must not lock him out of a class): blade chopper; blunt rock/spiky_shield;
+ # culinary skewer/cleaver; ethereal ghost_axe/ghost_scepter; explosive plank/shredder;
+ # fire torch/wand; gun pistol/smg; heavy cactus_mace; medical medical_gun/scissors;
+ # medieval fighting_stick/crossbow; precise knife/dagger; primitive spear/hatchet;
+ # support taser/pruner; tool wrench/screwdriver; unarmed fist/hand
+ "blacksmith":  ["wrench","screwdriver","rock","spiky_shield","knife","dagger","spear",
+                 "hatchet","torch","wand","chopper","cactus_mace","skewer","cleaver",
+                 "fighting_stick","crossbow","pistol","smg","plank","shredder",
+                 "ghost_axe","ghost_scepter","medical_gun","scissors","taser","pruner",
+                 "fist","hand"],
  "juggler":     ["knife","dagger","scissors","shuriken","chopper","skewer","wand",
                  "pizza_cutter","shredder","champagne_popper"],
  "mole":        ["screwdriver","claw","dagger","hand","knife","scissors","rock","skewer",
@@ -639,31 +648,17 @@ def main():
     # per-character idempotent registration: only add a char whose data.tres isn't
     # registered yet (so a new 15th char slots in without re-touching the other 14,
     # and reruns are no-ops). ext id = EXT_IDS override else base+index.
-    with open(TSCN) as f: t = f.read()
-    base = 811
-    ids = {slug: EXT_IDS.get(slug, base+i) for i,(slug,*_) in enumerate(CHARS)}
+    # Ecosystem Phase 2+: characters register in their PACK, never in
+    # item_service.tscn (which holds vanilla only). Idempotent by path.
+    import sys as _sys
+    _sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    from pack_registry import register as pack_register, CHAR_PACKS
     added = 0
     for slug,*_ in CHARS:
-        path = f"res://items/custom_characters/{slug}/{slug}_data.tres"
-        if path in t:
-            continue
-        eid = ids[slug]
-        assert f"id={eid}]" not in t, f"ext id {eid} already used - give {slug} a free EXT_IDS"
-        last_ext = t.rfind("[ext_resource ")
-        assert last_ext != -1, "no ext_resource declarations found"
-        insert_at = t.index("\n", last_ext) + 1
-        t = t[:insert_at] + f'[ext_resource path="{path}" type="Resource" id={eid}]\n' + t[insert_at:]
-        m = re.search(r"characters = \[ (.*?) \]", t)
-        assert m, "characters array not found"
-        t = t.replace(m.group(0), "characters = [ " + m.group(1) + f", ExtResource( {eid} )" + " ]", 1)
-        m = re.search(r"load_steps=(\d+)", t)
-        t = t.replace(f"load_steps={m.group(1)}", f"load_steps={int(m.group(1))+1}", 1)
-        added += 1
-    if added:
-        with open(TSCN,"w") as f: f.write(t)
-        print(f"patched item_service.tscn: +{added} character(s)")
-    else:
-        print("item_service.tscn already patched - skipped")
+        assert slug in CHAR_PACKS, f"character '{slug}' has no pack in pack_registry.CHAR_PACKS - assign it first (PIPELINE Pack Law)"
+        if pack_register(CHAR_PACKS[slug], "characters", f"items/custom_characters/{slug}/{slug}_data.tres"):
+            added += 1
+    print(f"pack registration: +{added} character(s)" if added else "pack registration up to date")
 
 if __name__ == "__main__":
     main()
