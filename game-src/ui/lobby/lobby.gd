@@ -283,17 +283,13 @@ func _build_offduty_corner() -> void :
 	_offduty_prop("od_skewers", Vector2(-1330, -770))
 	_offduty_prop("od_crate2", Vector2(-1330, -880))
 	# rug lounge: radio / cooler / bottles / dice at the quarters
-	_offduty_prop("od_radio", Vector2(-1120, -755))
 	_offduty_prop("od_cooler", Vector2(-965, -748))
 	_offduty_prop("od_dice", Vector2(-948, -650))
-	# bottles moved OFF the carpet - drinks live by the fire now
-	_offduty_prop("od_bottles", Vector2(-1205, -672))
 	# card circle: crate + barrel seats, the game on the ground between
 	_offduty_prop("od_crate", Vector2(-855, -720))
 	_offduty_prop("od_barrel", Vector2(-745, -715))
 	# hammock by the wall + lantern + plant
 	_offduty_prop("od_hammock", Vector2(-1280, -1055))
-	_offduty_prop("od_lantern", Vector2(-1155, -1070))
 	_offduty_prop("od_plant", Vector2(-720, -1120))
 	# the mode guys, lounging (HUB_PLAN 4c lineup)
 	_offduty_guy("character_gourmet", Vector2(-1150, -860), true)

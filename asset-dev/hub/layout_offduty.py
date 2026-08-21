@@ -24,14 +24,11 @@ PROPS = [  # (texture, base position)
     ("od_cookpot",  (-1240, -788)),
     ("od_skewers",  (-1330, -770)),
     ("od_crate2",   (-1330, -880)),
-    ("od_radio",    (-1120, -755)),
     ("od_cooler",   (-965, -748)),
-    ("od_bottles",  (-1205, -672)),
     ("od_dice",     (-948, -650)),
     ("od_crate",    (-855, -720)),
     ("od_barrel",   (-745, -715)),
     ("od_hammock",  (-1280, -1055)),
-    ("od_lantern",  (-1155, -1070)),
     ("od_plant",    (-720, -1120)),
 ]
 GUYS = [  # (label, position, face_left)

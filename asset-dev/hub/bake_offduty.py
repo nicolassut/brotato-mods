@@ -13,10 +13,7 @@ DST2 = os.path.expanduser("~/brotato-decompiled/ui/lobby/art/")
 PROPS = {
     "od_dartboard": ("raw/prop_dartboard.png", 64),
     "od_cooler":    ("raw/prop_cooler.png", 60),
-    "od_lantern":   ("raw/prop_lantern.png", 40),
-    "od_radio":     ("raw/prop_radio.png", 56),
     "od_dice":      ("raw/prop_dice.png", 48),
-    "od_bottles":   ("raw/prop_bottles.png", 52),
     "od_cookpot":   ("raw/prop_cookpot.png", 90),
     "od_plant":     ("raw/prop_plant.png", 52),
     "od_skewers":   ("raw/prop_skewers.png", 80),
