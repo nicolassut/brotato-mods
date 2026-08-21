@@ -115,6 +115,14 @@ func _build_floor() -> void :
 	_ground_overlay("res://ui/lobby/art/wall_north.png", Rect2(-1376, -1356, 2752, 194))
 	_ground_overlay("res://ui/lobby/art/stairs.png", STAIR_WEST)
 	_ground_overlay("res://ui/lobby/art/stairs_e.png", STAIR_EAST)
+	# OFF DUTY corner decals (flat on ground/wall, under the YSort world)
+	_decal("res://ui/lobby/art/od_rug.png", Vector2(-1180, -772))
+	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1180, -778))
+	_decal("res://ui/lobby/art/od_mound.png", Vector2(-1020, -700))
+	_decal("res://ui/lobby/art/od_sign.png", Vector2(-1060, -1240))
+	_decal("res://ui/lobby/art/od_dartboard.png", Vector2(-920, -1235))
+	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1310, -1225))
+	_decal("res://ui/lobby/art/od_tally.png", Vector2(-1140, -1295))
 	# object ground shadows (drawn under the YSort world): decent ellipse
 	# under the hovering shuttle, subtle silhouette cast right of the booth
 	_object_shadow("res://ui/lobby/art/shuttle_shadow.png", Vector2(0, -898))
@@ -123,6 +131,7 @@ func _build_floor() -> void :
 	_world = YSort.new()
 	add_child(_world)
 	_build_slot_buildings()
+	_build_offduty_corner()
 	# the north wall is solid at its base - the deck ends at the wall face
 	_add_wall(Rect2(-1376, -1196, 2752, 20))
 	# collision: cliff strip blocks deck<->plaza except through the stairs
@@ -175,6 +184,72 @@ func _ground_overlay(path: String, rect: Rect2) -> void :
 	sprite.position = Vector2(rect.position.x + rect.size.x / 2.0,
 			rect.position.y + sprite.texture.get_height() / 2.0)
 	add_child(sprite)
+
+
+func _offduty_prop(name: String, base: Vector2) -> void :
+	# standing prop: base-anchored sprite in the YSort world
+	var path: String = "res://ui/lobby/art/" + name + ".png"
+	if not ResourceLoader.exists(path):
+		return
+	var s: = Sprite.new()
+	var tex: Texture = load(path)
+	s.texture = tex
+	s.position = base
+	s.offset = Vector2(0, -tex.get_height() / 2.0)
+	_world.add_child(s)
+
+
+func _build_offduty_corner() -> void :
+	# OFF DUTY corner v1 (HUB_PLAN 4c, layout C scatter camp): props placed;
+	# the mode-guy characters land with the game-mode rework. The mode
+	# shrine stays as the chooser until then.
+	# fire spot on the rug
+	var torch_scene = load("res://particles/burning/torch_burning_particles.tscn")
+	if torch_scene != null:
+		var fire = torch_scene.instance()
+		fire.position = Vector2(-1180, -782)
+		fire.scale = Vector2(2.0, 2.0)
+		_world.add_child(fire)
+	_offduty_prop("od_cookpot", Vector2(-1146, -756))
+	_offduty_prop("od_skewers", Vector2(-1252, -742))
+	_offduty_prop("od_cooler", Vector2(-1108, -742))
+	_offduty_prop("od_bottles", Vector2(-1076, -720))
+	_offduty_prop("od_radio", Vector2(-1222, -726))
+	_offduty_prop("od_crate", Vector2(-1268, -800))
+	_offduty_prop("od_dice", Vector2(-1290, -756))
+	_offduty_prop("od_crate", Vector2(-1120, -822))
+	# card table cluster (the P2W/Smith game waits for its players)
+	_offduty_prop("od_crate", Vector2(-810, -742))
+	_offduty_prop("od_crate", Vector2(-864, -706))
+	_offduty_prop("od_crate", Vector2(-756, -704))
+	var cards: = Sprite.new()
+	cards.texture = load("res://ui/lobby/art/od_cards.png")
+	cards.position = Vector2(-812, -741)
+	cards.offset = Vector2(0, -32)
+	_world.add_child(cards)
+	var chips: = Sprite.new()
+	chips.texture = load("res://ui/lobby/art/od_chips.png")
+	chips.position = Vector2(-788, -740)
+	chips.offset = Vector2(0, -34)
+	_world.add_child(chips)
+	# hammock by the wall + lantern
+	_offduty_prop("od_hammock", Vector2(-1270, -1060))
+	_offduty_prop("od_lantern", Vector2(-1160, -1076))
+	_offduty_prop("od_plant", Vector2(-740, -1120))
+	# collision: fire spot, crates, hammock
+	_add_wall(Rect2(-1215, -800, 75, 50))
+	for c in [Vector2(-1268, -800), Vector2(-1120, -822), Vector2(-810, -742), Vector2(-864, -706), Vector2(-756, -704)]:
+		_add_wall(Rect2(c.x - 30, c.y - 40, 60, 40))
+	_add_wall(Rect2(-1360, -1090, 180, 32))
+
+
+func _decal(path: String, at: Vector2) -> void :
+	if not ResourceLoader.exists(path):
+		return
+	var s: = Sprite.new()
+	s.texture = load(path)
+	s.position = at
+	add_child(s)
 
 
 func _object_shadow(path: String, at: Vector2) -> void :
@@ -343,16 +418,6 @@ func _build_npcs() -> void :
 	var board = _spawn_npc("res://items/all/pile_of_books/pile_of_books_icon.png",
 			BOARD_RECT.position + BOARD_RECT.size / 2.0, tr("LOBBY_BOARD"), tr("LOBBY_BOARD_PROMPT"))
 	var _e3 = board.connect("interacted", self, "_on_board_interacted")
-
-	# CAMPFIRE PROOF (Off Duty corner design, 2026-08-20): vanilla's torch
-	# burning particles over a placeholder fire spot - the exact tech the
-	# final break-area campfire will use
-	var torch_scene = load("res://particles/burning/torch_burning_particles.tscn")
-	if torch_scene != null:
-		var fire = torch_scene.instance()
-		fire.position = SHRINE_POS + Vector2(120, 40)
-		fire.scale = Vector2(2.0, 2.0)
-		_world.add_child(fire)
 
 	# the game-mode shrine (deck) - interact cycles the mode
 	_shrine = _spawn_npc("res://items/custom_characters/special/special_icon.png",
