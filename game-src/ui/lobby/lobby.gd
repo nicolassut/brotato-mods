@@ -115,10 +115,11 @@ func _build_floor() -> void :
 	_ground_overlay("res://ui/lobby/art/wall_north.png", Rect2(-1376, -1356, 2752, 194))
 	_ground_overlay("res://ui/lobby/art/stairs.png", STAIR_WEST)
 	_ground_overlay("res://ui/lobby/art/stairs_e.png", STAIR_EAST)
-	# OFF DUTY corner decals (flat on ground/wall, under the YSort world)
-	_decal("res://ui/lobby/art/od_rug.png", Vector2(-1180, -772))
-	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1180, -778))
-	_decal("res://ui/lobby/art/od_mound.png", Vector2(-1020, -700))
+	# OFF DUTY corner decals (flat on ground/wall, under the YSort world).
+	# The rug is its own clean lounge spot; the fire camp sits on bare slabs
+	# (user 2026-08-21: fire off the blanket, mound cut)
+	_decal("res://ui/lobby/art/od_rug.png", Vector2(-1030, -700))
+	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1250, -796))
 	_decal("res://ui/lobby/art/od_sign.png", Vector2(-1060, -1240))
 	_decal("res://ui/lobby/art/od_dartboard.png", Vector2(-920, -1235))
 	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1310, -1225))
@@ -207,17 +208,18 @@ func _build_offduty_corner() -> void :
 	var torch_scene = load("res://particles/burning/torch_burning_particles.tscn")
 	if torch_scene != null:
 		var fire = torch_scene.instance()
-		fire.position = Vector2(-1180, -782)
+		fire.position = Vector2(-1250, -800)
 		fire.scale = Vector2(2.0, 2.0)
 		_world.add_child(fire)
-	_offduty_prop("od_cookpot", Vector2(-1146, -756))
-	_offduty_prop("od_skewers", Vector2(-1252, -742))
-	_offduty_prop("od_cooler", Vector2(-1108, -742))
-	_offduty_prop("od_bottles", Vector2(-1076, -720))
-	_offduty_prop("od_radio", Vector2(-1222, -726))
-	_offduty_prop("od_crate", Vector2(-1268, -800))
-	_offduty_prop("od_dice", Vector2(-1290, -756))
-	_offduty_prop("od_crate", Vector2(-1120, -822))
+	_offduty_prop("od_cookpot", Vector2(-1216, -774))
+	_offduty_prop("od_skewers", Vector2(-1308, -752))
+	_offduty_prop("od_cooler", Vector2(-1180, -744))
+	_offduty_prop("od_bottles", Vector2(-1148, -722))
+	_offduty_prop("od_radio", Vector2(-1198, -840))
+	_offduty_prop("od_crate", Vector2(-1315, -840))
+	# rug lounge: one seat + the Wildcard's dice, nothing else on the cloth
+	_offduty_prop("od_crate", Vector2(-1105, -748))
+	_offduty_prop("od_dice", Vector2(-1006, -686))
 	# card table cluster (the P2W/Smith game waits for its players)
 	_offduty_prop("od_crate", Vector2(-810, -742))
 	_offduty_prop("od_crate", Vector2(-864, -706))
@@ -237,8 +239,8 @@ func _build_offduty_corner() -> void :
 	_offduty_prop("od_lantern", Vector2(-1160, -1076))
 	_offduty_prop("od_plant", Vector2(-740, -1120))
 	# collision: fire spot, crates, hammock
-	_add_wall(Rect2(-1215, -800, 75, 50))
-	for c in [Vector2(-1268, -800), Vector2(-1120, -822), Vector2(-810, -742), Vector2(-864, -706), Vector2(-756, -704)]:
+	_add_wall(Rect2(-1285, -812, 80, 52))
+	for c in [Vector2(-1315, -840), Vector2(-1105, -748), Vector2(-810, -742), Vector2(-864, -706), Vector2(-756, -704)]:
 		_add_wall(Rect2(c.x - 30, c.y - 40, 60, 40))
 	_add_wall(Rect2(-1360, -1090, 180, 32))
 

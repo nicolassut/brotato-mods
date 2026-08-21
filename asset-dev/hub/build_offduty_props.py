@@ -35,20 +35,20 @@ crate = Image.fromarray(a)
 crate.save(OUT + "/seat_crate.png")
 
 # ---- 2. parachute-scrap rug (~180x120, tattered) ----
-rug = Image.new("RGBA", (188, 128), (0, 0, 0, 0))
+rug = Image.new("RGBA", (260, 176), (0, 0, 0, 0))
 d = ImageDraw.Draw(rug)
-corners = [(8, 10), (180, 4), (184, 118), (4, 122)]
+corners = [(10, 14), (250, 6), (256, 164), (6, 170)]
 d.polygon(corners, fill=CHUTE_O_D)
-for i in range(6):
-    x0 = 10 + i * 29
+for i in range(8):
+    x0 = 12 + i * 31
     if i % 2 == 0:
-        d.polygon([(x0, 10), (x0 + 24, 8), (x0 + 28, 118), (x0 + 4, 120)], fill=CHUTE_C_D)
+        d.polygon([(x0, 14), (x0 + 26, 11), (x0 + 31, 162), (x0 + 5, 166)], fill=CHUTE_C_D)
     else:
-        d.polygon([(x0, 10), (x0 + 24, 8), (x0 + 28, 118), (x0 + 4, 120)], fill=CHUTE_O)
+        d.polygon([(x0, 14), (x0 + 26, 11), (x0 + 31, 162), (x0 + 5, 166)], fill=CHUTE_O)
 # tattered nicks along the hem
-for _ in range(9):
-    ex = rnd.randint(10, 176)
-    d.polygon([(ex, 120), (ex + 9, 122), (ex + 4, 112)], fill=(0, 0, 0, 0))
+for _ in range(11):
+    ex = rnd.randint(12, 244)
+    d.polygon([(ex, 166), (ex + 10, 169), (ex + 5, 156)], fill=(0, 0, 0, 0))
 # black outline via dilate-under
 mask = rug.split()[3].point(lambda v: 255 if v > 60 else 0)
 sil = mask.filter(ImageFilter.MaxFilter(5))
@@ -122,25 +122,10 @@ for (x2, y2) in ((4, 14), (18, 16), (11, 4)):
     d.ellipse([x2 + 3, y2 + 3, x2 + 8, y2 + 8], fill=(150, 220, 150, 255))
 ch.save(OUT + "/chips.png")
 
-# ---- 8. the Mole's dirt mound ----
-mo = Image.new("RGBA", (86, 56), (0, 0, 0, 0))
-d = ImageDraw.Draw(mo)
-d.polygon([(6, 50), (24, 18), (43, 8), (62, 20), (80, 50)], fill=(112, 86, 58, 255))
-d.polygon([(20, 50), (36, 26), (52, 26), (66, 50)], fill=(92, 70, 46, 255))
-d.ellipse([30, 24, 58, 44], fill=(52, 38, 26, 255))
-d.ellipse([34, 27, 54, 39], fill=(38, 28, 20, 255))
-for _ in range(6):
-    x2, y2 = rnd.randint(4, 72), rnd.randint(42, 50)
-    d.ellipse([x2, y2, x2 + 7, y2 + 5], fill=(96, 74, 50, 255), outline=B, width=1)
-mask = mo.split()[3].point(lambda v: 255 if v > 60 else 0)
-sil = mask.filter(ImageFilter.MaxFilter(5))
-outl = Image.new("RGBA", mo.size, (0, 0, 0, 0))
-outl.paste(Image.new("RGBA", mo.size, B), (0, 0), sil)
-outl.alpha_composite(mo)
-outl.save(OUT + "/mound.png")
+# (mound retired 2026-08-21 - user cut it)
 
 # contact sheet
-names = ["seat_crate", "rug", "scorch", "tally", "sign_offduty", "cards", "chips", "mound"]
+names = ["seat_crate", "rug", "scorch", "tally", "sign_offduty", "cards", "chips"]
 imgs = [Image.open(OUT + "/%s.png" % n) for n in names]
 cw = max(i.width for i in imgs) + 16
 chh = max(i.height for i in imgs) + 30

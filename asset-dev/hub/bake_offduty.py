@@ -21,14 +21,13 @@ PROPS = {
     "od_plant":     ("raw/prop_plant.png", 52),
     "od_skewers":   ("raw/prop_skewers.png", 80),
     "od_hammock":   ("raw/prop_hammock.png", 190),
-    "od_crate":     ("offduty/seat_crate.png", 70),
-    "od_rug":       ("offduty/rug.png", 188),
+    "od_crate":     ("raw/prop_crate3.png", 70),
+    "od_rug":       ("offduty/rug.png", 260),
     "od_scorch":    ("offduty/scorch.png", 96),
     "od_tally":     ("offduty/tally.png", 120),
     "od_sign":      ("offduty/sign_offduty.png", 150),
     "od_cards":     ("offduty/cards.png", 64),
     "od_chips":     ("offduty/chips.png", 40),
-    "od_mound":     ("offduty/mound.png", 86),
 }
 
 
