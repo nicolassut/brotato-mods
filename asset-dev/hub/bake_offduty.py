@@ -25,7 +25,9 @@ PROPS = {
     "od_rug":       ("offduty/rug.png", 260),
     "od_scorch":    ("offduty/scorch.png", 96),
     "od_tally":     ("offduty/tally.png", 120),
-    "od_sign":      ("offduty/sign_offduty.png", 150),
+    "od_sign":      ("raw/prop_sign2.png", 130),
+    "od_crate2":    ("raw/prop_crate_tall.png", 62),
+    "od_barrel":    ("raw/prop_barrel.png", 56),
     "od_cards":     ("offduty/cards.png", 64),
     "od_chips":     ("offduty/chips.png", 40),
 }

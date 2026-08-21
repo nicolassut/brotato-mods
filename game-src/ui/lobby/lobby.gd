@@ -116,10 +116,13 @@ func _build_floor() -> void :
 	_ground_overlay("res://ui/lobby/art/stairs.png", STAIR_WEST)
 	_ground_overlay("res://ui/lobby/art/stairs_e.png", STAIR_EAST)
 	# OFF DUTY corner decals (flat on ground/wall, under the YSort world).
-	# The rug is its own clean lounge spot; the fire camp sits on bare slabs
-	# (user 2026-08-21: fire off the blanket, mound cut)
-	_decal("res://ui/lobby/art/od_rug.png", Vector2(-1030, -700))
-	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1250, -796))
+	# Rug = chill blanket carrying ONLY radio/cooler/bottles/dice; fire camp
+	# with skewers off to its side; cards+chips played on the GROUND inside
+	# the seat circle (user 2026-08-21)
+	_decal("res://ui/lobby/art/od_rug.png", Vector2(-1030, -710))
+	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1280, -792))
+	_decal("res://ui/lobby/art/od_cards.png", Vector2(-812, -690))
+	_decal("res://ui/lobby/art/od_chips.png", Vector2(-784, -682))
 	_decal("res://ui/lobby/art/od_sign.png", Vector2(-1060, -1240))
 	_decal("res://ui/lobby/art/od_dartboard.png", Vector2(-920, -1235))
 	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1310, -1225))
@@ -200,47 +203,56 @@ func _offduty_prop(name: String, base: Vector2) -> void :
 	_world.add_child(s)
 
 
+func _offduty_guy(char_id: String, base: Vector2) -> void :
+	# a mode guy lounging in the corner (visual idler for now - his tick-box
+	# dialog lands with the game-mode rework). Reuses the character's select
+	# icon; pack disabled -> he simply is not at the camp (un-gate law).
+	var character = ItemService.get_element_safe(ItemService.characters, char_id)
+	if character == null or character.icon == null:
+		return
+	var npc = LobbyNpc.new()
+	npc.setup(character.icon, tr(str(character.name)), "")
+	npc.position = base + Vector2(0, npc.base_offset())
+	_world.add_child(npc)
+
+
 func _build_offduty_corner() -> void :
-	# OFF DUTY corner v1 (HUB_PLAN 4c, layout C scatter camp): props placed;
-	# the mode-guy characters land with the game-mode rework. The mode
-	# shrine stays as the chooser until then.
-	# fire spot on the rug
+	# OFF DUTY corner v3 (HUB_PLAN 4c, layout C): fire camp west (fire +
+	# cookpot + skewers + a tall crate), rug lounge with exactly radio /
+	# cooler / bottles / dice spread on the cloth, card circle east with
+	# mixed seats (crate, tall crate, barrel) and the game on the ground.
 	var torch_scene = load("res://particles/burning/torch_burning_particles.tscn")
 	if torch_scene != null:
 		var fire = torch_scene.instance()
-		fire.position = Vector2(-1250, -800)
+		fire.position = Vector2(-1280, -796)
 		fire.scale = Vector2(2.0, 2.0)
 		_world.add_child(fire)
-	_offduty_prop("od_cookpot", Vector2(-1216, -774))
-	_offduty_prop("od_skewers", Vector2(-1308, -752))
-	_offduty_prop("od_cooler", Vector2(-1180, -744))
-	_offduty_prop("od_bottles", Vector2(-1148, -722))
-	_offduty_prop("od_radio", Vector2(-1198, -840))
-	_offduty_prop("od_crate", Vector2(-1315, -840))
-	# rug lounge: one seat + the Wildcard's dice, nothing else on the cloth
-	_offduty_prop("od_crate", Vector2(-1105, -748))
-	_offduty_prop("od_dice", Vector2(-1006, -686))
-	# card table cluster (the P2W/Smith game waits for its players)
-	_offduty_prop("od_crate", Vector2(-810, -742))
-	_offduty_prop("od_crate", Vector2(-864, -706))
-	_offduty_prop("od_crate", Vector2(-756, -704))
-	var cards: = Sprite.new()
-	cards.texture = load("res://ui/lobby/art/od_cards.png")
-	cards.position = Vector2(-812, -741)
-	cards.offset = Vector2(0, -32)
-	_world.add_child(cards)
-	var chips: = Sprite.new()
-	chips.texture = load("res://ui/lobby/art/od_chips.png")
-	chips.position = Vector2(-788, -740)
-	chips.offset = Vector2(0, -34)
-	_world.add_child(chips)
-	# hammock by the wall + lantern
+	_offduty_prop("od_cookpot", Vector2(-1246, -770))
+	_offduty_prop("od_skewers", Vector2(-1335, -748))
+	_offduty_prop("od_crate2", Vector2(-1320, -850))
+	# the rug lounge
+	_offduty_prop("od_radio", Vector2(-1105, -748))
+	_offduty_prop("od_cooler", Vector2(-962, -742))
+	_offduty_prop("od_dice", Vector2(-1098, -650))
+	_offduty_prop("od_bottles", Vector2(-965, -652))
+	# card circle: mixed seats around the floor game
+	_offduty_prop("od_crate", Vector2(-856, -712))
+	_offduty_prop("od_crate2", Vector2(-770, -716))
+	_offduty_prop("od_barrel", Vector2(-812, -768))
+	# hammock by the wall + lantern + plant
 	_offduty_prop("od_hammock", Vector2(-1270, -1060))
 	_offduty_prop("od_lantern", Vector2(-1160, -1076))
 	_offduty_prop("od_plant", Vector2(-740, -1120))
-	# collision: fire spot, crates, hammock
-	_add_wall(Rect2(-1285, -812, 80, 52))
-	for c in [Vector2(-1315, -840), Vector2(-1105, -748), Vector2(-810, -742), Vector2(-864, -706), Vector2(-756, -704)]:
+	# the mode guys, lounging (HUB_PLAN 4c lineup)
+	_offduty_guy("character_gourmet", Vector2(-1290, -700))
+	_offduty_guy("character_mole", Vector2(-1195, -655))
+	_offduty_guy("character_special", Vector2(-990, -672))
+	_offduty_guy("character_p2w", Vector2(-874, -716))
+	_offduty_guy("character_blacksmith", Vector2(-748, -676))
+	_offduty_guy("character_demon", Vector2(-745, -1010))
+	# collision: fire spot, seats, hammock
+	_add_wall(Rect2(-1315, -812, 75, 50))
+	for c in [Vector2(-1320, -850), Vector2(-856, -712), Vector2(-770, -716), Vector2(-812, -768)]:
 		_add_wall(Rect2(c.x - 30, c.y - 40, 60, 40))
 	_add_wall(Rect2(-1360, -1090, 180, 32))
 
