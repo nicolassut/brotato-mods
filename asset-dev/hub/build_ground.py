@@ -301,6 +301,56 @@ print("plaza rubble at wall base:", rubble)
 
 print("DONE - bases: plaza RGB(66,61,57) deck RGB(52,55,62) set in lobby.gd")
 
+# NORTH WALL 2752x194 (W2, user pick 2026-08-21): natural rock face framed
+# into panels by riveted metal ribs (the pillar recipe) - the deck's back
+# wall. Cap lip on top (walkable edge), black base line + 14px contact
+# shadow that overhangs onto the deck slabs below.
+WALL_W, FACE_H, CAP_H, SH_H = 2752, 150, 30, 14
+wall = Image.new("RGBA", (WALL_W, FACE_H + CAP_H + SH_H), (0, 0, 0, 0))
+wd = ImageDraw.Draw(wall)
+rndW = random.Random(777)
+W_FACE = (42, 44, 51, 255)
+W_FACE_D = (36, 38, 44, 255)
+W_FACE_DD = (31, 33, 38, 255)
+wd.rectangle([0, 0, WALL_W, CAP_H + FACE_H], fill=W_FACE)
+wd.rectangle([0, 0, WALL_W, CAP_H], fill=(58, 61, 69, 255))
+wd.rectangle([0, 0, WALL_W, 5], fill=(66, 70, 78, 255))
+wd.rectangle([0, CAP_H - 4, WALL_W, CAP_H], fill=(16, 14, 12, 255))
+# rock blotches (cliff language)
+for _ in range(180):
+    bw2, bh2 = rndW.randint(40, 130), rndW.randint(14, 34)
+    bx2 = rndW.randint(-20, WALL_W - 20)
+    by2 = CAP_H + rndW.randint(2, FACE_H - 30)
+    blot = Image.new("RGBA", (bw2, bh2), (0, 0, 0, 0))
+    ImageDraw.Draw(blot).ellipse([0, 0, bw2, bh2],
+        fill=rndW.choice([(38, 40, 46, 60), (34, 36, 42, 55), (47, 49, 56, 45)]))
+    wall.alpha_composite(blot, (bx2, by2))
+for yy in (CAP_H + 46, CAP_H + 96):
+    xx = 0
+    while xx < WALL_W:
+        seg = rndW.randint(120, 260)
+        jy = yy + rndW.randint(-4, 4)
+        wd.line([(xx, jy), (min(WALL_W, xx + seg), jy)], fill=W_FACE_DD, width=3)
+        xx += seg
+for _ in range(10):
+    pts = dcp.crack_path(rndW, rndW.randint(60, WALL_W - 60), CAP_H + rndW.randint(8, 40),
+                         math.pi / 2 + rndW.uniform(-0.6, 0.6), rndW.randint(4, 7), rndW.randint(8, 12))
+    dcp.draw_crack(wd, pts, rndW.uniform(2.0, 3.5))
+for rx in range(90, WALL_W, 200):
+    rxj = rx + rndW.randint(-14, 14)
+    wd.rectangle([rxj - 13, CAP_H - 4, rxj + 13, CAP_H + FACE_H], fill=(16, 14, 12, 255))
+    wd.rectangle([rxj - 10, CAP_H - 2, rxj + 10, CAP_H + FACE_H], fill=(46, 48, 52, 255))
+    wd.rectangle([rxj - 8, CAP_H - 2, rxj - 4, CAP_H + FACE_H], fill=(58, 60, 64, 255))
+    wd.rectangle([rxj + 5, CAP_H - 2, rxj + 10, CAP_H + FACE_H], fill=(34, 36, 40, 255))
+    for ry in range(CAP_H + 14, CAP_H + FACE_H - 8, 34):
+        wd.ellipse([rxj - 2, ry, rxj + 3, ry + 5], fill=(26, 26, 28, 255))
+for _ in range(16):
+    dcp.moss_tuft(wall, rndW, rndW.randint(20, WALL_W - 20), CAP_H + rndW.choice([48, 98]) + 2)
+wd.rectangle([0, CAP_H + FACE_H - 4, WALL_W, CAP_H + FACE_H], fill=(16, 14, 12, 255))
+wall.alpha_composite(Image.new("RGBA", (WALL_W, SH_H), (0, 0, 0, 60)), (0, CAP_H + FACE_H))
+wall.save(OUT1 + "wall_north.png"); wall.save(OUT2 + "wall_north.png")
+print("north wall W2 built: %dx%d" % (WALL_W, FACE_H + CAP_H + SH_H))
+
 # STAIRS 256x576 (G/FOUNDATION, procedural - walkable ground gets NO outline):
 # 96 landing + 384 run of steps + 96 apron. Steps = tread band + darker riser
 # shadow, soft wobbly seams, dark side rails.

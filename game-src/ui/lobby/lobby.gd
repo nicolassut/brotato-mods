@@ -109,6 +109,10 @@ func _build_floor() -> void :
 	_ground_overlay("res://ui/lobby/art/ground_plaza.png", PLAZA_RECT)
 	_ground_overlay("res://ui/lobby/art/ground_deck.png", DECK_RECT)
 	_ground_overlay("res://ui/lobby/art/ground_cliff.png", CLIFF_RECT)
+	# NORTH WALL (W2, user 2026-08-21): rock face + riveted ribs along the
+	# deck's back edge, drawn in the void band above the deck (no walkable
+	# area lost); its 14px contact shadow overhangs onto the deck slabs
+	_ground_overlay("res://ui/lobby/art/wall_north.png", Rect2(-1376, -1356, 2752, 194))
 	_ground_overlay("res://ui/lobby/art/stairs.png", STAIR_WEST)
 	_ground_overlay("res://ui/lobby/art/stairs_e.png", STAIR_EAST)
 	# object ground shadows (drawn under the YSort world): decent ellipse
@@ -119,6 +123,8 @@ func _build_floor() -> void :
 	_world = YSort.new()
 	add_child(_world)
 	_build_slot_buildings()
+	# the north wall is solid at its base - the deck ends at the wall face
+	_add_wall(Rect2(-1376, -1196, 2752, 20))
 	# collision: cliff strip blocks deck<->plaza except through the stairs
 	_add_wall(Rect2(CLIFF_RECT.position.x, CLIFF_RECT.position.y,
 			STAIR_WEST.position.x - CLIFF_RECT.position.x, CLIFF_RECT.size.y))
@@ -305,7 +311,7 @@ func _build_camera() -> void :
 	_camera.smoothing_speed = 6.0
 	_camera.limit_left = - 1440
 	_camera.limit_right = 1440
-	_camera.limit_top = - 1240
+	_camera.limit_top = - 1360
 	_camera.limit_bottom = 1176
 	add_child(_camera)
 
