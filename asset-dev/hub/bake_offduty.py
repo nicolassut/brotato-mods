@@ -82,6 +82,7 @@ def extend_sign_ropes(im, ext):
     # stubs of the old strands survive the flat clear only inside the tilt
     # zone (rows board_top..surface); walk each column up from the board
     # interior and clear everything above its true top outline
+    reliable = []           # (x, top) where the outline ended in air
     for x in range(w):
         y = board_top + 14
         if bpx[x, y][3] <= 60:
@@ -109,20 +110,52 @@ def extend_sign_ropes(im, ext):
                     break               # keep 7px of outline, clear the rest
                 if y < 0 or bpx[x, y][3] <= 60:
                     top = y         # run ends in air: the true top outline
+                    reliable.append((x, y))
                     break
                 # run ends in wood again: a plank seam - keep climbing
         for yy in range(0, max(0, top + 1)):
             bpx[x, yy] = (0, 0, 0, 0)
+    # the board's top edge is a straight (tilted) line: fit it through the
+    # reliable columns and clear the leftover nubs above it everywhere
+    if len(reliable) > 10:
+        n = float(len(reliable))
+        sx = sum(p[0] for p in reliable); sy = sum(p[1] for p in reliable)
+        sxx = sum(p[0] * p[0] for p in reliable); sxy = sum(p[0] * p[1] for p in reliable)
+        slope = (n * sxy - sx * sy) / (n * sxx - sx * sx)
+        icpt = (sy - slope * sx) / n
+        for x in range(w):
+            edge = int(round(slope * x + icpt))
+            for yy in range(0, max(0, edge)):
+                bpx[x, yy] = (0, 0, 0, 0)
+    # the BOLTS (gray, low-saturation discs near the board's upper corners)
+    # are the exact hanging points: each rope runs down OVER the board to
+    # its bolt center, and the bolt is redrawn on top of the rope end
+    bolts = []
+    for half in ((0, w // 2), (w // 2, w)):
+        pts = []
+        for yy in range(board_top, min(h, board_top + 40)):
+            for xx in range(half[0], half[1]):
+                c = bpx[xx, yy]
+                if c[3] > 60 and max(c[:3]) - min(c[:3]) < 22 and 70 < sum(c[:3]) / 3 < 175:
+                    pts.append((xx, yy))
+        bx = sum(p[0] for p in pts) / float(len(pts))
+        by = sum(p[1] for p in pts) / float(len(pts))
+        bolts.append((int(round(bx)), int(round(by))))
     out = Image.new("RGBA", (w, ext + h), (0, 0, 0, 0))
+    out.alpha_composite(board, (0, ext))
     d = ImageDraw.Draw(out)
     rope_core = (188, 152, 104, 255)
     rope_dark = (150, 118, 78, 255)
-    for cx in (bl + 14, br - 14):       # at the bolts, behind the board top
-        bot = ext + board_top + 10
+    for (cx, by) in bolts:
+        bot = ext + by
         d.rectangle([cx - 4, 0, cx + 4, bot], fill=(16, 14, 12, 255))
         d.rectangle([cx - 2, 0, cx + 2, bot], fill=rope_core)
         d.rectangle([cx + 1, 0, cx + 2, bot], fill=rope_dark)  # light-left
-    out.alpha_composite(board, (0, ext))
+        r = 8
+        disc = im.crop((cx - r, by - r, cx + r + 1, by + r + 1))
+        m = Image.new("L", disc.size, 0)
+        ImageDraw.Draw(m).ellipse([0, 0, 2 * r, 2 * r], fill=255)
+        out.paste(disc, (cx - r, ext + by - r), m)
     return out
 
 
