@@ -116,17 +116,16 @@ func _build_floor() -> void :
 	_ground_overlay("res://ui/lobby/art/stairs.png", STAIR_WEST)
 	_ground_overlay("res://ui/lobby/art/stairs_e.png", STAIR_EAST)
 	# OFF DUTY corner decals (flat on ground/wall, under the YSort world).
-	# Rug = chill blanket carrying ONLY radio/cooler/bottles/dice; fire camp
-	# with skewers off to its side; cards+chips played on the GROUND inside
-	# the seat circle (user 2026-08-21)
-	_decal("res://ui/lobby/art/od_rug.png", Vector2(-1030, -710))
-	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1280, -792))
-	_decal("res://ui/lobby/art/od_cards.png", Vector2(-812, -690))
-	_decal("res://ui/lobby/art/od_chips.png", Vector2(-784, -682))
-	_decal("res://ui/lobby/art/od_sign.png", Vector2(-1060, -1240))
-	_decal("res://ui/lobby/art/od_dartboard.png", Vector2(-920, -1235))
-	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1310, -1225))
-	_decal("res://ui/lobby/art/od_tally.png", Vector2(-1140, -1295))
+	# Placement tuned VISUALLY in layout_offduty.py (the compositor renders
+	# the corner offline; coordinates here MIRROR it exactly)
+	_decal("res://ui/lobby/art/od_rug.png", Vector2(-1040, -710))
+	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1270, -800))
+	_decal("res://ui/lobby/art/od_cards.png", Vector2(-800, -680))
+	_decal("res://ui/lobby/art/od_chips.png", Vector2(-772, -672))
+	_decal("res://ui/lobby/art/od_sign.png", Vector2(-1040, -1245))
+	_decal("res://ui/lobby/art/od_dartboard.png", Vector2(-925, -1240))
+	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1330, -1230))
+	_decal("res://ui/lobby/art/od_tally.png", Vector2(-1160, -1300))
 	# object ground shadows (drawn under the YSort world): decent ellipse
 	# under the hovering shuttle, subtle silhouette cast right of the booth
 	_object_shadow("res://ui/lobby/art/shuttle_shadow.png", Vector2(0, -898))
@@ -229,43 +228,42 @@ func _offduty_guy(char_id: String, base: Vector2, face_left: bool = false) -> vo
 
 
 func _build_offduty_corner() -> void :
-	# OFF DUTY corner v3 (HUB_PLAN 4c, layout C): fire camp west (fire +
-	# cookpot + skewers + a tall crate), rug lounge with exactly radio /
-	# cooler / bottles / dice spread on the cloth, card circle east with
-	# mixed seats (crate, tall crate, barrel) and the game on the ground.
+	# OFF DUTY corner v4: coordinates mirror layout_offduty.py exactly
+	# (visually tuned + bbox-checked there before landing here).
 	var torch_scene = load("res://particles/burning/torch_burning_particles.tscn")
 	if torch_scene != null:
 		var fire = torch_scene.instance()
-		fire.position = Vector2(-1280, -796)
+		fire.position = Vector2(-1270, -804)
 		fire.scale = Vector2(2.0, 2.0)
 		_world.add_child(fire)
-	_offduty_prop("od_cookpot", Vector2(-1246, -770))
-	_offduty_prop("od_skewers", Vector2(-1335, -748))
-	_offduty_prop("od_crate2", Vector2(-1320, -850))
-	# the rug lounge
-	_offduty_prop("od_radio", Vector2(-1105, -748))
-	_offduty_prop("od_cooler", Vector2(-962, -742))
-	_offduty_prop("od_dice", Vector2(-1098, -650))
-	_offduty_prop("od_bottles", Vector2(-965, -652))
-	# card circle: mixed seats around the floor game
-	_offduty_prop("od_crate", Vector2(-856, -712))
-	_offduty_prop("od_crate2", Vector2(-770, -716))
-	_offduty_prop("od_barrel", Vector2(-812, -768))
+	# fire camp (bare slabs, SW)
+	_offduty_prop("od_cookpot", Vector2(-1240, -788))
+	_offduty_prop("od_skewers", Vector2(-1330, -770))
+	_offduty_prop("od_crate2", Vector2(-1330, -880))
+	# rug lounge: radio / cooler / bottles / dice at the quarters
+	_offduty_prop("od_radio", Vector2(-1120, -755))
+	_offduty_prop("od_cooler", Vector2(-965, -748))
+	_offduty_prop("od_bottles", Vector2(-1110, -650))
+	_offduty_prop("od_dice", Vector2(-975, -655))
+	# card circle: crate + barrel seats, the game on the ground between
+	_offduty_prop("od_crate", Vector2(-855, -720))
+	_offduty_prop("od_barrel", Vector2(-745, -715))
 	# hammock by the wall + lantern + plant
-	_offduty_prop("od_hammock", Vector2(-1270, -1060))
-	_offduty_prop("od_lantern", Vector2(-1160, -1076))
-	_offduty_prop("od_plant", Vector2(-740, -1120))
+	_offduty_prop("od_hammock", Vector2(-1280, -1055))
+	_offduty_prop("od_lantern", Vector2(-1155, -1070))
+	_offduty_prop("od_plant", Vector2(-720, -1120))
 	# the mode guys, lounging (HUB_PLAN 4c lineup)
-	_offduty_guy("character_gourmet", Vector2(-1290, -700))
-	_offduty_guy("character_mole", Vector2(-1195, -655))
-	_offduty_guy("character_special", Vector2(-990, -672))
-	_offduty_guy("character_p2w", Vector2(-874, -716))
-	_offduty_guy("character_blacksmith", Vector2(-748, -676), true)
-	_offduty_guy("character_demon", Vector2(-745, -1010), true)
+	_offduty_guy("character_gourmet", Vector2(-1150, -860), true)
+	_offduty_guy("character_mole", Vector2(-1275, -650))
+	_offduty_guy("character_special", Vector2(-1205, -690))
+	_offduty_guy("character_p2w", Vector2(-865, -640))
+	_offduty_guy("character_blacksmith", Vector2(-740, -636), true)
+	_offduty_guy("character_demon", Vector2(-750, -970), true)
 	# collision: fire spot, seats, hammock
-	_add_wall(Rect2(-1315, -812, 75, 50))
-	for c in [Vector2(-1320, -850), Vector2(-856, -712), Vector2(-770, -716), Vector2(-812, -768)]:
-		_add_wall(Rect2(c.x - 30, c.y - 40, 60, 40))
+	_add_wall(Rect2(-1305, -816, 70, 50))
+	_add_wall(Rect2(-885, -756, 60, 36))
+	_add_wall(Rect2(-771, -749, 52, 34))
+	_add_wall(Rect2(-1360, -916, 60, 36))
 	_add_wall(Rect2(-1360, -1090, 180, 32))
 
 
