@@ -204,6 +204,29 @@ func _offduty_prop(name: String, base: Vector2) -> void :
 	_world.add_child(s)
 
 
+func _offduty_sleeper(base: Vector2) -> void :
+	# someone asleep in the hammock (user 2026-08-21): the basic potato
+	# body lying SIDEWAYS, YSorted 1px behind the hammock so the cloth's
+	# front edge covers his lower half; a slow sway rocks him with the cloth
+	var anchor: = Node2D.new()
+	anchor.position = base
+	_world.add_child(anchor)
+	var body: = Sprite.new()
+	body.texture = load("res://entities/units/player/potato.png")
+	body.position = Vector2(0, -60)
+	body.rotation_degrees = -90.0
+	body.scale = Vector2(0.95, 0.95)
+	anchor.add_child(body)
+	var tween: = Tween.new()
+	anchor.add_child(tween)
+	var _t1 = tween.interpolate_property(body, "rotation_degrees", -93.0, -87.0, 1.6,
+			Tween.TRANS_SINE, Tween.EASE_IN_OUT)
+	var _t2 = tween.interpolate_property(body, "rotation_degrees", -87.0, -93.0, 1.6,
+			Tween.TRANS_SINE, Tween.EASE_IN_OUT, 1.6)
+	tween.repeat = true
+	var _ts = tween.start()
+
+
 func _offduty_sit(guy) -> void :
 	# SITTING pose (user 2026-08-21): body lowered, legs splayed to the
 	# side, and the idle bounce at HALF strength (the idle animation's value
@@ -213,15 +236,18 @@ func _offduty_sit(guy) -> void :
 	var anim_node = guy._visual.get_node_or_null("Animation")
 	if anim_node == null:
 		return
-	anim_node.position.y = -10
-	var legs = anim_node.get_node_or_null("Legs")
-	if legs != null and legs.get_child_count() >= 2:
-		var leg_a = legs.get_child(0)
-		leg_a.position = Vector2(26, 22)
-		leg_a.rotation_degrees = -58
-		var leg_b = legs.get_child(1)
-		leg_b.position = Vector2(8, 26)
-		leg_b.rotation_degrees = -74
+	# the idle animation DRIVES Animation:position (bezier) and both legs'
+	# position/rotation (value tracks) every frame, so a static pose set on
+	# those nodes is overwritten at once (2026-08-21: the guys kept standing).
+	# Lower the body via the un-animated Visual parent, and bake the leg
+	# pose into the calmed animation as a per-track offset.
+	guy._visual.position.y = 14
+	var pose: = {
+		"Animation/Legs/LegL:position": Vector2(26, 22),
+		"Animation/Legs/LegL:rotation_degrees": -58.0,
+		"Animation/Legs/LegR:position": Vector2(8, 26),
+		"Animation/Legs/LegR:rotation_degrees": -74.0,
+	}
 	if guy._anim_player == null:
 		return
 	var idle: Animation = guy._anim_player.get_animation("idle")
@@ -231,15 +257,22 @@ func _offduty_sit(guy) -> void :
 	for ti in range(calm.get_track_count()):
 		if calm.track_get_type(ti) != Animation.TYPE_VALUE:
 			continue
-		if calm.track_get_key_count(ti) < 2:
+		if calm.track_get_key_count(ti) < 1:
 			continue
 		var base_val = calm.track_get_key_value(ti, 0)
-		for ki in range(1, calm.track_get_key_count(ti)):
+		var path: String = str(calm.track_get_path(ti))
+		var delta = null
+		if pose.has(path):
+			delta = pose[path] - base_val
+		for ki in range(calm.track_get_key_count(ti)):
 			var v = calm.track_get_key_value(ti, ki)
 			if v is Vector2 and base_val is Vector2:
-				calm.track_set_key_value(ti, ki, base_val + (v - base_val) * 0.5)
+				v = base_val + (v - base_val) * 0.5
 			elif (v is float or v is int) and (base_val is float or base_val is int):
-				calm.track_set_key_value(ti, ki, base_val + (v - base_val) * 0.5)
+				v = base_val + (v - base_val) * 0.5
+			if delta != null:
+				v = v + delta
+			calm.track_set_key_value(ti, ki, v)
 	guy._anim_player.add_animation("sit_idle", calm)
 	guy._anim_player.play("sit_idle")
 
@@ -293,7 +326,8 @@ func _build_offduty_corner() -> void :
 	_offduty_prop("od_crate", Vector2(-920, -1085))
 	_offduty_prop("od_barrel", Vector2(-790, -1080))
 	# hammock by the wall + plant
-	_offduty_prop("od_hammock", Vector2(-1280, -1055))
+	_offduty_prop("od_hammock", Vector2(-1230, -1055))
+	_offduty_sleeper(Vector2(-1230, -1056))
 	_offduty_prop("od_plant", Vector2(-720, -1120))
 	# the mode guys, lounging (HUB_PLAN 4c lineup)
 	_offduty_guy("character_gourmet", Vector2(-1180, -835), true)
@@ -310,7 +344,7 @@ func _build_offduty_corner() -> void :
 	_add_wall(Rect2(-1361, -902, 62, 24))
 	_add_wall(Rect2(-955, -1106, 70, 24))
 	_add_wall(Rect2(-818, -1102, 56, 24))
-	_add_wall(Rect2(-1375, -1078, 190, 24))
+	_add_wall(Rect2(-1325, -1078, 190, 24))
 
 
 func _decal(path: String, at: Vector2) -> void :

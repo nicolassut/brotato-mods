@@ -28,7 +28,7 @@ PROPS = [  # (texture, base position)
     ("od_cooler",   (-1080, -742)),
     ("od_crate",    (-920, -1085)),
     ("od_barrel",   (-790, -1080)),
-    ("od_hammock",  (-1280, -1055)),
+    ("od_hammock",  (-1230, -1055)),
     ("od_plant",    (-720, -1120)),
 ]
 GUYS = [  # (label, position, face_left)
@@ -75,6 +75,10 @@ def render(out_path):
     for (label, (x, y), flip) in GUYS:
         im = potato.transpose(Image.FLIP_LEFT_RIGHT) if flip else potato
         layers.append((y, im, (x - im.width // 2 - W0, y - 24 - im.height // 2 - H0), label))
+    # sleeper in the hammock: potato lying sideways, 1px behind the hammock
+    sl = potato.resize((int(potato.width * 0.95), int(potato.height * 0.95)), Image.LANCZOS).rotate(90, expand=True)
+    hx, hy = -1230, -1056
+    layers.append((hy, sl, (hx - sl.width // 2 - W0, hy - 60 - sl.height // 2 - H0), "sleeper"))
     # fire marker
     fl = Image.new("RGBA", (36, 52), (0, 0, 0, 0))
     ImageDraw.Draw(fl).polygon([(8, 48), (14, 8), (20, 30), (26, 4), (32, 48)], fill=(238, 150, 40, 230))
