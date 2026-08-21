@@ -203,17 +203,29 @@ func _offduty_prop(name: String, base: Vector2) -> void :
 	_world.add_child(s)
 
 
-func _offduty_guy(char_id: String, base: Vector2) -> void :
-	# a mode guy lounging in the corner (visual idler for now - his tick-box
-	# dialog lands with the game-mode rework). Reuses the character's select
-	# icon; pack disabled -> he simply is not at the camp (un-gate law).
+func _offduty_guy(char_id: String, base: Vector2, face_left: bool = false) -> void :
+	# a mode guy lounging in the corner: the REAL in-game body (same
+	# dress_as construction as player avatars - potato + legs + appearance
+	# pieces + idle animation), physics disabled so he never reads input.
+	# Pack disabled -> he simply is not at the camp (un-gate law).
 	var character = ItemService.get_element_safe(ItemService.characters, char_id)
-	if character == null or character.icon == null:
+	if character == null:
 		return
-	var npc = LobbyNpc.new()
-	npc.setup(character.icon, tr(str(character.name)), "")
-	npc.position = base + Vector2(0, npc.base_offset())
-	_world.add_child(npc)
+	var guy = KinematicBody2D.new()
+	guy.set_script(LobbyPlayer)
+	_world.add_child(guy)
+	guy.position = base
+	guy.dress_as(character)
+	guy.set_physics_process(false)
+	if face_left and guy._visual != null:
+		guy._visual.scale.x = -1.0
+	var plate: = Label.new()
+	plate.text = tr(str(character.name))
+	plate.align = Label.ALIGN_CENTER
+	plate.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	plate.rect_position = Vector2(-200, -86)
+	plate.rect_min_size = Vector2(400, 0)
+	guy.add_child(plate)
 
 
 func _build_offduty_corner() -> void :
@@ -248,8 +260,8 @@ func _build_offduty_corner() -> void :
 	_offduty_guy("character_mole", Vector2(-1195, -655))
 	_offduty_guy("character_special", Vector2(-990, -672))
 	_offduty_guy("character_p2w", Vector2(-874, -716))
-	_offduty_guy("character_blacksmith", Vector2(-748, -676))
-	_offduty_guy("character_demon", Vector2(-745, -1010))
+	_offduty_guy("character_blacksmith", Vector2(-748, -676), true)
+	_offduty_guy("character_demon", Vector2(-745, -1010), true)
 	# collision: fire spot, seats, hammock
 	_add_wall(Rect2(-1315, -812, 75, 50))
 	for c in [Vector2(-1320, -850), Vector2(-856, -712), Vector2(-770, -716), Vector2(-812, -768)]:
