@@ -757,7 +757,7 @@ def add_csv_rows():
         else:
             lines.append(row)
             added += 1
-    open(CSV, "w").write("\n".join(lines) + "\n")
+    open(CSV, "w", newline="\n").write("\n".join(lines) + "\n")  # newline pinned: Windows would translate every \n to \r\n
     print(f"added {added} / updated {updated} translation rows")
 
 

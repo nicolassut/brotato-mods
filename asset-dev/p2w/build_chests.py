@@ -152,7 +152,9 @@ def csv_update(rows):
         else:
             existing.append([key, text])
     with open(path, "w", newline="") as f:
-        csv.writer(f).writerows(existing)
+        # csv.writer defaults to CRLF terminators, which rewrote the whole sacred CSV
+        # with \r\n on Windows - byte drift against the LF mirror on every run
+        csv.writer(f, lineterminator="\n").writerows(existing)
 
 
 def write_import_sidecar(dest_png, res_path):
@@ -270,13 +272,16 @@ const WEAPON_CHANCE = {WEAPON_CHANCE}
 const CURSED_ITEM_CHANCE = {CURSED_ITEM_CHANCE}
 const RUNG_BY_ID = {gd_dict(rung_by_id)}
 """
-    with open(f"{OUT}/p2w_data.gd", "w") as f:
+    # newline="\n": on Windows the default turns every \n into \r\n, so this file came out
+    # CRLF in the mirror while the committed copy is LF - a whole-file diff on every
+    # rerun, with byte-identical content. The drift check compares bytes: pin it.
+    with open(f"{OUT}/p2w_data.gd", "w", newline="\n") as f:
         f.write(gd)
     # engine-loaded generated code must ALSO live in the game-src mirror (ecosystem
     # Phase 0 law: nothing engine-loaded is generated live-only)
     mirror_dir = os.path.join(REPO, "game-src", "items", "custom", "p2w")
     os.makedirs(mirror_dir, exist_ok=True)
-    with open(os.path.join(mirror_dir, "p2w_data.gd"), "w") as f:
+    with open(os.path.join(mirror_dir, "p2w_data.gd"), "w", newline="\n") as f:
         f.write(gd)
     print(f"chests 1-8 written to {OUT}; p2w_data.gd holds {len(rung_by_id)} spread entries (live + mirror); CSV rows updated")
 

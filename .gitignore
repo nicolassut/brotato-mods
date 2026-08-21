@@ -2,3 +2,7 @@
 *.zip
 .mcp.json
 workshop/dist/
+
+# python bytecode from the asset-dev modules (pack_registry et al are imported now)
+__pycache__/
+*.pyc
