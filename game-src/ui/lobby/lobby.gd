@@ -334,9 +334,9 @@ func _build_offduty_corner() -> void :
 	# Wildcard + Mole SITTING side by side on the carpet, facing each other
 	_offduty_guy("character_special", Vector2(-1232, -700), false, true)
 	_offduty_guy("character_mole", Vector2(-1142, -695), true, true)
-	# P2W + Smith SEATED against their crate/barrel, cards between them
-	_offduty_guy("character_p2w", Vector2(-935, -1030), false, true)
-	_offduty_guy("character_blacksmith", Vector2(-775, -1025), true, true)
+	# P2W + Smith STANDING at their crate/barrel, cards between them
+	_offduty_guy("character_p2w", Vector2(-935, -1030), false)
+	_offduty_guy("character_blacksmith", Vector2(-775, -1025), true)
 	_offduty_guy("character_demon", Vector2(-740, -680), true)
 	# collision: base bands (2.5D hitbox law) for the solid props
 	_add_wall(Rect2(-1298, -812, 56, 24))
