@@ -15,6 +15,7 @@ DECALS = [
     ("od_scorch",   (-1270, -786)),   # soot under the burn barrel
     ("od_cards",    (-868, -1022)),
     ("od_chips",    (-832, -1008)),
+    ("od_dice",     (-1090, -656)),   # flat decal (walk-over)
     ("od_sign",     (-1040, -1327)),  # top at -1470: ropes exit the view
     ("od_dartboard",(-830, -1235)),
     ("od_scorch",   (-1330, -1230)),  # wall scorch
@@ -25,7 +26,6 @@ PROPS = [  # (texture, base position)
     ("od_skewers",  (-1240, -880)),
     ("od_crate2",   (-1330, -880)),
     ("od_cooler",   (-1080, -742)),
-    ("od_dice",     (-1090, -640)),
     ("od_crate",    (-920, -1085)),
     ("od_barrel",   (-790, -1080)),
     ("od_hammock",  (-1280, -1055)),

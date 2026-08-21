@@ -120,6 +120,8 @@ func _build_floor() -> void :
 	_decal("res://ui/lobby/art/od_scorch.png", Vector2(-1270, -786))
 	_decal("res://ui/lobby/art/od_cards.png", Vector2(-868, -1022))
 	_decal("res://ui/lobby/art/od_chips.png", Vector2(-832, -1008))
+	# dice lie FLAT on the rug: a decal, so the avatar always walks over them
+	_decal("res://ui/lobby/art/od_dice.png", Vector2(-1090, -656))
 	# sign texture top lands at -1470, past the camera's top limit: the two
 	# ropes run off the top of the view and get clipped by the screen edge
 	_decal("res://ui/lobby/art/od_sign.png", Vector2(-1040, -1327))
@@ -286,7 +288,6 @@ func _build_offduty_corner() -> void :
 	_offduty_prop("od_crate2", Vector2(-1330, -880))
 	# rug lounge (bottom-left): cooler + dice on the cloth
 	_offduty_prop("od_cooler", Vector2(-1080, -742))
-	_offduty_prop("od_dice", Vector2(-1090, -640))
 	# card circle (up under the wall): crate + barrel seats, the game on
 	# the ground in front of the seated players
 	_offduty_prop("od_crate", Vector2(-920, -1085))
