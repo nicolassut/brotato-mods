@@ -332,8 +332,8 @@ func _build_offduty_corner() -> void :
 	# the mode guys, lounging (HUB_PLAN 4c lineup)
 	_offduty_guy("character_gourmet", Vector2(-1180, -835), true)
 	# Wildcard + Mole SITTING side by side on the carpet, facing each other
-	_offduty_guy("character_special", Vector2(-1210, -680), false, true)
-	_offduty_guy("character_mole", Vector2(-1120, -675), true, true)
+	_offduty_guy("character_special", Vector2(-1232, -700), false, true)
+	_offduty_guy("character_mole", Vector2(-1142, -695), true, true)
 	# P2W + Smith SEATED against their crate/barrel, cards between them
 	_offduty_guy("character_p2w", Vector2(-935, -1030), false, true)
 	_offduty_guy("character_blacksmith", Vector2(-775, -1025), true, true)

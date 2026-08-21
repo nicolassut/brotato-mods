@@ -33,8 +33,8 @@ PROPS = [  # (texture, base position)
 ]
 GUYS = [  # (label, position, face_left)
     ("Gourmet",  (-1180, -835), True),
-    ("Mole",     (-1120, -675), True),
-    ("Wildcard", (-1210, -680), False),
+    ("Mole",     (-1142, -695), True),
+    ("Wildcard", (-1232, -700), False),
     ("P2W",      (-935, -1030), False),
     ("Smith",    (-775, -1025), True),
     ("Demon",    (-740, -680), True),
