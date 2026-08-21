@@ -241,7 +241,13 @@ func _offduty_sit(guy) -> void :
 	# those nodes is overwritten at once (2026-08-21: the guys kept standing).
 	# Lower the body via the un-animated Visual parent, and bake the leg
 	# pose into the calmed animation as a per-track offset.
-	guy._visual.position.y = 14
+	# body drops 18px; the Shadow sprite is a child of the lowered node, so
+	# it is raised back by the same 18px and stays ON the ground (2026-08-21:
+	# seated guys read as floating because the shadow sank with them)
+	guy._visual.position.y = 18
+	var shadow = anim_node.get_node_or_null("Shadow")
+	if shadow != null:
+		shadow.position.y -= 18
 	var pose: = {
 		"Animation/Legs/LegL:position": Vector2(26, 22),
 		"Animation/Legs/LegL:rotation_degrees": -58.0,
