@@ -33,6 +33,22 @@ exception: if the receiving machine ALSO changed the same file since the tag,
 that is a real conflict - STOP, render both versions side by side, and let the
 user pick. Record the choice in the commit message.
 
+## Local-only trees (these NEVER travel through git)
+
+Three things live outside the repo on each machine and must exist locally:
+
+1. `~/brotato-decompiled/` - the live game. Rebuilt from the repo by
+   `./apply_to_live.sh`; never copied between machines.
+2. `~/brotato-vanilla-reference/` - the PRISTINE 1.1.15.4 decompile, used by the
+   workshop tooling to diff mod-vs-vanilla. **`asset-dev/build_workshop.py`,
+   `asset-dev/gen_extensions.py` and `check_workshop.sh` HARD-FAIL without it**
+   ("no pristine reference found"). `apply_to_live.sh` does NOT need it, so a
+   normal transfer is unaffected. To create it on a machine that lacks it:
+   download GDRE Tools (GDRETools/gdsdecomp releases, v2.6.0) and run
+   `<GDRE> --headless --recover=<Brotato.pck> --output=$HOME/brotato-vanilla-reference`.
+   Never edit that tree.
+3. The Steam `Brotato.pck` itself (the recovery source).
+
 ## Paste-ready prompt for the Claude on the receiving machine
 
 ---
