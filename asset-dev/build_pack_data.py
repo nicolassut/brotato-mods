@@ -26,12 +26,12 @@ SNAPSHOT = f"{HERE}/packs_snapshot.json"
 
 CUSTOM_MIN, CUSTOM_MAX = 800, 1295
 ARRAYS = ["characters", "items", "weapons", "foods", "stats", "sets", "upgrades"]
-PACK_ORDER = ["food", "fortune", "forge", "ledger", "roster"]
+PACK_ORDER = ["food", "forge", "ledger", "roster"]  # fortune merged into forge (2026-08-18)
 
 CHAR_PACKS = {
     "gourmet": "food", "butcher": "food", "ruminant": "food", "comp_eater": "food",
     "dishwasher": "food", "picky_eater": "food", "girly": "food", "snail": "food",
-    "p2w": "fortune",
+    "p2w": "forge",
     "blacksmith": "forge",
     "test_debt": "ledger",
     "mime": "roster", "mole": "roster", "zombie": "roster", "tourist": "roster",
