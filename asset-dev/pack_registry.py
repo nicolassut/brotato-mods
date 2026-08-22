@@ -15,14 +15,14 @@ DEC = os.path.expanduser("~/brotato-decompiled")
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
 ARRAYS = ["characters", "items", "weapons", "foods", "stats", "sets", "upgrades"]
-PACKS = ["food", "fortune", "forge", "ledger", "roster"]
+PACKS = ["food", "forge", "ledger", "roster"]  # fortune merged into forge (2026-08-18)
 
 # canonical character -> pack map (ECOSYSTEM.md partition). Builders and the
 # migration tool both read THIS - never duplicate it.
 CHAR_PACKS = {
     "gourmet": "food", "butcher": "food", "ruminant": "food", "comp_eater": "food",
     "dishwasher": "food", "picky_eater": "food", "girly": "food", "snail": "food",
-    "p2w": "fortune",
+    "p2w": "forge",   # fortune merged into forge - P2W and Blacksmith are both the 8-tier system
     "blacksmith": "forge",
     "test_debt": "ledger",
     "mime": "roster", "mole": "roster", "zombie": "roster", "tourist": "roster",
