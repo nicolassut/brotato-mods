@@ -24,7 +24,8 @@ func _idle(_delta: float) -> bool:
 	var item_service = root.get_node_or_null("ItemService")
 	var butcher = root.get_node_or_null("ButcherSkin")
 	var modes = root.get_node_or_null("GameModes")
-	if run_data == null or item_service == null or butcher == null or modes == null:
+	var progress = root.get_node_or_null("ProgressData")
+	if run_data == null or item_service == null or butcher == null or modes == null or progress == null:
 		print("MODE GATE: singletons missing")
 		OS.exit_code = 1
 		return true
@@ -74,6 +75,38 @@ func _idle(_delta: float) -> bool:
 	_expect(run_data.uses_tier_ladder(0), "the linked switch must turn the ladder on")
 	_expect(item_service.get_tier_ladder(0) == item_service.BS_TIER_LADDER,
 			"the linked switch must walk the 8-rung ladder")
+
+	# END-TO-END: what a run start actually does. The tick is stored in
+	# ProgressData.settings, read back through selected_mode_ids(), and stamped
+	# onto every player exactly the way difficulty_selection.gd does it. This is
+	# the chain the user reported broken (2026-08-22), so it is now a gate.
+	_tick(run_data, [])
+	var saved_selection = progress.settings.get("selected_game_modes", [])
+	progress.settings["selected_game_modes"] = ["p2w_everything", "smith_open_forge"]
+	var round_trip: Array = modes.selected_mode_ids()
+	_expect(round_trip.has("p2w_everything") and round_trip.has("smith_open_forge"),
+			"a stored selection must read back out of settings")
+	# ...the exact stamp line from difficulty_selection.gd
+	for stamp_index in run_data.get_player_count():
+		run_data.players_data[stamp_index].game_mode_ids = round_trip.duplicate()
+	_expect(run_data.is_game_mode_active("p2w_everything", 0),
+			"run start must stamp the tick onto the player")
+	_expect(run_data.has_lootbox_crates(),
+			"a stamped lootbox tick must turn ground crates into lootboxes")
+	_expect(run_data.has_forge_flow(0), "a stamped forge tick must open the forge")
+	# ...and it must survive the save/load round trip a resumed run does
+	# the save file itself: the ids must reach the JSON, come back out of it,
+	# and still be registered - the loader (player_run_data.deserialize) drops
+	# any id it cannot find in the registry, which is how a resumed run would
+	# silently lose its modes.
+	var blob: Dictionary = run_data.players_data[0].serialize()
+	var reloaded_ids: Array = parse_json(to_json(blob)).get("game_mode_ids", [])
+	_expect(reloaded_ids.has("p2w_everything"),
+			"a stamped tick must reach the save file and come back")
+	for reloaded_id in reloaded_ids:
+		_expect(not modes.mode_by_id(str(reloaded_id)).empty(),
+				"a saved tick must still be registered or the loader drops it: " + str(reloaded_id))
+	progress.settings["selected_game_modes"] = saved_selection
 
 	_tick(run_data, [])
 	if _fails.empty():

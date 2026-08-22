@@ -14,6 +14,7 @@ extends Node2D
 
 const LobbyNpc: = preload("res://ui/lobby/lobby_npc.gd")
 const LobbyPlayer: = preload("res://ui/lobby/lobby_player.gd")
+const OffdutyBubble: = preload("res://ui/lobby/offduty_bubble.gd")
 
 const FLOOR_COLOR: = Color(0.259, 0.239, 0.224, 1.0)    # plaza: crash-zone dirt (measured)
 const DECK_COLOR: = Color(0.204, 0.216, 0.243, 1.0)     # deck: metal plating
@@ -51,6 +52,12 @@ const SLOT_POSITIONS: = [
 	Vector2(1140, 80), Vector2(1140, 520), Vector2(550, 800),
 ]
 const SPAWN_POINT: = Vector2(0, 1000)
+# content width of a mode guy's speech bubble
+const BUBBLE_WIDTH: = 600
+# coop hub camera: breathing room around the players' bounding box, and how far
+# it may zoom out before it stops following the stragglers
+const COOP_CAMERA_MARGIN: = Vector2(560.0, 420.0)
+const COOP_CAMERA_MAX_ZOOM: = 2.2
 # each mode guy's kit name + his bark line (HUB_PLAN 4c lineup)
 const GUY_KIT: = {
 	"character_gourmet": "MODE_KIT_GOURMET",
@@ -72,7 +79,9 @@ const GUY_BARK: = {
 var _players: = []
 var _world: YSort = null
 var _camera: Camera2D = null
-var _mode_popup: CanvasLayer = null
+var _mode_popup: Node = null
+# which guy the open speech bubble belongs to (walking away closes it)
+var _mode_popup_owner: String = ""
 # OFF DUTY mode guys: char_id -> his station (the [E] prompt rides on the body)
 var _guy_stations: = {}
 # rows of the OPEN tick dialog, so supersede-greying refreshes live
@@ -568,13 +577,25 @@ func _build_camera() -> void :
 	add_child(_camera)
 
 
-func _process(_delta: float) -> void :
+func _process(delta: float) -> void :
 	if _players.empty() or _camera == null:
 		return
-	var midpoint: = Vector2.ZERO
+	# COOP (user 2026-08-22): the camera frames EVERY player - it centres on
+	# their bounding box and zooms out as they spread, so nobody walks off the
+	# edge of the hub. Solo is unaffected (one player = zero spread = zoom 1).
+	var box: = Rect2(_players[0].position, Vector2.ZERO)
 	for avatar in _players:
-		midpoint += avatar.position
-	_camera.position = midpoint / _players.size()
+		box = box.expand(avatar.position)
+	_camera.position = box.position + box.size / 2.0
+	var viewport_size: Vector2 = get_viewport().size
+	var wanted: float = 1.0
+	if viewport_size.x > 0.0 and viewport_size.y > 0.0:
+		var needed: Vector2 = box.size + COOP_CAMERA_MARGIN * 2.0
+		wanted = clamp(max(needed.x / viewport_size.x, needed.y / viewport_size.y),
+				1.0, COOP_CAMERA_MAX_ZOOM)
+	# ease toward it so joining/spreading does not snap the view
+	var zoom: float = lerp(_camera.zoom.x, wanted, clamp(delta * 4.0, 0.0, 1.0))
+	_camera.zoom = Vector2(zoom, zoom)
 	_update_nearest_guy()
 
 
@@ -599,6 +620,11 @@ func _update_nearest_guy() -> void :
 		var station = _guy_stations[char_id]
 		if station != null:
 			station.set_prompt_suppressed(station != best)
+	# walk away from the guy you are talking to and he stops talking
+	if _mode_popup_owner != "":
+		var owner_station = _guy_stations.get(_mode_popup_owner)
+		if owner_station == null or not owner_station.is_player_near():
+			_close_mode_popup()
 
 
 func _build_npcs() -> void :
@@ -736,84 +762,91 @@ func _on_guy_interacted(char_id: String) -> void :
 	# (HUB_PLAN 4c). One dialog at a time, like every other lobby popup.
 	if _mode_popup != null:
 		return
-	_mode_popup = _build_guy_dialog(char_id)
-	add_child(_mode_popup)
+	_open_guy_bubble(char_id)
 
 
-func _build_guy_dialog(char_id: String) -> CanvasLayer:
+func _open_guy_bubble(char_id: String) -> void :
+	# his card is a SPEECH BUBBLE over his head in world space (user
+	# 2026-08-22), not a panel over the screen. Chrome + fonts + tick graphics
+	# all come from vanilla (offduty_bubble.gd); this only fills the content.
 	var character = ItemService.get_element_safe(ItemService.characters, char_id)
 	var modes: Array = Utils.game_modes.modes_for_owner(char_id)
+	var station = _guy_stations.get(char_id)
+	if station == null:
+		return
 	_guy_rows = []
-	var layer: = CanvasLayer.new()
-	_add_dialog_scrim(layer)
-	var panel: = Panel.new()
-	panel.add_stylebox_override("panel", _dialog_stylebox())
-	panel.anchor_left = 0.5
-	panel.anchor_top = 0.5
-	panel.anchor_right = 0.5
-	panel.anchor_bottom = 0.5
-	layer.add_child(panel)
-	var box: = VBoxContainer.new()
-	box.rect_position = Vector2(28, 24)
-	box.rect_min_size = Vector2(660, 0)
-	box.add_constant_override("separation", 10)
-	panel.add_child(box)
+	var bubble = OffdutyBubble.new()
+	# added to the lobby (NOT the YSort world): it must float over everyone
+	add_child(bubble)
+	bubble.position = station.get_parent().position
+	_mode_popup = bubble
+	_mode_popup_owner = char_id
+	var font_title: Font = bubble.font_title()
+	var font_body: Font = bubble.font_body()
+	var font_small: Font = bubble.font_small()
+	var box: VBoxContainer = bubble.content
+	var width: int = BUBBLE_WIDTH
 
-	# HEADER: portrait + "<name> - <kit>" + his bark line
+	# WHO IS TALKING: portrait, "<name> - <kit>", and his bark
 	var header: = HBoxContainer.new()
+	header.add_constant_override("separation", 10)
 	box.add_child(header)
 	if character != null and character.get_icon() != null:
 		var portrait: = TextureRect.new()
 		portrait.texture = character.get_icon()
 		portrait.expand = true
 		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		portrait.rect_min_size = Vector2(88, 88)
+		portrait.rect_min_size = Vector2(54, 54)
 		header.add_child(portrait)
 	var head_box: = VBoxContainer.new()
-	head_box.rect_min_size = Vector2(560, 0)
+	head_box.add_constant_override("separation", 2)
 	header.add_child(head_box)
-	var title: = Label.new()
 	var guy_name: String = tr(str(character.name)) if character != null else char_id
-	title.text = "%s - %s" % [guy_name, tr(str(GUY_KIT.get(char_id, "")))]
-	head_box.add_child(title)
-	var bark: = Label.new()
-	bark.text = tr(str(GUY_BARK.get(char_id, "")))
-	bark.rect_min_size = Vector2(560, 26)
-	bark.modulate = Color(1, 1, 1, 0.7)
-	head_box.add_child(bark)
+	head_box.add_child(_bubble_label("%s - %s" % [guy_name, tr(str(GUY_KIT.get(char_id, "")))],
+			width - 66, font_title, Color(1, 1, 1, 1)))
+	head_box.add_child(_bubble_label(tr(str(GUY_BARK.get(char_id, ""))),
+			width - 66, font_small, Color(1, 1, 1, 0.62)))
 	box.add_child(HSeparator.new())
 
-	# ONE ROW PER TICK: toggle + description + grammar annotation
+	# ONE TICK PER ROW: a real vanilla CheckButton, its description under it,
+	# and the grammar annotation under that
 	for mode in modes:
 		var mode_id: String = str(mode["id"])
 		var row: = VBoxContainer.new()
-		row.add_constant_override("separation", 2)
+		row.add_constant_override("separation", 0)
 		box.add_child(row)
-		var toggle: = Button.new()
-		toggle.toggle_mode = true
-		toggle.rect_min_size = Vector2(620, 0)
+		var toggle: = CheckButton.new()
+		toggle.text = tr(str(mode["name"]))
+		toggle.align = Button.ALIGN_LEFT
+		toggle.add_font_override("font", font_body)
+		# the vanilla tick graphic is 100x50; at this font it would tower over
+		# the row, so scale the icon down with the text
+		toggle.expand_icon = true
+		toggle.rect_min_size = Vector2(width, 32)
 		row.add_child(toggle)
-		var desc: = Label.new()
-		desc.text = "     " + tr(str(mode["desc"]))
-		desc.rect_min_size = Vector2(620, 24)
-		desc.modulate = Color(1, 1, 1, 0.68)
-		row.add_child(desc)
-		var note: = Label.new()
-		note.rect_min_size = Vector2(620, 22)
-		note.modulate = Color(1, 0.86, 0.45, 0.9)
-		row.add_child(note)
+		var indent: = MarginContainer.new()
+		indent.add_constant_override("margin_left", 16)
+		row.add_child(indent)
+		var sub: = VBoxContainer.new()
+		sub.add_constant_override("separation", 1)
+		indent.add_child(sub)
+		var text_width: int = width - 22
+		var desc: = _bubble_label(tr(str(mode["desc"])), text_width, font_small, Color(1, 1, 1, 0.6))
+		sub.add_child(desc)
+		var note: = _bubble_label("", text_width, font_small, Color(1, 0.84, 0.42, 0.95))
+		sub.add_child(note)
 		var _e = toggle.connect("toggled", self, "_on_mode_toggled", [mode_id])
 		_guy_rows.push_back({
-			"id": mode_id, "mode": mode, "toggle": toggle, "row": row,
-			"note": note, "base_note": _mode_note(mode, char_id),
+			"id": mode_id, "mode": mode, "toggle": toggle, "row": row, "note": note,
+			"base_note": _mode_note(mode, char_id), "font": font_small, "width": text_width,
 		})
 	if modes.empty():
-		var empty: = Label.new()
-		empty.text = tr("LOBBY_SHRINE_EMPTY")
-		box.add_child(empty)
+		box.add_child(_bubble_label(tr("LOBBY_SHRINE_EMPTY"), width, font_body, Color(1, 1, 1, 0.7)))
 
 	var close: = Button.new()
 	close.text = tr("MENU_BACK")
+	close.add_font_override("font", font_body)
+	close.rect_min_size = Vector2(width, 34)
 	var _e2 = close.connect("pressed", self, "_close_mode_popup")
 	box.add_child(close)
 	_refresh_guy_rows()
@@ -821,8 +854,34 @@ func _build_guy_dialog(char_id: String) -> CanvasLayer:
 		close.call_deferred("grab_focus")
 	else:
 		_guy_rows[0]["toggle"].call_deferred("grab_focus")
-	box.connect("resized", self, "_fit_mode_popup", [panel, box])
-	return layer
+
+
+func _bubble_label(text: String, width: int, font: Font, color: Color) -> Label:
+	# a Label with autowrap reports the height of ONE line to its container, so
+	# rows used to print over each other (user 2026-08-22). Measure the wrapped
+	# text and pin the height instead of trusting the minimum size.
+	var label: = Label.new()
+	label.text = text
+	label.autowrap = true
+	if font != null:
+		label.add_font_override("font", font)
+	label.rect_min_size = Vector2(width, _wrapped_height(text, width, font))
+	label.modulate = color
+	return label
+
+
+func _wrapped_height(text: String, width: int, font: Font) -> float:
+	if font == null:
+		return 22.0
+	if text == "":
+		return 0.0
+	if font.has_method("get_wordwrap_string_size"):
+		return max(font.get_wordwrap_string_size(text, width).y, font.get_height())
+	# fallback: how many lines the run of text needs, plus one for word breaks
+	var line_count: int = int(ceil(font.get_string_size(text).x / float(width)))
+	if line_count > 1:
+		line_count += 1
+	return max(line_count, 1) * font.get_height()
 
 
 func _add_dialog_scrim(layer: CanvasLayer) -> void :
@@ -865,7 +924,7 @@ func _mode_note(mode: Dictionary, char_id: String) -> String:
 		parts.push_back(tr("MODE_NOTE_LINKED") % PoolStringArray(others).join(", "))
 	if parts.empty():
 		return ""
-	return "     " + PoolStringArray(parts).join("    ")
+	return PoolStringArray(parts).join("    ")
 
 
 func _mode_name_list(ids: Array) -> String:
@@ -889,7 +948,7 @@ func _refresh_guy_rows() -> void :
 		var toggle: Button = row_data["toggle"]
 		toggle.pressed = on
 		toggle.disabled = covered
-		toggle.text = _mode_toggle_text(tr(str(row_data["mode"]["name"])), on)
+		toggle.text = tr(str(row_data["mode"]["name"]))
 		# SUPERSEDE: a covered tick greys out. It KEEPS its own state - the
 		# bigger tick simply speaks for it while it is on.
 		var row: Control = row_data["row"]
@@ -899,8 +958,10 @@ func _refresh_guy_rows() -> void :
 		if covered:
 			var boss: Dictionary = Utils.game_modes.superseder_of(mode_id)
 			if not boss.empty():
-				text = "     " + (tr("MODE_NOTE_COVERED") % tr(str(boss["name"])))
+				text = tr("MODE_NOTE_COVERED") % tr(str(boss["name"]))
 		note.text = text
+		note.rect_min_size = Vector2(int(row_data["width"]),
+				_wrapped_height(text, int(row_data["width"]), row_data["font"]))
 	_refreshing_rows = false
 
 
@@ -929,6 +990,7 @@ func _close_mode_popup() -> void :
 	if _mode_popup != null:
 		_mode_popup.queue_free()
 		_mode_popup = null
+	_mode_popup_owner = ""
 	_guy_rows = []
 	_update_all_guy_prompts()
 
