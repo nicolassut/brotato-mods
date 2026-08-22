@@ -68,6 +68,7 @@ var _booth_bulb_index: int = 0
 
 
 func _ready() -> void :
+	randomize()
 	_build_floor()
 	_build_slots()
 	_build_players()
@@ -227,6 +228,7 @@ func _offduty_sleeper(char_id: String, base: Vector2) -> void :
 	# re-centers the body on the post midpoint; -41 puts its center at the
 	# cloth's split line so ~40% of him hides behind the front fold
 	guy._visual.position = Vector2(24, -41)
+	_offduty_desync(guy)
 	guy._visual.rotation_degrees = -90.0
 	guy._visual.scale = Vector2(0.95, 0.95)
 	var tween: = Tween.new()
@@ -237,6 +239,17 @@ func _offduty_sleeper(char_id: String, base: Vector2) -> void :
 			Tween.TRANS_SINE, Tween.EASE_IN_OUT, 1.6)
 	tween.repeat = true
 	var _ts = tween.start()
+
+
+func _offduty_desync(guy) -> void :
+	# every idler bobbed in lockstep (user 2026-08-21): each one now runs
+	# its idle 20% slower AND starts at a random point of the loop
+	if guy._anim_player == null:
+		return
+	guy._anim_player.playback_speed = 0.8
+	var anim: Animation = guy._anim_player.get_animation(guy._anim_player.current_animation)
+	if anim != null:
+		guy._anim_player.seek(rand_range(0.0, anim.length), true)
 
 
 func _offduty_sit(guy) -> void :
@@ -313,6 +326,7 @@ func _offduty_guy(char_id: String, base: Vector2, face_left: bool = false, sitti
 		guy._visual.scale.x = -1.0
 	if sitting:
 		_offduty_sit(guy)
+	_offduty_desync(guy)
 
 
 func _build_offduty_corner() -> void :
