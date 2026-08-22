@@ -781,6 +781,7 @@ func _open_guy_bubble(char_id: String) -> void :
 	bubble.position = station.get_parent().position
 	_mode_popup = bubble
 	_mode_popup_owner = char_id
+	_set_players_frozen(true)
 	var font_title: Font = bubble.font_title()
 	var font_body: Font = bubble.font_body()
 	var font_small: Font = bubble.font_small()
@@ -799,7 +800,7 @@ func _open_guy_bubble(char_id: String) -> void :
 		portrait.rect_min_size = Vector2(54, 54)
 		header.add_child(portrait)
 	var head_box: = VBoxContainer.new()
-	head_box.add_constant_override("separation", 2)
+	head_box.add_constant_override("separation", 4)
 	header.add_child(head_box)
 	var guy_name: String = tr(str(character.name)) if character != null else char_id
 	head_box.add_child(_bubble_label("%s - %s" % [guy_name, tr(str(GUY_KIT.get(char_id, "")))],
@@ -813,7 +814,7 @@ func _open_guy_bubble(char_id: String) -> void :
 	for mode in modes:
 		var mode_id: String = str(mode["id"])
 		var row: = VBoxContainer.new()
-		row.add_constant_override("separation", 0)
+		row.add_constant_override("separation", 6)
 		box.add_child(row)
 		var toggle: = CheckButton.new()
 		toggle.text = tr(str(mode["name"]))
@@ -825,10 +826,12 @@ func _open_guy_bubble(char_id: String) -> void :
 		toggle.rect_min_size = Vector2(width, 32)
 		row.add_child(toggle)
 		var indent: = MarginContainer.new()
-		indent.add_constant_override("margin_left", 16)
+		indent.add_constant_override("margin_left", 18)
+		indent.add_constant_override("margin_right", 8)
+		indent.add_constant_override("margin_bottom", 4)
 		row.add_child(indent)
 		var sub: = VBoxContainer.new()
-		sub.add_constant_override("separation", 1)
+		sub.add_constant_override("separation", 3)
 		indent.add_child(sub)
 		var text_width: int = width - 22
 		var desc: = _bubble_label(tr(str(mode["desc"])), text_width, font_small, Color(1, 1, 1, 0.6))
@@ -882,6 +885,16 @@ func _wrapped_height(text: String, width: int, font: Font) -> float:
 	if line_count > 1:
 		line_count += 1
 	return max(line_count, 1) * font.get_height()
+
+
+func _set_players_frozen(frozen: bool) -> void :
+	# a dialog owns the input while it is open (user 2026-08-22): walking with
+	# the same stick that moves the cursor fought the menu. Freeze the avatars
+	# and drop them back to idle so nobody moonwalks in place.
+	for avatar in _players:
+		avatar.set_physics_process(not frozen)
+		if frozen and avatar._anim_player != null and avatar._anim_player.current_animation != "idle":
+			avatar._anim_player.play("idle")
 
 
 func _add_dialog_scrim(layer: CanvasLayer) -> void :
@@ -992,6 +1005,7 @@ func _close_mode_popup() -> void :
 		_mode_popup = null
 	_mode_popup_owner = ""
 	_guy_rows = []
+	_set_players_frozen(false)
 	_update_all_guy_prompts()
 
 
@@ -1046,6 +1060,7 @@ func _open_info_popup(title_text: String, lines: Array) -> void :
 	panel.margin_top = - height / 2.0
 	_mode_popup = layer
 	add_child(layer)
+	_set_players_frozen(true)
 
 
 func _on_building_interacted(pack_id: String, name_key: String) -> void :
