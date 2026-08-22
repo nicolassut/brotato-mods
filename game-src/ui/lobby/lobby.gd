@@ -575,6 +575,30 @@ func _process(_delta: float) -> void :
 	for avatar in _players:
 		midpoint += avatar.position
 	_camera.position = midpoint / _players.size()
+	_update_nearest_guy()
+
+
+func _update_nearest_guy() -> void :
+	# the mode guys lounge shoulder to shoulder, so several proximity rings
+	# overlap and every one of them popped its own prompt - the labels piled on
+	# top of each other (user 2026-08-22). Only the CLOSEST guy in range talks,
+	# so [E] can only ever mean the guy you are actually standing next to.
+	var best = null
+	var best_distance: float = 0.0
+	for char_id in _guy_stations:
+		var station = _guy_stations[char_id]
+		if station == null or not station.is_player_near():
+			continue
+		var here: Vector2 = station.get_parent().position
+		for avatar in _players:
+			var distance: float = here.distance_to(avatar.position)
+			if best == null or distance < best_distance:
+				best = station
+				best_distance = distance
+	for char_id in _guy_stations:
+		var station = _guy_stations[char_id]
+		if station != null:
+			station.set_prompt_suppressed(station != best)
 
 
 func _build_npcs() -> void :
@@ -721,15 +745,18 @@ func _build_guy_dialog(char_id: String) -> CanvasLayer:
 	var modes: Array = Utils.game_modes.modes_for_owner(char_id)
 	_guy_rows = []
 	var layer: = CanvasLayer.new()
+	_add_dialog_scrim(layer)
 	var panel: = Panel.new()
+	panel.add_stylebox_override("panel", _dialog_stylebox())
 	panel.anchor_left = 0.5
 	panel.anchor_top = 0.5
 	panel.anchor_right = 0.5
 	panel.anchor_bottom = 0.5
 	layer.add_child(panel)
 	var box: = VBoxContainer.new()
-	box.rect_position = Vector2(24, 24)
+	box.rect_position = Vector2(28, 24)
 	box.rect_min_size = Vector2(660, 0)
+	box.add_constant_override("separation", 10)
 	panel.add_child(box)
 
 	# HEADER: portrait + "<name> - <kit>" + his bark line
@@ -751,8 +778,7 @@ func _build_guy_dialog(char_id: String) -> CanvasLayer:
 	head_box.add_child(title)
 	var bark: = Label.new()
 	bark.text = tr(str(GUY_BARK.get(char_id, "")))
-	bark.autowrap = true
-	bark.rect_min_size = Vector2(560, 0)
+	bark.rect_min_size = Vector2(560, 26)
 	bark.modulate = Color(1, 1, 1, 0.7)
 	head_box.add_child(bark)
 	box.add_child(HSeparator.new())
@@ -761,6 +787,7 @@ func _build_guy_dialog(char_id: String) -> CanvasLayer:
 	for mode in modes:
 		var mode_id: String = str(mode["id"])
 		var row: = VBoxContainer.new()
+		row.add_constant_override("separation", 2)
 		box.add_child(row)
 		var toggle: = Button.new()
 		toggle.toggle_mode = true
@@ -768,11 +795,11 @@ func _build_guy_dialog(char_id: String) -> CanvasLayer:
 		row.add_child(toggle)
 		var desc: = Label.new()
 		desc.text = "     " + tr(str(mode["desc"]))
-		desc.autowrap = true
-		desc.rect_min_size = Vector2(620, 0)
+		desc.rect_min_size = Vector2(620, 24)
 		desc.modulate = Color(1, 1, 1, 0.68)
 		row.add_child(desc)
 		var note: = Label.new()
+		note.rect_min_size = Vector2(620, 22)
 		note.modulate = Color(1, 0.86, 0.45, 0.9)
 		row.add_child(note)
 		var _e = toggle.connect("toggled", self, "_on_mode_toggled", [mode_id])
@@ -796,6 +823,26 @@ func _build_guy_dialog(char_id: String) -> CanvasLayer:
 		_guy_rows[0]["toggle"].call_deferred("grab_focus")
 	box.connect("resized", self, "_fit_mode_popup", [panel, box])
 	return layer
+
+
+func _add_dialog_scrim(layer: CanvasLayer) -> void :
+	# darken the hub behind a dialog so it reads as a dialog and not as text
+	# floating over the floor (user 2026-08-22)
+	var scrim: = ColorRect.new()
+	scrim.color = Color(0, 0, 0, 0.72)
+	scrim.anchor_right = 1.0
+	scrim.anchor_bottom = 1.0
+	scrim.mouse_filter = Control.MOUSE_FILTER_STOP
+	layer.add_child(scrim)
+
+
+func _dialog_stylebox() -> StyleBoxFlat:
+	var style: = StyleBoxFlat.new()
+	style.bg_color = Color(0.075, 0.072, 0.085, 0.97)
+	style.border_color = Color(0.58, 0.54, 0.44, 1.0)
+	style.set_border_width_all(3)
+	style.set_corner_radius_all(3)
+	return style
 
 
 func _mode_note(mode: Dictionary, char_id: String) -> String:
@@ -902,7 +949,9 @@ func _open_info_popup(title_text: String, lines: Array) -> void :
 	if _mode_popup != null:
 		return
 	var layer: = CanvasLayer.new()
+	_add_dialog_scrim(layer)
 	var panel: = Panel.new()
+	panel.add_stylebox_override("panel", _dialog_stylebox())
 	panel.anchor_left = 0.5
 	panel.anchor_top = 0.5
 	panel.anchor_right = 0.5

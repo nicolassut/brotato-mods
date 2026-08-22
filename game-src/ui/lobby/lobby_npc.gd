@@ -23,6 +23,11 @@ var near_radius: float = NEAR_RADIUS
 # of their own (the station rides on the character body) so theirs goes above
 # the head instead of into the floor.
 var prompt_offset: = Vector2(0, 16)
+# Stations that stand shoulder to shoulder (the OFF DUTY mode guys) would each
+# pop their own prompt and the labels would pile on top of each other. The
+# lobby suppresses every one but the CLOSEST, so exactly one prompt shows and
+# [E] can only ever mean the guy you are actually standing next to.
+var prompt_suppressed: bool = false setget set_prompt_suppressed
 # half the sprite height; the node origin sits at the sprite BASE (y-sort)
 var _half_h: float = 48.0
 
@@ -79,19 +84,33 @@ func _make_label(text: String, offset: Vector2) -> Label:
 	return label
 
 
+func set_prompt_suppressed(value: bool) -> void :
+	prompt_suppressed = value
+	_refresh_prompt_visibility()
+
+
+func is_player_near() -> bool:
+	return _player_near
+
+
+func _refresh_prompt_visibility() -> void :
+	if _prompt != null:
+		_prompt.visible = _player_near and not prompt_suppressed
+
+
 func _on_body_entered(body: Node) -> void :
 	if body is KinematicBody2D:
 		_player_near = true
-		_prompt.visible = true
+		_refresh_prompt_visibility()
 
 
 func _on_body_exited(body: Node) -> void :
 	if body is KinematicBody2D:
 		_player_near = false
-		_prompt.visible = false
+		_refresh_prompt_visibility()
 
 
 func _unhandled_input(event: InputEvent) -> void :
-	if _player_near and event.is_action_pressed("interact"):
+	if _player_near and not prompt_suppressed and event.is_action_pressed("interact"):
 		get_tree().set_input_as_handled()
 		emit_signal("interacted")
