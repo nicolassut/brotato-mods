@@ -21,7 +21,29 @@
 set -euo pipefail
 REPO="$(cd "$(dirname "$0")" && pwd)"
 LIVE="$HOME/brotato-decompiled"
-GODOT="$HOME/Applications/Godot3.app/Contents/MacOS/Godot"
+# Godot binary resolution (cross-platform - the other machine is Windows/git-bash
+# and the old hardcoded macOS path made apply_to_live's IMPORT step unrunnable
+# there, which is why new PNGs arrived unimported. Override with:  export GODOT=...)
+if [ -n "${GODOT:-}" ] && [ -x "$GODOT" ]; then
+  :
+elif [ -x "$HOME/Applications/Godot3.app/Contents/MacOS/Godot" ]; then
+  GODOT="$HOME/Applications/Godot3.app/Contents/MacOS/Godot"
+elif [ -x "/Applications/Godot3.app/Contents/MacOS/Godot" ]; then
+  GODOT="/Applications/Godot3.app/Contents/MacOS/Godot"
+elif command -v godot3 >/dev/null 2>&1; then
+  GODOT="$(command -v godot3)"
+elif command -v godot >/dev/null 2>&1; then
+  GODOT="$(command -v godot)"
+else
+  GODOT="$(ls -1 "/c/Program Files/Godot"/Godot_v3*.exe "$HOME/scoop/apps/godot/current/godot.exe" \
+      "$LOCALAPPDATA/Programs/Godot/Godot_v3"*.exe 2>/dev/null | head -1)"
+fi
+if [ -z "${GODOT:-}" ] || [ ! -x "$GODOT" ]; then
+  echo "FAIL: Godot 3 binary not found. Set it once for this shell, e.g.:"
+  echo "  export GODOT='/c/Program Files/Godot/Godot_v3.6-stable_win64.exe'"
+  echo "  (add that line to ~/.bashrc so every run picks it up)"
+  exit 1
+fi
 
 cd "$REPO"
 
@@ -45,6 +67,46 @@ GPID=$!
 sleep 35
 kill "$GPID" 2>/dev/null || true; sleep 2
 pkill -f "Godot" 2>/dev/null || true; sleep 1
+
+# Import-cache verification. A committed *.png.import receipt points at a binary
+# res://.import/<name>-<md5>.stex that is LOCAL-ONLY and never travels; if the
+# editor pass above did not regenerate it, the texture silently fails to load
+# ("No loader found for resource"). This turns that into a loud, fixable error.
+echo "== 3b/4 import cache verify =="
+python3 - "$LIVE" <<'IMPORTCHECK'
+import os, re, sys
+live = sys.argv[1]
+missing, orphans = [], []
+for root, dirs, files in os.walk(live):
+    dirs[:] = [d for d in dirs if d not in (".git", ".import")]
+    for f in files:
+        if not f.endswith(".import"):
+            continue
+        path = os.path.join(root, f)
+        try:
+            text = open(path).read()
+        except Exception:
+            continue
+        rel = os.path.relpath(path, live)
+        if not os.path.exists(path[:-len(".import")]):
+            orphans.append(rel)          # renamed/deleted art: harmless leftover
+            continue
+        for stex in re.findall(r'res://(\.import/[^"]+)', text):
+            if not os.path.exists(os.path.join(live, stex)):
+                missing.append(rel)      # REAL breakage: texture will not load
+                break
+if orphans:
+    print("note: %d orphan import receipt(s) with no source file (safe to delete)" % len(orphans))
+if missing:
+    print("FAIL: %d texture(s) have an import receipt but NO cached .stex:" % len(missing))
+    for m in missing[:12]:
+        print("   ", m)
+    print("REMEDY: delete the stale cache and re-import:")
+    print("   rm -rf '%s/.import'   then rerun ./apply_to_live.sh" % live)
+    print("   (Godot rebuilds every texture; slower but bulletproof)")
+    sys.exit(1)
+print("import cache OK: every texture with a receipt has its cached data")
+IMPORTCHECK
 
 echo "== 4/4 gates =="
 python3 asset-dev/check_cards.py

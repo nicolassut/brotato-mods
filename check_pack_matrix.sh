@@ -4,7 +4,29 @@
 # registration, or engine seams (slower than check_all.sh - 4 real boots).
 set -euo pipefail
 LIVE="$HOME/brotato-decompiled"
-GODOT="$HOME/Applications/Godot3.app/Contents/MacOS/Godot"
+# Godot binary resolution (cross-platform - the other machine is Windows/git-bash
+# and the old hardcoded macOS path made apply_to_live's IMPORT step unrunnable
+# there, which is why new PNGs arrived unimported. Override with:  export GODOT=...)
+if [ -n "${GODOT:-}" ] && [ -x "$GODOT" ]; then
+  :
+elif [ -x "$HOME/Applications/Godot3.app/Contents/MacOS/Godot" ]; then
+  GODOT="$HOME/Applications/Godot3.app/Contents/MacOS/Godot"
+elif [ -x "/Applications/Godot3.app/Contents/MacOS/Godot" ]; then
+  GODOT="/Applications/Godot3.app/Contents/MacOS/Godot"
+elif command -v godot3 >/dev/null 2>&1; then
+  GODOT="$(command -v godot3)"
+elif command -v godot >/dev/null 2>&1; then
+  GODOT="$(command -v godot)"
+else
+  GODOT="$(ls -1 "/c/Program Files/Godot"/Godot_v3*.exe "$HOME/scoop/apps/godot/current/godot.exe" \
+      "$LOCALAPPDATA/Programs/Godot/Godot_v3"*.exe 2>/dev/null | head -1)"
+fi
+if [ -z "${GODOT:-}" ] || [ ! -x "$GODOT" ]; then
+  echo "FAIL: Godot 3 binary not found. Set it once for this shell, e.g.:"
+  echo "  export GODOT='/c/Program Files/Godot/Godot_v3.6-stable_win64.exe'"
+  echo "  (add that line to ~/.bashrc so every run picks it up)"
+  exit 1
+fi
 expect_for() {
   case "$1" in
     all)           echo 'enabled=\[food, forge, ledger, roster\]' ;;

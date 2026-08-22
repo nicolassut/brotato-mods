@@ -33,6 +33,24 @@ exception: if the receiving machine ALSO changed the same file since the tag,
 that is a real conflict - STOP, render both versions side by side, and let the
 user pick. Record the choice in the commit message.
 
+## Godot binary + the image-import trap (read once per machine)
+
+The scripts (`apply_to_live.sh`, `check_all.sh`, `check_pack_matrix.sh`,
+`check_workshop.sh`) auto-detect Godot 3: `$GODOT` if set, then the macOS app
+paths, then `godot3`/`godot` on PATH, then common Windows install paths. If none
+match they FAIL with instructions. On Windows set it once:
+
+    export GODOT='/c/Program Files/Godot/Godot_v3.6-stable_win64.exe'   # add to ~/.bashrc
+
+**Why this matters for images:** a committed `foo.png.import` is only a RECEIPT
+pointing at binary texture data in `<live>/.import/` - and that cache is
+local-only, it never travels. The receiving machine rebuilds it in
+`apply_to_live.sh` step 3 (the 35s editor session). If Godot cannot be found,
+that step is skipped and every new PNG arrives with a receipt but no data, so
+textures silently fail to load. Step 3b now verifies this and fails loudly.
+If it ever reports missing cache: `rm -rf ~/brotato-decompiled/.import` and
+rerun `./apply_to_live.sh` (Godot rebuilds all textures - slower, bulletproof).
+
 ## Local-only trees (these NEVER travel through git)
 
 Three things live outside the repo on each machine and must exist locally:
