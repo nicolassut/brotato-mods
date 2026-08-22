@@ -122,10 +122,59 @@ var _shake_offset: Vector2 = Vector2.ZERO
 # player's navigation stays inside the ceremony - and deregisters when it leaves the tree.
 var _coop_focus_emulator = null
 var _coop_focus_base_data: Resource = null
+# A 3-4 player column is far taller than it is wide, so the horizontal carousel cannot fit.
+# Those runs spin VERTICALLY: the strip scrolls top-to-bottom past a ticker lying across the
+# column, and on landing the item card covers the top of the window, directly above the card
+# that was won (user spec 2026-08-15).
+const V_DESIGN_W: = 620.0
+const V_WINDOW_CARDS: = 5
+const V_TOP_PAD: = 24.0
+var _vertical: bool = false
+# set while the game is paused, so the frame it resumes the cursor goes back on our button
+var _was_paused: bool = false
+
+
+# ---- axis helpers: everything below reads the spin axis through these ----------------------
+
+func _window_span() -> float:
+	return _window.rect_size.y if _vertical else _window.rect_size.x
+
+
+func _strip_pos() -> float:
+	return _strip.rect_position.y if _vertical else _strip.rect_position.x
+
+
+func _set_strip_pos(value: float) -> void :
+	# full-Vector2 assignment on purpose: writing a single component of a node's Vector2
+	# property is the silent no-op this file already documents for rect_min_size
+	if _vertical:
+		_strip.rect_position = Vector2(_strip.rect_position.x, value)
+	else:
+		_strip.rect_position = Vector2(value, _strip.rect_position.y)
+
+
+func _strip_prop() -> String:
+	return "rect_position:y" if _vertical else "rect_position:x"
+
+
+# top edge of the slot the winning card lands in (root-space, vertical layouts)
+func _winner_slot_top() -> float:
+	return _window.rect_position.y + _window.rect_size.y / 2.0 - CARD / 2.0
+
+
+# the button this player's cursor belongs on right now: collect once landed, else OPEN/SKIP
+func _default_button() -> Button:
+	if _landed:
+		if _take_button != null and _take_button.visible:
+			return _take_button
+		if _recycle_button != null and _recycle_button.visible:
+			return _recycle_button
+		return null
+	return _open_button
 
 
 # The slice of screen this player owns. Empty in single-player (the reel keeps the whole
-# screen). Brotato splits 2-player runs left/right and 3-4 into quadrants.
+# screen). Coop always splits into equal side-by-side COLUMNS, full height.
 func _coop_section_for(player_index: int) -> Rect2:
 	if not RunData.is_coop_run:
 		return Rect2()
@@ -133,11 +182,11 @@ func _coop_section_for(player_index: int) -> Rect2:
 	var players: int = RunData.get_player_count()
 	if players <= 1:
 		return Rect2()
-	if players == 2:
-		return Rect2(Vector2(view.x / 2.0 * player_index, 0), Vector2(view.x / 2.0, view.y))
-	var col: int = player_index % 2
-	var row: int = player_index / 2
-	return Rect2(Vector2(view.x / 2.0 * col, view.y / 2.0 * row), Vector2(view.x / 2.0, view.y / 2.0))
+	# EQUAL VERTICAL COLUMNS for every coop count. The quadrant layout this used to assume for
+	# 3-4 players was simply wrong (user correction 2026-08-15) - the screen is split into
+	# columns, so a 4-player slice is a quarter-width strip of the FULL height.
+	var column_w: float = view.x / float(players)
+	return Rect2(Vector2(column_w * player_index, 0), Vector2(column_w, view.y))
 
 
 # Shrink the whole overlay into the section, preserving aspect so nothing distorts, and centre
@@ -229,15 +278,26 @@ func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, res
 	_resolved_drop = resolved_drop
 
 	_section = _coop_section_for(player_index)
+	_vertical = RunData.is_coop_run and RunData.get_player_count() >= 3
+	# The reel keeps processing while the game is paused - not to animate (every branch bails
+	# while paused, and the tweens and audio below are pinned to PAUSE_MODE_STOP), but so it
+	# can see the unpause and put this player's cursor back on its button.
+	pause_mode = Node.PAUSE_MODE_PROCESS
+
 	# design space is the FULL viewport even in coop - the shrink happens at the end
 	_design_size = get_viewport_rect().size
 
-	# A 2-player split is TALLER than the screen's aspect, so a pure width-fit leaves spare
-	# vertical room and dead space at the sides. Take it by NARROWING the canvas the layout is
-	# authored against: the same elements then occupy more of the section's width once scaled.
-	# Doing it here rather than by over-scaling is what keeps the design rect inside the
-	# section, so nothing spills into the other player's half.
-	if _section.size.x > 0.0 and (_section.size.y / _section.size.x) > (_design_size.y / _design_size.x):
+	if _vertical:
+		# a tall, narrow canvas shaped like the column. Its HEIGHT is finalised at the end of
+		# the layout, once the odds panel's real size is known, so the fit-scale spends every
+		# pixel of the column instead of letter-boxing empty space.
+		_design_size = Vector2(V_DESIGN_W, _design_size.y)
+	elif _section.size.x > 0.0 and (_section.size.y / _section.size.x) > (_design_size.y / _design_size.x):
+		# A 2-player split is TALLER than the screen's aspect, so a pure width-fit leaves spare
+		# vertical room and dead space at the sides. Take it by NARROWING the canvas the layout
+		# is authored against: the same elements then occupy more of the section's width once
+		# scaled. Doing it here rather than by over-scaling is what keeps the design rect inside
+		# the section, so nothing spills into the other player's half.
 		_design_size.x = _design_size.x / COOP_SCALE_BOOST
 
 	# Sectioned (coop) runs must NOT anchor WIDE: those anchors make every later layout pass
@@ -261,8 +321,14 @@ func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, res
 	var window_w: float = min(view_size.x * 0.86, 1240.0)
 
 	_window = Control.new()
-	_window.rect_size = Vector2(window_w, CARD + 2.0 * STRIP_PAD)
-	_window.rect_position = Vector2((view_size.x - window_w) / 2.0, (view_size.y - CARD) / 2.0 - 30 - STRIP_PAD)
+	if _vertical:
+		# one card wide, several tall - the strip runs down it
+		window_w = CARD + 2.0 * STRIP_PAD
+		_window.rect_size = Vector2(window_w, V_WINDOW_CARDS * (CARD + CARD_GAP))
+		_window.rect_position = Vector2((view_size.x - window_w) / 2.0, V_TOP_PAD)
+	else:
+		_window.rect_size = Vector2(window_w, CARD + 2.0 * STRIP_PAD)
+		_window.rect_position = Vector2((view_size.x - window_w) / 2.0, (view_size.y - CARD) / 2.0 - 30 - STRIP_PAD)
 	_window.rect_clip_content = true
 	_window.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_window)
@@ -274,14 +340,19 @@ func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, res
 
 	var ticker: = ColorRect.new()
 	ticker.color = Color(1, 1, 1, 0.9)
-	ticker.rect_size = Vector2(3, CARD + 2.0 * STRIP_PAD)
-	ticker.rect_position = Vector2((view_size.x - 3) / 2.0, _window.rect_position.y)
+	if _vertical:
+		# lies ACROSS the column, at the window's middle
+		ticker.rect_size = Vector2(_window.rect_size.x, 3)
+		ticker.rect_position = Vector2(_window.rect_position.x, _window.rect_position.y + _window.rect_size.y / 2.0 - 1.5)
+	else:
+		ticker.rect_size = Vector2(3, _window.rect_size.y)
+		ticker.rect_position = Vector2((view_size.x - 3) / 2.0, _window.rect_position.y)
 	ticker.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(ticker)
 
 	_reveal_label = Label.new()
 	_reveal_label.align = Label.ALIGN_CENTER
-	_reveal_label.rect_position = Vector2(0, _window.rect_position.y + CARD + 2.0 * STRIP_PAD + 14)
+	_reveal_label.rect_position = Vector2(0, _window.rect_position.y + _window.rect_size.y + 14)
 	_reveal_label.rect_size = Vector2(view_size.x, 40)
 	_reveal_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_reveal_label)
@@ -290,7 +361,7 @@ func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, res
 	_open_button = Button.new()
 	_open_button.text = tr("P2W_OPEN")
 	_open_button.rect_min_size = Vector2(220, 56)
-	_open_button.rect_position = Vector2((view_size.x - 220) / 2.0, _window.rect_position.y + CARD + 2.0 * STRIP_PAD + 84)
+	_open_button.rect_position = Vector2((view_size.x - 220) / 2.0, _window.rect_position.y + _window.rect_size.y + 84)
 	var _e1 = _open_button.connect("pressed", self, "_on_open_pressed")
 	add_child(_open_button)
 
@@ -315,7 +386,7 @@ func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, res
 	var odds_icon_size: float = 120.0
 	var odds_group_w: float = odds_icon_size + 20.0 + odds_panel_w
 	var odds_group_x: float = (view_size.x - odds_group_w) / 2.0
-	var odds_group_y: float = _window.rect_position.y + CARD + 2.0 * STRIP_PAD + 84 + 56 + 24
+	var odds_group_y: float = _window.rect_position.y + _window.rect_size.y + 84 + 56 + 24
 
 	var odds_icon: = TextureRect.new()
 	odds_icon.texture = load("res://items/custom/p2w/chest_%d/chest_%d.png" % [int(_entry.rung), int(_entry.rung)])
@@ -355,6 +426,10 @@ func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, res
 		od_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		odds_panel.add_child(od_label)
 
+	if _vertical:
+		# the canvas ends exactly where the content does
+		_design_size = Vector2(_design_size.x, odds_group_y + odds_panel_h + V_TOP_PAD)
+
 	_tick_sound = AudioStreamPlayer.new()
 	_tick_sound.stream = load("res://ui/sounds/clock_tick_01.wav")
 	add_child(_tick_sound)
@@ -378,9 +453,14 @@ func setup(entry: Dictionary, player_index: int, block_cancel: bool = false, res
 		add_child(fanfare_player)
 		_fanfare_players.push_back(fanfare_player)
 
+	# the reel processes while paused (to catch the unpause), so its sound must be pinned OFF
+	for audio_node in [_tick_sound, _land_sound, _celebration_sound, _buildup_sound] + _fanfare_players:
+		audio_node.pause_mode = Node.PAUSE_MODE_STOP
+
 	# park the strip so real cards already fill the window in the idle state
-	var ticker_in_window: float = _window.rect_size.x / 2.0
-	_strip.rect_position = Vector2(ticker_in_window - (IDLE_INDEX * (CARD + CARD_GAP) + CARD / 2.0), 0)
+	var ticker_in_window: float = _window_span() / 2.0
+	var idle_offset: float = ticker_in_window - (IDLE_INDEX * (CARD + CARD_GAP) + CARD / 2.0)
+	_strip.rect_position = Vector2(0, idle_offset) if _vertical else Vector2(idle_offset, 0)
 
 	# FOCUS TRAP: the overlay owns focus for its whole lifetime. Buttons only
 	# navigate between themselves (self-looped neighbours), and _process
@@ -553,17 +633,27 @@ func _fill_strip() -> void :
 			card = _make_card(resolved_f[0], resolved_f[1], bool(filler.get("item_cursed", false)))
 			prev_id = str(filler.id)
 			_card_rungs.push_back(int(resolved_f[1]))
-		card.rect_position = Vector2(i * (CARD + CARD_GAP), STRIP_PAD)
+		if _vertical:
+			card.rect_position = Vector2(STRIP_PAD, i * (CARD + CARD_GAP))
+		else:
+			card.rect_position = Vector2(i * (CARD + CARD_GAP), STRIP_PAD)
 		_strip.add_child(card)
 
 
 # ---- motion -------------------------------------------------------------------
 
 func _on_open_pressed() -> void :
+	if _landed:
+		return
 	if _spinning:
+		# the SAME button, pressed again: skip the ceremony and reveal the drop now (user
+		# request 2026-08-15). Routing it through the button means every input path that could
+		# start the spin can also end it - keyboard, controller, mouse, any player.
+		_skip_to_landing()
 		return
 	_spinning = true
-	_open_button.visible = false
+	# the button stays where it is and becomes SKIP; the focus trap keeps the cursor on it
+	_open_button.text = tr("P2W_SKIP")
 
 	# phase 1 yanks (quad ease-in), phase 2 coasts down long (cubic ease-out to
 	# the winner), offset a random amount INSIDE the card so every landing
@@ -577,16 +667,17 @@ func _on_open_pressed() -> void :
 	var rung_shave: float = 0.2 * (8 - int(_card_rungs[WINNER_INDEX]))
 	_decel_time = rand_range(DECEL_TIME_MIN - rung_shave, DECEL_TIME_MAX - rung_shave)
 	var accel_fraction: float = 3.0 * accel_time / (3.0 * accel_time + 2.0 * _decel_time)
-	var ticker_in_window: float = _window.rect_size.x / 2.0
+	var ticker_in_window: float = _window_span() / 2.0
 	var land_offset: float = rand_range(- CARD * 0.34, CARD * 0.34)
 	var end_x: float = ticker_in_window - (WINNER_INDEX * (CARD + CARD_GAP) + CARD / 2.0 + land_offset)
-	var start_x: float = _strip.rect_position.x
+	var start_x: float = _strip_pos()
 	var mid_x: float = start_x + (end_x - start_x) * accel_fraction
 	_spin_end_x = end_x
 
 	_tween = Tween.new()
+	_tween.pause_mode = Node.PAUSE_MODE_STOP
 	add_child(_tween)
-	_tween.interpolate_property(_strip, "rect_position:x", start_x, mid_x, accel_time,
+	_tween.interpolate_property(_strip, _strip_prop(), start_x, mid_x, accel_time,
 			Tween.TRANS_QUAD, Tween.EASE_IN)
 	_tween.start()
 	var _err = _tween.connect("tween_all_completed", self, "_on_accel_done")
@@ -595,10 +686,23 @@ func _on_open_pressed() -> void :
 
 func _on_accel_done() -> void :
 	_tween.disconnect("tween_all_completed", self, "_on_accel_done")
-	_tween.interpolate_property(_strip, "rect_position:x", _strip.rect_position.x, _spin_end_x, _decel_time,
+	_tween.interpolate_property(_strip, _strip_prop(), _strip_pos(), _spin_end_x, _decel_time,
 			Tween.TRANS_CUBIC, Tween.EASE_OUT)
 	_tween.start()
 	var _err = _tween.connect("tween_all_completed", self, "_on_landed")
+
+
+# Jump straight to the reveal: park the strip on its landing spot and run the normal landing.
+# Everything downstream (winner frame, aura, drop card, Take/Recycle, focus) is untouched, so a
+# skipped spin ends in exactly the same state as one that ran its course.
+func _skip_to_landing() -> void :
+	if _landed or not _spinning:
+		return
+	if _tween != null and is_instance_valid(_tween):
+		_tween.stop_all()
+	_buildup_active = false
+	_set_strip_pos(_spin_end_x)
+	_on_landed()
 
 
 func _spawn_confetti(count: int, colors: Array) -> void :
@@ -624,15 +728,8 @@ func _spawn_confetti(count: int, colors: Array) -> void :
 
 
 func _enforce_focus() -> void :
-	var desired: Button = null
-	if _landed:
-		if _take_button.visible:
-			desired = _take_button
-		elif _recycle_button.visible:
-			desired = _recycle_button
-	elif _open_button != null and _open_button.visible:
-		desired = _open_button
-	if desired == null:
+	var desired: Button = _default_button()
+	if desired == null or not desired.visible:
 		return
 	# COOP: the player's selector IS their FocusEmulator, not the engine focus owner. This
 	# trap used to compare get_focus_owner() - real focus, which in coop never sits on the
@@ -656,10 +753,21 @@ func _enforce_focus() -> void :
 func _process(_delta: float) -> void :
 	if _strip == null:
 		return
+	# PAUSED: animate nothing and touch no focus - the pause menu owns the cursor while it is
+	# up. Just remember it happened, so the frame the game resumes every player's selector is
+	# put back on this reel's button instead of being left wherever the pause menu dropped it.
+	if get_tree().paused:
+		_was_paused = true
+		return
+	if _was_paused:
+		_was_paused = false
+		_focus_reel_button(_default_button())
 	# cheap and idempotent; without it the landing's layout pass drags the overlay away
 	_apply_section_transform()
-	if not _spinning:
-		_enforce_focus()
+	# EVERY state. This used to be gated on `not _spinning`, and _spinning was never cleared on
+	# landing, so the trap went dead the instant the item appeared - which is exactly why the
+	# cursor could wander onto the stats page after a win and never come back.
+	_enforce_focus()
 	if _landed:
 		# post-landing: the outer aura slowly spins and breathes
 		_glow_phase += _delta
@@ -716,17 +824,17 @@ func _process(_delta: float) -> void :
 	# motion - visually parked while the tween (and buildup) drag on. The moment
 	# motion drops below perception, snap to the end and celebrate NOW, so the
 	# wheel stopping and the celebration are the same beat (user 2026-08-12).
-	var strip_speed: float = abs(_strip.rect_position.x - _last_strip_x) / max(_delta, 0.0001)
-	_last_strip_x = _strip.rect_position.x
-	if abs(_strip.rect_position.x - _spin_end_x) < CARD * 0.5 and strip_speed < 14.0:
+	var strip_speed: float = abs(_strip_pos() - _last_strip_x) / max(_delta, 0.0001)
+	_last_strip_x = _strip_pos()
+	if abs(_strip_pos() - _spin_end_x) < CARD * 0.5 and strip_speed < 14.0:
 		_tween.stop_all()
-		_strip.rect_position.x = _spin_end_x
+		_set_strip_pos(_spin_end_x)
 		_on_landed()
 		return
 	# gold-suspense crescendo: rattle re-fires faster/higher/louder as the
 	# strip closes on the landing spot
 	if _buildup_active:
-		var b_remaining: float = abs(_strip.rect_position.x - _spin_end_x)
+		var b_remaining: float = abs(_strip_pos() - _spin_end_x)
 		var b_progress: float = clamp(1.0 - b_remaining / (4.5 * (CARD + CARD_GAP)), 0.0, 1.0)
 		# aggressive curve (user tuning): later start, faster acceleration,
 		# pitch screaming up to ~2.5x by the landing
@@ -737,8 +845,8 @@ func _process(_delta: float) -> void :
 			_buildup_sound.pitch_scale = 0.75 + 1.6 * b_curve
 			_buildup_sound.volume_db = - 16.0 + 14.0 * b_curve
 			_buildup_sound.play()
-	var ticker_in_window: float = _window.rect_size.x / 2.0
-	var card_under: int = int(floor((ticker_in_window - _strip.rect_position.x) / (CARD + CARD_GAP)))
+	var ticker_in_window: float = _window_span() / 2.0
+	var card_under: int = int(floor((ticker_in_window - _strip_pos()) / (CARD + CARD_GAP)))
 	if card_under != _last_tick_card:
 		# the card under the ticker glows while everything else sits at neutral
 		if _last_tick_card >= 0 and _last_tick_card < _strip.get_child_count():
@@ -748,7 +856,7 @@ func _process(_delta: float) -> void :
 		_last_tick_card = card_under
 		# wheel-of-fortune pitch: neutral through the blur, ramping UP over the
 		# last ~6 cards as the crawl tightens toward the landing
-		var remaining: float = abs(_strip.rect_position.x - _spin_end_x)
+		var remaining: float = abs(_strip_pos() - _spin_end_x)
 		var ramp: float = clamp(1.0 - remaining / (6.0 * (CARD + CARD_GAP)), 0.0, 1.0)
 		_tick_sound.pitch_scale = rand_range(0.95, 1.05) + ramp * 0.6
 		_tick_sound.play()
@@ -767,6 +875,8 @@ func _on_landed() -> void :
 	if _landed:
 		return  # perceptual landing may fire before the tween's own completion
 	_landed = true
+	_spinning = false
+	_open_button.visible = false
 	_land_sound.play()
 
 	for card in _strip.get_children():
@@ -783,6 +893,7 @@ func _on_landed() -> void :
 		winner_style.bg_color = winner_style.bg_color.lightened(0.08)
 	_winner_panel.rect_pivot_offset = Vector2(CARD / 2.0, CARD / 2.0)
 	var pop: = Tween.new()
+	pop.pause_mode = Node.PAUSE_MODE_STOP
 	add_child(pop)
 	pop.interpolate_property(_winner_panel, "rect_scale", Vector2.ONE, Vector2(1.16, 1.16), 0.25,
 			Tween.TRANS_BACK, Tween.EASE_OUT)
@@ -850,6 +961,13 @@ func _on_landed() -> void :
 		var card_top: float = 200.0
 		var avail_h: float = _window.rect_position.y - card_top - 16.0
 		var card_w: float = 560.0
+		if _vertical:
+			# vertical reels have no room above the window, so the item card lives INSIDE it:
+			# it covers the top half of the strip and sits directly above the card that was
+			# won, which is the arrangement the user asked for
+			card_w = V_DESIGN_W - 40.0
+			card_top = _window.rect_position.y + 8.0
+			avail_h = _winner_slot_top() - card_top - 10.0
 		_drop_card = Panel.new()
 		var card_style: = StyleBoxFlat.new()
 		card_style.bg_color = Color(0.055, 0.055, 0.055, 0.97)
@@ -897,7 +1015,7 @@ func _on_landed() -> void :
 					can_take = true
 
 	var view_size: Vector2 = _design_size
-	var buttons_y: float = _window.rect_position.y + CARD + 2.0 * STRIP_PAD + 84
+	var buttons_y: float = _window.rect_position.y + _window.rect_size.y + 84
 	if can_take:
 		_take_button.rect_position = Vector2(view_size.x / 2.0 - 232, buttons_y)
 		_recycle_button.rect_position = Vector2(view_size.x / 2.0 + 12, buttons_y)
@@ -919,9 +1037,12 @@ func _shrink_drop_card() -> void :
 		return
 	var content_h: float = _drop_card_desc.get_combined_minimum_size().y + 24.0
 	if content_h < _drop_card.rect_size.y:
-		_drop_card.rect_size.y = content_h
-		_drop_card_scroll.rect_size.y = content_h - 24.0
-	_drop_card.rect_position.y = _window.rect_position.y - 16.0 - _drop_card.rect_size.y
+		_drop_card.rect_size = Vector2(_drop_card.rect_size.x, content_h)
+		_drop_card_scroll.rect_size = Vector2(_drop_card_scroll.rect_size.x, content_h - 24.0)
+	# bottom-align: vertical reels tuck it just above the won card (covering the top of the
+	# strip), horizontal reels sit it above the whole window
+	var card_bottom: float = (_winner_slot_top() - 10.0) if _vertical else (_window.rect_position.y - 16.0)
+	_drop_card.rect_position = Vector2(_drop_card.rect_position.x, card_bottom - _drop_card.rect_size.y)
 
 
 # ---- outcomes -----------------------------------------------------------------
@@ -936,7 +1057,27 @@ func _on_recycle_pressed() -> void :
 		emit_signal("reel_done", "recycle")
 
 
+# While the ceremony is up it owns this player's inputs. The coop page carousel (LB/RB) was
+# the one that got through: switching to the stats page does not close the reel, but it moved
+# the selector onto a page the reel's focus base does not contain, and there was no way back.
+# Swallow those two actions for THIS player's device only - other players' carousels, and every
+# other action, are untouched.
+func _input(event: InputEvent) -> void :
+	if get_tree().paused or not RunData.is_coop_run:
+		return
+	var emulator = _coop_focus_emulator if _coop_focus_emulator != null else _find_focus_emulator()
+	if emulator == null or emulator._device < 0:
+		return
+	for action in ["ltrigger_%s" % emulator._device, "rtrigger_%s" % emulator._device]:
+		if InputMap.has_action(action) and event.is_action_pressed(action):
+			get_tree().set_input_as_handled()
+			return
+
+
 func _unhandled_input(event: InputEvent) -> void :
+	# the pause menu owns input while it is up
+	if get_tree().paused:
+		return
 	# before the spin, backing out is allowed: the chest stays armed on its card
 	if event.is_action_pressed("ui_cancel"):
 		if _block_cancel:

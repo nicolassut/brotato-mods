@@ -298,6 +298,7 @@ EFFECT_P2W_CHEST_ODDS_7,Contains one item (70%) or weapon (30%):
 CHEST_P2W_8,Chest VIII
 EFFECT_P2W_CHEST_ODDS_8,Contains one item (70%) or weapon (30%):
 P2W_OPEN,OPEN
+P2W_SKIP,SKIP
 P2W_CHESTS,Chests opened: {0}
 EFFECT_P2W_SHOP,The shop sells Chests instead of items and weapons
 P2W_CURSED,CURSED
