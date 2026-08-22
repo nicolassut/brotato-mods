@@ -52,7 +52,9 @@ LSMOKE="$(mktemp)"
 if grep -qiE "parse error|script error" "$LSMOKE"; then
   echo "LOBBY ERRORS:"; grep -iE "parse error|script error" "$LSMOKE" | head -10; exit 1
 fi
-grep -q "Lobby ready: 3 station(s), 4 building(s), 6 slots" "$LSMOKE" || { echo "FAIL: lobby ready line wrong (want 3 stations (shuttle+booth+board; shrine placeholder cut 2026-08-21), 4 pack buildings all-on (fortune merged into forge), 6 slot anchors)"; grep "Lobby ready" "$LSMOKE" || tail -10 "$LSMOKE"; exit 1; }
+grep -q "Lobby ready: 3 station(s), 4 building(s), 6 slots, 6 mode guy(s)" "$LSMOKE" || { echo "FAIL: lobby ready line wrong (want 3 stations (shuttle+booth+board; shrine placeholder cut 2026-08-21), 4 pack buildings all-on (fortune merged into forge), 6 slot anchors, 6 OFF DUTY mode guys)"; grep "Lobby ready" "$LSMOKE" || tail -10 "$LSMOKE"; exit 1; }
+grep -q "GameModes VERIFY: OK" "$LSMOKE" || { echo "FAIL: game-mode registry/grammar self-check did not pass:"; grep "GameModes VERIFY" "$LSMOKE" || tail -10 "$LSMOKE"; exit 1; }
+grep "GameModes VERIFY" "$LSMOKE"
 grep "Lobby ready:" "$LSMOKE"
 
 echo ""

@@ -51,12 +51,33 @@ const SLOT_POSITIONS: = [
 	Vector2(1140, 80), Vector2(1140, 520), Vector2(550, 800),
 ]
 const SPAWN_POINT: = Vector2(0, 1000)
+# each mode guy's kit name + his bark line (HUB_PLAN 4c lineup)
+const GUY_KIT: = {
+	"character_gourmet": "MODE_KIT_GOURMET",
+	"character_p2w": "MODE_KIT_P2W",
+	"character_blacksmith": "MODE_KIT_SMITH",
+	"character_special": "MODE_KIT_WILDCARD",
+	"character_mole": "MODE_KIT_MOLE",
+	"character_demon": "MODE_KIT_DEMON",
+}
+const GUY_BARK: = {
+	"character_gourmet": "MODE_BARK_GOURMET",
+	"character_p2w": "MODE_BARK_P2W",
+	"character_blacksmith": "MODE_BARK_SMITH",
+	"character_special": "MODE_BARK_WILDCARD",
+	"character_mole": "MODE_BARK_MOLE",
+	"character_demon": "MODE_BARK_DEMON",
+}
 
 var _players: = []
 var _world: YSort = null
 var _camera: Camera2D = null
-var _shrine = null
 var _mode_popup: CanvasLayer = null
+# OFF DUTY mode guys: char_id -> his station (the [E] prompt rides on the body)
+var _guy_stations: = {}
+# rows of the OPEN tick dialog, so supersede-greying refreshes live
+var _guy_rows: = []
+var _refreshing_rows: bool = false
 var _booth_screen: Sprite = null
 var _booth_faces: = []
 var _booth_static: = []
@@ -88,10 +109,12 @@ func _ready() -> void :
 	var stamp_layer: = CanvasLayer.new()
 	stamp_layer.add_child(stamp_label)
 	add_child(stamp_layer)
-	print("Lobby ready: %d station(s), %d building(s), %d slots" % [
+	var _mv = Utils.game_modes.verify()
+	print("Lobby ready: %d station(s), %d building(s), %d slots, %d mode guy(s)" % [
 		get_tree().get_nodes_in_group("lobby_npcs").size(),
 		get_tree().get_nodes_in_group("lobby_buildings").size(),
-		get_tree().get_nodes_in_group("lobby_slots").size()])
+		get_tree().get_nodes_in_group("lobby_slots").size(),
+		get_tree().get_nodes_in_group("lobby_mode_guys").size()])
 
 
 func _build_floor() -> void :
@@ -329,6 +352,19 @@ func _offduty_guy(char_id: String, base: Vector2, face_left: bool = false, sitti
 	if sitting:
 		_offduty_sit(guy)
 	_offduty_desync(guy)
+	# HIS STATION (HUB_PLAN 4c interaction model): proximity ring + [E] prompt
+	# riding on the body, opening HIS tick-box dialog. A guy whose whole kit is
+	# packed away has nothing to offer, so he gets no prompt at all.
+	if not Utils.game_modes.modes_for_owner(char_id).empty():
+		var station = LobbyNpc.new()
+		station.near_radius = 140.0
+		station.prompt_offset = Vector2(0, -108)
+		station.setup(null, tr(str(character.name)), "")
+		station.add_to_group("lobby_mode_guys")
+		guy.add_child(station)
+		_guy_stations[char_id] = station
+		var _eg = station.connect("interacted", self, "_on_guy_interacted", [char_id])
+		_update_guy_prompt(char_id)
 
 
 func _build_offduty_corner() -> void :
@@ -671,88 +707,195 @@ func _on_booth_interacted() -> void :
 	var _error = get_tree().change_scene(MenuData.character_selection_scene)
 
 
-func _on_shrine_interacted() -> void :
-	# run-wide MULTI-SELECT (user 2026-08-18): toggle any number of special
-	# modes; persisted immediately, stamped onto every player at run start.
+func _on_guy_interacted(char_id: String) -> void :
+	# every mode guy is his own station and opens HIS tick-box dialog
+	# (HUB_PLAN 4c). One dialog at a time, like every other lobby popup.
 	if _mode_popup != null:
 		return
-	_mode_popup = _build_mode_popup()
+	_mode_popup = _build_guy_dialog(char_id)
 	add_child(_mode_popup)
 
 
-func _build_mode_popup() -> CanvasLayer:
+func _build_guy_dialog(char_id: String) -> CanvasLayer:
+	var character = ItemService.get_element_safe(ItemService.characters, char_id)
+	var modes: Array = Utils.game_modes.modes_for_owner(char_id)
+	_guy_rows = []
 	var layer: = CanvasLayer.new()
 	var panel: = Panel.new()
-	panel.rect_min_size = Vector2(560, 0)
 	panel.anchor_left = 0.5
 	panel.anchor_top = 0.5
 	panel.anchor_right = 0.5
 	panel.anchor_bottom = 0.5
 	layer.add_child(panel)
 	var box: = VBoxContainer.new()
-	box.rect_min_size = Vector2(520, 0)
-	box.rect_position = Vector2(20, 20)
+	box.rect_position = Vector2(24, 24)
+	box.rect_min_size = Vector2(660, 0)
 	panel.add_child(box)
+
+	# HEADER: portrait + "<name> - <kit>" + his bark line
+	var header: = HBoxContainer.new()
+	box.add_child(header)
+	if character != null and character.get_icon() != null:
+		var portrait: = TextureRect.new()
+		portrait.texture = character.get_icon()
+		portrait.expand = true
+		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		portrait.rect_min_size = Vector2(88, 88)
+		header.add_child(portrait)
+	var head_box: = VBoxContainer.new()
+	head_box.rect_min_size = Vector2(560, 0)
+	header.add_child(head_box)
 	var title: = Label.new()
-	title.text = tr("LOBBY_SHRINE_TITLE")
-	box.add_child(title)
-	var selected: Array = Utils.game_modes.selected_mode_ids()
-	var first_button: Button = null
-	for mode in Utils.game_modes.available_modes():
+	var guy_name: String = tr(str(character.name)) if character != null else char_id
+	title.text = "%s - %s" % [guy_name, tr(str(GUY_KIT.get(char_id, "")))]
+	head_box.add_child(title)
+	var bark: = Label.new()
+	bark.text = tr(str(GUY_BARK.get(char_id, "")))
+	bark.autowrap = true
+	bark.rect_min_size = Vector2(560, 0)
+	bark.modulate = Color(1, 1, 1, 0.7)
+	head_box.add_child(bark)
+	box.add_child(HSeparator.new())
+
+	# ONE ROW PER TICK: toggle + description + grammar annotation
+	for mode in modes:
 		var mode_id: String = str(mode["id"])
+		var row: = VBoxContainer.new()
+		box.add_child(row)
 		var toggle: = Button.new()
 		toggle.toggle_mode = true
-		toggle.pressed = selected.has(mode_id)
-		toggle.text = _mode_toggle_text(str(mode["name"]), toggle.pressed)
-		var _e = toggle.connect("toggled", self, "_on_mode_toggled", [toggle, mode_id, str(mode["name"])])
-		box.add_child(toggle)
-		if first_button == null:
-			first_button = toggle
-	if first_button == null:
+		toggle.rect_min_size = Vector2(620, 0)
+		row.add_child(toggle)
+		var desc: = Label.new()
+		desc.text = "     " + tr(str(mode["desc"]))
+		desc.autowrap = true
+		desc.rect_min_size = Vector2(620, 0)
+		desc.modulate = Color(1, 1, 1, 0.68)
+		row.add_child(desc)
+		var note: = Label.new()
+		note.modulate = Color(1, 0.86, 0.45, 0.9)
+		row.add_child(note)
+		var _e = toggle.connect("toggled", self, "_on_mode_toggled", [mode_id])
+		_guy_rows.push_back({
+			"id": mode_id, "mode": mode, "toggle": toggle, "row": row,
+			"note": note, "base_note": _mode_note(mode, char_id),
+		})
+	if modes.empty():
 		var empty: = Label.new()
 		empty.text = tr("LOBBY_SHRINE_EMPTY")
 		box.add_child(empty)
+
 	var close: = Button.new()
 	close.text = tr("MENU_BACK")
 	var _e2 = close.connect("pressed", self, "_close_mode_popup")
 	box.add_child(close)
-	if first_button != null:
-		first_button.call_deferred("grab_focus")
-	else:
+	_refresh_guy_rows()
+	if _guy_rows.empty():
 		close.call_deferred("grab_focus")
-	# size the panel to its content once the box lays out
+	else:
+		_guy_rows[0]["toggle"].call_deferred("grab_focus")
 	box.connect("resized", self, "_fit_mode_popup", [panel, box])
 	return layer
 
 
+func _mode_note(mode: Dictionary, char_id: String) -> String:
+	# TICK GRAMMAR annotations (HUB_PLAN 4c): supersede / exclusive / linked
+	var parts: = []
+	var supersedes: Array = mode.get("supersedes", [])
+	if not supersedes.empty():
+		parts.push_back(tr("MODE_NOTE_SUPERSEDES") % _mode_name_list(supersedes))
+	var exclusive: Array = mode.get("exclusive_with", [])
+	if not exclusive.empty():
+		parts.push_back(tr("MODE_NOTE_EXCLUSIVE") % _mode_name_list(exclusive))
+	var owners: Array = mode.get("owners", [])
+	if owners.size() > 1:
+		var others: = []
+		for owner_id in owners:
+			if str(owner_id) == char_id:
+				continue
+			var other = ItemService.get_element_safe(ItemService.characters, str(owner_id))
+			others.push_back(tr(str(other.name)) if other != null else str(owner_id))
+		parts.push_back(tr("MODE_NOTE_LINKED") % PoolStringArray(others).join(", "))
+	if parts.empty():
+		return ""
+	return "     " + PoolStringArray(parts).join("    ")
+
+
+func _mode_name_list(ids: Array) -> String:
+	var names: = []
+	for mode_id in ids:
+		var mode: Dictionary = Utils.game_modes.mode_by_id(str(mode_id))
+		if not mode.empty():
+			names.push_back(tr(str(mode["name"])))
+	return PoolStringArray(names).join(", ")
+
+
+func _refresh_guy_rows() -> void :
+	# Button.pressed emits "toggled" when set from code, so guard the writes
+	# or the refresh recurses into the handler that called it.
+	_refreshing_rows = true
+	var selected: Array = Utils.game_modes.selected_mode_ids()
+	for row_data in _guy_rows:
+		var mode_id: String = str(row_data["id"])
+		var on: bool = selected.has(mode_id)
+		var covered: bool = Utils.game_modes.is_superseded(mode_id)
+		var toggle: Button = row_data["toggle"]
+		toggle.pressed = on
+		toggle.disabled = covered
+		toggle.text = _mode_toggle_text(tr(str(row_data["mode"]["name"])), on)
+		# SUPERSEDE: a covered tick greys out. It KEEPS its own state - the
+		# bigger tick simply speaks for it while it is on.
+		var row: Control = row_data["row"]
+		row.modulate = Color(1, 1, 1, 0.42) if covered else Color(1, 1, 1, 1.0)
+		var note: Label = row_data["note"]
+		var text: String = str(row_data["base_note"])
+		if covered:
+			var boss: Dictionary = Utils.game_modes.superseder_of(mode_id)
+			if not boss.empty():
+				text = "     " + (tr("MODE_NOTE_COVERED") % tr(str(boss["name"])))
+		note.text = text
+	_refreshing_rows = false
+
+
 func _fit_mode_popup(panel: Panel, box: VBoxContainer) -> void :
-	panel.rect_size = box.rect_size + Vector2(40, 40)
+	panel.rect_size = box.rect_size + Vector2(48, 48)
 	panel.rect_position = - panel.rect_size / 2.0
 	panel.margin_left = - panel.rect_size.x / 2.0
 	panel.margin_top = - panel.rect_size.y / 2.0
 
 
 func _mode_toggle_text(mode_name: String, on: bool) -> String:
-	return "%s  [%s]" % [mode_name, tr("LOBBY_MODE_ON") if on else tr("LOBBY_MODE_OFF")]
+	return "[%s]  %s" % [tr("LOBBY_MODE_ON") if on else tr("LOBBY_MODE_OFF"), mode_name]
 
 
-func _on_mode_toggled(pressed: bool, toggle: Button, mode_id: String, mode_name: String) -> void :
+func _on_mode_toggled(pressed: bool, mode_id: String) -> void :
+	if _refreshing_rows:
+		return
 	Utils.game_modes.set_mode_selected(mode_id, pressed)
-	toggle.text = _mode_toggle_text(mode_name, pressed)
-	_update_shrine_prompt()
+	# the whole dialog re-reads state: EXCLUSIVE cancels land visibly, and
+	# SUPERSEDE greying updates the moment the bigger tick flips
+	_refresh_guy_rows()
+	_update_all_guy_prompts()
 
 
 func _close_mode_popup() -> void :
 	if _mode_popup != null:
 		_mode_popup.queue_free()
 		_mode_popup = null
+	_guy_rows = []
+	_update_all_guy_prompts()
 
 
-func _update_shrine_prompt() -> void :
-	if _shrine == null:
+func _update_guy_prompt(char_id: String) -> void :
+	var station = _guy_stations.get(char_id)
+	if station == null:
 		return
-	var count: int = Utils.game_modes.selected_mode_ids().size()
-	_shrine.set_prompt(tr("LOBBY_SHRINE_PROMPT") % count)
+	station.set_prompt(tr("LOBBY_GUY_PROMPT") % Utils.game_modes.active_count_for_owner(char_id))
+
+
+func _update_all_guy_prompts() -> void :
+	for char_id in _guy_stations:
+		_update_guy_prompt(str(char_id))
 
 
 func _open_info_popup(title_text: String, lines: Array) -> void :

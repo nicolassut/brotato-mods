@@ -382,3 +382,56 @@ LOBBY_BANK_L2,Every point of debt costs 2 materials to clear - all income goes t
 LOBBY_BANK_L3,Credit Card raises your limit. Bank Loan pays now and hurts later.
 LOBBY_UNLOCKED,Unlocked
 LOBBY_LOCKED,Locked
+LOBBY_GUY_PROMPT,[E] Talk (%d on)
+MODE_NOTE_SUPERSEDES,Supersedes: %s
+MODE_NOTE_EXCLUSIVE,Cancels: %s
+MODE_NOTE_LINKED,Linked switch - shared with %s
+MODE_NOTE_COVERED,Covered by %s
+MODE_KIT_GOURMET,House Menu
+MODE_BARK_GOURMET,The kitchen is open. Tell me how you want the place run and I will cook to it.
+MODE_GOURMET_STEAK,All fruit becomes steak
+MODE_GOURMET_STEAK_DESC,The Butcher's meat reskin applies to your whole run - fruit and trees show as steak and meat racks.
+MODE_GOURMET_FOOD,All fruit becomes food
+MODE_GOURMET_FOOD_DESC,Fruit drops are replaced by dishes from the food pool.
+MODE_GOURMET_SPAWNER,Shop stocks a food spawner
+MODE_GOURMET_SPAWNER_DESC,Every shop has a 30% chance to offer a food spawner.
+MODE_KIT_P2W,Lootboxes
+MODE_BARK_P2W,Everything is better in a box. Pick which boxes follow you into the run.
+MODE_P2W_CRATES,All crates are lootboxes
+MODE_P2W_CRATES_DESC,Item crates dropped on the ground become lootboxes.
+MODE_P2W_SHOP,Lootboxes appear in the shop
+MODE_P2W_SHOP_DESC,The shop can offer lootboxes alongside its normal stock.
+MODE_P2W_EVERYTHING,EVERYTHING is lootboxes
+MODE_P2W_EVERYTHING_DESC,Ground crates and the whole shop turn into lootboxes.
+MODE_KIT_SMITH,Open Forge
+MODE_BARK_SMITH,The forge does not care who is holding the hammer. Say the word.
+MODE_SMITH_OPEN,Forging enabled for everyone
+MODE_SMITH_OPEN_DESC,Combine two weapons of the same tier in the shop like The Blacksmith does.
+MODE_SMITH_LOOSE,Loose forge
+MODE_SMITH_LOOSE_DESC,Merges may ignore weapon class - any two weapons of a tier can be forged together.
+MODE_SMITH_ELITES,Elites drop a forgeable weapon
+MODE_SMITH_ELITES_DESC,Every elite you kill leaves behind a weapon for the forge.
+MODE_FULL_LADDER,Full 8-tier ladder
+MODE_FULL_LADDER_DESC,Borrowed forging and lootboxes ride the full 8-rung ladder instead of vanilla tiers.
+MODE_KIT_WILDCARD,Rules
+MODE_BARK_WILDCARD,House rules. I make them up as we go.
+MODE_WILDCARD_RULES,Roll a modifier every wave
+MODE_WILDCARD_RULES_DESC,Every wave rolls Wildcard modifiers for you like The Wildcard does.
+MODE_WILDCARD_DOUBLE,Double roll
+MODE_WILDCARD_DOUBLE_DESC,Twice as many modifiers roll every wave.
+MODE_WILDCARD_STICKY,Sticky rules
+MODE_WILDCARD_STICKY_DESC,On every boss wave one active modifier becomes permanent.
+MODE_KIT_MOLE,Lights Out
+MODE_BARK_MOLE,Cannot see a thing down here. Suits me. Want it dark up there too?
+MODE_MOLE_FOG_BOSS,Fog on boss waves
+MODE_MOLE_FOG_BOSS_DESC,Fog of war covers every boss wave.
+MODE_MOLE_FOG_ALL,Fog every wave
+MODE_MOLE_FOG_ALL_DESC,Fog of war covers every wave of the run.
+MODE_MOLE_FOG_THICK,Thick fog
+MODE_MOLE_FOG_THICK_DESC,Your vision circle shrinks. Stacks with either fog schedule.
+MODE_KIT_DEMON,Blood Market
+MODE_BARK_DEMON,Short on materials? There is always another way to pay.
+MODE_DEMON_SHORTFALL,Pay the difference in Max HP
+MODE_DEMON_SHORTFALL_DESC,When you cannot afford something the shortfall is charged to your Max HP.
+MODE_DEMON_EVERYTHING,Everything costs Max HP
+MODE_DEMON_EVERYTHING_DESC,Every purchase is paid in Max HP instead of materials.

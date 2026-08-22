@@ -18,6 +18,11 @@ var _name_plate: Label = null
 const NEAR_RADIUS: = 110.0
 # per-station override (big buildings need the prompt to reach past their collision)
 var near_radius: float = NEAR_RADIUS
+# where the [E] prompt sits relative to the node origin (the sprite BASE).
+# Stations put it just under their base; the OFF DUTY mode guys have no sprite
+# of their own (the station rides on the character body) so theirs goes above
+# the head instead of into the floor.
+var prompt_offset: = Vector2(0, 16)
 # half the sprite height; the node origin sits at the sprite BASE (y-sort)
 var _half_h: float = 48.0
 
@@ -42,7 +47,7 @@ func setup(texture: Texture, display_name: String, prompt: String) -> void :
 
 	# no floating name plate (user 2026-08-21) - the prompt alone talks
 
-	_prompt = _make_label(prompt, Vector2(0, 16))
+	_prompt = _make_label(prompt, prompt_offset)
 	_prompt.modulate = Color(1, 0.9, 0.4, 1)
 	_prompt.visible = false
 	add_child(_prompt)
