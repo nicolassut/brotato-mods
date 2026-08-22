@@ -229,14 +229,16 @@ func _offduty_sleeper(char_id: String, base: Vector2) -> void :
 	# cloth's split line so ~40% of him hides behind the front fold
 	guy._visual.position = Vector2(24, -41)
 	_offduty_desync(guy)
+	if guy._anim_player != null:
+		guy._anim_player.playback_speed = 0.2   # asleep: 80% slower (user 2026-08-21)
 	guy._visual.rotation_degrees = -90.0
 	guy._visual.scale = Vector2(0.95, 0.95)
 	var tween: = Tween.new()
 	guy.add_child(tween)
-	var _t1 = tween.interpolate_property(guy._visual, "rotation_degrees", -93.0, -87.0, 1.6,
+	var _t1 = tween.interpolate_property(guy._visual, "rotation_degrees", -93.0, -87.0, 8.0,
 			Tween.TRANS_SINE, Tween.EASE_IN_OUT)
-	var _t2 = tween.interpolate_property(guy._visual, "rotation_degrees", -87.0, -93.0, 1.6,
-			Tween.TRANS_SINE, Tween.EASE_IN_OUT, 1.6)
+	var _t2 = tween.interpolate_property(guy._visual, "rotation_degrees", -87.0, -93.0, 8.0,
+			Tween.TRANS_SINE, Tween.EASE_IN_OUT, 8.0)
 	tween.repeat = true
 	var _ts = tween.start()
 
