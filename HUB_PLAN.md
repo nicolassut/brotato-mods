@@ -198,6 +198,47 @@ RESERVED FOR THE MULTIPLAYER DLC (ecosystem law): the Juggler's "Hot
 Potato" (weapons shuffle between players every wave) ships with the future
 multiplayer pack, not here.
 
+### 4c-STATUS (2026-08-22) - dialogs SHIPPED, mechanics half wired
+
+BUILT: `game_mode_service.gd` holds all 18 ticks across the 6 guys with the
+three grammar patterns implemented (SUPERSEDE greys covered ticks live but
+keeps their state; EXCLUSIVE PAIR cancels its opposite; LINKED SWITCH is ONE
+id, `forge_full_ladder`, owned by both P2W and Blacksmith, so it is mirrored by
+construction rather than synced). Grammar lives in PURE functions
+(`apply_tick`, `is_superseded_in`) and is self-checked at boot by
+`GameModes.verify()` - a gate. Each guy is his own station: `[E] Talk (n on)`
+riding on the body, opening his dialog (portrait + kit title + bark + one row
+per tick with description and grammar annotation).
+
+MECHANICS - the un-gate helpers all live in `run_data.gd` next to
+`has_wildcard_flow` (the template) and are asserted by `asset-dev/check_modes.gd`
+(gate 6b). LIVE: `wildcard_rules`, `smith_open_forge` (`has_forge_flow`),
+`p2w_crates` + `p2w_everything` (`has_lootbox_crates` / `first_lootbox_index`),
+`mole_fog_all` (`has_fog_flow`), `mole_fog_thick` (`has_thick_fog`),
+`gourmet_steak` (butcher_skin), `forge_full_ladder` (`uses_tier_ladder` is now
+the single ladder authority - item_service no longer inlines `my_id` checks).
+
+STILL UI-ONLY (each needs its own mechanic pass; gate map surveyed 2026-08-22):
+- `gourmet_food` - fruit->food swap at the drop site (`main.gd` spawn_consumables).
+- `gourmet_shop_spawner` - 30% spawner offer in `item_service.get_player_shop_items`.
+- `p2w_shop` - NEW code: the P2W shop is 100% chests behind an early return
+  (`item_service.gd:457`); a MIXED shop does not exist yet.
+- `smith_loose` - NEW flag: there is no strict/loose concept. The shared-set
+  check is duplicated in `run_data.is_valid_forge_pair` AND
+  `base_shop._forge_weapon`; both must change together or they desync.
+- `smith_elite_drops` - NEW system: nothing links elite kills to a weapon drop.
+- `wildcard_double` - count comes only from `special_modifiers.COUNT_CURVE`
+  (floored at 2); doubling it fights `_conflicts`, which blocks axis reuse.
+- `wildcard_sticky` - NEW lifetime: only LIFE_WAVE/LIFE_SHOP exist and teardown
+  is unconditional; needs a third lifetime + a serialized permanent-mods key.
+- `mole_fog_boss` - append to `RunData.events_fog_of_war` (already serialized).
+- `demon_shortfall` / `demon_everything` - NEW: no HP-for-materials path exists.
+
+DELIBERATELY NOT un-gated (character kit, not the borrowed system): the
+Blacksmith's tier-weighted class levels (`run_data.gd` `bs_sets`) and his
+weapons-only shop (`item_service` `bs_weapons_only`); mode players forge but
+keep a normal shop and vanilla class scaling.
+
 ## 4b. Dialog follow-ups (user, 2026-08-18 walkthrough - build AFTER art starts)
 - Dialogs become INTERACTIVE: per-menu activate/deactivate toggles - e.g. the
   Diner can turn OFF food items appearing in the pool (play vanilla item pool
