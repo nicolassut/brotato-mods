@@ -85,6 +85,12 @@ var special_force_fog_hash: = generate_hash("special_force_fog")
 var special_force_bullet_hell_hash: = generate_hash("special_force_bullet_hell")
 var special_wave_duration_hash: = generate_hash("special_wave_duration")
 var special_shop_slots_hash: = generate_hash("special_shop_slots")
+# Gourmet DLC - The Wildcard's event-driven positives (these three spawn things,
+# so they cannot be plain deltas on a vanilla key; main.gd consumes them - the
+# Guardian Grove pattern)
+var special_lootbox_storm_hash: = generate_hash("special_lootbox_storm")
+var special_undead_allies_hash: = generate_hash("special_undead_allies")
+var special_pet_party_hash: = generate_hash("special_pet_party")
 # Gourmet DLC - Gourmet: fat stacks applied so far (1 per wave; -3% Speed, +1% size each)
 var gourmet_fat_hash: = generate_hash("gourmet_fat")
 # Gourmet DLC - Competitive Eater: Appetite modifications multiplier (run_data.get_stat_gain

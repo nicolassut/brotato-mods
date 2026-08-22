@@ -96,6 +96,11 @@ var _food_scheduled_spawns: = [[], [], [], []]
 var _food_prev_steps: = [0, 0, 0, 0]
 var _food_prev_positions: = [null, null, null, null]
 var _food_wave_time: = 0.0
+# Gourmet DLC - The Wildcard, Lootbox Storm: absolute wave times (seconds) at
+# which a crate pops in. Filled at wave start, drained by _process_food_triggers.
+const STORM_CRATES_MIN: = 5
+const STORM_CRATES_MAX: = 10
+var _lootbox_storm_times: = []
 # Gourmet DLC - metered spawner queues: build-scaling triggers (chili greenhouse,
 # sushi bar, wok station) serve at most one food per FOOD_METER_SECONDS per
 # spawner type; extra earned foods queue and wait their turn (user 2026-08-14)
@@ -730,6 +735,7 @@ func _on_enemy_died(enemy: Enemy, args: Entity.DieArgs) -> void :
 							RunData.add_tracked_value(player.player_index, Keys.item_will_o_the_wisp_hash, 1, 0)
 
 		spawn_loot(enemy, EntityType.ENEMY, args)
+		_try_undead_ally(enemy, args)
 
 		# Gourmet DLC - kill-triggered food spawners. Kills credit the killer;
 		# burning deaths and elite kills count for every live player (the vanilla
@@ -1379,6 +1385,14 @@ func _process_food_triggers(delta: float) -> void :
 		return
 
 	_food_wave_time += delta
+
+	# Lootbox Storm crates: drop whatever is due. Deliberately OUTSIDE the
+	# per-player loop below (which skips dead players) - the crates are shared
+	# wave loot, so a downed coop partner must not stop the storm.
+	for storm_j in range(_lootbox_storm_times.size() - 1, - 1, - 1):
+		if _food_wave_time >= _lootbox_storm_times[storm_j]:
+			_lootbox_storm_times.remove(storm_j)
+			_spawn_storm_lootbox()
 
 	for i in _players.size():
 		var player: Player = _players[i]
@@ -2533,6 +2547,107 @@ func _on_EntitySpawner_players_spawned(players: Array) -> void :
 	RunData.reset_weapons_dmg_dealt()
 	RunData.reset_weapons_tracked_value_this_wave()
 	RunData.reset_wave_caches()
+	_special_wave_start_spawns()
+
+
+# Gourmet DLC - The Wildcard's three spawning positives. They cannot be plain
+# reversible deltas (they create entities), so each rides a seeded special_* key
+# that THIS file consumes at wave start - the Guardian Grove pattern. Nothing
+# needs undoing: pets and crates live in the wave scene and die with it, and the
+# keys themselves are removed by the normal modifier teardown.
+func _special_wave_start_spawns() -> void :
+	_lootbox_storm_times = []
+	for player_index in RunData.get_player_count():
+		var special_effects: Dictionary = RunData.get_player_effects(player_index)
+
+		# Raining Cats and Dogs: N Bonk Dogs + N Catling Guns, this wave only.
+		var pet_party: int = int(special_effects.get(Keys.special_pet_party_hash, 0))
+		if pet_party > 0:
+			_queue_special_pets(player_index, pet_party)
+
+		# Lootbox Storm: 5-10 crates popping in at random spots across the wave.
+		# Scheduled once (the first owner) - in coop the crates are shared loot.
+		if int(special_effects.get(Keys.special_lootbox_storm_hash, 0)) > 0 and _lootbox_storm_times.empty():
+			var storm_count: int = Utils.randi_range(STORM_CRATES_MIN, STORM_CRATES_MAX)
+			var storm_window: float = max(10.0, _wave_timer.wait_time)
+			for _storm_i in storm_count:
+				_lootbox_storm_times.push_back(rand_range(0.06, 0.9) * storm_window)
+
+
+# Queue `count` of each pet by reusing the REAL PetEffect off the vanilla items,
+# so the dogs and cats behave exactly as if the player owned Bonk Dog / Catling
+# Gun. Pets are wave entities: they vanish when the wave scene tears down.
+func _queue_special_pets(player_index: int, count: int) -> void :
+	if player_index >= _players.size() or not is_instance_valid(_players[player_index]):
+		return
+	var base_pos: Vector2 = _players[player_index].global_position
+	for pet_item_id in ["item_bonk_dog", "item_catling_gun"]:
+		var pet_item = ItemService.get_element_safe(ItemService.items, pet_item_id)
+		if pet_item == null:
+			continue
+		var pet_effect = null
+		for candidate in pet_item.effects:
+			if "scene" in candidate and candidate.scene != null:
+				pet_effect = candidate
+				break
+		if pet_effect == null:
+			continue
+		for _pet_i in count:
+			var pet_pos: Vector2 = _entity_spawner.get_spawn_pos_in_area(base_pos, 300)
+			_entity_spawner.queues_to_spawn_pets[player_index].push_back(
+					[EntityType.PET, pet_effect.scene, pet_pos, pet_effect])
+
+
+# One Lootbox Storm crate, dropped anywhere on the map. Routed through the same
+# consumable path enemy drops use, so a P2W run dresses it as a chest and every
+# pickup/UI behaviour is identical to a normal crate.
+func _spawn_storm_lootbox() -> void :
+	var crate_data = ItemService.get_element_safe(ItemService.consumables, "consumable_item_box")
+	if crate_data == null or _cleaning_up:
+		return
+	var consumable: Consumable = get_node_from_pool(_consumable_pool_id, _consumables_container)
+	if consumable == null:
+		consumable = consumable_scene.instance()
+		_consumables_container.call_deferred("add_child", consumable)
+		var _error = consumable.connect("picked_up", self, "on_consumable_picked_up")
+		yield(consumable, "ready")
+	consumable.already_picked_up = false
+	consumable.consumable_data = crate_data
+	consumable.set_texture(crate_data.icon)
+	consumable.modulate.a = 1.0
+	consumable.set_meta("p2w_rung", - 1)
+	if RunData.has_p2w():
+		var storm_rung: int = ItemService.get_p2w_rung_for_wave(RunData.current_wave, RunData.first_p2w_index(), 0)
+		consumable.set_meta("p2w_rung", storm_rung)
+		consumable.set_texture(load("res://items/custom/p2w/chest_%d/chest_%d.png" % [storm_rung, storm_rung]))
+	var storm_pos: Vector2 = ZoneService.get_rand_pos()
+	consumable.drop(storm_pos, 0, storm_pos)
+	_consumables.push_back(consumable)
+	GourmetTracker.count("special_lootbox_storm_crate")
+
+
+# Second Shift: a slice of the enemies you kill get back up on your side. Uses
+# the game's OWN charmed-summon path, so allies behave exactly like any other
+# charmed enemy. Guards: player kills only, never a charmed enemy (that would
+# loop forever), never a boss, and only what vanilla allows to be charmed.
+func _try_undead_ally(enemy: Enemy, args: Entity.DieArgs) -> void :
+	if _cleaning_up or args.killed_by_player_index < 0:
+		return
+	var ally_chance: int = int(RunData.get_player_effects(args.killed_by_player_index).get(Keys.special_undead_allies_hash, 0))
+	if ally_chance <= 0 or enemy is Boss:
+		return
+	if enemy.get_charmed_by_player_index() != - 1:
+		return
+	if "can_be_charmed" in enemy and not enemy.can_be_charmed:
+		return
+	if str(enemy.filename) == "" or not Utils.get_chance_success(ally_chance / 100.0):
+		return
+	var ally_scene = load(enemy.filename)
+	if ally_scene == null:
+		return
+	_entity_spawner.on_enemy_wanted_to_spawn_an_enemy(
+			ally_scene, enemy.global_position, null, args.killed_by_player_index)
+	GourmetTracker.count("special_undead_ally")
 
 
 func _on_EntitySpawner_enemy_spawned(enemy: Enemy) -> void :

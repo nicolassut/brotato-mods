@@ -212,6 +212,14 @@ var REGISTRY: = [
 	 "kind": "bad", "life": LIFE_SHOP, "axes": ["SHOP_PRICE"], "effects": [["hp_shop", 1]]},
 	{"id": "big_delivery", "name": "Big Delivery", "text": "Next shop offers 2 extra items",
 	 "kind": "good", "life": LIFE_SHOP, "axes": ["SHOP_SIZE"], "effects": [["special_shop_slots", 2]]},
+
+	# --- friends (event-driven: main.gd consumes these keys and does the spawning) ------
+	{"id": "lootbox_storm", "name": "Lootbox Storm", "text": "5 to 10 crates drop out of thin air during the wave",
+	 "kind": "good", "life": LIFE_WAVE, "axes": ["LOOT"], "effects": [["special_lootbox_storm", 1]]},
+	{"id": "undead_allies", "name": "Second Shift", "text": "5% of the enemies you kill come back fighting for you",
+	 "kind": "good", "life": LIFE_WAVE, "axes": ["ALLIES"], "effects": [["special_undead_allies", 5]]},
+	{"id": "pet_party", "name": "Raining Cats and Dogs", "text": "3 Bonk Dogs and 3 Catling Guns join you for the wave",
+	 "kind": "good", "life": LIFE_WAVE, "axes": ["PETS"], "effects": [["special_pet_party", 3]]},
 ]
 
 # hard-forbidden pairs, beyond the axis exclusion (see MODIFIER_POOL.md audit)
