@@ -110,7 +110,14 @@ func _on_body_exited(body: Node) -> void :
 		_refresh_prompt_visibility()
 
 
+# The hub uses the SAME button that presses UI buttons and buys in the shop
+# (user 2026-08-22): "ui_accept" is space/enter on a keyboard and the bottom
+# face button on a controller. The old "interact" action (E / top face button)
+# was a second, inconsistent verb.
+const INTERACT_ACTION: = "ui_accept"
+
+
 func _unhandled_input(event: InputEvent) -> void :
-	if _player_near and not prompt_suppressed and event.is_action_pressed("interact"):
+	if _player_near and not prompt_suppressed and event.is_action_pressed(INTERACT_ACTION):
 		get_tree().set_input_as_handled()
 		emit_signal("interacted")

@@ -350,14 +350,14 @@ EFFECT_BLACKSMITH_TIERS,Weapons come in 8 tiers instead of 4
 EFFECT_BLACKSMITH_CLASS_TIERS,"Weapon class level comes from the total weapon tiers you own in that class: 1 level per 4 tiers, up to 6"
 MODE_NONE,No mode
 LOBBY_DOOR,Departure
-LOBBY_DOOR_PROMPT,[E] Start a run
+LOBBY_DOOR_PROMPT,[%s] Start a run
 LOBBY_SHRINE,Mode Shrine
-LOBBY_SHRINE_PROMPT,[E] Run modes (%d on)
+LOBBY_SHRINE_PROMPT,[%s] Run modes (%d on)
 LOBBY_HUB,Hub
 LOBBY_SHUTTLE,Departure shuttle
-LOBBY_SHUTTLE_PROMPT,[E] Take off
+LOBBY_SHUTTLE_PROMPT,[%s] Take off
 LOBBY_BOOTH,Changing booth
-LOBBY_BOOTH_PROMPT,[E] Change character
+LOBBY_BOOTH_PROMPT,[%s] Change character
 LOBBY_BLDG_SMITHY,Smithy & Den
 LOBBY_BLDG_BANK,The Bank
 LOBBY_BLDG_DINER,Chef's Diner
@@ -369,9 +369,9 @@ LOBBY_SHRINE_TITLE,Choose run modes
 LOBBY_SHRINE_EMPTY,No modes available yet
 LOBBY_MODE_ON,ON
 LOBBY_MODE_OFF,OFF
-LOBBY_BLDG_PROMPT,[E] Look inside
+LOBBY_BLDG_PROMPT,[%s] Look inside
 LOBBY_BOARD,Unlock board
-LOBBY_BOARD_PROMPT,[E] Progress
+LOBBY_BOARD_PROMPT,[%s] Progress
 LOBBY_BOARD_DONE,%d / %d challenges complete
 LOBBY_BOARD_NEXT,Still to do:
 LOBBY_FORGE_LADDER,The 8-tier ladder:
@@ -382,7 +382,7 @@ LOBBY_BANK_L2,Every point of debt costs 2 materials to clear - all income goes t
 LOBBY_BANK_L3,Credit Card raises your limit. Bank Loan pays now and hurts later.
 LOBBY_UNLOCKED,Unlocked
 LOBBY_LOCKED,Locked
-LOBBY_GUY_PROMPT,[E] Talk (%d on)
+LOBBY_GUY_PROMPT,[%s] Talk (%d on)
 MODE_NOTE_SUPERSEDES,Supersedes: %s
 MODE_NOTE_EXCLUSIVE,Cancels: %s
 MODE_NOTE_LINKED,Linked switch - shared with %s
@@ -435,3 +435,5 @@ MODE_DEMON_SHORTFALL,Pay the difference in Max HP
 MODE_DEMON_SHORTFALL_DESC,When you cannot afford something the shortfall is charged to your Max HP.
 MODE_DEMON_EVERYTHING,Everything costs Max HP
 MODE_DEMON_EVERYTHING_DESC,Every purchase is paid in Max HP instead of materials.
+LOBBY_BTN_KEY,Space
+LOBBY_BTN_PAD,X

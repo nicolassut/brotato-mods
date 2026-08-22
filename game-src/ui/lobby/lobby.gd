@@ -54,6 +54,10 @@ const SLOT_POSITIONS: = [
 const SPAWN_POINT: = Vector2(0, 1000)
 # content width of a mode guy's speech bubble
 const BUBBLE_WIDTH: = 600
+# every station's [E]-style prompt, so they can all be relabelled when the
+# player swaps between keyboard and controller
+var _prompt_stations: = []
+var _gamepad_prompts: bool = false
 # coop hub camera: breathing room around the players' bounding box, and how far
 # it may zoom out before it stops following the stragglers
 const COOP_CAMERA_MARGIN: = Vector2(560.0, 420.0)
@@ -373,7 +377,7 @@ func _offduty_guy(char_id: String, base: Vector2, face_left: bool = false, sitti
 		guy.add_child(station)
 		_guy_stations[char_id] = station
 		var _eg = station.connect("interacted", self, "_on_guy_interacted", [char_id])
-		_update_guy_prompt(char_id)
+		_register_prompt(station, "LOBBY_GUY_PROMPT", char_id)
 
 
 func _build_offduty_corner() -> void :
@@ -489,7 +493,7 @@ func _build_slot_buildings() -> void :
 		var bldg = _spawn_building_placeholder(slot_rect, tr(str(pack.lobby_building_name)),
 				str(pack.lobby_building_icon), true)
 		bldg.near_radius = 300.0
-		bldg.set_prompt(tr("LOBBY_BLDG_PROMPT"))
+		_register_prompt(bldg, "LOBBY_BLDG_PROMPT")
 		var _eb = bldg.connect("interacted", self, "_on_building_interacted", [pack_id, str(pack.lobby_building_name)])
 
 
@@ -630,20 +634,23 @@ func _update_nearest_guy() -> void :
 func _build_npcs() -> void :
 	# the departure shuttle (deck) - enters the run flow at WEAPON select
 	var shuttle = _spawn_npc("res://ui/lobby/art/shuttle.png",
-			SHUTTLE_POS, tr("LOBBY_SHUTTLE"), tr("LOBBY_SHUTTLE_PROMPT"))
+			SHUTTLE_POS, tr("LOBBY_SHUTTLE"), "")
+	_register_prompt(shuttle, "LOBBY_SHUTTLE_PROMPT")
 	shuttle.near_radius = 190.0
 	var _e0 = shuttle.connect("interacted", self, "_on_shuttle_interacted")
 
 	# the changing booth - back wall between the stairs (opens character select)
 	var booth = _spawn_npc("res://ui/lobby/art/booth.png",
-			BOOTH_POS, tr("LOBBY_BOOTH"), tr("LOBBY_BOOTH_PROMPT"))
+			BOOTH_POS, tr("LOBBY_BOOTH"), "")
+	_register_prompt(booth, "LOBBY_BOOTH_PROMPT")
 	booth.near_radius = 260.0
 	var _e1 = booth.connect("interacted", self, "_on_booth_interacted")
 	_build_booth_screen(booth)
 
 	# the unlock board (deck east) - challenge progress
 	var board = _spawn_npc("res://items/all/pile_of_books/pile_of_books_icon.png",
-			BOARD_RECT.position + BOARD_RECT.size / 2.0, tr("LOBBY_BOARD"), tr("LOBBY_BOARD_PROMPT"))
+			BOARD_RECT.position + BOARD_RECT.size / 2.0, tr("LOBBY_BOARD"), "")
+	_register_prompt(board, "LOBBY_BOARD_PROMPT")
 	var _e3 = board.connect("interacted", self, "_on_board_interacted")
 
 	# the Mode Shrine placeholder is GONE (user 2026-08-21): mode toggles
@@ -1009,11 +1016,53 @@ func _close_mode_popup() -> void :
 	_update_all_guy_prompts()
 
 
-func _update_guy_prompt(char_id: String) -> void :
-	var station = _guy_stations.get(char_id)
-	if station == null:
+func _register_prompt(station, key: String, guy_id: String = "") -> void :
+	_prompt_stations.push_back({"station": station, "key": key, "guy": guy_id})
+	_apply_prompt(_prompt_stations[_prompt_stations.size() - 1])
+
+
+func _apply_prompt(entry: Dictionary) -> void :
+	var station = entry["station"]
+	if station == null or not is_instance_valid(station):
 		return
-	station.set_prompt(tr("LOBBY_GUY_PROMPT") % Utils.game_modes.active_count_for_owner(char_id))
+	var key: String = str(entry["key"])
+	var guy_id: String = str(entry["guy"])
+	if guy_id != "":
+		station.set_prompt(tr(key) % [interact_button_label(),
+				Utils.game_modes.active_count_for_owner(guy_id)])
+	else:
+		station.set_prompt(tr(key) % interact_button_label())
+
+
+func interact_button_label() -> String:
+	# the bottom face button on a pad, space on a keyboard - named the way the
+	# player names it, following whichever device they last touched
+	return tr("LOBBY_BTN_PAD") if _gamepad_prompts else tr("LOBBY_BTN_KEY")
+
+
+func _input(event: InputEvent) -> void :
+	# relabel the prompts when the player swaps device mid-session
+	var is_pad: bool = _gamepad_prompts
+	if event is InputEventJoypadButton:
+		is_pad = true
+	elif event is InputEventJoypadMotion and abs(event.axis_value) > 0.5:
+		is_pad = true
+	elif event is InputEventKey or event is InputEventMouseButton:
+		is_pad = false
+	if is_pad != _gamepad_prompts:
+		_gamepad_prompts = is_pad
+		_refresh_all_prompts()
+
+
+func _refresh_all_prompts() -> void :
+	for entry in _prompt_stations:
+		_apply_prompt(entry)
+
+
+func _update_guy_prompt(char_id: String) -> void :
+	for entry in _prompt_stations:
+		if str(entry["guy"]) == char_id:
+			_apply_prompt(entry)
 
 
 func _update_all_guy_prompts() -> void :
