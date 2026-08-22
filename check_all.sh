@@ -57,5 +57,15 @@ grep -q "GameModes VERIFY: OK" "$LSMOKE" || { echo "FAIL: game-mode registry/gra
 grep "GameModes VERIFY" "$LSMOKE"
 grep "Lobby ready:" "$LSMOKE"
 
+echo "== gate 6b: OFF DUTY mode un-gates =="
+MSMOKE="$(mktemp)"
+# NOTE: -s scripts boot without a main scene, so vanilla's DLC-resource and
+# cursor singletons log null-instance errors that have nothing to do with the
+# mod. The parse gate and the boot gate already police script errors; THIS gate
+# is about the assertions in check_modes.gd, so it reads only its verdict line.
+"$GODOT" --path "$LIVE" -s "$REPO/asset-dev/check_modes.gd" > "$MSMOKE" 2>&1 || true
+grep -q "MODE GATE: OK" "$MSMOKE" || { echo "FAIL: mode un-gate checks did not pass:"; grep "MODE GATE" "$MSMOKE" || tail -10 "$MSMOKE"; exit 1; }
+grep "MODE GATE" "$MSMOKE"
+
 echo ""
 echo "ALL 6 GATES PASSED (static + runtime)."

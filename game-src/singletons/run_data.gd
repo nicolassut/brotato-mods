@@ -1779,6 +1779,62 @@ func is_special(player_index: int) -> bool:
 	return character != null and character.my_id == "character_special"
 
 
+# --- OFF DUTY mode flows (HUB_PLAN 4c UN-GATE LAW) ---------------------------
+# A mode never ADDS a system: it removes the "that character must be in the run"
+# gate on a system its pack already ships. Each helper below is the SINGLE gate
+# the rest of the code reads - exactly like has_wildcard_flow above, which has
+# been the template since 2026-08-18. Ticks are stamped per player at run start
+# and never flip mid-run.
+
+# The Blacksmith's forge, borrowed ("Forging enabled for everyone").
+func has_forge_flow(player_index: int) -> bool:
+	return is_blacksmith(player_index) or is_game_mode_active("smith_open_forge", player_index)
+
+
+func is_mole(player_index: int) -> bool:
+	var character = get_player_character(player_index)
+	return character != null and character.my_id == "character_mole"
+
+
+# The P2W's crates, borrowed: ground item crates become lootboxes. Run-wide,
+# like has_p2w - the crates on the floor are shared scenery.
+func has_lootbox_crates() -> bool:
+	if has_p2w():
+		return true
+	for i in get_player_count():
+		if is_game_mode_active("p2w_crates", i) or is_game_mode_active("p2w_everything", i):
+			return true
+	return false
+
+
+# Which player's tier curve dresses a SHARED ground crate. The P2W first (his
+# kit owns the system), else the first player running the borrowed mode. Never
+# -1: first_p2w_index() returns -1 with no P2W in the run, and the crate paths
+# feed this straight into a per-player tier roll.
+func first_lootbox_index() -> int:
+	var p2w_index: int = first_p2w_index()
+	if p2w_index != - 1:
+		return p2w_index
+	for i in get_player_count():
+		if is_game_mode_active("p2w_crates", i) or is_game_mode_active("p2w_everything", i):
+			return i
+	return 0
+
+
+# The Mole's darkness, borrowed: fog on every wave. Run-wide (one battlefield).
+func has_fog_flow() -> bool:
+	for i in get_player_count():
+		if is_mole(i) or is_game_mode_active("mole_fog_all", i):
+			return true
+	return false
+
+
+# The Mole's shrunken vision circle, borrowed. Per player: in coop only the
+# players who ticked it (or ARE the Mole) squint.
+func has_thick_fog(player_index: int) -> bool:
+	return is_mole(player_index) or is_game_mode_active("mole_fog_thick", player_index)
+
+
 # Gourmet DLC - The Freeloader (character #16). Single gate for his whole kit: 8 shop
 # items / 8 upgrades, everything free, one purchase per shop, no reroll, no lock, no
 # crate items, no gold economy, flat 25% curse roll. Every other rule checks this.
@@ -1970,13 +2026,17 @@ func p2w_flush_pending(player_index: int) -> void :
 # Gourmet DLC - PER-PLAYER ladder check. any_player_uses_tier_ladder below answers "does this
 # RUN use the ladder", which is the wrong question for a weapon card: in coop it renamed every
 # other player's weapons too. Card naming asks this one, keyed on the card's owner.
+# TIER-LADDER LAW (HUB_PLAN 4c): the Blacksmith and P2W CHARACTERS always ride
+# the 8-rung ladder. Mode-BORROWED forging/lootboxes ride it only while the
+# linked "Full 8-tier ladder" switch is on; with it off they run vanilla tiers.
 func uses_tier_ladder(player_index: int) -> bool:
-	return is_blacksmith(player_index) or is_p2w(player_index)
+	return is_blacksmith(player_index) or is_p2w(player_index) \
+			or is_game_mode_active("forge_full_ladder", player_index)
 
 
 func any_player_uses_tier_ladder() -> bool:
 	for i in get_player_count():
-		if is_blacksmith(i) or is_p2w(i):
+		if uses_tier_ladder(i):
 			return true
 	return false
 
@@ -2123,7 +2183,7 @@ func can_combine(weapon_data: WeaponData, player_index: int) -> bool:
 	# Gourmet DLC - Blacksmith: no vanilla auto-merge. You arm one weapon, then pick a
 	# legal partner; the forge button drives that two-step flow, so an illegal pair
 	# simply never shows a button (the game refuses impossible merges by construction).
-	if is_blacksmith(player_index):
+	if has_forge_flow(player_index):
 		var pick = get_forge_pick(player_index)
 		if pick == null:
 			return has_forge_partner(weapon_data, player_index)

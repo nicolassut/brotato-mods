@@ -41,7 +41,12 @@ func _ready() -> void :
 
 
 func is_butcher_in_run() -> bool:
+	# Gourmet ecosystem (UN-GATE LAW): the Gourmet's "All fruit becomes steak"
+	# mode wears the Butcher's reskin without the Butcher. The skin is a
+	# run-wide presentation swap, so ANY player carrying the tick meats it up.
 	for i in RunData.get_player_count():
+		if RunData.is_game_mode_active("gourmet_steak", i):
+			return true
 		var c = RunData.get_player_character(i)
 		if c != null and c.my_id == "character_butcher":
 			return true

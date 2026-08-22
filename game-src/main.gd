@@ -408,13 +408,11 @@ func _ready() -> void :
 	if (_wave in events_fog_of_war and could_be_fog_wave):
 		_is_fog_wave = true
 
-	# Gourmet DLC - Mole: fog of war covers every wave
-	for fog_player_index in RunData.get_player_count():
-		var fog_character = RunData.get_player_character(fog_player_index)
-		if fog_character != null and fog_character.my_id == "character_mole":
-			_is_fog_wave = true
-			Utils.gourmet_tracker.ev("mole_fog", {})
-			break
+	# Gourmet DLC - Mole: fog of war covers every wave. Gourmet ecosystem: the
+	# Mole's "Fog every wave" mode borrows the same path (RunData.has_fog_flow).
+	if RunData.has_fog_flow():
+		_is_fog_wave = true
+		Utils.gourmet_tracker.ev("mole_fog", {})
 
 	# Gourmet DLC - Wildcard (Blackout): the modifier forces fog on, same path as the Mole.
 	# The roll blocks the VISION axis on natural fog waves, so this never doubles one up.
@@ -977,13 +975,13 @@ func spawn_consumables(unit: Unit) -> void :
 		# at spawn (boss crates roll the top band) and dress the ground drop in it.
 		# Pooled nodes: always reset the meta so stale rungs never leak.
 		consumable.set_meta("p2w_rung", - 1)
-		if RunData.has_p2w() and (consumable_to_spawn.my_id_hash == Keys.consumable_item_box_hash or consumable_to_spawn.my_id_hash == Keys.consumable_legendary_item_box_hash):
+		if RunData.has_lootbox_crates() and (consumable_to_spawn.my_id_hash == Keys.consumable_item_box_hash or consumable_to_spawn.my_id_hash == Keys.consumable_legendary_item_box_hash):
 			var p2w_crate_rung: int
 			if consumable_to_spawn.my_id_hash == Keys.consumable_legendary_item_box_hash:
 				var p2w_leg_roll: int = Utils.randi_range(0, 99)
 				p2w_crate_rung = 6 if p2w_leg_roll < 70 else (7 if p2w_leg_roll < 90 else 8)
 			else:
-				p2w_crate_rung = ItemService.get_p2w_rung_for_wave(RunData.current_wave, RunData.first_p2w_index(), 0)
+				p2w_crate_rung = ItemService.get_p2w_rung_for_wave(RunData.current_wave, RunData.first_lootbox_index(), 0)
 			consumable.set_meta("p2w_rung", p2w_crate_rung)
 			consumable.set_texture(load("res://items/custom/p2w/chest_%d/chest_%d.png" % [p2w_crate_rung, p2w_crate_rung]))
 		if consumable_to_spawn.my_id.begins_with("consumable_food_"):
@@ -2180,12 +2178,10 @@ func _on_WaveTimer_timeout() -> void :
 		var next_is_fog: bool = next_wave in RunData.events_fog_of_war and bool(RunData.get_player_effect(Keys.fog_of_war_event_hash, 0))
 		var next_is_bullet_hell: bool = (RunData.constant_projectile == 2 or next_wave in RunData.events_bullet_hell)\
 			 and bool(RunData.get_player_effect(Keys.bullet_hell_event_hash, 0)) and RunData.constant_projectile != 0
-		# A Mole in the lobby means EVERY wave is fog - both event axes are dead all run.
-		for mole_index in RunData.get_player_count():
-			var mole_character = RunData.get_player_character(mole_index)
-			if mole_character != null and mole_character.my_id == "character_mole":
-				next_is_fog = true
-				break
+		# A Mole in the run - or the borrowed "Fog every wave" mode - means EVERY
+		# wave is fog, so both event axes are dead all run.
+		if RunData.has_fog_flow():
+			next_is_fog = true
 		if next_is_fog or next_is_bullet_hell:
 			blocked.push_back("VISION")
 			blocked.push_back("BULLET_HELL")
@@ -2616,8 +2612,8 @@ func _spawn_storm_lootbox() -> void :
 	consumable.set_texture(crate_data.icon)
 	consumable.modulate.a = 1.0
 	consumable.set_meta("p2w_rung", - 1)
-	if RunData.has_p2w():
-		var storm_rung: int = ItemService.get_p2w_rung_for_wave(RunData.current_wave, RunData.first_p2w_index(), 0)
+	if RunData.has_lootbox_crates():
+		var storm_rung: int = ItemService.get_p2w_rung_for_wave(RunData.current_wave, RunData.first_lootbox_index(), 0)
 		consumable.set_meta("p2w_rung", storm_rung)
 		consumable.set_texture(load("res://items/custom/p2w/chest_%d/chest_%d.png" % [storm_rung, storm_rung]))
 	var storm_pos: Vector2 = ZoneService.get_rand_pos()

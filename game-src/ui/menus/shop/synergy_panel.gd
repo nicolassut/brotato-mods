@@ -19,7 +19,7 @@ func set_data(set: SetData, player_index: int) -> void :
 	# (run_data.update_sets), not by weapon count. Mirror that math here or the
 	# panel highlights nothing / the wrong row while the stats are flowing.
 	var bs_applied_row: int = - 1
-	if RunData.is_blacksmith(player_index):
+	if RunData.has_forge_flow(player_index):
 		var bs_points: int = int(RunData.players_data[player_index].active_set_points.get(set.my_id_hash, 0))
 		var bs_level: int = bs_points / RunData.BS_SET_POINTS_PER_LEVEL
 		if bs_level > RunData.BS_SET_MAX_LEVEL:
@@ -37,7 +37,7 @@ func set_data(set: SetData, player_index: int) -> void :
 	for i in set.set_bonuses.size():
 
 		var is_applied = i + 2 == nb
-		if RunData.is_blacksmith(player_index):
+		if RunData.has_forge_flow(player_index):
 			is_applied = i == bs_applied_row
 		var col_a = "" if is_applied else "[color=" + Utils.GRAY_COLOR_STR + "]"
 		var col_b = "" if is_applied else "[/color]"

@@ -856,10 +856,12 @@ func get_tier_from_wave(wave: int, player_index: int, increase_tier: = 0, use_bs
 	# as weapon rarities - _tiers_data[7..10] has no items, upgrades or consumables -
 	# so letting level-up upgrades roll them returns null from get_rand_element and
 	# the card renders the scene's placeholder labels before crashing on null.
-	var bs_tier_char = RunData.get_player_character(player_index)
 	# P2W rides the same ladder for his CHEST rarity roll (his shop never rolls
 	# weapons or items directly, so this cannot leak tier-7..10 into other pools).
-	var ladder: Array = BS_TIER_LADDER if (use_bs_ladder and bs_tier_char != null and (bs_tier_char.my_id == "character_blacksmith" or bs_tier_char.my_id == "character_p2w")) else VANILLA_TIER_LADDER
+	# RunData.uses_tier_ladder is the single authority (character OR the linked
+	# "Full 8-tier ladder" mode); use_bs_ladder still keeps this weapons/chests
+	# only, so tier-7..10 can never leak into upgrade or item pools.
+	var ladder: Array = BS_TIER_LADDER if (use_bs_ladder and RunData.uses_tier_ladder(player_index)) else VANILLA_TIER_LADDER
 
 	var tier: int = Tier.COMMON
 	for pos in range(ladder.size() - 1, - 1, - 1):
@@ -963,9 +965,9 @@ func get_upgrade_data(level: int, player_index: int) -> UpgradeData:
 # empty pool) instead of pink, and from T1 it skips green entirely.
 func get_tier_ladder(player_index: int) -> Array:
 	# Blacksmith (forging) and P2W (chest drops) both live on the 8-step ladder:
-	# their weapon naming, merging and tier-stepping all walk it.
-	var c = RunData.get_player_character(player_index)
-	return BS_TIER_LADDER if (c != null and (c.my_id == "character_blacksmith" or c.my_id == "character_p2w")) else VANILLA_TIER_LADDER
+	# their weapon naming, merging and tier-stepping all walk it - and so does
+	# anyone whose linked "Full 8-tier ladder" mode is on (TIER-LADDER LAW).
+	return BS_TIER_LADDER if RunData.uses_tier_ladder(player_index) else VANILLA_TIER_LADDER
 
 
 func get_next_tier(tier: int, player_index: int) -> int:

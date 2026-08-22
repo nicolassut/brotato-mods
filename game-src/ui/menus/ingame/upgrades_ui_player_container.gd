@@ -137,7 +137,7 @@ func _show_p2w_lootbox(consumable_data: ConsumableData, p2w_rung: int) -> void :
 	# mid-wave crates are NEVER cursed (user 2026-08-11): curse is a shop
 	# mechanic (stat_curse rates + lock-curse pity), not a battlefield one
 	var chest_cursed: bool = false
-	var entry: Dictionary = ItemService.p2w_roll_chest_drop(p2w_rung, player_index, chest_cursed, not RunData.is_p2w(player_index))
+	var entry: Dictionary = ItemService.p2w_roll_chest_drop(p2w_rung, player_index, chest_cursed, not RunData.uses_tier_ladder(player_index))
 	entry["rung"] = p2w_rung
 	entry["cursed"] = chest_cursed
 	var item_data: ItemParentData = RunData.p2w_resolve_entry(entry, player_index)

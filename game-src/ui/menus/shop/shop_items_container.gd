@@ -196,7 +196,7 @@ func _can_weapon_be_bought(shop_item: ShopItem) -> bool:
 	# whole identity is the manual class-based forge, so that vanilla shortcut would rob
 	# him of the random-next-tier roll. Block the buy instead (weapon can't enter a full
 	# inventory until space is made), same as any non-mergeable weapon when full.
-	if player_has_weapon and not weapon_slot_available and weapon_data.upgrades_into != null and weapon_data.upgrades_into.tier <= max_weapon_tier and not RunData.is_blacksmith(player_index):
+	if player_has_weapon and not weapon_slot_available and weapon_data.upgrades_into != null and weapon_data.upgrades_into.tier <= max_weapon_tier and not RunData.has_forge_flow(player_index):
 		return true
 
 	if no_duplicate_weapons and player_has_weapon_family:

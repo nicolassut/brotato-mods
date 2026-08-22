@@ -58,8 +58,8 @@ func _change_fog_size(_wave):
 	for i in range(RunData.get_player_count()):
 		_player_bonus.push_back(RunData.get_player_effect(Keys.stat_fog_visibility_hash, i) / 100.0)
 		var _fog_mult = 1.0
-		var _char = RunData.get_player_character(i)
-		if _char != null and _char.my_id == "character_mole":
+		# the Mole squints - and so does anyone running his "Thick fog" mode
+		if RunData.has_thick_fog(i):
 			_fog_mult = MOLE_FOG_VISIBILITY_MULT
 		_player_fog_mult.push_back(_fog_mult)
 		player_lights[i].scale = Vector2.ONE * (1.0 + _player_bonus[i]) * _fog_mult

@@ -146,7 +146,7 @@ func _update_button_visibilities() -> void :
 	_combine_button.visible = _item_data is WeaponData and RunData.can_combine(_item_data, player_index)
 
 	# Gourmet DLC - Blacksmith: relabel the forge button for each step of the manual pair-pick
-	if _combine_button.visible and _item_data is WeaponData and RunData.is_blacksmith(player_index):
+	if _combine_button.visible and _item_data is WeaponData and RunData.has_forge_flow(player_index):
 		var forge_pick = RunData.get_forge_pick(player_index)
 		if forge_pick == null:
 			_combine_button.text = tr("GOURMET_FORGE_START")

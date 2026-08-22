@@ -874,7 +874,7 @@ func _on_item_combine_button_pressed(weapon_data: WeaponData, player_index: int)
 	# Gourmet DLC - Blacksmith: two-step manual forge. First press arms a weapon; a second
 	# press on the armed weapon cancels; a press on a legal partner forges the pair. All
 	# merges (including identical duplicates) go through this one path - no vanilla auto-merge.
-	if RunData.is_blacksmith(player_index):
+	if RunData.has_forge_flow(player_index):
 		_sync_forge_weapons(player_index)
 		var pick = RunData.get_forge_pick(player_index)
 		if pick == null:
@@ -929,7 +929,7 @@ func _sync_forge_weapons(player_index: int) -> void :
 func _refresh_forge_visuals(player_index: int) -> void :
 	var gear_container: = _get_gear_container(player_index)
 	_sync_forge_weapons(player_index)
-	var pick = RunData.get_forge_pick(player_index) if RunData.is_blacksmith(player_index) else null
+	var pick = RunData.get_forge_pick(player_index) if RunData.has_forge_flow(player_index) else null
 
 	if pick != null:
 		gear_container.weapons_container.set_label(tr("GOURMET_FORGE_HINT"))
